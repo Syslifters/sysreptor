@@ -1,0 +1,197 @@
+format = "projects/v2"
+id = "e353460a-c128-417c-9873-59d14f8ed4f4"
+name = "HTB CWPE Report"
+language = "en-US"
+tags = []
+members = []
+images = []
+files = []
+
+[[sections]]
+id = "meta"
+status = "in-progress"
+
+[[sections]]
+id = "document_control"
+status = "in-progress"
+
+[[sections]]
+id = "executive_summary"
+status = "in-progress"
+
+[[sections]]
+id = "wifi_pentest_summary"
+status = "in-progress"
+
+[[sections]]
+id = "network_pentest_walkthrough"
+status = "in-progress"
+
+[[sections]]
+id = "remediation_summary"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[report_data]
+title = "Wi-Fi Security Assessment"
+customer_full = "TODO Customer Ltd."
+customer_short = "TODO Customer"
+customer_contacts = []
+pentest_approach = "GREYBOX"
+report_version = "TODO 1.0"
+executive_summary = "{{ report.customer_full }} (“{{ report.customer_short }}” herein) contracted {{ report.candidate.name }} to perform a Wi-Fi Security Assessment of {{ report.customer_short }}’s environment to identify security weaknesses, determine impact on {{ report.customer_short }}’s critical infrastructure, document all findings in a clear and repeatable manner, and provide remediation recommendations."
+approach = "{{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }} with no credentials and minimal advance knowledge of {{ report.customer_short }}’ Wi-Fi environment. The goal was to evaluate the security posture of their wireless infrastructure, identify misconfigurations, vulnerabilities, and attack paths, and determine their potential impact. Testing was performed remotely via SSH/RDP from the designated attack hosts at each office, focusing on the in-scope SSIDs and associated internal hosts. Each identified weakness was documented and manually analyzed to determine exploitation possibilities, privilege escalation potential, and lateral movement opportunities. {{ report.candidate.name }} sought to demonstrate the full impact of each vulnerability, up to and including a company-wide compromise. If {{ report.candidate.name }} sought to demonstrate the full impact of every vulnerability, up to and including internal domain compromise. If {{ report.candidate.name }} gained a foothold in the environment, Paxora Pharmaceuticals authorized additional testing to include lateral movement, horizontal/vertical privilege escalation, and validation of implemented security controls, such as antivirus solutions and infrastructure updates, to demonstrate the potential consequences of a complete compromise."
+scope = """
+The scope of this assessment included the internal network ranges for {{ report.customer_short }}’ offices, the paxora.local Wi-Fi networks, and any additional Wi-Fi networks owned by {{ report.customer_short }} that were discovered during the engagement. Internal access was provided by the client, and a Linux SSH server was installed on their internal network to facilitate the assessment. 
+
+### In Scope Assets
+| Host/URL/IP Address | Description |
+|:---|:---|
+| TODO 10.16.X.X | TODO |
+| 172.16.219.9  | {{ report.customer_short }}’  Domain controller, internal AD host |
+| 172.16.219.0/24  | {{ report.customer_short }}’ internal network |
+| TODO other discovered internal domain(s) | TODO |
+"""
+assessment_overview = """
+During the Wi-Fi Security Assessment of {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}' information systems. The findings were categorized by severity level, with TODO {{ finding_stats.count_high }} of the findings being a high-risk rating, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There was also {{ finding_stats.count_info }} informational finding related to improving security monitoring capabilities within the internal network.
+
+TODO EXECUTIVE SUMMARY HERE
+
+{{ report.customer_short }} should create a remediation plan based on the [Remediation Summary](#remediation-summary) section of this report, addressing all high-risk findings as soon as possible according to the needs of the business. Given the comprehensive nature of this in-depth Wi-Fi security assessment test, {{ report.customer_short }} should focus on implementing the recommendations provided to address misconfigurations, privilege escalation paths, and lateral movement opportunities.
+
+To maintain a robust security posture, {{ report.customer_short }} should also consider scheduling periodic Wi-Fi security assessments and penetration tests to validate improvements and identify emerging vulnerabilities. Continuous monitoring and proactive hardening of the Wi-Fi environment will make it increasingly challenging for attackers to compromise the network and will improve {{ report.customer_short }}' ability to detect and respond to suspicious activity effectively.
+"""
+wifi_summary = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internal network of {{ report.customer_short }}. {{ report.customer_short }} provided the tester with internal network access via the Linux SSH server, but did not provide additional information such as configuration details.  "
+finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}' information systems. As requested by {{ report.customer_short }}, this assessment focuses exclusively on findings with medium and high impact, ensuring that all documented vulnerabilities and recommendations are directly relevant to risks that could significantly affect the confidentiality, integrity, and availability of {{ report.customer_short }}’ systems. The below chart provides a summary of the findings by severity level."
+walkthrough_summary = """
+During the course of the assessment {{ report.candidate.name }} was able to gain a foothold within the internal network via the provided access through the Linux SSH server, move laterally, and compromise the internal network, leading to full administrative control over the `paxora` wi-fi network and TODO INSERT NETWORK NAME Wi-Fi network. 
+
+The steps below outline the actions taken from initial access to compromise. This attack chain does not encompass all vulnerabilities and misconfigurations discovered during the assessment. Any issues not directly used as part of the attack chain are documented separately in the [Technical Findings Details](#findings) section, ranked by severity level. 
+
+The purpose of this attack chain is to demonstrate to {{ report.customer_short }} the potential impact of the vulnerabilities identified in this report and how they interconnect to represent the overall risk to the environment. This approach also helps to prioritize remediation efforts - patching even two critical flaws could disrupt the attack chain significantly while allowing the organization time to address other reported issues. 
+
+Although additional findings detailed in this report could potentially lead to a similar level of access, this documented attack chain represents the path of least resistance taken by the assessor to achieve domain compromise.
+"""
+walkthrough_details = """
+{{ report.candidate.name }} performed the following to fully compromise the `paxora` wi-fi networks.
+
+1. TODO LIST HIGH LEVEL STEPS
+2. ...
+
+**Detailed reproduction steps for this attack chain are as follows:**
+TODO FILL IN DETAILED ATTACK CHAIN STEPS
+
+{{ report.candidate.name }}then performed the following to fully compromise the TODO INSERT OTHER NETWORK NAME(S) network.
+
+1. TODO LIST HIGH LEVEL STEPS
+2. ...
+
+**Detailed reproduction steps for this attack chain are as follows:**
+TODO FILL IN DETAILED ATTACK CHAIN STEPS
+"""
+remediation_summary = "As a result of this assessment there are several opportunities for {{ report.customer_short }} to strengthen its internal network and Wi-Fi security. Remediation efforts are prioritized below, starting with those that will likely take the least amount of time and effort to complete. {{ report.customer_short }} should ensure that all remediation steps and mitigating controls are carefully planned and tested to prevent any service disruptions or loss of data."
+short_term = """
+TODO SHORT TERM REMEDIATION:
+* [Finding Reference 1](#findingid1) - Example remediation
+
+TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+"""
+medium_term = """
+TODO MEDIUM TERM REMEDIATION:
+* [Finding Reference 1](#findingid1) - Example remediation
+* [Finding Reference 2](#findingid2) - TODO FILL IN AS APPROPRIATE
+
+TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+"""
+long_term = """
+TODO LONG TERM REMEDIATION:
+* TODO FILL IN AS APPROPRIATE
+
+TODO FILL IN BASED ON FINDINGS, EXAMPLES LEFT FOR REFERENCE
+"""
+appendix_severities = """
+Each finding has been assigned a severity rating of critical, high, medium, low or info. The rating is based off of an assessment of the priority with which each finding should be viewed and the potential impact each has on the confidentiality, integrity, and availability of {{ report.customer_short }}’ data.
+
+| Rating   | CVSS Score Range |
+| -------- | ---------------- | 
+| Critical | 9.0 – 10.0       |
+| High     | 7.0 – 8.9        |
+| Medium   | 4.0 – 6.9        |
+| Low      | 0.1 – 3.9        |
+| Info     | 0.0              |
+"""
+appendix_host_discovery = """
+| IP Address | Port | Service | Notes |
+| ------- | ------- | ------- | ------- |
+| TODO FILL IN AS APPROPRIATE   |     |     |    |
+"""
+appendix_subdomain_discovery = """
+| URL | Description | Discovery Method |
+| ------- | ------- | ------- | 
+| TODO FILL IN DISCOVERED VHOSTS/SUBDOMAINS   |     |     |
+"""
+appendix_exploited_hosts = """
+| Host | Scope | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
+"""
+appendix_compromised_users = """
+| Username | Type | Method | Notes |
+| ------- | ------- | ------- | ------- |
+| TODO FILL IN AS APPROPRIATE   | Text    | Text    |Text    |
+"""
+appendix_cleanup = """
+| Host | Scope | Change/Cleanup Needed |
+| ------- | ------- | ------- | 
+| TODO FILL IN AS APPROPRIATE   |     |     |
+"""
+appendix_flags = """
+| Flag # | Host | Flag Value | Flag Location | Method Used |
+| ------- | ------- | ------- | ------- | ------- |
+| 1. | TODO HOSTNAME   | TODO MD5 HASH    |  TODO Administrator's desktop   |  TODO Exploit CVE-XXX-XXXX (example)  |
+| 2. | | | | |
+| 3. | | | | |
+| 4. | | | | |
+| 5. | | | | |
+| 6. | | | | |
+| 7. | | | | |
+| 8. | | | | |
+| 9. | | | | |
+| 10. | | | | |
+| 11. | | | | |
+| 12. | | | | |
+| 13. | | | | |
+"""
+appendix_additional_sections = []
+
+[report_data.candidate]
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
+
+[[findings]]
+id = "4d55d286-cd86-448a-8916-352c18f0163e"
+status = "in-progress"
+order = 1
+
+[findings.data]
+title = "TODO FINDING TITLE"
+cvss = "n/a"
+summary = "TODO DESCRIPTION"
+impact = "TODO IMPACT"
+description = """
+```
+ADD COMMAND OUTPUT AS APPROPRIATE
+```
+
+TODO ADD SCREENSHOTS AS APPROPRIATE
+"""
+recommendation = "TODO REMEDIATION"
+affected_components = []
+references = []
+
+[project_type]
+file = "../htb-designs/cwpe.toml"

@@ -4,6 +4,7 @@
 * Disable browsable API by default
 * Fix comment update error when list item gets deleted
 * Markdown editor: Fix SVGs not rendered in math preview
+* Add design for HTB CWPE certification
 
 
 ## v2026.4 - 2026-01-23
