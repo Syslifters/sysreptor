@@ -18,15 +18,18 @@ class JiraExportPluginConfig(PluginConfig):
         StringField(
             id='JIRA_URL',
             label='Jira URL',
+            required=False,
             pattern='^https?://.*$',
             help_text='Base URL of your Jira instance (e.g., https://your-company.atlassian.net)'),
         StringField(
             id='JIRA_USERNAME',
             label='Jira Username',
+            required=False,
             help_text='Jira username for authentication (usually your email for Cloud)'),
         StringField(
             id='JIRA_API_TOKEN',
             label='Jira API Token',
+            required=False,
             help_text='API token for authentication'),
     ])
 
