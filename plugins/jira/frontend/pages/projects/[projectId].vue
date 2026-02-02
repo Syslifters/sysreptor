@@ -119,8 +119,7 @@
             type="success"
             class="mb-4"
           >
-            Successfully processed {{ successfulIssues.length }} issue(s):
-            <span v-if="exportResults.created.length > 0">{{ exportResults.created.length }} created</span><span v-if="exportResults.updated.length > 0 && exportResults.created.length > 0">, </span><span v-if="exportResults.updated.length > 0">{{ exportResults.updated.length }} updated</span><span v-if="exportResults.unchanged.length > 0 && (exportResults.created.length > 0 || exportResults.updated.length > 0)">, </span><span v-if="exportResults.unchanged.length > 0">{{ exportResults.unchanged.length }} unchanged</span>
+            Successfully processed {{ successfulIssues.length }} issue(s)
           </v-alert>
 
           <v-alert
@@ -335,7 +334,7 @@ async function exportToJira() {
 
     // Send to backend
     const response = await $fetch<ExportResults>(
-      `/api/plugins/${appConfig.pluginId}/api/projects/${project.value.id}/jira/exportissues/`,
+      `/api/plugins/${appConfig.pluginId}/api/projects/${project.value.id}/jira/export/`,
       {
         method: 'POST',
         body: {

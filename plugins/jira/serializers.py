@@ -13,7 +13,7 @@ class JiraIssueSerializer(serializers.Serializer):
         return finding
 
 
-class JiraExportIssuesSerializer(serializers.Serializer):
+class JiraExportSerializer(serializers.Serializer):
     jira_project = serializers.CharField()
     issue_type = serializers.CharField()
     issues = JiraIssueSerializer(many=True)

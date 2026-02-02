@@ -2,6 +2,7 @@ import base64
 import itertools
 
 import httpx
+from asgiref.sync import sync_to_async
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -11,7 +12,7 @@ from sysreptor.pentests.views import ProjectSubresourceMixin
 from sysreptor.plugins import configuration
 from sysreptor.utils.api import ViewSetAsync
 
-from .serializers import JiraExportIssuesSerializer
+from .serializers import JiraExportSerializer
 
 
 async def jira_request(client: httpx.AsyncClient, method: str, endpoint: str, **kwargs) -> dict:
@@ -235,6 +236,8 @@ class JiraExportViewSet(ProjectSubresourceMixin, ViewSetAsync):
 
     @action(detail=False, methods=['get'])
     async def projects(self, request, *args, **kwargs):
+        await sync_to_async(self.get_project)()
+
         async with httpx.AsyncClient() as client:
             data = await jira_request(client, method='GET', endpoint='/rest/api/3/project/search')
             projects = [
@@ -245,6 +248,8 @@ class JiraExportViewSet(ProjectSubresourceMixin, ViewSetAsync):
         
     @action(detail=False, methods=['get'])
     async def issuetypes(self, request, *args, **kwargs):
+        await sync_to_async(self.get_project)()
+
         jira_project = request.query_params.get('jira_project')
         if not jira_project:
             raise ValidationError('jira_project query parameter is required')
@@ -258,8 +263,8 @@ class JiraExportViewSet(ProjectSubresourceMixin, ViewSetAsync):
             ]
             return Response({'issueTypes': issue_types})
 
-    @action(detail=False, methods=['post'], serializer_class=JiraExportIssuesSerializer)
-    async def exportissues(self, request, *args, **kwargs):
+    @action(detail=False, methods=['post'], serializer_class=JiraExportSerializer)
+    async def export(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         validated_data = serializer.validated_data
         project = serializer.context['project']
