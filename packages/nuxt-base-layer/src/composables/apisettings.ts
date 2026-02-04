@@ -1,3 +1,4 @@
+import { defineStore } from 'pinia';
 import { type ApiSettings, type AuthProvider, type CWE, type LicenseInfoDetails, type ReviewStatusDefinition, AuthProviderType, LicenseType, ReviewStatus } from '#imports';
 import { useSingletonFetcher } from './api';
 

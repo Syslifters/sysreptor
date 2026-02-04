@@ -44,7 +44,7 @@
     "vitest": "^4.0.15",
     "happy-dom": "^20.0.0",
     "vue-tsc": "^3.0.4",
-    "@playwright/test": "1.57"
+    "@playwright/test": "1.58.1"
   },
   "overrides": {
     "vue": "latest"

@@ -18,7 +18,7 @@ dependencies = [
   "adrf (~=0.1)",
 
   "psycopg[binary,pool] (~=3.1)",
-  "gunicorn (~=23.0)",
+  "gunicorn (~=25.0)",
   "uvicorn[standard] (~=0.40)",
   "uvicorn-worker (~=0.4)",
   "whitenoise (~=6.4)",
@@ -59,7 +59,7 @@ dependencies = [
   "pytest-cov (~=7.0)",
 
   "pip-licenses-cli (~=3.0)",
-  "ruff (~=0.14)",
+  "ruff (~=0.15)",
 ]
 
 

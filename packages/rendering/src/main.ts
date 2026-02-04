@@ -64,7 +64,7 @@ declare global {
 export function renderReportTemplate() {
   // injected as global variables
   const REPORT_TEMPLATE = '<div>' + (window.REPORT_TEMPLATE || '') + '</div>';
-  const REPORT_DATA = window.REPORT_DATA || { report: {}, finding_groups: [], pentesters: [] };
+  const REPORT_DATA = (window.REPORT_DATA || { report: {}, finding_groups: [], pentesters: [] }) as ReportData;
 
 
   const templateCompilerOptions = {

@@ -1,3 +1,4 @@
+import { defineStore } from 'pinia';
 import type { NavigateToOptions } from '#app/composables/router'
 import type { LocationQueryValue } from "#vue-router";
 import { AuthProviderType, type AuthProvider, type User, useApiSettings, type LoginResponse, LoginResponseStatus  } from "#imports";

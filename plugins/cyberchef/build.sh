@@ -2,7 +2,7 @@
 
 set -e
 
-CYBERCHEF_VERSION="v10.19.4"
+CYBERCHEF_VERSION="v10.20.0"
 
 if [ ! -f "./static/cyberchef/CyberChef_${CYBERCHEF_VERSION}.html" ]; then
   echo "Downloading CyberChef"
