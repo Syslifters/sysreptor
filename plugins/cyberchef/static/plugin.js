@@ -1,4 +1,4 @@
-const CYBERCHEF_VERSION = 'v10.19.4';
+const CYBERCHEF_VERSION = 'v10.20.0';
 
 export default function(options) {
   const routeConfig = {

@@ -1,3 +1,4 @@
+import { defineStore } from 'pinia';
 import { CvssVersion } from "@base/utils/cvss/base";
 import { ReportingSidebarType, MarkdownEditorMode, type FilterValue } from "#imports";
 

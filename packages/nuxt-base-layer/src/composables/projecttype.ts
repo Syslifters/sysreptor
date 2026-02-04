@@ -1,3 +1,4 @@
+import { defineStore } from 'pinia';
 import { pick } from 'lodash-es';
 import { parseISO, formatISO9075 } from 'date-fns';
 import { type FieldDefinition, type ProjectType, ProjectTypeScope, SourceEnum } from "#imports";
