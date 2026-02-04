@@ -1,0 +1,29 @@
+{
+  "name": "@sysreptor/plugin-jira-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
+    "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
+    "@sysreptor/markdown": "../../../packages/markdown",
+
+    "nuxt": "~4.2",
+    "vuetify": "~3.11",
+    "pinia": "^3.0"
+  },
+  "devDependencies": {
+    "@nuxt/test-utils": "^3.21.0",
+    "@vue/test-utils": "^2.4.6",
+    "vitest": "^4.0.15",
+    "@cfworker/json-schema": "^4.1.1"
+  },
+  "overrides": {
+    "vue": "latest"
+  }
+}
