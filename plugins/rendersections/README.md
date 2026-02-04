@@ -15,10 +15,11 @@ ENABLED_PLUGINS="rendersections"
 You will need to update your design to support this plugin, as it relies on the `data-sysreptor-rendersections` attribute and an accompanying `id`.
 This attribute takes one of the following values:
 
+* `always`: The element will always be rendered
 * `choosable`: The element can be chosen to be included or excluded from the PDF
 * `related`: The element will only be included in the PDF, if one of the related sections is included. This is based on the attribute `data-sysreptor-rendersections-relatedids`, which takes a `,` separated list of section IDs.
 
-Compared to the `renderfindings` plugin, this works also on non-top-level elements and only affects elements with the attribute `data-sysreptor-rendersections`.
+Compared to the `renderfindings` plugin, this works also on non-top-level elements.
 
 How rendering works:
 

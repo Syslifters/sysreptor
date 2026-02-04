@@ -13,10 +13,13 @@ from .serializers import RenderSectionsSerializer
 
 
 RENDERSECTIONS_ATTRIBUTE = 'data-sysreptor-rendersections'
+RENDERSECTIONS_SELECTOR_ALWAYS = f"@{RENDERSECTIONS_ATTRIBUTE}='always'"
 RENDERSECTIONS_SELECTOR_CHOOSABLE = f"@{RENDERSECTIONS_ATTRIBUTE}='choosable'"
 RENDERSECTIONS_SELECTOR_RELATED = f"@{RENDERSECTIONS_ATTRIBUTE}='related'"
 
 RENDERSECTIONS_RELATEDIDS_ATTRIBUTE = 'data-sysreptor-rendersections-relatedids'
+
+ALWAYS_SELECTOR = f"({RENDERSECTIONS_SELECTOR_ALWAYS})"
 
 CHOOSABLE_SELECTOR = f"({RENDERSECTIONS_SELECTOR_CHOOSABLE} and @id)"
 CHOOSABLE_XPATH = f"//*[{CHOOSABLE_SELECTOR}]"
@@ -24,7 +27,7 @@ CHOOSABLE_XPATH = f"//*[{CHOOSABLE_SELECTOR}]"
 RELATED_SELECTOR = f"({RENDERSECTIONS_SELECTOR_RELATED} and @{RENDERSECTIONS_RELATEDIDS_ATTRIBUTE})"
 RELATED_XPATH =   f"//*[({RELATED_SELECTOR})]"
 
-FILTERING_XPATH = f"//*[({CHOOSABLE_SELECTOR} or {RELATED_SELECTOR})]"
+FILTERING_XPATH = f"//*[({ALWAYS_SELECTOR} or {CHOOSABLE_SELECTOR} or {RELATED_SELECTOR})]"
 
 
 class RenderSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
@@ -34,20 +37,30 @@ class RenderSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
     @sync_to_async()
     def post_process_html(self, html, section_ids):
         html_tree = etree.HTML(html)
+        old_body = html_tree.find("body")
+        new_body = etree.Element("body")
 
-        for elem in html_tree.xpath(FILTERING_XPATH):
+        for elem in old_body.xpath(FILTERING_XPATH):
             keep = False
+            mode = elem.get(RENDERSECTIONS_ATTRIBUTE)
 
-            if elem.get(RENDERSECTIONS_ATTRIBUTE) == "choosable" \
+            if mode == "always":
+                keep = True
+
+            elif mode == "choosable" \
                 and elem.get("id") in section_ids:
                     keep = True
 
-            elif elem.get(RENDERSECTIONS_ATTRIBUTE) == 'related' \
+            elif mode == 'related' \
                 and set(elem.get(RENDERSECTIONS_RELATEDIDS_ATTRIBUTE).split(",")) & set(section_ids):
                     keep = True
 
-            if not keep:
-                elem.getparent().remove(elem)
+            if keep:
+                new_body.append(elem)
+        
+        parent = old_body.getparent()
+        parent.remove(old_body)
+        parent.append(new_body)
 
         return etree.tostring(html_tree, method="html", pretty_print=True)
 

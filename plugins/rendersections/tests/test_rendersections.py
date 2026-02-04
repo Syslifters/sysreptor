@@ -64,7 +64,8 @@ class TestRenderSingleSectionPdf:
             assert res.status_code == 200
             assert not res.data['messages']
             html = RenderStageResult.from_dict(res.data).pdf.decode()
-            return etree.tostring(etree.HTML(html).find('body/div')).decode()[5:-6]
+            body = etree.HTML(html).find('body')
+            return ''.join([etree.tostring(child, encoding='unicode') for child in body])
 
     def test_render_pdf(self):
         res = self.client.post(reverse(f'{URL_NAMESPACE}:rendersections', kwargs={'project_pk': self.project.id}), data={
@@ -87,17 +88,22 @@ class TestRenderSingleSectionPdf:
         assert self.finding3.title not in html
 
     @pytest.mark.parametrize(('template', 'expected'), [
-        ('<div>include</div><div id="excluded" data-sysreptor-rendersections="choosable">exclude</div>', '<div>include</div>'),
-        ('<div>include<div v-if="!data.isPluginRenderFindings">exclude</div></div>', '<div>include</div>'),
-        ('<div v-if="!data.isPluginRenderFindings">exclude<div>include</div></div>', ''),
-        ('<div id="summary">summary</div><div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div>', '<div id="summary">summary</div><div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div>'),
-        ('<div id="summary">summary</div><div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable" :data-sysreptor-rendersections-name="finding.title">finding</div>', '<div id="summary">summary</div><div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Finding 1">finding</div>'),
-        ('<div id="summary">summary</div><section class="findings-list"><h1>Findings</h1><div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div></section>', '<div id="summary">summary</div><section class="findings-list"><h1>Findings</h1><div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div></section>'),
-        ('<div id="summary">summary</div><div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="11111111-1111-1111-1111-111111111111">related</div>', '<div id="summary">summary</div><div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="11111111-1111-1111-1111-111111111111">related</div>'),
-        ('<div id="summary">summary</div><div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-name="Related" data-sysreptor-rendersections-relatedids="non-existing">related</div>', '<div id="summary">summary</div><div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div>'),
+        ('<div>exclude</div>', ''),
+        ('<div data-sysreptor-rendersections="always">include</div>', '<div data-sysreptor-rendersections="always">include</div>'),
+        ('<div>exclude</div><div id="excluded" data-sysreptor-rendersections="choosable">exclude</div>', ''),
+        ('<div>exclude</div><div data-sysreptor-rendersections="asdf123">exclude</div>', ''),
+        ('<div>exclude<div v-if="!data.isPluginRenderFindings">exclude</div></div>', ''),
+        ('<div v-if="!data.isPluginRenderFindings">exclude<div>exclude</div></div>', ''),
+        ('<div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div>', '<div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div>'),
+        ('<div id="summary" data-sysreptor-rendersections="always">summary</div><div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div>', '<div id="summary" data-sysreptor-rendersections="always">summary</div><div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div>'),
+        ('<div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable" :data-sysreptor-rendersections-name="finding.title">finding</div>', '<div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Finding 1">finding</div>'),
+        ('<div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="11111111-1111-1111-1111-111111111111">related</div>', '<div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="11111111-1111-1111-1111-111111111111">related</div>'),
+        ('<div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-name="Related" data-sysreptor-rendersections-relatedids="non-existing">related</div>', '<div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div>'),
     ])
     def test_html_postprocess(self, template, expected):
         html = self.render_html(sections=[self.finding1.finding_id], template=template)
+        print("Rendered HTML:", repr(html))
+        print("Expected HTML:", repr(expected))
         assertHTMLEqual(html, expected)
 
 
