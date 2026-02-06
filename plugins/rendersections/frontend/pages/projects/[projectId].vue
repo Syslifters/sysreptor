@@ -109,7 +109,7 @@
 <script setup lang="ts">
 import { useFetchE, type PentestProject, type PentestFinding, type PdfResponse, MessageLevel, type ErrorMessage } from '#imports';
 import type { PdfPreview } from '#components';
-import { base64decode, fileDownload } from '@base/utils/helpers';
+import { base64decode, fileDownload, generateRandomPassword } from '@base/utils/helpers';
 
 enum RenderSectionsMode {
   COMBINED = 'combined',
@@ -130,7 +130,7 @@ const selectedSections = ref<Section[]>([]);
 const renderMode = ref<RenderSectionsMode>(RenderSectionsMode.COMBINED);
 const renderPassword = ref<string>("");
 
-const menuSize = ref(50);
+const menuSize = ref(window.innerWidth * 0.5);
 const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');
 const renderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 function refreshPdfPreview() {
