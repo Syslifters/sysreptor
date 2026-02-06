@@ -64,7 +64,7 @@ class TestRenderSingleSectionPdf:
             assert res.status_code == 200
             assert not res.data['messages']
             html = RenderStageResult.from_dict(res.data).pdf.decode()
-            body = etree.HTML(html).find('body')
+            body = etree.HTML(html).find('body/div')
             return ''.join([etree.tostring(child, encoding='unicode') for child in body])
 
     def test_render_pdf(self):
@@ -88,6 +88,7 @@ class TestRenderSingleSectionPdf:
         assert self.finding3.title not in html
 
     @pytest.mark.parametrize(('template', 'expected'), [
+        # Basic cases
         ('<div>exclude</div>', ''),
         ('<div data-sysreptor-rendersections="always">include</div>', '<div data-sysreptor-rendersections="always">include</div>'),
         ('<div>exclude</div><div id="excluded" data-sysreptor-rendersections="choosable">exclude</div>', ''),
@@ -99,11 +100,30 @@ class TestRenderSingleSectionPdf:
         ('<div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable" :data-sysreptor-rendersections-name="finding.title">finding</div>', '<div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Finding 1">finding</div>'),
         ('<div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="11111111-1111-1111-1111-111111111111">related</div>', '<div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="11111111-1111-1111-1111-111111111111">related</div>'),
         ('<div v-for="finding in findings" :id="finding.id" data-sysreptor-rendersections="choosable">finding</div><div data-sysreptor-rendersections="related" data-sysreptor-rendersections-name="Related" data-sysreptor-rendersections-relatedids="non-existing">related</div>', '<div id="11111111-1111-1111-1111-111111111111" data-sysreptor-rendersections="choosable">finding</div>'),
+        # Nested elements
+        ('<div data-sysreptor-rendersections="always"><div>child content</div></div>', '<div data-sysreptor-rendersections="always"><div>child content</div></div>'),
+        ('<div data-sysreptor-rendersections="always"><div id="include" data-sysreptor-rendersections="choosable">included</div></div>', '<div data-sysreptor-rendersections="always"><div id="include" data-sysreptor-rendersections="choosable">included</div></div>'),
+        ('<div data-sysreptor-rendersections="always"><div id="exclude" data-sysreptor-rendersections="choosable">excluded</div></div>', '<div data-sysreptor-rendersections="always"></div>'),
+        ('<div id="include" data-sysreptor-rendersections="choosable"><div>child content</div></div>', '<div id="include" data-sysreptor-rendersections="choosable"><div>child content</div></div>'),
+        ('<div id="include" data-sysreptor-rendersections="choosable"><div>included</div><div id="exclude" data-sysreptor-rendersections="choosable">excluded</div></div>', '<div id="include" data-sysreptor-rendersections="choosable"><div>included</div></div>'),
+        ('<div id="include" data-sysreptor-rendersections="choosable"><div data-sysreptor-rendersections="always">included</div></div>', '<div id="include" data-sysreptor-rendersections="choosable"><div data-sysreptor-rendersections="always">included</div></div>'),
+        ('<div id="exclude" data-sysreptor-rendersections="choosable"><div>child</div></div>', ''),
+        ('<div id="exclude" data-sysreptor-rendersections="choosable"><div id="include" data-sysreptor-rendersections="choosable">child</div></div>', ''),
+        ('<div id="exclude" data-sysreptor-rendersections="choosable"><div data-sysreptor-rendersections="always">child</div></div>', ''),
+        ('<div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="include"><div>nested in related</div></div>', '<div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="include"><div>nested in related</div></div>'),
+        ('<div data-sysreptor-rendersections="related" data-sysreptor-rendersections-relatedids="exclude"><div>nested in related</div></div>', ''),
+        ('<div id="parent"><div id="include" data-sysreptor-rendersections="choosable">included</div></div>', '<div id="parent"><div id="include" data-sysreptor-rendersections="choosable">included</div></div>'),
+        ('<div id="parent"><div id="sibling">sibling excluded</div><div id="include" data-sysreptor-rendersections="choosable">included</div></div>', '<div id="parent"><div id="include" data-sysreptor-rendersections="choosable">included</div></div>'),
+        ('<div id="parent"><div id="sibling">sibling excluded</div><div id="include" data-sysreptor-rendersections="always">included</div></div>', '<div id="parent"><div id="include" data-sysreptor-rendersections="always">included</div></div>'),
+        ('<div><div id="exclude" data-sysreptor-rendersections="choosable">excluded</div></div>', ''),
+        ('<div><div>child</div></div>', ''),
+        ('<div><div><div>sibling</div><div id="include" data-sysreptor-rendersections="choosable">child<div>deep</div>child</div><div>sibling</div></div></div>', '<div><div><div id="include" data-sysreptor-rendersections="choosable">child<div>deep</div>child</div></div></div>'),
+        ('<div>prefix<div id="include" data-sysreptor-rendersections="choosable">text</div>tail</div>', '<div><div id="include" data-sysreptor-rendersections="choosable">text</div></div>'),
+        ('<div data-sysreptor-rendersections="always"><div><div id="include" data-sysreptor-rendersections="choosable">nested selected</div><div id="exclude" data-sysreptor-rendersections="choosable">nested not selected</div></div></div>', '<div data-sysreptor-rendersections="always"><div><div id="include" data-sysreptor-rendersections="choosable">nested selected</div></div></div>'),
+        ('<div><div id="include" data-sysreptor-rendersections="choosable">selected</div><div data-sysreptor-rendersections="always">always</div><div id="other" data-sysreptor-rendersections="choosable">not selected</div></div>', '<div><div id="include" data-sysreptor-rendersections="choosable">selected</div><div data-sysreptor-rendersections="always">always</div></div>'),
     ])
     def test_html_postprocess(self, template, expected):
-        html = self.render_html(sections=[self.finding1.finding_id], template=template)
-        print("Rendered HTML:", repr(html))
-        print("Expected HTML:", repr(expected))
+        html = self.render_html(sections=[self.finding1.finding_id, 'include'], template=template)
         assertHTMLEqual(html, expected)
 
 
