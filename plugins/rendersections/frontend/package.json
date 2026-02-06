@@ -1,0 +1,21 @@
+{
+  "name": "@sysreptor/plugin-rendersections-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
+    "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
+
+    "nuxt": "~4.2",
+    "vuetify": "~3.11",
+    "pinia": "^3.0"
+  },
+  "overrides": {
+    "vue": "latest"
+  }
+}
