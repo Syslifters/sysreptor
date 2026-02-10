@@ -8,7 +8,7 @@ tags = [
 ]
 default_notes = []
 report_template = """
-<div id="header" data-sysreptor-generated="page-header">
+<div id="header" data-sysreptor-generated="page-header" data-sysreptor-rendersections="always">
   <div id="header-left">
     <div id="header-logo">
       <img src="/assets/name/header-logo.png" alt="logo" />
@@ -51,6 +51,7 @@ report_template = """
     {{ report.lead_pentester.phone }}<br>
     <strong><a :href="'mailto:' + report.lead_pentester.email" class="highlight">{{ report.lead_pentester.email }}</a></strong>
   </div>
+  <pagebreak />
 </section>
 
 
@@ -66,19 +67,19 @@ report_template = """
 
 
 
-<section>
+<section id="section-executive-summary" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Executive Summary">
   <h1 id="management-summary" class="in-toc">Executive Summary</h1>
   <markdown :text="report.executive_summary" />
+  <pagebreak />
 </section>
-<pagebreak />
 
-<section>
+<section id="section-scope" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Methodology and Scope">
   <h1 id="scope" class="in-toc">Methodology and Scope</h1>
   <markdown :text="report.scope" />
+  <pagebreak />
 </section>
-<pagebreak />
 
-<section>
+<section id="section-findings-summary" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Vulnerability Overview">
   <h1 id="findings-summary" class="in-toc">Vulnerability Overview</h1>
   <p>
     In the course of this penetration test
@@ -144,12 +145,12 @@ report_template = """
       </tr>
     </tbody>
   </table>
-
+  <pagebreak />
 </section>
-<pagebreak />
+
 
 <section id="findings-list">
-  <div v-for="(finding, findingIndex) in findings">
+  <div v-for="(finding, findingIndex) in findings" :id="'findingsection-' + finding.id" data-sysreptor-rendersections="choosable" :data-sysreptor-rendersections-name="'Finding: ' + finding.title">
     <h2 :id="finding.id" class="in-toc finding-title" :data-toc-title="finding.title + ' (' + capitalize(finding.cvss.level) + ')'">{{ finding.title }}</h2>
     <div>
       <template v-if="report.is_retest || finding.retest_status.value !== 'open'">

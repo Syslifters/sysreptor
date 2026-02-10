@@ -80,6 +80,18 @@
           density="compact"
           class="flex-grow-1 overflow-y-auto"
         >
+          <v-list-item v-if="loadingSections">
+            <template #default>
+              <div class="d-flex align-center gap-2">
+                <v-progress-circular
+                  indeterminate
+                  size="20"
+                  width="2"
+                />
+                <span class="text-body-2 ml-2">Loading sections...</span>
+              </div>
+            </template>
+          </v-list-item>
           <v-list-item
             v-for="section in sections" :key="section.id"
             :value="section"
@@ -97,7 +109,7 @@
               <v-list-item-title class="text-body-2">{{ section.name }}</v-list-item-title>
             </template>
           </v-list-item>
-          <v-list-item v-if="sections.length === 0"
+          <v-list-item v-if="!loadingSections && sections.length === 0"
             title="No sections yet"
           />
         </v-list>
@@ -125,12 +137,22 @@ type Section = {
 };
 
 const project = await useFetchE<PentestProject & { findings: PentestFinding[] }>(`/api/v1/pentestprojects/${route.params.projectId}/`, { method: 'GET'});
-const sections = await useFetchE<Section[]>(`/api/plugins/${appConfig.pluginId}/api/projects/${project.value.id}/sections/`, { method: 'GET' });
+const sections = ref<Section[]>([]);
+const loadingSections = ref(true);
 const selectedSections = ref<Section[]>([]);
 const renderMode = ref<RenderSectionsMode>(RenderSectionsMode.COMBINED);
 const renderPassword = ref<string>("");
 
 const menuSize = ref(window.innerWidth * 0.5);
+
+// Load sections asynchronously to avoid blocking page load
+onMounted(async () => {
+  try {
+    sections.value = await $fetch<Section[]>(`/api/plugins/${appConfig.pluginId}/api/projects/${project.value.id}/sections/`, { method: 'GET' });
+  } finally {
+    loadingSections.value = false;
+  }
+});
 const pdfPreviewRef = useTemplateRef<InstanceType<typeof PdfPreview>>('pdfPreviewRef');
 const renderingInProgress = computed(() => pdfPreviewRef.value?.renderingInProgress);
 function refreshPdfPreview() {
@@ -171,37 +193,62 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }, allowEncry
   return res;
 }
 
+async function refreshAndDownloadPdf(filename: string) {
+  pdfPreviewRef.value!.reloadImmediate();
+
+  // wait until rendered
+  while (renderingInProgress.value) {
+    await wait(200);
+  }
+  const rateLimitMessage = (pdfPreviewRef.value?.messages || []).find((m: ErrorMessage) => m.details?.startsWith('Request was throttled'));
+  const waitTime = rateLimitMessage?.details?.match(/available in (\d+) seconds/)?.[1];
+  if (Number.isInteger(waitTime)) {
+    // handle rate limit
+    await wait((Number.parseInt(waitTime!) + 1) * 1000);
+    return 'retry';
+  } else if (pdfPreviewRef.value?.pdfData) {
+    // download PDF
+    fileDownload(base64decode(pdfPreviewRef.value.pdfData), filename);
+    return 'success';
+  } else {
+    // rendering error
+    return 'error';
+  }
+}
+
 async function downloadPdf() {
   if (renderMode.value === RenderSectionsMode.COMBINED) {
     if (!pdfPreviewRef.value?.pdfData) {
       return;
     }
 
-    fileDownload(base64decode((await fetchPreviewPdf(null, true)).pdf), 'section.pdf');
+    while (true) {
+      const res = await refreshAndDownloadPdf('section.pdf');
+      if (res === 'error') {
+        errorToast('Failed to render PDF');
+        break;
+      } else if (res === 'retry') {
+        // retry
+        continue;
+      } else {
+        // success
+        break;
+      }
+    }
   } else {
     // Get sections in order of list
     const sectionsToRender = sections.value.filter(f => selectedSections.value.includes(f));
     for (let i = 0; i < sectionsToRender.length; i++) {
       selectedSections.value = [sectionsToRender[i]!];
-      pdfPreviewRef.value!.reloadImmediate();
-
-      // wait until rendered
-      while (renderingInProgress.value) {
-        await wait(200);
-      }
-
-      const rateLimitMessage = (pdfPreviewRef.value?.messages || []).find((m: ErrorMessage) => m.details?.startsWith('Request was throttled'));
-      const waitTime = rateLimitMessage?.details?.match(/available in (\d+) seconds/)?.[1];
-      if (Number.isInteger(waitTime)) {
-        // handle rate limit
-        await wait((Number.parseInt(waitTime!) + 1) * 1000);
-        i--;
-      } else if (pdfPreviewRef.value?.pdfData) {
-        // download PDF
-        fileDownload(base64decode(pdfPreviewRef.value.pdfData), `section-${i + 1}.pdf`);
-      } else {
-        // rendering error
+      const res = await refreshAndDownloadPdf(`section-${i + 1}.pdf`);
+      if (res === 'error') {
         errorToast(`Failed to render PDF for section ${i + 1} "${sectionsToRender[i]!.name}"`);
+        break;
+      } else if (res === 'retry') {
+        // retry current section
+        i--;
+      } else {
+        // success, continue with next section
       }
     }
     selectedSections.value = sectionsToRender;

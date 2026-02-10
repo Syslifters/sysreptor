@@ -8,13 +8,13 @@ tags = [
 ]
 default_notes = []
 report_template = """
-<div data-sysreptor-generated="page-header" id="header">
+<div data-sysreptor-generated="page-header" id="header" data-sysreptor-rendersections="always">
     <div id="header-right">
         <img src="/assets/name/logo-transparent.png" alt="logo" />
     </div>
 </div>
 
-<div data-sysreptor-generated="page-footer" id="footer">
+<div data-sysreptor-generated="page-footer" id="footer" data-sysreptor-rendersections="always">
     <div id="footer-left"><em>CONFIDENTIAL</em></div>
     <div id="footer-center">{{ report.title }}</div>
 </div>
@@ -23,7 +23,7 @@ report_template = """
 
 
 
-<section id="page-cover" data-sysreptor-generated="page-cover">
+<section id="page-cover" data-sysreptor-generated="page-cover" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Cover Page">
     <div class="page-cover-title">
         <h1>PENTEST REPORT</h1>
         <h2>{{ report.title }}</h2>
@@ -59,8 +59,8 @@ report_template = """
             Report Version: {{ report.report_version }}
         </p>
     </div>
+    <pagebreak />
 </section>
-<pagebreak />
 
 
 <table-of-contents id="toc" v-slot="tocItems">
@@ -130,15 +130,16 @@ report_template = """
             </tr>
         </table>
     </div>
+    <pagebreak />
 </section>
-<pagebreak />
 
 
 
 
 
 
-<section>
+
+<section id="section-executive-summary" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Executive Summary">
     <h1 id="executive-summary" class="in-toc numbered">Executive Summary</h1>
 
     <div>
@@ -231,8 +232,9 @@ report_template = """
             <figcaption>Distribution of identified vulnerabilities</figcaption>
         </figure>
     </div>
+    <pagebreak />
 </section>
-<pagebreak />
+
 
 
 <section>
@@ -276,14 +278,15 @@ report_template = """
         <h2 id="provided-users" class="in-toc numbered">User Accounts and Permissions</h2>
         <markdown :text="report.provided_users" />
     </div>
+    <pagebreak />
 </section>
-<pagebreak />
+
 
 
 <section>
     <h1 id="findings" class="in-toc numbered">Findings</h1>
 
-    <div v-for="finding in findings">
+    <div v-for="finding in findings" :id="'findingsection-' + finding.id" data-sysreptor-rendersections="choosable" :data-sysreptor-rendersections-name="'Finding: ' + finding.title">
         <table class="finding-header">
             <colgroup>
                 <col class="table-key" />
@@ -352,8 +355,9 @@ report_template = """
     # Disclaimer {#disclaimer .in-toc.numbered}
 
     Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.
+    <pagebreak />
 </markdown>
-<pagebreak />
+
 
 <section class="appendix">
     <h1 id="appendix" class="in-toc numbered">Appendix</h1>
