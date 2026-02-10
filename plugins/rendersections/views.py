@@ -1,6 +1,7 @@
 from asgiref.sync import sync_to_async
 from django.db.models import Prefetch, aprefetch_related_objects
 from lxml import etree
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from sysreptor.pentests.models import PentestFinding
@@ -166,5 +167,5 @@ class GetSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
             with res.add_timing('other'):
                 choosable_sections = await self.get_choosable_sections(res.pdf.decode())
                 return Response(data=choosable_sections)
-
-        return Response(data=res.to_dict())
+        else:
+            return Response(data=res.to_dict(), status=status.HTTP_400_BAD_REQUEST)

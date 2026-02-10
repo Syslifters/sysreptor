@@ -8,7 +8,7 @@ tags = [
 ]
 default_notes = []
 report_template = """
-<div id="header" data-sysreptor-generated="page-header">
+<div id="header" data-sysreptor-generated="page-header" data-sysreptor-rendersections="always">
   <div id="header-left">
     <img src="/assets/name/header-logo.png" alt="logo" />
   </div>
@@ -20,7 +20,7 @@ report_template = """
 </div>
 
 
-<section id="page-cover">
+<section id="page-cover" data-sysreptor-generated="page-cover">
   <div id="page-cover-background">
     <img id="page-cover-background-img" src="/assets/name/background.png" alt="background">
   </div>
@@ -61,19 +61,21 @@ report_template = """
   <pagebreak />
 </table-of-contents>
 
-<section>
+<section id="section-management-summary" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Executive Summary">
   <h1 id="management-summary" class="in-toc">Executive Summary</h1>
   <markdown :text="report.executive_summary" />
+  <pagebreak />
 </section>
-<pagebreak />
 
-<section>
+
+<section id="section-scope" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Methodology and Scope">
   <h1 id="scope" class="in-toc">Methodology and Scope</h1>
   <markdown :text="report.scope" />
+  <pagebreak />
 </section>
-<pagebreak />
 
-<section>
+
+<section id="section-findings-summary" data-sysreptor-rendersections="choosable" data-sysreptor-rendersections-name="Vulnerability Overview">
   <h1 id="findings-summary" class="in-toc">Vulnerability Overview</h1>
   <p>
     In the course of this penetration test
@@ -164,12 +166,12 @@ report_template = """
     </div>
   </div>
 
+  <pagebreak />
 </section>
-<pagebreak />
 
 <section id="findings-list" class="findings-list">
   <h1 id="findings-details" class="in-toc">Vulnerability Details</h1>
-  <div v-for="(finding, findingIndex) in findings">
+  <div v-for="(finding, findingIndex) in findings" :id="'findingsection-' + finding.id" data-sysreptor-rendersections="choosable" :data-sysreptor-rendersections-name="'Finding: ' + finding.title">
     <h2 :id="finding.id" class="in-toc" :data-toc-title="finding.title + ' (' + capitalize(finding.cvss.level) + ')'">
       <ref :to="finding.id + 'overview'" class="finding-title">{{ finding.title }}</ref>
     </h2>
