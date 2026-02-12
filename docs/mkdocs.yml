@@ -29,6 +29,7 @@ nav:
       - Charts: designer/charts.md
       - Findings: designer/findings.md
       - Formatting Utilities: designer/formatting-utils.md
+      - Filenames: designer/filenames.md
       - Debugging: designer/debugging.md
       - FAQs: designer/faqs.md
   - Finding Templates:

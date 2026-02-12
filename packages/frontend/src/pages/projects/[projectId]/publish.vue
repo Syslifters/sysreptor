@@ -38,7 +38,8 @@
         <!-- Filename -->
         <div class="mt-4">
           <s-text-field
-            v-model="generatePdfForm.filename"
+            :model-value="generatePdfForm.filename"
+            @update:model-value="updateFilename"
             label="Filename"
             :rules="rules.filename"
             spellcheck="false"
@@ -198,8 +199,14 @@ const hasErrors = computed(() => allMessages.value.some(m => m.level === Message
 
 const generatePdfForm = ref({
   password: localSettings.pdfPasswordEnabled ? generateRandomPassword() : '',
-  filename: (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' '),
+  filename: '',
 });
+const wasFilenameEdited = ref(false);
+function updateFilename(value: string) {
+  generatePdfForm.value.filename = value;
+  wasFilenameEdited.value = true;
+}
+
 const shouldEncryptPdf = computed({
   get: () => !!generatePdfForm.value.password,
   set: (value) => { generatePdfForm.value.password = value ? generateRandomPassword() : '' }
@@ -238,11 +245,17 @@ function refreshPreviewAndChecks() {
   refreshCheckMessages();
 }
 async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }) {
-  return await $fetch<PdfResponse>(`/api/v1/pentestprojects/${project.value.id}/preview/`, {
+  const res = await $fetch<PdfResponse>(`/api/v1/pentestprojects/${project.value.id}/preview/`, {
     method: 'POST',
     body: {},
     ...fetchOptions,
   });
+
+  if (!wasFilenameEdited.value) {
+    generatePdfForm.value.filename = res.filename || (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' ');
+  }
+
+  return res;
 }
 
 async function generatePdfRequest(fetchOptions: { signal: AbortSignal }) {
