@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Allow configuring filenames of PDF reports (https://docs.sysreptor.com/designer/filenames/)
 * Disable browsable API by default
 * Fix comment update error when list item gets deleted
 * Markdown editor: Fix SVGs not rendered in math preview
@@ -15,7 +16,7 @@
 
 
 ## v2026.1 - 2026-01-21
-* Markdown editor: Support LaTeX math expressions (http://localhost:9090/reporting/markdown-features/#math-expressions)
+* Markdown editor: Support LaTeX math expressions (https://docs.sysreptor.com/reporting/markdown-features/#math-expressions)
 * AI agent: Add Mistral AI provider
 * Increase resolution of charts and mermaid diagrams in PDFs
 * Support images in excalidraw notes

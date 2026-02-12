@@ -570,6 +570,7 @@ export type PdfResponse = {
   pdf: string|null;
   messages: ErrorMessage[];
   timings: Record<string, number>;
+  filename: string|null;
 }
 
 export enum UploadedFileType {

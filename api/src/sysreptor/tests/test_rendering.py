@@ -428,3 +428,15 @@ class TestHtmlRendering:
             <div id="groups"><span>g1: f2</span><span>g2: f1 f3</span></div>
             <div id="list">f1 f2 f3</div>
         """)
+
+    def test_meta_filename(self):
+        self.project_type.report_template = """
+            <teleport to="head">
+                <meta name="sysreptor-filename" :content="`custom_filename_${report.title}.pdf`" />
+                <meta name="sysreptor-othermeta" content="value" />
+            </teleport>
+        """
+        res = async_to_sync(render_pdf)(project=self.project)
+        assert res.filename == f"custom_filename_{self.project.data['title']}.pdf"
+        assert res.other['html_meta']['sysreptor-othermeta'] == 'value'
+        assert not res.messages
