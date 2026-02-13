@@ -13,6 +13,8 @@
     :tree-line-offset="12"
     :keep-placeholder="true"
     :indent="20"
+    :virtualization="true"
+    class="h-100"
   >
     <template #default="{ node: { note }, stat }">
       <!-- 

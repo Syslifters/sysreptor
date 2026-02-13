@@ -6,6 +6,7 @@
 * Fix comment update error when list item gets deleted
 * Markdown editor: Fix SVGs not rendered in math preview
 * Add design for HTB CWPE certification
+* Enable virtual scrolling in notes tree to improve performance with large number of notes
 * Plugin `jira`: Export findings to Jira issues
 
 
