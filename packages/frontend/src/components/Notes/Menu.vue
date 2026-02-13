@@ -98,7 +98,7 @@
         </s-text-field>
       </v-list-subheader>
 
-      <div class="flex-grow-1 overflow-y-auto">
+      <div class="flex-grow-height">
         <slot 
           v-if="isInSearchMode && (search?.length || 0) >= 3"
           name="search"

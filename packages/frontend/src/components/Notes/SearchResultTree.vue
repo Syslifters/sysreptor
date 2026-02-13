@@ -6,6 +6,8 @@
     :disable-drop="true"
     :tree-line="false"
     :indent="20"
+    :virtualization="true"
+    class="h-100"
   >
     <template #default="{ node: { item: note }, stat }">
       <v-list-item
