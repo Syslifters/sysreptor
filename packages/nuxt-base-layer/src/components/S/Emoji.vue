@@ -7,14 +7,16 @@
   />
 </template>
 
-<script setup lang="ts">
+<script lang="ts">
 import data from 'emoji-mart-vue-fast/data/twitter.json';
 import 'emoji-mart-vue-fast/css/emoji-mart.css';
 // @ts-expect-error missing types
 import { Emoji, EmojiIndex } from "emoji-mart-vue-fast/src";
 
 const emojiIndex = new EmojiIndex(data);
+</script>
 
+<script setup lang="ts">
 const props = withDefaults(defineProps<{
   value: string;
   size?: 'default'|'small';
