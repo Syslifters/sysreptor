@@ -8,6 +8,7 @@
 * Add design for HTB CWPE certification
 * Enable virtual scrolling in notes tree to improve performance with large number of notes
 * Plugin `jira`: Export findings to Jira issues
+* Plugin `rendersections`: Render single sections to PDF
 
 
 ## v2026.4 - 2026-01-23
