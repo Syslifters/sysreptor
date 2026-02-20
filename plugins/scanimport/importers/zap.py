@@ -2,16 +2,34 @@ import json
 import textwrap
 
 from sysreptor.pentests.models import (
+    FindingTemplateTranslation,
+    Language,
     ProjectNotebookPage,
 )
 from sysreptor.utils.utils import groupby_to_dict, is_json_string
 
 from ..utils import parse_xml, render_template_string, xml_to_dict
-from .base import BaseImporter
+from .base import BaseImporter, fallback_template
 
 
 class ZapImporter(BaseImporter):
     id = 'zap'
+
+    fallback_templates = [fallback_template(tags=[f'scanimport:{id}'], translations=[
+        FindingTemplateTranslation(
+            language=Language.ENGLISH_US,
+            custom_fields={
+                'summary': textwrap.dedent(
+                    """\
+                    <!-- This is a finding from ZAP Alert Reference <!--{{ alertRef }}--> -->
+
+                    <!--{{ desc }}-->
+                    """),
+                'description': '<!--{{ otherinfo }}-->',
+                'recommendation': '<!--{{ solution }}-->',
+            },
+        ),
+    ])]
 
     def is_format(self, file):
         file.seek(0)
@@ -28,7 +46,7 @@ class ZapImporter(BaseImporter):
             for alert_xml in site_xml.xpath('alerts/alertitem'):
                 alert_dict = xml_to_dict(
                     node=alert_xml,
-                    elements_str=['plugiid', 'name', 'alert', 'alertRef', 'riskcode', 'confidence', 'desc', 'solution', 'cweid'],
+                    elements_str=['plugiid', 'name', 'alert', 'alertRef', 'riskcode', 'confidence', 'desc', 'otherinfo', 'solution', 'cweid'],
                 ) | {
                     'site': dict(site_xml.attrib),
                     'instances': [xml_to_dict(
@@ -74,6 +92,38 @@ class ZapImporter(BaseImporter):
                 merged['count'] = len(merged['instances'])
             out.append(merged)
         return out
+
+    def parse_findings(self, files, project):
+        findings = []
+        templates = self.get_all_finding_templates()
+        alerts = self.merge_alerts(self.parse_zap_data(files))
+        
+        for alert in alerts:
+            # Build affected components from instances
+            affected_components = []
+            for instance in alert.get('instances', []):
+                component = instance.get('uri', '')
+                if instance.get('param'):
+                    component += f" (param: {instance['param']})"
+                if component and component not in affected_components:
+                    affected_components.append(component)
+            
+            alert['affected_components'] = affected_components
+            alert['title'] = alert.get('name', '')
+            alert['cwe'] = alert.get('cweid', '')
+            
+            findings.append(self.generate_finding_from_template(
+                project=project,
+                tr=self.select_finding_template(
+                    templates=templates,
+                    fallback=self.fallback_templates,
+                    selector=alert.get('alertRef'),
+                    language=project.language,
+                ),
+                data=alert,
+            ))
+
+        return findings
 
     def parse_notes(self, files):
         notes = []
