@@ -103,12 +103,13 @@ class ZapImporter(BaseImporter):
                     """), context=alerts[0]['site']),
             )
             notes.append(note_host)
-            for idx, alert in enumerate(self.merge_alerts(alerts)):
+            merged_alerts = sorted(self.merge_alerts(alerts), key=lambda a: int(a['riskcode']), reverse=True)
+            for idx, alert in enumerate(merged_alerts):
                 notes.append(ProjectNotebookPage(
                     parent=note_host,
                     order=idx + 1,
                     checked=False,
-                    title=f"{self.severity_mapping.get(alert['riskcode'], '')} {alert['name']}",
+                    title=f"{self.severity_mapping.get(alert['severity'], '')} {alert['name']}",
                     text=render_template_string(textwrap.dedent(
                         """\
                         | Target | Information |
