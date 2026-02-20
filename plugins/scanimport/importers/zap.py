@@ -46,7 +46,7 @@ class ZapImporter(BaseImporter):
             for alert_xml in site_xml.xpath('alerts/alertitem'):
                 alert_dict = xml_to_dict(
                     node=alert_xml,
-                    elements_str=['plugiid', 'name', 'alert', 'alertRef', 'riskcode', 'confidence', 'desc', 'otherinfo', 'solution', 'cweid'],
+                    elements_str=['pluginid', 'name', 'alert', 'alertRef', 'riskcode', 'confidence', 'desc', 'otherinfo', 'solution', 'cweid'],
                 ) | {
                     'site': dict(site_xml.attrib),
                     'instances': [xml_to_dict(
