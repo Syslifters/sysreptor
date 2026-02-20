@@ -50,7 +50,7 @@ class TestImporters:
         importer = registry.get(file.parent.name)
         with file.open('rb') as f:
             findings = importer.parse_findings(files=[f], project=self.project)
-        if importer.id in ['nmap', 'zap']:
+        if importer.id in ['nmap']:
             assert len(findings) == 0
         else:
             assert len(findings) > 0

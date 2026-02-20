@@ -9,6 +9,7 @@
 * Enable virtual scrolling in notes tree to improve performance with large number of notes
 * Plugin `jira`: Export findings to Jira issues
 * Plugin `rendersections`: Render single sections to PDF
+* Allow importing OWASP ZAP scans as findings
 
 
 ## v2026.4 - 2026-01-23
