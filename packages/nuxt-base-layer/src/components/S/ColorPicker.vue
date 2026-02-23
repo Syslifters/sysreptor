@@ -14,12 +14,17 @@
         :disabled="props.disabled"
         mode="hex"
         :modes="['hex']"
+        v-bind="$attrs"
       />
     </template>
   </v-menu>
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  inheritAttrs: false,
+});
+
 const modelValue = defineModel<string|null>();
 const props = defineProps<{
   disabled?: boolean;

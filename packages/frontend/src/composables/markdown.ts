@@ -163,7 +163,7 @@ export function useMarkdownEditorBase(options: {
   }
   
   const fileUploadInProgress = ref(false);
-  async function uploadFiles(files?: FileList, pos?: number|null) {
+  async function uploadFiles(files?: FileList|File[], pos?: number|null) {
     if (!options.editorView.value || !fileUploadEnabled.value || !files || files.length === 0 || fileUploadInProgress.value) {
       return;
     }
@@ -557,6 +557,7 @@ export function useMarkdownEditorBase(options: {
     value: editorState.value?.doc.toString() ?? options.props.value.modelValue,
     referenceItems: options.props.value.referenceItems,
     rewriteFileUrlMap: options.props.value.rewriteFileUrlMap,
+    uploadFile: (file: File) => uploadFiles([file]),
     cacheBuster: previewCacheBuster,
   }));
 

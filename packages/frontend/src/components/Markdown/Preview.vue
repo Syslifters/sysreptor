@@ -7,7 +7,12 @@
       <!-- Placeholder of raw text while markdown is initially rendered -->
       <p>{{ props.value }}</p>
     </div>
-    <markdown-image-preview-dialog v-model="previewImageSrc" :images="previewImagesAll" />
+    <markdown-image-preview-dialog 
+      v-model="previewImageSrc" 
+      :images="previewImagesAll" 
+      :upload-file="props.uploadFile"
+      :rewrite-file-url-map="props.rewriteFileUrlMap"
+    />
   </div>
 </template>
 
@@ -32,6 +37,7 @@ const props = defineProps<{
   referenceItems?: ReferenceItem[];
   cacheBuster?: string;
   throttleMs?: number;
+  uploadFile?: (file: File) => Promise<string>;
 }>();
 const emit = defineEmits<{
   'rendered': [];

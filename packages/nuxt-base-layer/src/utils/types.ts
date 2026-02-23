@@ -683,3 +683,9 @@ export enum ReportingSidebarType {
   AICHAT = 'aichat',
 }
 
+export type ImageEditorSettings = {
+  color: string;
+  strokeWidth: number;
+  fontSize: number;
+}
+
