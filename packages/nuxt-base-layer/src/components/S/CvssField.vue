@@ -67,7 +67,7 @@
           :disabled="props.disabled || props.readonly"
           data-testid="cvss-apply"
         >
-          <v-icon size="x-large">mdi-check-bold</v-icon>
+          <v-icon size="x-large" icon="mdi-check-bold" />
           <s-tooltip activator="parent" :disabled="props.disabled || props.readonly" text="Apply" />
         </s-btn-icon>
       </template>

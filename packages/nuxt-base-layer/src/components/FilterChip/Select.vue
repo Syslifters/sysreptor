@@ -17,16 +17,14 @@
       <template #item="{ props: itemProps, item }">
         <v-list-item v-bind="itemProps">
           <template #prepend v-if="item?.icon">
-            <v-icon>{{ item.icon }}</v-icon>
+            <v-icon :icon="item.icon" />
           </template>
         </v-list-item>
       </template>
       
       <template #selection="{ item }">
         <div class="d-flex align-center">
-          <v-icon v-if="item?.icon" class="me-2" size="small">
-            {{ item.icon }}
-          </v-icon>
+          <v-icon v-if="item?.icon" class="me-2" size="small" :icon="item.icon" />
           {{ displayValue }}
         </div>
       </template>
