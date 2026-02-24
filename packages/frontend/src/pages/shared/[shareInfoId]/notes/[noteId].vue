@@ -72,8 +72,8 @@ const readonly = computed(() => notesCollab.readonly.value);
 const collabPropsTitle = computed<CollabPropType>((oldValue) => collabSubpath(notesCollab.collabProps.value, 'title', oldValue));
 const collabPropsText = computed<CollabPropType>((oldValue) => collabSubpath(notesCollab.collabProps.value, 'text', oldValue));
 
-async function uploadFile(file: File) {
-  const obj = await uploadFileHelper<UploadedFileInfo>(`/api/public/shareinfos/${shareInfo.value!.id}/notes/upload/`, file);
+async function uploadFile(file: File, body?: Record<string, any>) {
+  const obj = await uploadFileHelper<UploadedFileInfo>(`/api/public/shareinfos/${shareInfo.value!.id}/notes/upload/`, file, body);
   if (obj.resource_type === 'file') {
     return `[${obj.name}](/files/name/${obj.name})`;
   } else {

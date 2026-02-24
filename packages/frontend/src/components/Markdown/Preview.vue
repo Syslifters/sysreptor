@@ -37,7 +37,7 @@ const props = defineProps<{
   referenceItems?: ReferenceItem[];
   cacheBuster?: string;
   throttleMs?: number;
-  uploadFile?: (file: File) => Promise<string>;
+  uploadFile?: (file: File, body?: Record<string, any>) => Promise<string>;
 }>();
 const emit = defineEmits<{
   'rendered': [];

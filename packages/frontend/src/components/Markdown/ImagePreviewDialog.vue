@@ -39,17 +39,17 @@
         <span>Edit Image</span>
         <s-btn-secondary
           @click="editMode = false"
+          text="Cancel"
           prepend-icon="mdi-close"
           class="mr-2"
-        >
-          Cancel
-        </s-btn-secondary>
-        <s-btn-primary
-          prepend-icon="mdi-content-save"
-          :loading="saving"
-        >
-          Save
-        </s-btn-primary>
+        />
+        <btn-confirm
+          :action="performSave"
+          :confirm="false"
+          button-text="Save"
+          button-icon="mdi-content-save"
+          button-color="primary"
+        />
       </template>
     </template>
     
@@ -62,19 +62,10 @@
         :continuous="true"
       >
         <v-window-item v-for="image in props.images" :key="image.src" :value="image">
-          <template v-if="!editMode || image.src !== modelValue?.src">
-            <markdown-image-preview-zoom
-              v-model="zoomEnabled"
-              :src="image.src"
-            />
-          </template>
-          
-          <template v-else>
-            <image-editor
-              ref="imageEditorRef"
-              :image-src="image.src"
-            />
-          </template>
+          <markdown-image-preview-zoom
+            v-model="zoomEnabled"
+            :src="image.src"
+          />
         </v-window-item>
       </v-window>
       <markdown-image-editor
@@ -94,7 +85,7 @@ const modelValue = defineModel<PreviewImage|null>();
 const props = defineProps<{
   images: PreviewImage[];
   scaleFactor?: number;
-  uploadFile?: (file: File) => Promise<string>;
+  uploadFile?: (file: File, body?: Record<string, any>) => Promise<string>;
   rewriteFileUrlMap?: Record<string, string>;
 }>();
 
@@ -113,12 +104,47 @@ watch(modelValue, () => {
 
 // Image Editor
 const editMode = ref(false);
-const saving = ref(false);
+const imageEditorRef = useTemplateRef('imageEditorRef');
 
 function openImageEditor() {
   if (modelValue.value) {
     editMode.value = true;
   }
+}
+
+async function getOriginalImageInfo(imageSrc: string) {
+  try {
+    const res = await $fetch.raw(imageSrc, { method: 'HEAD' });
+    return res.headers.get('X-Sysreptor-Id');
+  } catch {
+    return null;
+  }
+}
+
+async function performSave() {
+  if (!props.uploadFile || !modelValue.value ) {
+    return;
+  }
+
+  // Export annotated image
+  const blob = await imageEditorRef.value?.exportAsBlob();
+  if (!blob) {
+    throw new Error('Failed to export image');
+  }
+
+  const original = await getOriginalImageInfo(modelValue.value.src);
+
+  // Create file from blob
+  const file = new File([blob], 'edited.png', { type: 'image/png' });
+  const newMd = await props.uploadFile(file, { original: original });
+
+  // TODO: update markdown in editor
+
+
+  // Close dialog and show success
+  successToast('Image saved successfully');
+  modelValue.value = null;
+  editMode.value = false;
 }
 </script>
 

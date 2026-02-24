@@ -214,9 +214,6 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
             'file': SimpleUploadedFile(name=f'file{idx}.png', content=asset_kwargs.pop('content', create_png_file())),
         } | asset_kwargs)
 
-    UploadedAsset.objects.create(linked_object=project_type, name='file1.png', file=SimpleUploadedFile(name='file1.png', content=b'file1'))
-    UploadedAsset.objects.create(linked_object=project_type, name='file2.png', file=SimpleUploadedFile(name='file2.png', content=b'file2'))
-
     sysreptor_signals.post_create.send(sender=project_type.__class__, instance=project_type)
 
     return project_type

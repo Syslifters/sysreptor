@@ -4,7 +4,7 @@ import tarfile
 
 import pytest
 from django.core.files.base import ContentFile
-from django.db.models import ProtectedError, RestrictedError
+from django.db.models import ProtectedError, QuerySet, RestrictedError
 from django.test import override_settings
 from rest_framework.exceptions import ValidationError
 
@@ -29,7 +29,7 @@ from sysreptor.pentests.models import (
     UploadedAsset,
     UploadedImage,
 )
-from sysreptor.pentests.models.files import ProjectNotebookExcalidrawFile
+from sysreptor.pentests.models.files import ProjectNotebookExcalidrawFile, UploadedTemplateImage
 from sysreptor.tests.mock import (
     create_archived_project,
     create_comment,
@@ -129,6 +129,17 @@ class TestImportExport:
                 text = text.replace(f_name, updated_map[f_content])
         return text
 
+    def assert_export_import_files(self, imported, original):
+        if isinstance(imported, QuerySet):
+            imported = imported.order_by('name')
+        if isinstance(original, QuerySet):
+            original = original.order_by('name')
+
+        for i, o in zip(imported, original, strict=True):
+            assertKeysEqual(i, o, ['name'])
+            assert i.file.read() == o.file.read()
+            assert i.original is None
+
     def test_export_import_template(self):
         archive = archive_to_file(export_templates([self.template]))
         imported = import_templates(archive)
@@ -144,6 +155,7 @@ class TestImportExport:
         assert t.main_translation in set(t.translations.all())
 
         assert {(i.name, i.file.read()) for i in t.images.all()} == {(i.name, i.file.read()) for i in self.template.images.all()}
+        self.assert_export_import_files(t.images.all(), self.template.images.all())
 
     def test_import_template_v1(self):
         template_data = {
@@ -192,7 +204,7 @@ class TestImportExport:
             'report_template', 'report_styles', 'report_preview_data'])
         assert t.source == SourceEnum.IMPORTED
 
-        assert {(a.name, a.file.read()) for a in t.assets.all()} == {(a.name, a.file.read()) for a in self.project_type.assets.all()}
+        self.assert_export_import_files(t.assets.all(), self.project_type.assets.all())
 
     def test_import_project_type_v1(self):
         # Remove document_history field from report_sections because order of properties changed
@@ -240,13 +252,11 @@ class TestImportExport:
         assert members_equal(p.members, project.members)
         assert p.source == SourceEnum.IMPORTED
 
-        assert p.sections.count() == project.sections.count()
-        for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id'), strict=False):
+        for i, s in zip(p.sections.order_by('section_id'), project.sections.order_by('section_id'), strict=True):
             assertKeysEqual(i, s, ['section_id', 'created', 'assignee', 'status', 'data'])
             self.assert_export_import_comments(i, s)
 
-        assert p.findings.count() == project.findings.count()
-        for i, f in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id'), strict=False):
+        for i, f in zip(p.findings.order_by('finding_id'), project.findings.order_by('finding_id'), strict=True):
             assertKeysEqual(i, f, ['finding_id', 'created', 'assignee', 'status', 'order', 'template', 'data'])
             self.assert_export_import_comments(i, f)
 
@@ -258,7 +268,7 @@ class TestImportExport:
         assert p.project_type.source == SourceEnum.IMPORTED_DEPENDENCY
         assert p.project_type.linked_project == p
 
-        assert {(a.name, a.file.read()) for a in p.project_type.assets.all()} == {(a.name, a.file.read()) for a in project.project_type.assets.all()}
+        self.assert_export_import_files(p.project_type.assets.all(), project.project_type.assets.all())
 
     def test_export_import_project(self):
         archive = archive_to_file(export_projects([self.project]))
@@ -267,7 +277,7 @@ class TestImportExport:
         assert len(imported) == 1
         p = imported[0]
         self.assert_export_import_project(self.project, p)
-        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all() if self.project.is_file_referenced(i, notes=False)}
+        self.assert_export_import_files(p.images.all(), [i for i in self.project.images.order_by('name') if self.project.is_file_referenced(i, notes=False)])
         assert p.notes.count() == 0
         assert p.files.count() == 0
 
@@ -278,13 +288,12 @@ class TestImportExport:
         assert len(imported) == 1
         p = imported[0]
         self.assert_export_import_project(self.project, p)
-        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in self.project.images.all()}
+        self.assert_export_import_files(p.images.all(), self.project.images.all())
 
-        assert p.notes.count() == self.project.notes.count()
-        for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id'), strict=False):
+        for i, s in zip(p.notes.order_by('note_id'), self.project.notes.order_by('note_id'), strict=True):
             assertKeysEqual(i, s, ['note_id', 'created', 'type', 'title', 'text', 'checked', 'icon_emoji', 'order', 'excalidraw_data'])
             assert i.parent.note_id == s.parent.note_id if s.parent else i.parent is None
-        assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in self.project.files.all()}
+        self.assert_export_import_files(p.files.all(), self.project.files.all())
 
     # def test_import_nonexistent_user(self):
     #     # export project with members and assignee, delete user, import => members and assignee == NULL
@@ -615,8 +624,15 @@ class TestCopyModel:
             'default_notes',
         } - set(exclude_fields or []))
 
-        assert set(pt.assets.values_list('id', flat=True)).intersection(cp.assets.values_list('id', flat=True)) == set()
-        assert {(a.name, a.file.read()) for a in pt.assets.all()} == {(a.name, a.file.read()) for a in cp.assets.all()}
+        for pt_a, cp_a in zip(pt.assets.order_by('name'), cp.assets.order_by('name'), strict=True):
+            assert pt_a != cp_a
+            assertKeysEqual(pt_a, cp_a, ['name', 'name_hash'])
+            assert pt_a.file.read() == cp_a.file.read()
+            if pt_a.original:
+                assert pt_a.original.name == cp_a.original.name
+                assert pt_a.original != cp_a.original
+            else:
+                assert cp_a.original is None
 
     def assert_comments_copy_equal(self, p, cp):
         for p_c, cp_c in zip(p.comments.order_by('created'), cp.comments.order_by('created'), strict=False):
@@ -629,9 +645,11 @@ class TestCopyModel:
 
     def test_copy_project(self):
         user = create_user()
-        p = create_project(members=[user], comments=True, readonly=True, source=SourceEnum.IMPORTED)
+        p = create_project(members=[user], comments=True, readonly=True, source=SourceEnum.IMPORTED, images_kwargs=[{'name': 'image.png'}])
         create_projectnotebookpage(project=p, parent=p.notes.first(), type=NoteType.EXCALIDRAW)
         create_finding(project=p, template=create_template())
+        UploadedImage.objects.create(linked_object=p, name='edited.png', original=p.images.first(), file=p.images.first().file)
+
         cp = p.copy()
 
         assert p != cp
@@ -646,23 +664,38 @@ class TestCopyModel:
         assert cp.project_type.usage_count == 1
         assert members_equal(p.members, cp.members)
 
-        assert set(p.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
-        assert {(i.name, i.file.read()) for i in p.images.all()} == {(i.name, i.file.read()) for i in cp.images.all()}
+        for p_i, cp_i in zip(p.images.order_by('name'), cp.images.order_by('name'), strict=True):
+            assert p_i != cp_i
+            assertKeysEqual(p_i, cp_i, ['name', 'name_hash'])
+            assert p_i.file.read() == cp_i.file.read()
+            if p_i.original:
+                assert p_i.name == cp_i.name
+                assert p_i.original != cp_i.original
+                assert p_i.original.name == cp_i.original.name
+            else:
+                assert cp_i.original is None
 
-        assert set(p.files.values_list('id', flat=True)).intersection(cp.files.values_list('id', flat=True)) == set()
-        assert {(f.name, f.file.read()) for f in p.files.all()} == {(f.name, f.file.read()) for f in cp.files.all()}
+        for p_f, cp_f in zip(p.files.order_by('name'), cp.files.order_by('name'), strict=True):
+            assert p_f != cp_f
+            assertKeysEqual(p_f, cp_f, ['name', 'name_hash'])
+            assert p_f.file.read() == cp_f.file.read()
+            if p_f.original:
+                assert p_f.name == cp_f.name
+                assert cp_f.original != p_f.original
+            else:
+                assert cp_f.original is None
 
-        for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id'), strict=False):
+        for p_s, cp_s in zip(p.sections.order_by('section_id'), cp.sections.order_by('section_id'), strict=True):
             assert p_s != cp_s
             assertKeysEqual(p_s, cp_s, ['section_id', 'assignee', 'status', 'data'])
             self.assert_comments_copy_equal(p_s, cp_s)
 
-        for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id'), strict=False):
+        for p_f, cp_f in zip(p.findings.order_by('finding_id'), cp.findings.order_by('finding_id'), strict=True):
             assert p_f != cp_f
             assertKeysEqual(p_f, cp_f, ['finding_id', 'assignee', 'status', 'order', 'data', 'template'])
             self.assert_comments_copy_equal(p_f, cp_f)
 
-        for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id'), strict=False):
+        for p_n, cp_n in zip(p.notes.order_by('note_id'), cp.notes.order_by('note_id'), strict=True):
             assert p_n != cp_n
             assertKeysEqual(p_n, cp_n, ['note_id', 'type', 'title', 'text', 'checked', 'icon_emoji', 'order', 'excalidraw_data'])
             if p_n.parent:
@@ -675,7 +708,8 @@ class TestCopyModel:
 
         for p_x, cp_x in zip(
             ProjectNotebookExcalidrawFile.objects.filter(linked_object__project=p).order_by('linked_object__note_id'),
-            ProjectNotebookExcalidrawFile.objects.filter(linked_object__project=cp).order_by('linked_object__note_id'), strict=False,
+            ProjectNotebookExcalidrawFile.objects.filter(linked_object__project=cp).order_by('linked_object__note_id'),
+            strict=True,
         ):
             assert p_x != cp_x
             assert p_x.linked_object != cp_x.linked_object
@@ -685,7 +719,9 @@ class TestCopyModel:
     def test_copy_project_type(self):
         user = create_user()
         project = create_project()
-        pt = create_project_type(source=SourceEnum.IMPORTED, linked_project=project)
+        pt = create_project_type(source=SourceEnum.IMPORTED, linked_project=project, assets_kwargs=[{'name': 'file1.png'}])
+        UploadedAsset.objects.create(linked_object=pt, name='edited.png', original=pt.assets.first(), file=pt.assets.first().file)
+
         pt.lock(user)
         cp = pt.copy()
 
@@ -694,7 +730,8 @@ class TestCopyModel:
 
     def test_copy_template(self):
         user = create_user()
-        t = create_template()
+        t = create_template(images_kwargs=[{'name': 'image.png'}])
+        UploadedTemplateImage.objects.create(linked_object=t, name='edited.png', original=t.images.first(), file=t.images.first().file)
         t.lock(user)
         cp = t.copy()
 
@@ -705,8 +742,16 @@ class TestCopyModel:
         assert t.main_translation != cp.main_translation
         assertKeysEqual(t, cp, ['tags'])
 
-        assert set(t.images.values_list('id', flat=True)).intersection(cp.images.values_list('id', flat=True)) == set()
-        assert {(i.name, i.file.read()) for i in t.images.all()} == {(i.name, i.file.read()) for i in cp.images.all()}
+        for t_i, cp_i in zip(t.images.order_by('name'), cp.images.order_by('name'), strict=True):
+            assert t_i != cp_i
+            assertKeysEqual(t_i, cp_i, ['name', 'name_hash'])
+            assert t_i.file.read() == cp_i.file.read()
+            if t_i.original:
+                assert t_i.name == cp_i.name
+                assert t_i.original != cp_i.original
+                assert t_i.original.name == cp_i.original.name
+            else:
+                assert cp_i.original is None
 
         for t_tr, cp_tr in zip(t.translations.order_by('language'), cp.translations.order_by('language'), strict=False):
             assert t_tr != cp_tr

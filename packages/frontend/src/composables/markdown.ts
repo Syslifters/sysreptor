@@ -44,7 +44,7 @@ export type MarkdownProps = {
   markdownEditorMode?: MarkdownEditorMode;
   referenceItems?: ReferenceItem[];
   collab?: CollabPropType;
-  uploadFile?: (file: File) => Promise<string>;
+  uploadFile?: (file: File, body?: Record<string, any>) => Promise<string>;
   rewriteFileUrlMap?: Record<string, string>;
 }
 
@@ -557,7 +557,8 @@ export function useMarkdownEditorBase(options: {
     value: editorState.value?.doc.toString() ?? options.props.value.modelValue,
     referenceItems: options.props.value.referenceItems,
     rewriteFileUrlMap: options.props.value.rewriteFileUrlMap,
-    uploadFile: (file: File) => uploadFiles([file]),
+    uploadFile: options.props.value.uploadFile,
+    editorView: options.editorView.value,
     cacheBuster: previewCacheBuster,
   }));
 

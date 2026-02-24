@@ -579,8 +579,9 @@ export enum UploadedFileType {
   ASSET = 'asset',
 }
 
-export type UploadedFileInfo = BaseModel&{
+export type UploadedFileInfo = BaseModel & {
   name: string;
+  original: string|null;
   resource_type: UploadedFileType;
 }
 
