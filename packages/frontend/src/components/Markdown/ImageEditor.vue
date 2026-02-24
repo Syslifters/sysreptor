@@ -41,6 +41,7 @@ const props = defineProps<{
 }>();
 
 const activeTool = ref<ImageEditorTool>(ImageEditorTool.SELECT);
+const hasChanges = ref(false);
 const localSettings = useLocalSettings();
 
 const canvasEl = useTemplateRef('canvasEl');
@@ -91,6 +92,7 @@ onMounted(async () => {
 
   // Event handlers
   setupDrawingHandlers();
+  setupChangeTracking();
 
   canvas.value.renderAll();
   return canvas.value;
@@ -226,6 +228,23 @@ watch(activeTool, (tool, oldTool) =>  {
   });
   canvas.value.requestRenderAll();
 });
+
+function setupChangeTracking() {
+  if (!canvas.value) {
+    return;
+  }
+
+  function onChange(e: any) {
+    if (e.target && ![cropRect.value, cropBackground.value].includes(e.target)) {
+      hasChanges.value = true;
+    }
+  }
+
+  canvas.value.on('object:added', onChange);
+  canvas.value.on('object:modified', onChange);
+  canvas.value.on('object:removed', onChange);
+  canvas.value.on('text:changed', onChange);
+}
 
 function setupDrawingHandlers() {
   if (!canvas.value) { 
@@ -698,6 +717,13 @@ function exitCropMode() {
   const cropRectObj = cropRect.value;
   const area = cropRectObj.getBoundingRect();
   
+  // Check if actual cropping happened (dimensions changed)
+  const isCropped = area.left !== 0 || area.top !== 0 || 
+                    area.width !== canvas.value.width || area.height !== canvas.value.height;
+  if (!isCropped) {
+    return;
+  }
+  
   canvas.value.remove(cropBackground.value!);
   cropBackground.value = null;
   cropRect.value = null;
@@ -717,6 +743,8 @@ function exitCropMode() {
   canvas.value.getObjects().forEach(updatePosAfterCrop);
   canvas.value.setDimensions({ width: area.width, height: area.height }, { backstoreOnly: true });
   updateSize();
+  
+  hasChanges.value = true;
 }
 
 // Set colors
@@ -754,6 +782,7 @@ async function exportAsBlob(): Promise<Blob | null> {
 
 defineExpose({
   exportAsBlob,
+  hasChanges,
 });
 </script>
 

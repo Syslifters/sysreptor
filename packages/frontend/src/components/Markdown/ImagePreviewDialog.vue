@@ -3,6 +3,7 @@
     v-if="modelValue" 
     :model-value="true" 
     @update:model-value="onClose"
+    :persistent="editMode"
     width="90vw"
     max-width="90vw"
     height="90vh"
@@ -13,46 +14,38 @@
     @keydown.arrow-right="!editMode && windowRef?.group.next()"
   >
     <template #title>
-      <template v-if="!editMode">
-        <v-code v-if="modelValue.markdown" class="d-inline">
-          <s-btn-icon
-            @click="copyToClipboard(modelValue.markdown)"
-            icon="mdi-content-copy"
-            size="small"
-            density="compact"
-          />
-            {{ modelValue.markdown }}
-        </v-code>
-        <span v-else>{{ modelValue.caption || '' }}</span>
-        
+      <span v-if="editMode" class="mr-2">Edit Image</span>
+
+      <v-code v-if="modelValue.markdown" class="d-inline">
         <s-btn-icon
-          v-if="props.uploadFile"
-          @click="openImageEditor"
-          :disabled="props.readonly || !modelValue.markdown"
+          @click="copyToClipboard(modelValue.markdown)"
+          icon="mdi-content-copy"
+          size="small"
           density="compact"
-        >
-          <v-icon size="small" icon="mdi-image-edit-outline" />
-          <s-tooltip activator="parent" location="top" text="Edit Image" />
-        </s-btn-icon>
-      </template>
-      
-      <template v-else>
-        <span>Edit Image</span>
-        <s-btn-secondary
-          @click="editMode = false"
-          text="Cancel"
-          prepend-icon="mdi-close"
-          class="mr-2"
         />
-        <btn-confirm
-          :action="performSave"
-          :confirm="false"
-          :disabled="props.readonly"
-          button-text="Save"
-          button-icon="mdi-content-save"
-          button-color="primary"
-        />
-      </template>
+          {{ modelValue.markdown }}
+      </v-code>
+      <span v-else>{{ modelValue.caption || '' }}</span>
+    </template>
+
+    <template #toolbar>
+      <s-btn-icon
+        v-if="props.uploadFile && !editMode"
+        @click="editMode = true"
+        :disabled="props.readonly || !modelValue.markdown"
+      >
+        <v-icon size="large" icon="mdi-image-edit-outline" />
+        <s-tooltip activator="parent" text="Edit Image" />
+      </s-btn-icon>
+      <s-btn-icon
+        v-if="editMode"
+        @click="performSave"
+        :disabled="props.readonly || saveInProgress"
+        :loading="saveInProgress"
+      >
+        <v-icon size="x-large" icon="mdi-check-bold" />
+        <s-tooltip activator="parent" text="Save" />
+      </s-btn-icon>
     </template>
     
     <v-card-text class="pa-0 flex-grow-height">
@@ -93,25 +86,30 @@ const emit = defineEmits<{
 }>();
 
 const windowRef = useTemplateRef('windowRef');
-
-const zoomEnabled = ref(false);
-watch(modelValue, () => {
-  zoomEnabled.value = false;
-});
-
-// Image Editor
-const editMode = ref(false);
 const imageEditorRef = useTemplateRef('imageEditorRef');
 
-function openImageEditor() {
-  if (modelValue.value) {
-    editMode.value = true;
-  }
-}
+const editMode = ref(false);
+const zoomEnabled = ref(false);
+const saveInProgress = ref(false);
+watch(modelValue, () => {
+  editMode.value = false;
+  zoomEnabled.value = false;
+  saveInProgress.value = false;
+});
 
 function onClose(val: boolean) {
   if (!val) {
-    modelValue.value = null;
+    if (editMode.value) {
+      if (imageEditorRef.value?.hasChanges) {
+        const confirmClose = window.confirm('Do you really want to leave? You have unsaved changes!');
+        if (!confirmClose) {
+          return;
+        }
+      }
+      editMode.value = false;
+    } else {
+      modelValue.value = null;
+    }
   }
 }
 
@@ -129,34 +127,49 @@ async function performSave() {
     return;
   }
 
-  // Export annotated image
-  const blob = await imageEditorRef.value?.exportAsBlob();
-  if (!blob) {
-    throw new Error('Failed to export image');
+  if (!imageEditorRef.value?.hasChanges) {
+    editMode.value = false;
+    return;
   }
-  const original = await getOriginalImageInfo(modelValue.value.src);
-  const file = new File([blob], 'edited.png', { type: 'image/png' });
-  const newMd = await props.uploadFile(file, { 
-    original: original 
-  });
 
-  // Extract URLs from markdown and emit event to update editor
-  const oldUrlMatch = modelValue.value.markdown?.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
-  const newUrlMatch = newMd.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
-  if (!oldUrlMatch || !newUrlMatch) {
-    throw new Error('Failed to save image: Could not extract URLs');
+  try {
+    saveInProgress.value = true;
+
+    // Export annotated image
+    const blob = await imageEditorRef.value?.exportAsBlob();
+    if (!blob) {
+      throw new Error('Failed to export image');
+    }
+    const original = await getOriginalImageInfo(modelValue.value.src);
+    const file = new File([blob], 'edited.png', { type: 'image/png' });
+    const newMd = await props.uploadFile(file, { 
+      original: original 
+    });
+
+    // Extract URLs from markdown and emit event to update editor
+    const oldUrl = modelValue.value.markdown?.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
+    const newUrl = newMd.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
+    if (!oldUrl || !newUrl) {
+      throw new Error('Failed to save image: Could not extract URLs');
+    }
+    const newMarkdown = modelValue.value.markdown ? modelValue.value.markdown.replaceAll(oldUrl, newUrl) : null;
+    emit('image-edited', {
+      oldUrl,
+      newUrl,
+      oldMarkdown: modelValue.value.markdown || null,
+      newMarkdown,
+    });
+
+    // Close dialog and show success
+    successToast('Image saved successfully');
+    modelValue.value.src = modelValue.value.src.replace(oldUrl, newUrl);
+    modelValue.value.markdown = newMarkdown;
+    editMode.value = false;
+  } catch (error) {
+    errorToast((error as Error).message || 'Failed to save image');
+  } finally {
+    saveInProgress.value = false;
   }
-  emit('image-edited', {
-    oldUrl: oldUrlMatch,
-    oldMarkdown: modelValue.value.markdown || null,
-    newUrl: newUrlMatch,
-    newMarkdown: modelValue.value.markdown ? modelValue.value.markdown.replaceAll(oldUrlMatch, newUrlMatch) : null
-  });
-
-  // Close dialog and show success
-  successToast('Image saved successfully');
-  modelValue.value = null;
-  editMode.value = false;
 }
 </script>
 
