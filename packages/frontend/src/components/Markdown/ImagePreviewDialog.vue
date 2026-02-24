@@ -28,6 +28,7 @@
         <s-btn-icon
           v-if="props.uploadFile"
           @click="openImageEditor"
+          :disabled="props.readonly || !modelValue.markdown"
           density="compact"
         >
           <v-icon size="small" icon="mdi-image-edit-outline" />
@@ -46,6 +47,7 @@
         <btn-confirm
           :action="performSave"
           :confirm="false"
+          :disabled="props.readonly"
           button-text="Save"
           button-icon="mdi-content-save"
           button-color="primary"
@@ -78,24 +80,19 @@
 </template>
 
 <script setup lang="ts">
-import { VWindow } from 'vuetify/components';
-import ImageEditor from '~/components/Markdown/ImageEditor.vue';
-
 const modelValue = defineModel<PreviewImage|null>();
 const props = defineProps<{
   images: PreviewImage[];
+  readonly?: boolean;
   scaleFactor?: number;
   uploadFile?: (file: File, body?: Record<string, any>) => Promise<string>;
   rewriteFileUrlMap?: Record<string, string>;
 }>();
+const emit = defineEmits<{
+  'image-edited': [value: { oldUrl: string; newUrl: string; oldMarkdown: string|null; newMarkdown: string|null; }];
+}>();
 
 const windowRef = useTemplateRef('windowRef');
-
-function onClose(val: boolean) {
-  if (!val) {
-    modelValue.value = null;
-  }
-}
 
 const zoomEnabled = ref(false);
 watch(modelValue, () => {
@@ -112,6 +109,12 @@ function openImageEditor() {
   }
 }
 
+function onClose(val: boolean) {
+  if (!val) {
+    modelValue.value = null;
+  }
+}
+
 async function getOriginalImageInfo(imageSrc: string) {
   try {
     const res = await $fetch.raw(imageSrc, { method: 'HEAD' });
@@ -122,7 +125,7 @@ async function getOriginalImageInfo(imageSrc: string) {
 }
 
 async function performSave() {
-  if (!props.uploadFile || !modelValue.value ) {
+  if (!props.uploadFile || !modelValue.value || props.readonly) {
     return;
   }
 
@@ -131,15 +134,24 @@ async function performSave() {
   if (!blob) {
     throw new Error('Failed to export image');
   }
-
   const original = await getOriginalImageInfo(modelValue.value.src);
-
-  // Create file from blob
   const file = new File([blob], 'edited.png', { type: 'image/png' });
-  const newMd = await props.uploadFile(file, { original: original });
+  const newMd = await props.uploadFile(file, { 
+    original: original 
+  });
 
-  // TODO: update markdown in editor
-
+  // Extract URLs from markdown and emit event to update editor
+  const oldUrlMatch = modelValue.value.markdown?.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
+  const newUrlMatch = newMd.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
+  if (!oldUrlMatch || !newUrlMatch) {
+    throw new Error('Failed to save image: Could not extract URLs');
+  }
+  emit('image-edited', {
+    oldUrl: oldUrlMatch,
+    oldMarkdown: modelValue.value.markdown || null,
+    newUrl: newUrlMatch,
+    newMarkdown: modelValue.value.markdown ? modelValue.value.markdown.replaceAll(oldUrlMatch, newUrlMatch) : null
+  });
 
   // Close dialog and show success
   successToast('Image saved successfully');

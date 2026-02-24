@@ -519,6 +519,35 @@ export function useMarkdownEditorBase(options: {
     });
   });
 
+  function onImageEdited(event: { oldUrl: string; newUrl: string; oldMarkdown: string|null; newMarkdown: string|null; }) {
+    if (options.props.value.readonly || options.props.value.disabled || !options.editorView.value) {
+      return;
+    }
+    function replaceAllInMarkdown(old: string, replacement: string) {
+      const docText = options.editorView.value!.state.doc.toString();
+      const changes = [];
+      let pos = 0;
+      
+      while ((pos = docText.indexOf(old, pos)) >= 0) {
+        changes.push({ from: pos, to: pos + old.length, insert: replacement });
+        pos += old.length;
+      }
+
+      if (changes.length > 0) {
+        options.editorView.value!.dispatch(options.editorView.value!.state.update({
+          changes,
+          selection: { anchor: changes[0]!.from + replacement.length },
+        }));
+      }
+    }
+
+    if (event.oldMarkdown && event.newMarkdown) {
+      replaceAllInMarkdown(event.oldMarkdown, event.newMarkdown);
+    } else {
+      replaceAllInMarkdown(event.oldUrl, event.newUrl);
+    }
+  }
+
   function focus() {
     if (options.editorView.value) {
       options.editorView.value.focus();
@@ -555,11 +584,13 @@ export function useMarkdownEditorBase(options: {
   }));
   const markdownPreviewAttrs = computed(() => ({
     value: editorState.value?.doc.toString() ?? options.props.value.modelValue,
+    readonly: options.props.value.disabled || options.props.value.readonly,
     referenceItems: options.props.value.referenceItems,
     rewriteFileUrlMap: options.props.value.rewriteFileUrlMap,
     uploadFile: options.props.value.uploadFile,
     editorView: options.editorView.value,
     cacheBuster: previewCacheBuster,
+    onImageEdited,
   }));
 
   return {

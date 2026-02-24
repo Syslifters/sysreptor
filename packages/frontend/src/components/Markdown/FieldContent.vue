@@ -42,7 +42,7 @@
       <markdown-preview 
         v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN"
         ref="previewRef"
-        v-bind="markdownPreviewAttrs" 
+        v-bind="markdownPreviewAttrs"
         class="mde-preview"
       />
       <div v-if="spacerHeight > 0" class="mde-spacer">

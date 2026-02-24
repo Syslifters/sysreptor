@@ -9,9 +9,11 @@
     </div>
     <markdown-image-preview-dialog 
       v-model="previewImageSrc" 
-      :images="previewImagesAll" 
+      :images="previewImagesAll"
+      :readonly="props.readonly" 
       :upload-file="props.uploadFile"
       :rewrite-file-url-map="props.rewriteFileUrlMap"
+      @image-edited="emit('image-edited', $event)"
     />
   </div>
 </template>
@@ -33,6 +35,7 @@ mermaid.initialize({
 <script setup lang="ts">
 const props = defineProps<{
   value?: string|null;
+  readonly?: boolean;
   rewriteFileUrlMap?: Record<string, string>;
   referenceItems?: ReferenceItem[];
   cacheBuster?: string;
@@ -41,6 +44,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   'rendered': [];
+  'image-edited': [value: { oldUrl: string; newUrl: string }];
 }>();
 
 const cacheBusterFallback = uuidv4();
@@ -129,8 +133,7 @@ useEventListener(previewRef, 'click', showPreviewImage);
 
 defineExpose({
   element: previewRef,
-})
-
+});
 </script>
 
 <style lang="scss" scoped>
