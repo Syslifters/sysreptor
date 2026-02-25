@@ -482,10 +482,10 @@ function addTextAtPosition(x: number, y: number) {
     return;
   }
   
-  const text = new IText('Click to edit', {
+  const text = new IText('Text', {
     left: x,
     top: y,
-    fontSize: localSettings.imageEditorSettings.strokeWidth * 12,
+    fontSize: localSettings.imageEditorSettings.fontSize, // localSettings.imageEditorSettings.strokeWidth * 12,
     fill: localSettings.imageEditorSettings.color,
     fontFamily: 'Noto Sans',
     ...selectModeArgs.value,
@@ -496,6 +496,7 @@ function addTextAtPosition(x: number, y: number) {
   if (activeTool.value === ImageEditorTool.TEXT) {
     canvas.value.setActiveObject(text);
     text.enterEditing();
+    text.selectAll();
   }
   
   canvas.value.requestRenderAll();

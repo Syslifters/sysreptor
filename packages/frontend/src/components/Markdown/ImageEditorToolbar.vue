@@ -10,7 +10,7 @@
     <!-- Shape tools -->
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.SELECT)"
-      title="Select and Move"
+      title="Select and Move (V)"
       icon="mdi-cursor-default"
       :active="activeTool === ImageEditorTool.SELECT"
     />
@@ -18,37 +18,37 @@
     
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.RECTANGLE_OUTLINED)"
-      title="Rectangle (Outline)"
+      title="Rectangle (Outline) [R]"
       icon="mdi-rectangle-outline"
       :active="activeTool === ImageEditorTool.RECTANGLE_OUTLINED"
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.RECTANGLE_FILLED)"
-      title="Rectangle (Filled)"
+      title="Rectangle (Filled) [Shift+R]"
       icon="mdi-rectangle"
       :active="activeTool === ImageEditorTool.RECTANGLE_FILLED"
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.ELLIPSE)"
-      title="Ellipse (Outline)"
+      title="Ellipse (Outline) [O]"
       icon="mdi-ellipse-outline"
       :active="activeTool === ImageEditorTool.ELLIPSE"
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.LINE)"
-      title="Line"
+      title="Line [L]"
       icon="mdi-vector-line"
       :active="activeTool === ImageEditorTool.LINE"
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.TEXT)"
-      title="Text"
+      title="Text [T]"
       icon="mdi-format-text"
       :active="activeTool === ImageEditorTool.TEXT"
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.MARKER)"
-      title="Numbered Marker"
+      title="Numbered Marker [M]"
       icon="mdi-numeric-1-circle"
       :active="activeTool === ImageEditorTool.MARKER"
     />
@@ -147,6 +147,15 @@ const colorSwatches = [
 function setTool(tool: ImageEditorTool) {
   activeTool.value = tool;
 }
+
+// Keyboard shortcuts for tool selection
+useHotkey('v', () => setTool(ImageEditorTool.SELECT));
+useHotkey('r', () => setTool(ImageEditorTool.RECTANGLE_OUTLINED));
+useHotkey('shift+r', () => setTool(ImageEditorTool.RECTANGLE_FILLED));
+useHotkey('o', () => setTool(ImageEditorTool.ELLIPSE));
+useHotkey('l', () => setTool(ImageEditorTool.LINE));
+useHotkey('t', () => setTool(ImageEditorTool.TEXT));
+useHotkey('m', () => setTool(ImageEditorTool.MARKER));
 </script>
 
 <style scoped lang="scss">
