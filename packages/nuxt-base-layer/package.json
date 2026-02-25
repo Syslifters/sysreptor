@@ -15,7 +15,7 @@
     "@pinia/nuxt": "^0.11.0",
     "pinia-plugin-persistedstate": "^4.1.3",
     "sass-embedded": "^1.79.5",
-    "@nuxt/eslint": "~1.12.1",
+    "@nuxt/eslint": "~1.15",
     "@vueuse/nuxt": "^14.0.0",
 
     "emoji-mart-vue-fast": "^15.0.0",
@@ -30,7 +30,7 @@
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "nuxt": "~4.2",
+    "nuxt": "~4.3",
     "vuetify": "~3.11",
     
     "@types/node": "^24",
@@ -38,11 +38,11 @@
     "@types/zxcvbn": "^4.4.2",
     "@types/lodash-es": "^4.17.12",
     
-    "eslint": "^9.0.0",
+    "eslint": "^10.0",
     "vue-tsc": "^3.0.4"
   },
   "peerDependencies": {
-    "nuxt": "~4.2",
+    "nuxt": "~4.3",
     "vuetify": "~3.11",
     "pinia": "^3.0"
   }

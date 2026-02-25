@@ -5,8 +5,8 @@
 <script setup lang="ts">
 useAsyncDataE(async () => {
   throw createError({
-    statusCode: 404,
-    statusMessage: 'Not Found',
+    status: 404,
+    statusText: 'Not Found',
   });
 })
 </script>

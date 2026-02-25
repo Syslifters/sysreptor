@@ -13,14 +13,14 @@
     "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
     "@sysreptor/markdown": "../../../packages/markdown",
 
-    "nuxt": "~4.2",
+    "nuxt": "~4.3",
     "vuetify": "~3.11",
     "pinia": "^3.0"
   },
   "devDependencies": {
-    "@nuxt/test-utils": "^3.21.0",
+    "@nuxt/test-utils": "^4.0",
     "@vue/test-utils": "^2.4.6",
-    "vitest": "^4.0.15",
+    "vitest": "^4.0",
     "@cfworker/json-schema": "^4.1.1"
   },
   "overrides": {
