@@ -10,9 +10,10 @@
     <div 
       ref="containerEl"
       class="image-editor-container"
-      @wheel="handleWheel"
     >
-      <canvas ref="canvasEl" />
+      <div class="canvas-wrapper elevation-4">
+        <canvas ref="canvasEl" />
+      </div>
     </div>
   </div>
 </template>
@@ -22,6 +23,7 @@ import {
   Canvas, Rect, Ellipse, Polyline, Polygon, FabricImage, type FabricObject, Point, IText, Group, Circle, Control, 
   type TPointerEvent, type Transform, util as fabricUtil, controlsUtils,
 } from 'fabric';
+import { useZoomImage } from '@base/utils/helpers';
 
 export enum ImageEditorTool {
   SELECT = 'select',
@@ -59,10 +61,6 @@ const selectModeArgs = computed(() => {
     lockMovementY: !isSelectMode,
   };
 });
-
-const zoomFactor = ref(1);
-const MIN_ZOOM = 0.5;
-const MAX_ZOOM = 10.0;
 
 // Drawing state
 const isDrawing = ref(false);
@@ -104,20 +102,9 @@ onBeforeUnmount(() => {
   }
 });
 
-function getScale() {
-  if (!containerEl.value || !canvas.value) {
-    return 1;
-  }
-  const containerStyle = window.getComputedStyle(containerEl.value);
-  const canvasScale = Math.min(
-    (containerEl.value.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight)) / canvas.value.width,
-    (containerEl.value.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom)) / canvas.value.height,
-  );
-  return canvasScale * zoomFactor.value;
-}
-
+const { scaleFactor } = useZoomImage(containerEl, () => (canvas.value ? { width: canvas.value.width, height: canvas.value.height } : null));
 function resizeControls() {
-  const scale = getScale();
+  const scale = scaleFactor.value;
   const cornerSize = Math.max(10 / scale, 6);
   canvas.value?.forEachObject((obj) => {
     obj.set({
@@ -143,12 +130,11 @@ function resizeControls() {
     cropRect.value.setCoords();
   }
 }
-
 function updateSize() {
   if (!canvas.value) { 
     return;
   }
-  const scale = getScale();
+  const scale = scaleFactor.value;
   canvas.value.setDimensions({
     width: canvas.value.width * scale,
     height: canvas.value.height * scale,
@@ -158,46 +144,7 @@ function updateSize() {
   resizeControls();
   canvas.value.requestRenderAll();
 }
-
-function handleWheel(event: WheelEvent) {
-  if (!(event.ctrlKey || event.metaKey) || !canvas.value || !containerEl.value) {
-    return;
-  }
-
-  event.preventDefault();
-  event.stopPropagation();
-  
-  // Get mouse position relative to container
-  const rect = containerEl.value.getBoundingClientRect();
-  const mouseX = event.clientX - rect.left;
-  const mouseY = event.clientY - rect.top;
-  
-  // Calculate the point in the canvas content that mouse is over
-  const oldScale = getScale();
-  const canvasPointX = (containerEl.value.scrollLeft + mouseX) / oldScale;
-  const canvasPointY = (containerEl.value.scrollTop + mouseY) / oldScale;
-  
-  // Calculate zoom delta
-  let delta = -event.deltaY;
-  if (event.deltaMode === WheelEvent.DOM_DELTA_PIXEL) {
-    delta = delta / 100;
-  } else if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
-    delta = delta / 3;
-  }
-  
-  // Update zoom factor
-  let newZoom = zoomFactor.value * (1 + delta * 0.1);
-  newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
-  zoomFactor.value = newZoom;
-  
-  // Update canvas size with new zoom
-  updateSize();
-  
-  // Adjust scroll position to keep the same canvas point under the mouse
-  const newScale = getScale();
-  containerEl.value.scrollLeft = canvasPointX * newScale - mouseX;
-  containerEl.value.scrollTop = canvasPointY * newScale - mouseY;
-}
+watch(scaleFactor, () => updateSize());
 
 watch(activeTool, (tool, oldTool) =>  {
   if (!canvas.value) { 
@@ -793,14 +740,11 @@ defineExpose({
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background-color: rgb(var(--v-theme-surface-variant));
 }
 
 .image-editor-container {
-  display: flex;
-  align-items: center;
-  vertical-align: middle;
-
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
   flex: 1;
@@ -810,8 +754,10 @@ defineExpose({
   position: relative;
   touch-action: none;
 }
-:deep(.canvas-container) {
-  margin: auto;
+.canvas-wrapper {
+  background: 
+    repeating-conic-gradient(rgb(var(--v-theme-surface)) 0% 25%, rgba(var(--v-theme-on-surface), 0.1) 0% 50%) 
+    50% / 20px 20px;
 }
 
 </style>

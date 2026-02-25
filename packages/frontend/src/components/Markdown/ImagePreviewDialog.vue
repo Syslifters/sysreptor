@@ -47,7 +47,8 @@
         <s-tooltip activator="parent" text="Save" />
       </s-btn-icon>
     </template>
-    
+
+    <v-divider />
     <v-card-text class="pa-0 flex-grow-height">
       <v-window
         v-if="!editMode"
@@ -58,6 +59,7 @@
       >
         <v-window-item v-for="image in props.images" :key="image.src" :value="image">
           <markdown-image-preview-zoom
+            ref="imageZoomRefs"
             v-model="zoomEnabled"
             :src="image.src"
           />
@@ -87,14 +89,18 @@ const emit = defineEmits<{
 
 const windowRef = useTemplateRef('windowRef');
 const imageEditorRef = useTemplateRef('imageEditorRef');
+const imageZoomRefs = ref<any[]>([]);
 
 const editMode = ref(false);
 const zoomEnabled = ref(false);
 const saveInProgress = ref(false);
-watch(modelValue, () => {
+watch(modelValue, async () => {
   editMode.value = false;
   zoomEnabled.value = false;
   saveInProgress.value = false;
+  // Reset zoom when navigating to another image
+  await nextTick();
+  imageZoomRefs.value?.forEach(ref => ref?.resetZoom?.());
 });
 
 function onClose(val: boolean) {
