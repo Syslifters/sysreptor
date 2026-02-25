@@ -29,23 +29,47 @@
     </template>
 
     <template #toolbar>
-      <s-btn-icon
+      <btn-confirm
+        v-if="editMode && editedImageInfo?.original"
+        :action="revertToOriginal"
+        :confirm="true"
+        :disabled="props.readonly"
+        button-variant="icon"
+        button-icon="mdi-undo-variant"
+        button-text="Revert"
+        tooltip-text="Revert to Original Image"
+        dialog-text="Are you sure you want to revert to the original image? This will discard all annotations and edits you've made to this image."
+      >
+        <template #icon>
+          <v-icon size="large" icon="mdi-undo-variant" />
+        </template>
+      </btn-confirm>
+      <btn-confirm
         v-if="props.uploadFile && !editMode"
-        @click="editMode = true"
-        :disabled="props.readonly || !modelValue.markdown"
-      >
-        <v-icon size="large" icon="mdi-image-edit-outline" />
-        <s-tooltip activator="parent" text="Edit Image" />
-      </s-btn-icon>
-      <s-btn-icon
-        v-if="editMode"
-        @click="performSave"
+        :action="() => { editMode = true; }"
+        :confirm="false"
         :disabled="props.readonly || saveInProgress"
-        :loading="saveInProgress"
+        button-variant="icon"
+        button-text="Edit Image"
+        tooltip-text="Edit Image"
       >
-        <v-icon size="x-large" icon="mdi-check-bold" />
-        <s-tooltip activator="parent" text="Save" />
-      </s-btn-icon>
+        <template #icon>
+          <v-icon size="large" icon="mdi-image-edit-outline" />
+        </template>
+      </btn-confirm>
+      <btn-confirm
+        v-if="editMode"
+        :action="performSave"
+        :confirm="false"
+        :disabled="props.readonly || saveInProgress"
+        button-variant="icon"
+        button-text="Save"
+        tooltip-text="Save Changes"
+      >
+        <template #icon>
+          <v-icon size="x-large" icon="mdi-check-bold" />
+        </template>
+      </btn-confirm>
     </template>
 
     <v-divider />
@@ -60,7 +84,6 @@
         <v-window-item v-for="image in props.images" :key="image.src" :value="image">
           <markdown-image-preview-zoom
             ref="imageZoomRefs"
-            v-model="zoomEnabled"
             :src="image.src"
           />
         </v-window-item>
@@ -92,12 +115,12 @@ const imageEditorRef = useTemplateRef('imageEditorRef');
 const imageZoomRefs = ref<any[]>([]);
 
 const editMode = ref(false);
-const zoomEnabled = ref(false);
+const editedImageInfo = ref<UploadedFileInfo|null>(null);
 const saveInProgress = ref(false);
 watch(modelValue, async () => {
   editMode.value = false;
-  zoomEnabled.value = false;
   saveInProgress.value = false;
+  editedImageInfo.value = null;
   // Reset zoom when navigating to another image
   await nextTick();
   imageZoomRefs.value?.forEach(ref => ref?.resetZoom?.());
@@ -119,15 +142,58 @@ function onClose(val: boolean) {
   }
 }
 
-async function getOriginalImageInfo(imageSrc: string) {
+watch(editMode, async () => {
+  if (editMode.value) {
+    editedImageInfo.value = await getOriginalImageInfo(modelValue.value?.src || '');
+  } else {
+    editedImageInfo.value = null;
+  }
+});
+async function getImageInfoById(id: string) {
+  const imageApiUrl = new URL(modelValue.value!.src).pathname.replace(/\/name\/.*/, '/' + id);
+  return await $fetch<UploadedFileInfo>(imageApiUrl, { method: 'GET' });
+}
+async function getOriginalImageInfo(imageSrc?: string|null) {
+  if (!imageSrc) {
+    return null;
+  }
+
   try {
     const res = await $fetch.raw(imageSrc, { method: 'HEAD' });
-    return res.headers.get('X-Sysreptor-Id');
+    const fileId = res.headers.get('X-Sysreptor-Id');
+    if (!fileId) {
+      return null;
+    }
+
+    return await getImageInfoById(fileId);
   } catch {
     return null;
   }
 }
 
+
+function updateImageUrlInMarkdown(newMd: string) {
+  if (!modelValue.value) {
+    return;
+  }
+
+  // Extract URLs from markdown and emit event to update editor
+  const oldUrl = modelValue.value?.markdown?.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
+  const newUrl = newMd.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
+  if (!oldUrl || !newUrl) {
+    throw new Error('Failed to save image: Could not extract URLs');
+  }
+  const newMarkdown = modelValue.value.markdown ? modelValue.value.markdown.replaceAll(oldUrl, newUrl) : null;
+  emit('image-edited', {
+    oldUrl,
+    newUrl,
+    oldMarkdown: modelValue.value.markdown || null,
+    newMarkdown,
+  });
+
+  modelValue.value.src = modelValue.value.src.replace(oldUrl, newUrl);
+  modelValue.value.markdown = newMarkdown;
+}
 async function performSave() {
   if (!props.uploadFile || !modelValue.value || props.readonly) {
     return;
@@ -138,44 +204,35 @@ async function performSave() {
     return;
   }
 
-  try {
-    saveInProgress.value = true;
-
-    // Export annotated image
-    const blob = await imageEditorRef.value?.exportAsBlob();
-    if (!blob) {
-      throw new Error('Failed to export image');
-    }
-    const original = await getOriginalImageInfo(modelValue.value.src);
-    const file = new File([blob], 'edited.png', { type: 'image/png' });
-    const newMd = await props.uploadFile(file, { 
-      original: original 
-    });
-
-    // Extract URLs from markdown and emit event to update editor
-    const oldUrl = modelValue.value.markdown?.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
-    const newUrl = newMd.match(/\]\(\/[^\s)?"]+/)?.[0]?.substring(2);
-    if (!oldUrl || !newUrl) {
-      throw new Error('Failed to save image: Could not extract URLs');
-    }
-    const newMarkdown = modelValue.value.markdown ? modelValue.value.markdown.replaceAll(oldUrl, newUrl) : null;
-    emit('image-edited', {
-      oldUrl,
-      newUrl,
-      oldMarkdown: modelValue.value.markdown || null,
-      newMarkdown,
-    });
-
-    // Close dialog and show success
-    successToast('Image saved successfully');
-    modelValue.value.src = modelValue.value.src.replace(oldUrl, newUrl);
-    modelValue.value.markdown = newMarkdown;
-    editMode.value = false;
-  } catch (error) {
-    errorToast((error as Error).message || 'Failed to save image');
-  } finally {
-    saveInProgress.value = false;
+  // Export annotated image
+  const blob = await imageEditorRef.value?.exportAsBlob();
+  if (!blob) {
+    throw new Error('Failed to export image');
   }
+  const original = editedImageInfo.value || await getOriginalImageInfo(modelValue.value.src);
+  const file = new File([blob], 'edited.png', { type: 'image/png' });
+  const newMd = await props.uploadFile(file, { 
+    original: original?.id || null,
+  });
+
+  updateImageUrlInMarkdown(newMd);
+  // Close dialog and show success
+  successToast('Image saved successfully');
+  editMode.value = false;
+}
+
+async function revertToOriginal() {
+  if (!editedImageInfo.value?.original || !modelValue.value?.markdown || props.readonly) {
+    return;
+  }
+
+  const originalInfo = await getImageInfoById(editedImageInfo.value.original);
+  const newMd = modelValue.value.markdown.replaceAll('/' + editedImageInfo.value.name, '/' + originalInfo.name);
+  updateImageUrlInMarkdown(newMd);
+
+  // Update model and exit edit mode
+  successToast('Reverted to original image');
+  editMode.value = false;
 }
 </script>
 

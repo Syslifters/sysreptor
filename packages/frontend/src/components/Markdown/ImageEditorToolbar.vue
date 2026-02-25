@@ -10,7 +10,7 @@
     <!-- Shape tools -->
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.SELECT)"
-      title="Select"
+      title="Select and Move"
       icon="mdi-cursor-default"
       :active="activeTool === ImageEditorTool.SELECT"
     />
@@ -18,19 +18,19 @@
     
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.RECTANGLE_OUTLINED)"
-      title="Rectangle"
+      title="Rectangle (Outline)"
       icon="mdi-rectangle-outline"
       :active="activeTool === ImageEditorTool.RECTANGLE_OUTLINED"
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.RECTANGLE_FILLED)"
-      title="Filled Rectangle"
+      title="Rectangle (Filled)"
       icon="mdi-rectangle"
       :active="activeTool === ImageEditorTool.RECTANGLE_FILLED"
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.ELLIPSE)"
-      title="Ellipse"
+      title="Ellipse (Outline)"
       icon="mdi-ellipse-outline"
       :active="activeTool === ImageEditorTool.ELLIPSE"
     />
@@ -48,11 +48,11 @@
     />
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.MARKER)"
-      title="Marker"
+      title="Numbered Marker"
       icon="mdi-numeric-1-circle"
       :active="activeTool === ImageEditorTool.MARKER"
     />
-    <s-tooltip v-if="activeTool === ImageEditorTool.MARKER" text="Marker number (auto-increments)" location="top">
+    <s-tooltip v-if="activeTool === ImageEditorTool.MARKER" text="Marker number (auto-increments after placing)" location="top">
       <template #activator="{ props: tooltipProps }">
         <s-number-input
           v-model="markerNumber"
