@@ -37,6 +37,6 @@ const translation = computed(() =>
 
 <style lang="scss" scoped>
 .wrap-content {
-  white-space: normal !important;
+  white-space: normal;
 }
 </style>

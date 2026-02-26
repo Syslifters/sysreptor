@@ -314,7 +314,7 @@ defineExpose({
 }
 
 .toolbar {
-  background-color: rgba(var(--v-theme-surface), 1) !important;
+  background-color: rgba(var(--v-theme-surface), 1);
   border-bottom: thin solid rgba(var(--v-theme-on-surface), var(--v-border-opacity));
   position: sticky;
   top: 0;
@@ -353,8 +353,8 @@ defineExpose({
     background-color: rgba(var(--v-theme-surface), 1);
   }
   &-search {
-    --v-input-padding-top: 0 !important;
-    --v-field-padding-top: 0 !important;
+    --v-input-padding-top: 0;
+    --v-field-padding-top: 0;
   }
   :deep(.v-list-subheader__text) {
     width: 100%;

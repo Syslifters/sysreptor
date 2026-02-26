@@ -262,7 +262,7 @@ const onScrollMessages = throttle(() => {
 
 .select-agent:deep() {
   .v-field {
-    --v-input-control-height: 24px !important;
+    --v-input-control-height: 24px;
     --v-input-padding-top: 0;
   }
 }

@@ -33,15 +33,16 @@ const isExpanded = computed(() => localSettings.subDrawerExpanded);
 <style lang="scss">
 .subdrawer {
   .v-list-item {
-    padding-inline: 6px !important;
+    padding-inline: 6px;
     padding-top: 1em;
     padding-bottom: 1em;
   }
   .v-list-item:has(.v-list-subheader) {
-    padding-inline: 0 !important;
+    padding-inline: 0;
+    padding-bottom: 0;
   }
   .v-list-item__spacer {
-    width: 1em !important;
+    width: 1em;
   }
 
   .v-list-item--active {

@@ -119,6 +119,6 @@ const messageGroups = computed(() => {
 }
 
 .error-group {
-  background-color: inherit !important;
+  background-color: inherit;
 }
 </style>

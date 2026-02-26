@@ -39,8 +39,8 @@ const props = defineProps<{
 <style lang="scss" scoped>
 :deep() {
   .v-timeline-item__body, .v-timeline-divider {
-    padding-block-start: 0.5em !important;
-    padding-block-end: 0.5em !important;
+    padding-block-start: 0.5em;
+    padding-block-end: 0.5em;
   }
 
   .v-timeline-item__body {
@@ -48,7 +48,7 @@ const props = defineProps<{
   }
 
   .v-timeline-divider__before {
-    height: 0 !important;
+    height: 0;
   }
 
   .v-chip {

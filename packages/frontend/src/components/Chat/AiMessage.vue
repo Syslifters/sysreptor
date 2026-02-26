@@ -30,7 +30,7 @@ const props = defineProps<{
   }
 
   .v-expansion-panel-title {
-    min-height: 0 !important;
+    min-height: 0;
     padding: 8px;
   }
 

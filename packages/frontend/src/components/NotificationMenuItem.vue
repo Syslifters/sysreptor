@@ -192,7 +192,7 @@ watch([() => notificationStore.unreadNotificationCount, () => notificationStore.
   width: 0.5em;
 }
 .v-list-group {
-  --prepend-width: 0.5em !important;
+  --prepend-width: 0.5em;
 }
 
 .title-link {

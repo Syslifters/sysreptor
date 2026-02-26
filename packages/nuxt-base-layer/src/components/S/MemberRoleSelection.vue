@@ -66,7 +66,7 @@ const menuVisible = ref(false);
   }
 
   .v-chip {
-    margin: 0.2em 0.2em 0 0 !important;
+    margin: 0.2em 0.2em 0 0;
 
     &:not(.v-chip--disabled) {
       cursor: pointer;

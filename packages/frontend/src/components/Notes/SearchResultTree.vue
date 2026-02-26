@@ -64,7 +64,7 @@ function noteUrl(note: NoteBase,) {
 <style scoped lang="scss">
 .note-list-item {
   min-height: 1em;
-  padding-left: 0 !important;
+  padding-left: 0;
 
   .note-list-children-icon {
     width: 1.5rem;

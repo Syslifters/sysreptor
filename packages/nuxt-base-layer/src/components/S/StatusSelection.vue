@@ -88,9 +88,9 @@ watch(() => modelValue, () => {
 
 
 .status-finished {
-  color: settings.$status-color-finished !important;
+  color: settings.$status-color-finished;
 }
 .status-deprecated {
-  color: settings.$status-color-deprecated !important;
+  color: settings.$status-color-deprecated;
 }
 </style>

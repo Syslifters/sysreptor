@@ -42,8 +42,8 @@ function onControlClick() {
 
 <style lang="scss" scoped>
 .v-field__input {
-  padding: 0 1px !important;
-  cursor: initial !important;
+  padding: 0 1px;
+  cursor: initial;
   row-gap: 0;
 }
 </style>

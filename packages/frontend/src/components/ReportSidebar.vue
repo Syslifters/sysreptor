@@ -6,7 +6,7 @@
     density="compact" 
     class="pb-0 pt-0 h-100 d-flex flex-column"
   >
-    <v-list-subheader v-if="isInSearchMode" class="mt-0 pr-2">
+    <v-list-subheader v-if="isInSearchMode" class="subheader-section pr-2">
       <s-text-field 
         v-model="search"
         placeholder="Search..."
@@ -29,7 +29,7 @@
     </v-list-subheader>
 
     <div v-if="!showSearchResults" class="flex-grow-1 overflow-y-auto">
-      <v-list-subheader class="mt-0 pr-2">
+      <v-list-subheader class="subheader-section pr-2">
         <span>Sections</span>
         <v-spacer />
         <s-btn-icon
@@ -429,12 +429,16 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
 }
 
 :deep(.v-list-item-subtitle) {
-  font-size: x-small !important;
+  font-size: x-small;
+}
+
+.subheader-section {
+  margin-top: 0 !important;
 }
 
 :deep(.v-list-subheader) {
   margin-top: 1em;
-  padding-left: 0.5em !important;
+  padding-left: 0.5em;
 
   .v-list-subheader__text {
     display: flex;

@@ -108,8 +108,8 @@ function setRoles(user: ProjectMember, roles: string[]) {
 
     .member-item {
       width: 100%;
-      min-width: 64px !important;
-      max-height: inherit !important;
+      min-width: 64px;
+      max-height: inherit;
     }
 
     .v-autocomplete__selection {

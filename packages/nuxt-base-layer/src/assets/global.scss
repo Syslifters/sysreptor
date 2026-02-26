@@ -7,7 +7,7 @@
 // Overrides default Vuetify behavior
 // See https://github.com/vuetifyjs/vuetify/issues/1197
 html {
-  overflow-y: auto !important;
+  overflow-y: auto;
   color-scheme: light dark;
 }
 
@@ -37,7 +37,7 @@ body {
 
 // Vuetify overrides
 .v-field--focused .v-field__outline {
-  --v-field-border-opacity: var(--v-high-emphasis-opacity) !important;
+  --v-field-border-opacity: var(--v-high-emphasis-opacity);
 }
 .v-btn.v-btn--icon:not(.text-error, .v-btn--variant-flat):hover .v-icon, 
 .v-breadcrumbs-item--link:hover {
