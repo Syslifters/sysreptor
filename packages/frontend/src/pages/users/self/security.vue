@@ -143,12 +143,12 @@
                       :items="mfaMethodChoices"
                       class="mt-1"
                     >
-                      <template #item="{props: {title: item, ...itemProps}}">
-                        <v-list-item v-bind="itemProps" :prepend-icon="(item as any).icon" :title="(item as any).text" />
+                      <template #item="{props: {...itemProps}, item}">
+                        <v-list-item v-bind="itemProps" :prepend-icon="item.icon" :title="item.text" />
                       </template>
-                      <template #selection="{item: {props: {title: item}}}">
-                        <v-icon :icon="(item as any).icon" start />
-                        {{ (item as any).text }}
+                      <template #selection="{item}">
+                        <v-icon :icon="item.icon" start />
+                        {{ item.text }}
                       </template>
                     </s-select>
                   </v-card-text>

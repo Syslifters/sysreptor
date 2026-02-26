@@ -18,13 +18,13 @@
     @focus.stop
     class="select-roles"
   >
-    <template #chip="{item, props: chipProps}">
+    <template #chip="{internalItem: { title }, props: chipProps}">
       <v-chip
         size="small"
         @click="menuVisible = true"
         v-bind="chipProps"
       >
-        {{ item.title }}
+        {{ title }}
       </v-chip>
     </template>
     <template #append-inner>

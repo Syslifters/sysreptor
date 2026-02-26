@@ -11,15 +11,15 @@
     :density="props.density"
     data-testid="status-select"
   >
-    <template #item="{item: { raw: statusInfo }, props: itemProps}">
+    <template #item="{item: statusInfo, props: itemProps}">
       <v-list-item v-bind="itemProps" :data-testid="'status-' + statusInfo.id">
         <template #prepend>
           <v-icon :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" />
         </template>
       </v-list-item>
     </template>
-    <template #selection="{item: { raw: statusInfo }}">
-      <v-icon start :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" :data-testid="'status-' +  statusInfo" /> 
+    <template #selection="{item: statusInfo}">
+      <v-icon start :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" :data-testid="'status-' +  statusInfo.id" /> 
       {{ statusInfo.label }}
     </template>
   </v-select>

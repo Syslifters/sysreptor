@@ -24,11 +24,11 @@
               :class="{'hide-input': !!currentTemplate}"
               @keydown="onKeydown"
             >
-              <template v-if="currentTemplate" #selection="{ item: { raw: template } }">
+              <template v-if="currentTemplate" #selection="{ item: template }">
                 <template-select-item v-if="template?.id" :template="template" :language="displayLanguage" />
                 <template v-else>{{ searchInput }}</template>
               </template>
-              <template #item="{item: { raw: template }, props: itemProps}">
+              <template #item="{item: template, props: itemProps}">
                 <v-list-item v-bind="itemProps" title="">
                   <template-select-item :template="template" :language="displayLanguage" />
                 </v-list-item>

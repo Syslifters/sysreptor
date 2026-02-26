@@ -25,8 +25,8 @@
         >
           <template #item="{ item, props }">
             <v-list-item 
-              :title="item.raw.name" 
-              :subtitle="item.raw.key" 
+              :title="item.name" 
+              :subtitle="item.key" 
               v-bind="props"
             />
           </template>

@@ -7,7 +7,7 @@
     <template #no-data v-if="!props.selectableUsers && allItems.length === 0 && items.hasNextPage.value">
       <page-loader :items="items" />
     </template>
-    <template #item="{ item: { raw: user }, props: itemProps }">
+    <template #item="{ item: user, props: itemProps }">
       <v-list-item v-bind="itemProps">
         <template #prepend v-if="isObject(user)">
           <user-avatar :user="user as UserShortInfo" />

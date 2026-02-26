@@ -110,22 +110,22 @@
               >
                 <template #selection="{ item }">
                   <div class="d-flex align-center">
-                    <v-icon :icon="item.raw.icon" size="x-small" class="mr-1" />
-                    <span class="text-body-2">{{ item.raw.title }}</span>
+                    <v-icon :icon="item.icon" size="x-small" class="mr-1" />
+                    <span class="text-body-2">{{ item.title }}</span>
                   </div>
                 </template>
                 <template #item="{ props: itemProps, item }">
                   <v-list-item 
                     v-bind="itemProps" 
                     density="compact"
-                    :disabled="item.raw.proOnly && !apiSettings.isProfessionalLicense"
+                    :disabled="item.proOnly && !apiSettings.isProfessionalLicense"
                   >
                     <template #prepend>
-                      <v-icon :icon="item.raw.icon" />
+                      <v-icon :icon="item.icon" />
                     </template>
                     <template #title>
-                      <pro-info v-if="item.raw.proOnly">{{ item.raw.title }}</pro-info>
-                      <span v-else>{{ item.raw.title }}</span>
+                      <pro-info v-if="item.proOnly">{{ item.title }}</pro-info>
+                      <span v-else>{{ item.title }}</span>
                     </template>
                   </v-list-item>
                 </template>

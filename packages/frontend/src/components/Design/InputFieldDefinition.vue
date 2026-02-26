@@ -109,8 +109,8 @@
               <template #item="{item, props: itemProps}">
                 <v-list-item 
                   v-bind="itemProps" 
-                  :title="predefinedRegexPatterns.find(p => p.value === item.value)?.title || 'Custom'" 
-                  :subtitle="predefinedRegexPatterns.find(p => p.value === item.value)?.value || ''"
+                  :title="predefinedRegexPatterns.find(p => p.value === item)?.title || 'Custom'" 
+                  :subtitle="predefinedRegexPatterns.find(p => p.value === item)?.value || ''"
                 />
               </template>
             </s-combobox>

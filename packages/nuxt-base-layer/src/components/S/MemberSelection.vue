@@ -10,7 +10,7 @@
     menu-icon=""
     :clearable="false"
   >
-    <template #chip="{item: { title, raw: user}}">
+    <template #chip="{internalItem: { title }, item: user}">
       <v-list-item
         class="member-item elevation-2 mt-1 mb-1"
         lines="two"
