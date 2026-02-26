@@ -2,7 +2,7 @@
   <v-container fluid class="pa-4">
     <v-row>
       <v-col cols="12">
-        <h1>Export to Jira</h1>
+        <h1 class="text-headline-large font-weight-bold ma-0">Export to Jira</h1>
         <p class="text-body-large mt-2">
           Export selected findings from {{ project.name }} to Jira as issues.
         </p>
@@ -131,7 +131,7 @@
           </v-alert>
 
           <div v-if="successfulIssues.length > 0">
-            <h3 class="text-title-medium mb-2">Jira Issues:</h3>
+            <h3 class="text-title-medium mt-0 mb-2">Jira Issues:</h3>
             <v-list density="compact">
               <v-list-item
                 v-for="issue in successfulIssues"
@@ -156,7 +156,7 @@
           </div>
 
           <div v-if="exportResults.failed.length > 0" class="mt-4">
-            <h3 class="text-title-medium mb-2">Failed Issues:</h3>
+            <h3 class="text-title-medium mt-0 mb-2">Failed Issues:</h3>
             <v-list density="compact">
               <v-list-item
                 v-for="issue in exportResults.failed"

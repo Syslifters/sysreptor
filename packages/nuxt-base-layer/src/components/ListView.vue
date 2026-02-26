@@ -3,7 +3,7 @@
     <v-container class="pt-0">
       <v-list v-if="items" class="pt-0 overflow-visible">
         <div class="list-header pt-2 mb-4">
-          <h1>
+          <h1 class="text-headline-large font-weight-bold ma-0">
             <slot name="title" />
 
             <div v-if="$slots.actions" class="list-header-actions">
@@ -217,10 +217,6 @@ defineExpose({
 
 .list-header-tabs:deep(.v-tab) {
   text-transform: initial;
-}
-
-.list-header h1 {
-  min-height: 2em;
 }
 
 :deep(.v-list-item .v-list-item-subtitle) {

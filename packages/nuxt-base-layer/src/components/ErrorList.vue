@@ -107,6 +107,7 @@ const messageGroups = computed(() => {
 .error-message {
   display: inline-block;
   flex-grow: 1;
+  margin-top: 0;
   margin-bottom: 0;
 }
 .error-location {

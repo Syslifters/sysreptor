@@ -11,7 +11,7 @@
     <template #default>
       <div class="h-100 d-flex flex-column">
         <div class="pa-2">
-          <h1>{{ project.name }}</h1>
+          <h1 class="text-headline-large font-weight-bold ma-0">{{ project.name }}</h1>
           <v-row>
             <v-col cols="auto">
               <s-btn-secondary

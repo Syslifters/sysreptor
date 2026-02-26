@@ -15,7 +15,7 @@
       content-class="w-100 h-100"
     >
       <div class="h-100 d-flex justify-center align-center text-white">
-        <h2>Drop files to upload</h2>
+        <span class="text-headline-small font-weight-bold ma-0">Drop files to upload</span>
       </div>
     </v-overlay>
   </div>

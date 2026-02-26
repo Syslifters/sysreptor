@@ -1,6 +1,6 @@
 <template>
   <v-container class="h-100 overflow-y-auto">
-    <h1>License Info</h1>
+    <h1 class="text-headline-large font-weight-bold">License Info</h1>
 
     <p v-if="license.error" class="text-error mt-2">
       <v-icon start color="error" icon="mdi-alert-decagram" />

@@ -1,6 +1,6 @@
 <template>
   <v-container class="h-100 overflow-y-auto">
-    <h1>Backup</h1>
+    <h1 class="text-headline-large font-weight-bold mb-0">Backup</h1>
 
     <p v-if="!apiSettings.settings!.features.backup">
       No backup key configured. <br><br>

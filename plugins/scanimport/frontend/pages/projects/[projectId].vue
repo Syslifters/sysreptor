@@ -45,7 +45,7 @@
         <div class="h-100 d-flex flex-column justify-center align-center">
           <div class="text-center">
             <v-icon icon="mdi-check-circle" color="success" size="72" class="mb-4" />
-            <h2 class="text-headline-large mb-2">Import Complete!</h2>
+            <h2 class="text-headline-large font-weight-bold mt-0 mb-2">Import Complete!</h2>
             <p class="text-body-large mb-6">
               {{ importedCount }} {{ selectForm.importAs === ImportAs.FINDINGS ? 'findings' : 'notes' }}
               have been successfully imported to your project.
