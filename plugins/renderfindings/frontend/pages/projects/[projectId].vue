@@ -84,7 +84,7 @@
               </v-list-item-action>
             </template>
             <template #default>
-              <v-list-item-title class="text-body-2">{{ finding.data.title }}</v-list-item-title>
+              <v-list-item-title class="text-body-medium">{{ finding.data.title }}</v-list-item-title>
             </template>
           </v-list-item>
           <v-list-item v-if="project.findings.length === 0"

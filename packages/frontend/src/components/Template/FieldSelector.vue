@@ -21,7 +21,7 @@
             :class="{'item-disabled': !d.visible}" 
             v-bind="hoverProps"
           >
-            <v-list-item-title class="text-body-2">{{ d.id }}</v-list-item-title>
+            <v-list-item-title class="text-body-medium">{{ d.id }}</v-list-item-title>
             <template #append v-if="d.origin !== FieldOrigin.CORE && isHovering">
               <s-btn-icon
                 :icon="d.visible ? 'mdi-eye' : 'mdi-eye-off'"

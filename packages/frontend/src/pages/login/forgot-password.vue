@@ -55,7 +55,7 @@
                 Password reset mail sent
               </div>
 
-              <div class="text-body-2 text-medium-emphasis mb-6">
+              <div class="text-body-medium text-medium-emphasis mb-6">
                 If your email address is associated with a user, you will now receive an email to reset your password. 
               </div>
 

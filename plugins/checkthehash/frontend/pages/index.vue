@@ -37,8 +37,8 @@ export default {
         <v-text-field v-model="hash" label="Paste The Hash" variant="underlined" spellcheck="false" hide-details="auto"
           autofocus class="mt-0 mb-2" style="width: 100%;" />
 
-        <v-subheader v-if="noResults" class="text-h5 text-error mb-4">No matching hash mode found.</v-subheader>
-        <v-subheader v-if="results.length" class="text-h5 mb-4">Possible Hash Modes:</v-subheader>
+        <v-subheader v-if="noResults" class="text-headline-small text-error mb-4">No matching hash mode found.</v-subheader>
+        <v-subheader v-if="results.length" class="text-headline-small mb-4">Possible Hash Modes:</v-subheader>
         <v-list v-if="results.length" v-model:opened="open">
           <template v-for="({ name, hashcat, john }, index) in results" :key="index">
             <v-list-group v-if="hashcat != null || john != null">

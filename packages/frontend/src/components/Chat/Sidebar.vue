@@ -2,8 +2,8 @@
   <div class="h-100 d-flex flex-column">
     <div class="sidebar-header">
       <v-list-item class="pt-0 pb-0">
-        <v-list-item-title class="text-h6">
-          <v-badge content="Beta" color="primary" :offset-y="2" :offset-x="-10">
+        <v-list-item-title class="text-title-large">
+          <v-badge content="Beta" color="primary" :offset-y="4" :offset-x="-10">
             AI Chat
           </v-badge>
         </v-list-item-title>
@@ -111,7 +111,7 @@
                 <template #selection="{ item }">
                   <div class="d-flex align-center">
                     <v-icon :icon="item.icon" size="x-small" class="mr-1" />
-                    <span class="text-body-2">{{ item.title }}</span>
+                    <span class="text-body-medium">{{ item.title }}</span>
                   </div>
                 </template>
                 <template #item="{ props: itemProps, item }">
@@ -134,7 +134,7 @@
           </template>
         </v-textarea>
       </s-card>
-      <div v-if="apiSettings.settings!.ai_agent_disclaimer" class="w-100 text-center text-body-2 text-disabled text-truncate">
+      <div v-if="apiSettings.settings!.ai_agent_disclaimer" class="w-100 text-center text-body-medium text-disabled text-truncate">
         <i>{{ apiSettings.settings!.ai_agent_disclaimer }}</i>
         <s-tooltip activator="parent" :text="apiSettings.settings!.ai_agent_disclaimer" />
       </div>

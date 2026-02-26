@@ -43,7 +43,7 @@
               />
             </template>
             <template #default>
-              <v-list-item-title class="text-h6">
+              <v-list-item-title class="text-title-large">
                 <nuxt-link to="/users/self/notifications/" class="title-link">Notifications</nuxt-link>
               </v-list-item-title>
             </template>
@@ -100,7 +100,7 @@
                 :lines="false"
                 class="pt-0 pb-0"
               >
-                <v-list-item-title class="text-body-2">{{ notification.content.title }}</v-list-item-title>
+                <v-list-item-title class="text-body-medium">{{ notification.content.title }}</v-list-item-title>
                 <template #append>
                   <s-btn-icon @click.stop.prevent="markAsRead(notification)" icon="mdi-checkbox-blank-outline" density="compact" />
                 </template>

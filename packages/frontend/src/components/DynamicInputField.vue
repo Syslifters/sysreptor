@@ -148,7 +148,7 @@
           <!-- Object -->
           <s-card v-else-if="definition.type === FieldDataType.OBJECT" class="field-nested">
             <v-card-item class="pb-0">
-              <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
+              <v-card-title class="text-body-large"><slot name="label">{{ label }}</slot></v-card-title>
               <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
               <template #append>
                 <comment-btn
@@ -181,7 +181,7 @@
           <!-- List -->
           <s-card v-else-if="definition.type === FieldDataType.LIST" class="field-nested">
             <v-card-item class="pb-0">
-              <v-card-title class="text-body-1"><slot name="label">{{ label }}</slot></v-card-title>
+              <v-card-title class="text-body-large"><slot name="label">{{ label }}</slot></v-card-title>
               <v-card-subtitle v-if="definition.help_text">{{ definition.help_text }}</v-card-subtitle>
               <v-alert v-if="Array.isArray(props.errorMessages) && props.errorMessages.length > 0" color="error">
                 <ul>

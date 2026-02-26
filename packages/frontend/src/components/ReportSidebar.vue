@@ -50,7 +50,7 @@
         density="compact"
       >
         <template #default>
-          <v-list-item-title class="text-body-2">{{ section.label }}</v-list-item-title>
+          <v-list-item-title class="text-body-medium">{{ section.label }}</v-list-item-title>
           <v-list-item-subtitle>
             <span v-if="section.assignee">@{{ section.assignee.username }}</span>
           </v-list-item-subtitle>
@@ -153,7 +153,7 @@
                     </div>
                   </template>
                   <template #default>
-                    <v-list-item-title class="text-body-2">{{ findingTitle(finding) }}</v-list-item-title>
+                    <v-list-item-title class="text-body-medium">{{ findingTitle(finding) }}</v-list-item-title>
                     <v-list-item-subtitle v-if="finding.assignee">@{{ finding.assignee.username }}</v-list-item-subtitle>
                     <s-tooltip v-if="['resolved', 'accepted', 'partial'].includes(findingRetestStatus(finding)?.value || '')" activator="parent">
                       Retest status: {{ findingRetestStatus(finding)?.label }}
@@ -187,7 +187,7 @@
             density="compact"
           >
             <template #default>
-              <v-list-item-title class="text-body-2">{{ result.item.label }}</v-list-item-title>
+              <v-list-item-title class="text-body-medium">{{ result.item.label }}</v-list-item-title>
             </template>
           </v-list-item>
           <search-match-list 
@@ -207,7 +207,7 @@
             :class="'finding-level-' + riskLevel(result.item)"
             density="compact"
           >
-            <v-list-item-title class="text-body-2">{{ findingTitle(result.item) }}</v-list-item-title>
+            <v-list-item-title class="text-body-medium">{{ findingTitle(result.item) }}</v-list-item-title>
           </v-list-item>
           <search-match-list 
             :result="result"

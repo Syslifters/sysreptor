@@ -79,7 +79,7 @@
             <v-divider />
 
             <v-card-text v-for="metricSubgroup in metricGroup.subgroups" :key="metricSubgroup.metrics.join(',')" class="pt-0 pb-0">
-              <v-card-subtitle v-if="metricSubgroup.name" class="text-h6 ma-2 mt-6 submetric-title">{{ metricSubgroup.name }}</v-card-subtitle>
+              <v-card-subtitle v-if="metricSubgroup.name" class="text-title-large ma-2 mt-6 submetric-title">{{ metricSubgroup.name }}</v-card-subtitle>
               <s-cvss-metric-input
                 v-for="m in metricSubgroup.metrics"
                 :key="m"

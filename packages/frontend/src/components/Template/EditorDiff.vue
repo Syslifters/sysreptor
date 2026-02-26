@@ -31,10 +31,10 @@
         <v-container fluid class="pt-0 h-100 overflow-y-auto">
           <v-row class="mt-0">
             <v-col cols="6" class="pb-0">
-              <h2 class="text-h5 text-center">Historic Version <chip-date :value="props.historyDate" /></h2>
+              <h2 class="text-headline-small text-center">Historic Version <chip-date :value="props.historyDate" /></h2>
             </v-col>
             <v-col cols="6" class="pb-0">
-              <h2 class="text-h5 text-center">Current Version</h2>
+              <h2 class="text-headline-small text-center">Current Version</h2>
             </v-col>
           </v-row>
 

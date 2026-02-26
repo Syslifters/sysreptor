@@ -35,7 +35,7 @@
             </div>
           </template>
           <template #default>
-            <v-list-item-title class="text-body-2">
+            <v-list-item-title class="text-body-medium">
               <s-emoji v-if="note.icon_emoji" :value="note.icon_emoji" size="small" start class="emoji-icon" />
               {{ note.title }}
             </v-list-item-title>

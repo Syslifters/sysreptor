@@ -33,7 +33,7 @@
           </div>
         </template>
         <template #default>
-          <v-list-item-title class="text-body-2">{{ note.title }}</v-list-item-title>
+          <v-list-item-title class="text-body-medium">{{ note.title }}</v-list-item-title>
         </template>
       </v-list-item>
 

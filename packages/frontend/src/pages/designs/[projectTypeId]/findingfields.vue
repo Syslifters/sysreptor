@@ -10,7 +10,7 @@
         >
           <div class="flex-grow-height overflow-y-auto">
             <v-list-item :value="allFieldsPlaceholder" :ripple="false" link>
-              <v-list-item-title class="text-body-2">All Fields</v-list-item-title>
+              <v-list-item-title class="text-body-medium">All Fields</v-list-item-title>
             </v-list-item>
 
             <draggable
@@ -31,7 +31,7 @@
                     <v-icon icon="mdi-drag-horizontal" />
                   </template>
                   <template #default>
-                    <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
+                    <v-list-item-title class="text-body-medium">{{ f.id }}</v-list-item-title>
                   </template>
                   <template #append>
                     <btn-delete
@@ -67,7 +67,7 @@
                       <v-icon icon="mdi-drag" />
                     </template>
                     <template #default>
-                      <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
+                      <v-list-item-title class="text-body-medium">{{ f.id }}</v-list-item-title>
                     </template>
                   </v-list-item>
                 </template>

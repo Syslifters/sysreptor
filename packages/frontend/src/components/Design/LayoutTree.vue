@@ -17,7 +17,7 @@
           </template>
 
           <template #default>
-            <v-list-item-title class="text-body-2">
+            <v-list-item-title class="text-body-medium">
               {{ item.component.name }}<span v-if="item.title">: <s-code>{{ item.title }}</s-code></span>
               <span v-if="item.tagInfo.attributes.id"> (<s-code>id="{{ item.tagInfo.attributes.id.value }}"</s-code>)</span>
             </v-list-item-title>

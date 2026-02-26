@@ -13,7 +13,7 @@
             >
               <template #item="{ element: c }">
                 <v-list-item link :ripple="false" prepend-icon="mdi-drag" class="draggable-item">
-                  <v-list-item-title class="text-body-2">{{ c.name }}</v-list-item-title>
+                  <v-list-item-title class="text-body-medium">{{ c.name }}</v-list-item-title>
                 </v-list-item>
               </template>
             </draggable>

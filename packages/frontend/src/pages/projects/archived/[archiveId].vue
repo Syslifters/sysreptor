@@ -75,7 +75,7 @@
       </template>
     </p>
 
-    <h6 class="text-h6 mt-4">Users</h6>
+    <h6 class="text-title-large mt-4">Users</h6>
     <v-table>
       <tbody>
         <tr v-for="keypart in archive.key_parts" :key="keypart.id">

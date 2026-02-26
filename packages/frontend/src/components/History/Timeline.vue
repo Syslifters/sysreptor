@@ -10,7 +10,7 @@
   >
     <div class="history-timeline-header">
       <v-list-item class="pt-0 pb-0">
-        <v-list-item-title class="text-h6">
+        <v-list-item-title class="text-title-large">
           <pro-info>Version History</pro-info>
         </v-list-item-title>
         <template #append>

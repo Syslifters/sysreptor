@@ -51,7 +51,7 @@
           </div>
         </template>
         <template #default>
-          <v-list-item-title class="text-body-2">
+          <v-list-item-title class="text-body-medium">
             <v-icon v-if="note.is_shared" size="small" icon="mdi-share-variant" />
             {{ note.title }}
           </v-list-item-title>

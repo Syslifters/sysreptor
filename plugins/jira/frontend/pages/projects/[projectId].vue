@@ -3,7 +3,7 @@
     <v-row>
       <v-col cols="12">
         <h1>Export to Jira</h1>
-        <p class="text-body-1 mt-2">
+        <p class="text-body-large mt-2">
           Export selected findings from {{ project.name }} to Jira as issues.
         </p>
       </v-col>
@@ -75,7 +75,7 @@
                   </v-list-item-action>
                 </template>
                 <template #default>
-                  <v-list-item-title class="text-body-2">
+                  <v-list-item-title class="text-body-medium">
                     {{ finding.data.title || 'Untitled Finding' }}
                   </v-list-item-title>
                 </template>
@@ -103,7 +103,7 @@
             Exporting...
           </template>
         </s-btn-primary>
-        <span v-if="selectedFindings.length > 0" class="ml-4 text-body-2">
+        <span v-if="selectedFindings.length > 0" class="ml-4 text-body-medium">
           {{ selectedFindings.length }} finding(s) selected
         </span>
       </v-col>
@@ -131,7 +131,7 @@
           </v-alert>
 
           <div v-if="successfulIssues.length > 0">
-            <h3 class="text-subtitle-1 mb-2">Jira Issues:</h3>
+            <h3 class="text-title-medium mb-2">Jira Issues:</h3>
             <v-list density="compact">
               <v-list-item
                 v-for="issue in successfulIssues"
@@ -156,7 +156,7 @@
           </div>
 
           <div v-if="exportResults.failed.length > 0" class="mt-4">
-            <h3 class="text-subtitle-1 mb-2">Failed Issues:</h3>
+            <h3 class="text-title-medium mb-2">Failed Issues:</h3>
             <v-list density="compact">
               <v-list-item
                 v-for="issue in exportResults.failed"

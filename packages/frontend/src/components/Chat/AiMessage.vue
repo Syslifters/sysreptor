@@ -5,7 +5,7 @@
     class="reasoning mt-2"
   >
     <v-expansion-panel>
-      <v-expansion-panel-title class="text-body-2">Reasoning...</v-expansion-panel-title>
+      <v-expansion-panel-title class="text-body-medium">Reasoning...</v-expansion-panel-title>
       <v-expansion-panel-text>{{ props.msg.reasoning }}</v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>

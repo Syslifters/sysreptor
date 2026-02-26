@@ -33,10 +33,10 @@
     <v-container fluid class="pt-0 flex-grow-height overflow-y-auto">
       <v-row class="mt-0">
         <v-col cols="6" class="pb-0">
-          <h2 class="text-h5 text-center">Historic Version <chip-date :value="(route.params.historyDate as string)" /></h2>
+          <h2 class="text-headline-small text-center">Historic Version <chip-date :value="(route.params.historyDate as string)" /></h2>
         </v-col>
         <v-col cols="6" class="pb-0">
-          <h2 class="text-h5 text-center">Current Version</h2>
+          <h2 class="text-headline-small text-center">Current Version</h2>
         </v-col>
       </v-row>
       <dynamic-input-field-diff 

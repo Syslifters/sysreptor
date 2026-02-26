@@ -88,7 +88,7 @@
                   size="20"
                   width="2"
                 />
-                <span class="text-body-2 ml-2">Loading sections...</span>
+                <span class="text-body-medium ml-2">Loading sections...</span>
               </div>
             </template>
           </v-list-item>
@@ -106,7 +106,7 @@
               </v-list-item-action>
             </template>
             <template #default>
-              <v-list-item-title class="text-body-2">{{ section.name }}</v-list-item-title>
+              <v-list-item-title class="text-body-medium">{{ section.name }}</v-list-item-title>
             </template>
           </v-list-item>
           <v-list-item v-if="!loadingSections && sections.length === 0"

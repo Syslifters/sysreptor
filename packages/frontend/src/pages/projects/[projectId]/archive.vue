@@ -1,7 +1,7 @@
 <template>
   <v-container class="pt-0">
     <h1>Archive Project</h1>
-    <p class="text-h6">
+    <p class="text-title-large">
       <strong>Name:</strong> {{ project.name }}
     </p>
 
@@ -12,7 +12,7 @@
       The archive can only be restored if at least <strong>{{ threshold }}</strong> users decrypt their key part with their private keys and combine them.
     </p>
 
-    <h6 class="text-h6 mt-4">Users</h6>
+    <h6 class="text-title-large mt-4">Users</h6>
     <p>
       <strong>{{ threshold }} of {{ archiverUsers.length }}</strong> users are required to restore the archive.<br>
       <template v-if="threshold > 1">
