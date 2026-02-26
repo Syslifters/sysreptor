@@ -1,45 +1,42 @@
 <template>
-  <v-container fluid class="fill-height">
-    <v-row justify="center">
-      <v-col xs="12" sm="8" md="4" align-self="center">
-        <s-card>
-          <v-toolbar
-            title="Forgot Password?"
-            color="header" 
-            flat
+  <centered-view>
+    <s-card class="w-100">
+      <v-toolbar
+        title="Forgot Password?"
+        color="header" 
+        flat
+      />
+      <v-form ref="form" @submit.prevent="resetPassword">
+        <v-card-text>
+          <v-text-field
+            v-model="formResetPassword.email"
+            type="email"
+            name="email"
+            label="E-mail"
+            :error-messages="errorMessage"
+            prepend-icon="mdi-email"
+            variant="outlined"
+            spellcheck="false"
+            autocomplete="off"
+            required
           />
-          <v-form ref="form" @submit.prevent="resetPassword">
-            <v-card-text>
-              <v-text-field
-                v-model="formResetPassword.email"
-                type="email"
-                name="email"
-                label="E-mail"
-                :error-messages="errorMessage"
-                prepend-icon="mdi-email"
-                variant="outlined"
-                spellcheck="false"
-                autocomplete="off"
-                required
-              />
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer />
-              <s-btn-other
-                to="/login/local/"
-                text="Cancel"
-              />
-              <s-btn-primary
-                type="submit"
-                text="Reset Password"
-                :loading="actionInProgress"
-              />
-            </v-card-actions>
-          </v-form>
-        </s-card>
-      </v-col>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <s-btn-other
+            to="/login/local/"
+            text="Cancel"
+          />
+          <s-btn-primary
+            type="submit"
+            text="Reset Password"
+            :loading="actionInProgress"
+          />
+        </v-card-actions>
+      </v-form>
+    </s-card>
 
-      <v-dialog v-model="resetPasswordSuccess" contained max-width="50%">
+    <v-dialog v-model="resetPasswordSuccess" contained max-width="50%">
         <v-card rounded="lg">
           <template #text>
             <div class="text-center pt-4">
@@ -65,10 +62,9 @@
               />
             </div>
           </template>
-        </v-card>
-      </v-dialog>
-    </v-row>
-  </v-container>
+      </v-card>
+    </v-dialog>
+  </centered-view>
 </template>
 
 <script setup lang="ts">
