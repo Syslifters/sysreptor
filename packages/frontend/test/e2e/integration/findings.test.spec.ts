@@ -80,10 +80,8 @@ test('A User can assign a Finding to a User and change status', async ({ page })
   await page.getByLabel('Assignee', { exact: true }).click();
   await page.getByText('reptor (User User)', { exact: true }).click();
   await page.getByTestId('status-select').click();
-  await page.getByTestId('status-in-progress').waitFor();
-  await page.getByTestId('status-in-progress').click();
-  await page.keyboard.press('Escape');
-  await page.getByTestId('status-in-progress').waitFor({ state: 'hidden' });
+  await page.getByRole('listbox').getByTestId('status-in-progress').waitFor();
+  await page.getByRole('listbox').getByTestId('status-in-progress').click();
   expect(await page.locator('div').filter({ hasText: /^reptor \(User User\)$/ }).first().isVisible()).toBeTruthy();
   expect(await page.getByTestId('status-select').getByText('In progress').isVisible()).toBeTruthy();
 });

@@ -19,7 +19,7 @@
       </v-list-item>
     </template>
     <template #selection="{item: statusInfo}">
-      <v-icon start :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" :data-testid="'status-' +  statusInfo.id" /> 
+      <v-icon start :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" /> 
       {{ statusInfo.label }}
     </template>
   </v-select>
