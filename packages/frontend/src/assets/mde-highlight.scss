@@ -6,11 +6,11 @@
 }
 
 // .cm-selectionBackground { display: none; }
-.cm-focused .cm-selectionBackground { display: initial; background-color: rgba(var(--v-theme-codemirror-selection), 1) !important; }
+.cm-focused .cm-selectionBackground { display: initial; background-color: rgb(var(--v-theme-codemirror-selection)) !important; }
 .cm-cursor { border-left-color: rgb(var(--v-theme-on-surface)); }
 
 .cm-gutters {
-  background-color: rgba(var(--v-theme-on-surface), 0.05);
+  background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent);
 }
 
 
@@ -35,7 +35,7 @@
   .tok-codeblock, .tok-inlinecode {
     font-family: monospace;
     color: vuetify.$code-color;
-    background-color: rgba(var(--v-theme-on-surface), 0.05);
+    background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent);
   }
 
   .tok-table {

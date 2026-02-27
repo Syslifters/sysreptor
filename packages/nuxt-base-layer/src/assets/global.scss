@@ -51,11 +51,11 @@ body {
 
 // CodeMirror overrides
 .cm-searchMatch {
-  background-color: rgba(var(--v-theme-search-match), 0.3) !important;
+  background-color: color-mix(in srgb, rgb(var(--v-theme-search-match)) 30%, transparent) !important;
   color: rgb(var(--v-theme-on-search-match)) !important;
 }
 .cm-searchGlobalMatch {
-  background-color: rgb(var(--v-theme-search-match)) !important;
+  background-color: color-mix(in srgb, rgb(var(--v-theme-search-match)) 30%, transparent) !important;
   color: rgb(var(--v-theme-on-search-match)) !important;
 }
 
@@ -106,6 +106,6 @@ body {
   background-color: rgb(var(--v-theme-surface)) !important;
 }
 .field-highlight-nested2 {
-  background-color: rgba(var(--v-theme-on-surface), 0.05) !important;
+  background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent) !important;
 }
 

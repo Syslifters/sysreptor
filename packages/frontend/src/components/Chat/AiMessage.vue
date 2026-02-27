@@ -26,7 +26,7 @@ const props = defineProps<{
 <style lang="scss" scoped>
 .reasoning:deep() {
   .v-expansion-panel {
-    background-color: rgba(var(--v-theme-on-surface), 0.04);
+    background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent);
   }
 
   .v-expansion-panel-title {

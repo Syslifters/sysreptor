@@ -200,7 +200,7 @@ watch([() => notificationStore.unreadNotificationCount, () => notificationStore.
   color: inherit;
 
   &:hover {
-    color: rgba(var(--v-theme-primary));
+    color: rgb(var(--v-theme-primary));
   }
 }
 </style>

@@ -203,7 +203,7 @@ useResizeObserver(parentElement, () => adjustDrawerWidthToFit());
   z-index: 1000;
   flex-shrink: 0;
   background-color: rgb(var(--v-theme-surface));
-  border-inline: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-inline: 1px solid color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 100%), transparent);
   transition: background-color var(--transition-duration) ease;
 }
 
@@ -273,7 +273,7 @@ useResizeObserver(parentElement, () => adjustDrawerWidthToFit());
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
   background-color: rgb(var(--v-theme-surface));
-  border: 1px solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border: 1px solid color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 100%), transparent);
   border-radius: 50%;
 }
 

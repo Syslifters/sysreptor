@@ -50,13 +50,13 @@ onMounted(() => {
         EditorView.theme({
           '.cm-tooltip-autocomplete': {
             zIndex: 2000,
-            backgroundColor: 'rgba(var(--v-theme-surface), 1)',
+            backgroundColor: 'rgb(var(--v-theme-surface))',
             borderRadius: '4px',
             '& > ul': {
               fontFamily: 'inherit !important',
             },
             '& > ul > li[aria-selected]': {
-              background: 'rgba(var(--v-theme-on-surface), calc(var(--v-activated-opacity) * var(--v-theme-overlay-multiplier)))',
+              background: 'color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc(var(--v-activated-opacity) * var(--v-theme-overlay-multiplier) * 100%), transparent);',
               color: 'inherit',
             },
           },

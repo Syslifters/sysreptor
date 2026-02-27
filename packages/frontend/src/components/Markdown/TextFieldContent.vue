@@ -39,7 +39,7 @@ defineExpose({
   width: 100%;
   max-width: 100%;
   display: inline-block;
-  //color: rgba(var(--v-theme-on-background), var(--v-high-emphasis-opacity));
+  // color: color-mix(in srgb, rgb(var(--v-theme-on-background)) calc(var(--v-high-emphasis-opacity) * 100%), transparent);
 }
 
 :deep(.mde-text-field) {

@@ -85,7 +85,7 @@ function getNoteTitle(noteId: string, fallbackTitle?: string): string {
 <style lang="scss" scoped>
 a {
   text-decoration: none;
-  color: rgba(var(--v-theme-primary));
+  color: rgb(var(--v-theme-primary));
 }
 
 </style>

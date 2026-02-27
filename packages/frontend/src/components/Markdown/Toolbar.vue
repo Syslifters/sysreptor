@@ -314,8 +314,8 @@ defineExpose({
 }
 
 .toolbar {
-  background-color: rgba(var(--v-theme-surface), 1);
-  border-bottom: thin solid rgba(var(--v-theme-on-surface), var(--v-border-opacity));
+  background-color: rgb(var(--v-theme-surface));
+  border-bottom: thin solid color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 100%), transparent);;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -323,7 +323,7 @@ defineExpose({
   // MarkdownEditorMode tabs background
   margin-bottom: 0;
   :deep(.v-toolbar__content) {
-    background-color: rgba(var(--v-theme-on-surface), 0.05);
+    background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent);
     margin-bottom: -1px;
     
     display: flex;
@@ -350,7 +350,7 @@ defineExpose({
     position: sticky;
     top: 0;
     z-index: 1;
-    background-color: rgba(var(--v-theme-surface), 1);
+    background-color: rgb(var(--v-theme-surface));
   }
   &-search {
     --v-input-padding-top: 0;
@@ -369,8 +369,8 @@ defineExpose({
   }
 
   & > .v-btn--active {
-    background-color: rgba(var(--v-theme-surface));
-    border: thin solid rgba(var(--v-theme-on-surface), calc(var(--v-border-opacity) * 2));
+    background-color: rgb(var(--v-theme-surface));
+    border: thin solid color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 2 * 100%), transparent);;
     border-radius: vuetify.$field-border-radius;
     border-bottom-color: transparent;
     border-bottom-left-radius: 0;

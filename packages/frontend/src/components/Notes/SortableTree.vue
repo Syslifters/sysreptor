@@ -266,8 +266,8 @@ defineExpose({
   .drag-placeholder {
     height: 2rem !important;
     width: 100%;
-    background: rgba(var(--v-theme-on-surface), calc(var(--v-activated-opacity) * 2));
-    border: 1px dashed rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+    background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc(var(--v-activated-opacity) * 2 * 100%), transparent);
+    border: 1px dashed color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc(var(--v-high-emphasis-opacity) * 100%), transparent);
   }
 }
 </style>
