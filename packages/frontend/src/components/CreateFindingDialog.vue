@@ -3,8 +3,8 @@
     <template #title>New Finding</template>
     <template #default>
       <v-card-text>
-        <v-row dense>
-          <v-col cols="12" md="9">
+        <v-row density="compact">
+          <v-col cols="12" lg="9">
             <s-combobox
               :model-value="searchInput"
               @update:model-value="updateSearchInput"

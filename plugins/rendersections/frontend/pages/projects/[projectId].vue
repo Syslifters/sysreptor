@@ -47,15 +47,14 @@
             </v-col>
           </v-row>
           <v-row>
-              <v-col cols="auto" class="flex-grow-1">
-                  <s-text-field
-                    v-model="renderPassword"
-                    label="PDF password (optional)"
-                    append-inner-icon="mdi-lock-reset" @click:append-inner="renderPassword = generateRandomPassword()"
-                    spellcheck="false"
-                  >
-                  </s-text-field>
-              </v-col>
+            <v-col cols="auto" class="flex-grow-1">
+              <s-text-field
+                v-model="renderPassword"
+                label="PDF password (optional)"
+                append-inner-icon="mdi-lock-reset" @click:append-inner="renderPassword = generateRandomPassword()"
+                spellcheck="false"
+              />
+            </v-col>
           </v-row>
           <div>
             <v-btn
@@ -168,6 +167,7 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }, allowEncry
   if (sectionIds.length === 0) {
     return {
       pdf: null,
+      filename: null,
       messages: [{
         level: MessageLevel.INFO,
         message: 'Select one or more sections.',

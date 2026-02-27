@@ -15,7 +15,7 @@
         />
       </p>
 
-      <v-row dense>
+      <v-row density="compact">
         <v-col cols="6">
           <s-select
             :model-value="modelValue?.[0]?.field"

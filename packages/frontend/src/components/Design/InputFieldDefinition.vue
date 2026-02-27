@@ -46,7 +46,6 @@
             required
           />
         </v-col>
-
         <v-col>
           <s-text-field
             :model-value="props.modelValue.label"

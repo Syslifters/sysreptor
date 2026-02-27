@@ -1,7 +1,7 @@
 <template>
-  <file-drop-area multiple :disabled="props.disabled" @drop="performFileUpload" class="h-100">
+  <file-drop-area multiple :disabled="props.disabled" @drop="performFileUpload" class="h-100 pa-2">
     <!-- Upload files with drag-and-drop here -->
-    <v-row class="ma-0">
+    <v-row>
       <v-col :cols="12" :md="3">
         <s-card>
           <v-card-actions>

@@ -59,7 +59,7 @@
       :class="{'diff-highlight-changed': hasChanged}"
     />
   </div>
-  <v-row v-else dense class="mt-0">
+  <v-row v-else density="compact">
     <v-col cols="6">
       <dynamic-input-field
         v-if="props.historic.definition"
