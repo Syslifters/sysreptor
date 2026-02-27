@@ -370,7 +370,7 @@ defineExpose({
 
   & > .v-btn--active {
     background-color: rgb(var(--v-theme-surface));
-    border: thin solid color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 2 * 100%), transparent);;
+    border: thin solid color-mix(in srgb, rgb(var(--v-border-color)) calc((var(--v-border-opacity) * 2) * 100%), transparent);;
     border-radius: vuetify.$field-border-radius;
     border-bottom-color: transparent;
     border-bottom-left-radius: 0;

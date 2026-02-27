@@ -22,7 +22,7 @@
         <v-list-item-title>{{ title }}</v-list-item-title>
 
         <s-member-role-selection
-          :model-value="getRoles(user)"
+          :model-value="user.roles"
           @update:model-value="setRoles(user, $event)"
           :items="allRoles"
           :readonly="props.readonly"
@@ -82,9 +82,6 @@ function updateMembers(members: ProjectMember[]) {
 }
 function removeMember(member: ProjectMember) {
   modelValue.value = modelValue.value.filter(m => m.id !== member.id);
-}
-function getRoles(user: ProjectMember|null) {
-  return cloneDeep(modelValue.value.find(m => m.id === user?.id)?.roles || []);
 }
 function setRoles(user: ProjectMember, roles: string[]) {
   modelValue.value = modelValue.value.map((m) => {

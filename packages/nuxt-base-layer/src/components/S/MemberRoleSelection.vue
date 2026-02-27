@@ -1,7 +1,6 @@
 <template>
   <v-select
-    :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
+    v-model="modelValue"
     v-model:menu="menuVisible"
     :items="props.items"
     :disabled="props.disabled"
@@ -36,14 +35,11 @@
 </template>
 
 <script setup lang="ts">
+const modelValue = defineModel<string[]>({ default: () => [] });
 const props = defineProps<{
-  modelValue: string[];
   items: string[];
   disabled?: boolean;
   readonly?: boolean;
-}>();
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string[]): void;
 }>();
 
 const menuVisible = ref(false);
