@@ -7,7 +7,7 @@
       <div :id="props.id" class="mt-4" :class="nestedClass" @keydown.ctrl.alt.m.stop="commentBtnRef?.createComment()" v-bind="hoverProps">
         <s-card v-if="props.current.definition?.type === 'object'">
           <v-card-item class="pb-0">
-            <v-card-title class="text-body-1">{{ props.current.definition.label }}</v-card-title>
+            <v-card-title class="text-body-large">{{ props.current.definition.label }}</v-card-title>
             <template #append>
               <comment-btn
                 v-if="props.current.collab?.comments"
@@ -28,7 +28,7 @@
         </s-card>
         <s-card v-else-if="props.current.definition?.type === 'list'">
           <v-card-item class="pb-0">
-            <v-card-title class="text-body-1">{{ props.current.definition.label || props.current.definition.id }}</v-card-title>
+            <v-card-title class="text-body-large">{{ props.current.definition.label || props.current.definition.id }}</v-card-title>
             <template #append>
               <comment-btn
                 v-if="props.current.collab?.comments"
@@ -59,7 +59,7 @@
       :class="{'diff-highlight-changed': hasChanged}"
     />
   </div>
-  <v-row v-else dense class="mt-0">
+  <v-row v-else density="compact">
     <v-col cols="6">
       <dynamic-input-field
         v-if="props.historic.definition"

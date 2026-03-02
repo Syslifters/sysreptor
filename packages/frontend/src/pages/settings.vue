@@ -35,7 +35,7 @@
                       <span v-bind="tooltipProps" :class="{'info-env': field.set_in_env}">
                         <pro-info v-if="field.professional_only">{{ field.id }}</pro-info>
                         <span v-else>{{ field.id }}</span>
-                        <span v-if="configurationFieldDefault(field)" class="text-caption ml-2">{{ configurationFieldDefault(field) }}</span>
+                        <span v-if="configurationFieldDefault(field)" class="text-body-small ml-2">{{ configurationFieldDefault(field) }}</span>
                         <v-icon v-if="field.set_in_env" end icon="mdi-cog-off" />
                       </span>
                     </template>
@@ -98,7 +98,7 @@
                       <span v-bind="tooltipProps" :class="{'info-env': field.set_in_env}">
                         <pro-info v-if="plugin.professional_only || field.professional_only">{{ field.id }}</pro-info>
                         <span v-else>{{ field.id }}</span>
-                        <span v-if="configurationFieldDefault(field)" class="text-caption ml-2">{{ configurationFieldDefault(field) }}</span>
+                        <span v-if="configurationFieldDefault(field)" class="text-body-small ml-2">{{ configurationFieldDefault(field) }}</span>
                         <v-icon v-if="field.set_in_env" end icon="mdi-cog-off" />
                       </span>
                     </template>

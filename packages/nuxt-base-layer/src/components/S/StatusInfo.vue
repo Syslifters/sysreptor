@@ -20,12 +20,12 @@ const statusInfo = computed(() => apiSettings.getStatusDefinition(props.value));
 @use "@base/assets/settings" as settings;
 
 .status-icon {
-  margin-left: 0 !important;
-  min-width: 1em !important;
+  margin-left: 0;
+  min-width: 1em;
 }
 
 .status-finished {
-  color: settings.$status-color-finished !important;
+  color: settings.$status-color-finished;
 }
 
 </style>

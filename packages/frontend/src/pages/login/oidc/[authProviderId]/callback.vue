@@ -1,37 +1,33 @@
 <template>
-  <v-container fluid class="fill-height">
-    <v-row justify="center">
-      <v-col xs="12" sm="8" md="4" align-self="center">
-        <s-card>
-          <v-toolbar color="header" flat>
-            <v-toolbar-title>Login</v-toolbar-title>
-          </v-toolbar>
+  <centered-view>
+    <s-card class="w-100">
+      <v-toolbar color="header" flat>
+        <v-toolbar-title>Login</v-toolbar-title>
+      </v-toolbar>
 
-          <v-card-text v-if="error">
-            <v-alert color="error">
-              {{ error?.message }}
-            </v-alert>
-          </v-card-text>
-          <div v-else class="mt-4 d-flex flex-column align-center">
-            <v-progress-circular indeterminate size="50" />
-          </div>
+      <v-card-text v-if="error">
+        <v-alert color="error">
+          {{ error?.message }}
+        </v-alert>
+      </v-card-text>
+      <div v-else class="mt-4 d-flex flex-column align-center">
+        <v-progress-circular indeterminate size="50" />
+      </div>
 
-          <v-card-actions>
-            <v-spacer />
-            <s-btn-other
-              v-if="auth.loggedIn.value"
-              to="/"
-              text="Cancel"
-            />
-            <s-btn-secondary
-              to="/login/?logout=true"
-              text="Use another method"
-            />
-          </v-card-actions>
-        </s-card>
-      </v-col>
-    </v-row>
-  </v-container>
+      <v-card-actions>
+        <v-spacer />
+        <s-btn-other
+          v-if="auth.loggedIn.value"
+          to="/"
+          text="Cancel"
+        />
+        <s-btn-secondary
+          to="/login/?logout=true"
+          text="Use another method"
+        />
+      </v-card-actions>
+    </s-card>
+  </centered-view>
 </template>
 
 <script setup lang="ts">

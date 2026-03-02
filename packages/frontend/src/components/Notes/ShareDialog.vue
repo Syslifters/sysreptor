@@ -2,11 +2,12 @@
   <s-dialog
     v-if="isVisible"
     v-model="isVisible"
-    :min-width="mdAndDown ? '90vw' : '60vw'"
+    :min-width="lgAndDown ? '90vw' : '60vw'"
     height="80vh"
   >
     <template #title>Share Note</template>
     <template #default>
+      <v-divider />
       <split-menu :model-value="shareInfos.length > 0 ? 200 : 0" :class="{'split-menu-noexpand': shareInfos.length === 0}">
         <template #menu>
           <v-list
@@ -105,7 +106,7 @@ import { isEqual } from 'lodash-es';
 import { addDays, formatISO9075 } from "date-fns";
 
 const apiSettings = useApiSettings();
-const { mdAndDown } = useDisplay();
+const { lgAndDown } = useDisplay();
 
 const isVisible = defineModel<boolean>();
 const props = defineProps<{

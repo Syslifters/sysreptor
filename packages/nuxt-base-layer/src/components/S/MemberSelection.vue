@@ -10,7 +10,7 @@
     menu-icon=""
     :clearable="false"
   >
-    <template #chip="{item: { title, raw: user}}">
+    <template #chip="{internalItem: { title }, item: user}">
       <v-list-item
         class="member-item elevation-2 mt-1 mb-1"
         lines="two"
@@ -22,7 +22,7 @@
         <v-list-item-title>{{ title }}</v-list-item-title>
 
         <s-member-role-selection
-          :model-value="getRoles(user)"
+          :model-value="user.roles"
           @update:model-value="setRoles(user, $event)"
           :items="allRoles"
           :readonly="props.readonly"
@@ -83,9 +83,6 @@ function updateMembers(members: ProjectMember[]) {
 function removeMember(member: ProjectMember) {
   modelValue.value = modelValue.value.filter(m => m.id !== member.id);
 }
-function getRoles(user: ProjectMember|null) {
-  return cloneDeep(modelValue.value.find(m => m.id === user?.id)?.roles || []);
-}
 function setRoles(user: ProjectMember, roles: string[]) {
   modelValue.value = modelValue.value.map((m) => {
     if (m.id === user.id) {
@@ -108,8 +105,8 @@ function setRoles(user: ProjectMember, roles: string[]) {
 
     .member-item {
       width: 100%;
-      min-width: 64px !important;
-      max-height: inherit !important;
+      min-width: 64px;
+      max-height: inherit;
     }
 
     .v-autocomplete__selection {

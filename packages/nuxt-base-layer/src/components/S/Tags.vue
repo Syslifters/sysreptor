@@ -11,9 +11,9 @@
     :closable-chips="!props.readonly"
     spellcheck="false"
   >
-    <template #chip="{item, props: chipProps}">
+    <template #chip="{internalItem: { title }, props: chipProps}">
       <v-chip size="small" v-bind="chipProps">
-        <v-icon size="small" start icon="mdi-tag" class="ml-0" /> {{ item.title }}
+        <v-icon size="small" start icon="mdi-tag" class="ml-0" /> {{ title }}
       </v-chip>
     </template>
     <template #no-data>

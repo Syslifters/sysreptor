@@ -164,8 +164,8 @@ defineExpose({
     color: vuetify.$code-color;
   }
   blockquote {
-    background-color: rgba(var(--v-theme-on-surface), 0.05);
-    border-left: 5px solid rgba(var(--v-theme-on-surface), 0.3);
+    background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent);
+    border-left: 5px solid color-mix(in srgb, rgb(var(--v-theme-on-surface)) 30%, transparent);
   }
   table, th, td {
     border-color: rgb(var(--v-border-color));

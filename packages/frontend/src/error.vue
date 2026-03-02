@@ -18,7 +18,7 @@
           </div>
           <div v-else>
             {{ errorMessage }}<br />
-            <div v-if="![401, 403].includes(props.error.statusCode)">
+            <div v-if="![401, 403].includes(props.error.statusCode!)">
               This should not have happened.<br />
               If you think this is a vulnerability, please <a href="https://github.com/Syslifters/sysreptor/security/" target="_blank" class="text-primary">disclose responsibly</a>.<br />
             </div>

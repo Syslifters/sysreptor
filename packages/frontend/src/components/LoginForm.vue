@@ -119,7 +119,7 @@
 
     <template v-else-if="step === LoginStep.MFA_SELECT">
       <v-card-text>
-        <h2>Choose MFA method</h2>
+        <h2 class="text-title-large font-weight-bold ma-0">Choose MFA method</h2>
 
         <v-list>
           <v-list-item v-for="mfaMethod in mfaMethods" :key="mfaMethod.id" link @click="beginMfaLogin(mfaMethod)">

@@ -2,7 +2,7 @@
   <div>
     <div class="sidebar-header">
       <v-list-item class="pt-0 pb-0">
-        <v-list-item-title class="text-h6">
+        <v-list-item-title class="text-title-large">
           <pro-info>Comments</pro-info>
         </v-list-item-title>
         <template #append>

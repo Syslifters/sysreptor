@@ -5,7 +5,7 @@
     class="reasoning mt-2"
   >
     <v-expansion-panel>
-      <v-expansion-panel-title class="text-body-2">Reasoning...</v-expansion-panel-title>
+      <v-expansion-panel-title class="text-body-medium">Reasoning...</v-expansion-panel-title>
       <v-expansion-panel-text>{{ props.msg.reasoning }}</v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>
@@ -26,11 +26,11 @@ const props = defineProps<{
 <style lang="scss" scoped>
 .reasoning:deep() {
   .v-expansion-panel {
-    background-color: rgba(var(--v-theme-on-surface), 0.04);
+    background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent);
   }
 
   .v-expansion-panel-title {
-    min-height: 0 !important;
+    min-height: 0;
     padding: 8px;
   }
 

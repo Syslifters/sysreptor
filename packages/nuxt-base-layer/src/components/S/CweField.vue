@@ -11,7 +11,7 @@
     spellcheck="false"
   >
     <template #label v-if="$slots.label"><slot name="label" /></template>
-    <template #item="{ item: { raw: cwe }, props: itemProps}">
+    <template #item="{ item: cwe, props: itemProps}">
       <v-list-item v-bind="itemProps" density="compact">
         <template #prepend>
           <span v-for="i in cwe.level" :key="i" class="tree-level" />
@@ -81,7 +81,7 @@ function cweTitle(item: CWEItem) {
   return `${item.value} - ${item.name}`; 
 }
 
-function filterCweItem(_value: string, query: string, item: { raw: CWEItem }) {
+function filterCweItem(_value: string, query: string, internalItem: { raw: CWEItem }) {
   // Include matching items and their parents
   const queryWords = query.toLocaleLowerCase().split(' ');
 
@@ -99,7 +99,7 @@ function filterCweItem(_value: string, query: string, item: { raw: CWEItem }) {
       return cwe.children.some(c => matches(c));
     }
   }
-  return matches(item.raw);
+  return matches(internalItem.raw);
 }
 </script>
 

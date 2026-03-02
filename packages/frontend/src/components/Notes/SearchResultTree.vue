@@ -33,7 +33,7 @@
           </div>
         </template>
         <template #default>
-          <v-list-item-title class="text-body-2">{{ note.title }}</v-list-item-title>
+          <v-list-item-title class="text-body-medium">{{ note.title }}</v-list-item-title>
         </template>
       </v-list-item>
 
@@ -64,7 +64,7 @@ function noteUrl(note: NoteBase,) {
 <style scoped lang="scss">
 .note-list-item {
   min-height: 1em;
-  padding-left: 0 !important;
+  padding-left: 0;
 
   .note-list-children-icon {
     width: 1.5rem;

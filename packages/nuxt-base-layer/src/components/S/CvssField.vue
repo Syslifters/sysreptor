@@ -79,7 +79,7 @@
             <v-divider />
 
             <v-card-text v-for="metricSubgroup in metricGroup.subgroups" :key="metricSubgroup.metrics.join(',')" class="pt-0 pb-0">
-              <v-card-subtitle v-if="metricSubgroup.name" class="text-h6 ma-2 mt-6 submetric-title">{{ metricSubgroup.name }}</v-card-subtitle>
+              <v-card-subtitle v-if="metricSubgroup.name" class="text-title-large ma-2 mt-6 submetric-title">{{ metricSubgroup.name }}</v-card-subtitle>
               <s-cvss-metric-input
                 v-for="m in metricSubgroup.metrics"
                 :key="m"
@@ -333,9 +333,11 @@ function applyDialog() {
 @use "@base/assets/vuetify" as vuetify;
 
 .cvss-score {
-  width: 8em;
+  width: 10rem;
   display: flex;
   flex-direction: column;
+  font-size: 1.25rem;
+  line-height: 1.6;
 
   &-header {
     text-align: center;
@@ -344,6 +346,7 @@ function applyDialog() {
 
   &-label {
     text-align: center;
+    font-weight: 500;
   }
 }
 
@@ -365,7 +368,7 @@ function applyDialog() {
 
 .submetric-title {
   @media #{map.get(vuetify.$display-breakpoints, 'lg-and-up')} {
-    padding-left: 15em !important;
+    padding-left: 15em;
   }
 }
 </style>

@@ -2,8 +2,8 @@
   <div class="h-100 d-flex flex-column">
     <div class="sidebar-header">
       <v-list-item class="pt-0 pb-0">
-        <v-list-item-title class="text-h6">
-          <v-badge content="Beta" color="primary" :offset-y="2" :offset-x="-10">
+        <v-list-item-title class="text-title-large">
+          <v-badge content="Beta" color="primary" :offset-y="4" :offset-x="-10">
             AI Chat
           </v-badge>
         </v-list-item-title>
@@ -110,22 +110,22 @@
               >
                 <template #selection="{ item }">
                   <div class="d-flex align-center">
-                    <v-icon :icon="item.raw.icon" size="x-small" class="mr-1" />
-                    <span class="text-body-2">{{ item.raw.title }}</span>
+                    <v-icon :icon="item.icon" size="x-small" class="mr-1" />
+                    <span class="text-body-medium">{{ item.title }}</span>
                   </div>
                 </template>
                 <template #item="{ props: itemProps, item }">
                   <v-list-item 
                     v-bind="itemProps" 
                     density="compact"
-                    :disabled="item.raw.proOnly && !apiSettings.isProfessionalLicense"
+                    :disabled="item.proOnly && !apiSettings.isProfessionalLicense"
                   >
                     <template #prepend>
-                      <v-icon :icon="item.raw.icon" />
+                      <v-icon :icon="item.icon" />
                     </template>
                     <template #title>
-                      <pro-info v-if="item.raw.proOnly">{{ item.raw.title }}</pro-info>
-                      <span v-else>{{ item.raw.title }}</span>
+                      <pro-info v-if="item.proOnly">{{ item.title }}</pro-info>
+                      <span v-else>{{ item.title }}</span>
                     </template>
                   </v-list-item>
                 </template>
@@ -134,7 +134,7 @@
           </template>
         </v-textarea>
       </s-card>
-      <div v-if="apiSettings.settings!.ai_agent_disclaimer" class="w-100 text-center text-body-2 text-disabled text-truncate">
+      <div v-if="apiSettings.settings!.ai_agent_disclaimer" class="w-100 text-center text-body-medium text-disabled text-truncate">
         <i>{{ apiSettings.settings!.ai_agent_disclaimer }}</i>
         <s-tooltip activator="parent" :text="apiSettings.settings!.ai_agent_disclaimer" />
       </div>
@@ -262,7 +262,7 @@ const onScrollMessages = throttle(() => {
 
 .select-agent:deep() {
   .v-field {
-    --v-input-control-height: 24px !important;
+    --v-input-control-height: 24px;
     --v-input-padding-top: 0;
   }
 }

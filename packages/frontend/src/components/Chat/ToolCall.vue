@@ -1,5 +1,5 @@
 <template>
-  <div class="text-body-2 text-disabled">
+  <div class="text-body-medium text-disabled">
     <v-icon v-if="props.value.status === ToolCallStatus.SUCCESS" icon="mdi-check" color="success" />
     <v-icon v-else-if="props.value.status === ToolCallStatus.ERROR" icon="mdi-close" color="error" />
     <s-saving-loader-spinner v-else-if="props.value.status === ToolCallStatus.PENDING" />
@@ -85,7 +85,7 @@ function getNoteTitle(noteId: string, fallbackTitle?: string): string {
 <style lang="scss" scoped>
 a {
   text-decoration: none;
-  color: rgba(var(--v-theme-primary));
+  color: rgb(var(--v-theme-primary));
 }
 
 </style>

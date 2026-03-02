@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-row>
-      <v-col cols="12" class="pt-0 pb-0">
+      <v-col cols="12">
         <slot name="header">
           <div v-if="publicLink">
             <v-code>

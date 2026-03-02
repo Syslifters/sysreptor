@@ -7,7 +7,7 @@
 // Overrides default Vuetify behavior
 // See https://github.com/vuetifyjs/vuetify/issues/1197
 html {
-  overflow-y: auto !important;
+  overflow-y: auto;
   color-scheme: light dark;
 }
 
@@ -24,22 +24,11 @@ body {
 }
 
 
-.Vue-Toastification__toast--warning {
-  // Vuetify warning color
-  background-color: #FFC107 !important;
-  color: black !important;
-
-  .Vue-Toastification__close-button {
-    color: black !important;
-  }
-}
-
-
 // Vuetify overrides
 .v-field--focused .v-field__outline {
-  --v-field-border-opacity: var(--v-high-emphasis-opacity) !important;
+  --v-field-border-opacity: var(--v-high-emphasis-opacity);
 }
-.v-btn.v-btn--icon:not(.text-error, .v-btn--variant-flat):hover .v-icon, 
+.v-btn.v-btn--icon:not(.text-error, .v-btn--variant-flat, .toast-snackbar-btn):hover .v-icon, 
 .v-breadcrumbs-item--link:hover {
   color: rgb(var(--v-theme-primary));
 }
@@ -51,11 +40,11 @@ body {
 
 // CodeMirror overrides
 .cm-searchMatch {
-  background-color: rgba(var(--v-theme-search-match), 0.3) !important;
+  background-color: color-mix(in srgb, rgb(var(--v-theme-search-match)) 30%, transparent) !important;
   color: rgb(var(--v-theme-on-search-match)) !important;
 }
 .cm-searchGlobalMatch {
-  background-color: rgb(var(--v-theme-search-match)) !important;
+  background-color: color-mix(in srgb, rgb(var(--v-theme-search-match)) 30%, transparent) !important;
   color: rgb(var(--v-theme-on-search-match)) !important;
 }
 
@@ -106,6 +95,6 @@ body {
   background-color: rgb(var(--v-theme-surface)) !important;
 }
 .field-highlight-nested2 {
-  background-color: rgba(var(--v-theme-on-surface), 0.05) !important;
+  background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent) !important;
 }
 

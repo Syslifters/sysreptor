@@ -52,10 +52,6 @@ export default defineNuxtConfig({
     vuetifyOptions: join(currentDir, './src/vuetify.config.ts'),
   },
 
-  // build: {
-  //   transpile: ['vue-toastification'],
-  // },
-
   vite: {
     resolve: {
       dedupe: ['vuetify'],
@@ -63,7 +59,7 @@ export default defineNuxtConfig({
     optimizeDeps: {
       include: [
         'js-file-download', 'base64-arraybuffer', 'uuid', 'zxcvbn', 'emoji-mart-vue-fast/src',
-        'vue-toastification', 'date-fns', 'lodash-es', 'url-join',
+        'date-fns', 'lodash-es', 'url-join',
       ],
     },
   },

@@ -11,16 +11,16 @@
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
     "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
     
-    "nuxt": "~4.2",
-    "vuetify": "~3.11",
+    "nuxt": "~4.3",
+    "vuetify": "~4.0",
     "pinia": "^3.0"
   },
   "overrides": {
     "vue": "latest"
   },
   "devDependencies": {
-    "@nuxt/test-utils": "^3.21.0",
-    "vitest": "^4.0.15",
+    "@nuxt/test-utils": "^4.0",
+    "vitest": "^4.0",
     "happy-dom": "^20"
   }
 }

@@ -42,10 +42,10 @@ function applyFilter() {
 @use "@base/assets/settings.scss" as settings;
 
 .status-finished {
-  color: settings.$status-color-finished !important;
+  color: settings.$status-color-finished;
 }
 .status-deprecated {
-  color: settings.$status-color-deprecated !important;
+  color: settings.$status-color-deprecated;
 }
 
 .filter-icon {

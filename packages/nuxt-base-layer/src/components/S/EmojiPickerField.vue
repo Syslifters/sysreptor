@@ -96,7 +96,7 @@ function clearEmoji() {
 .emoji-mart {
   background-color: rgb(var(--v-theme-surface));
   color: rgb(var(--v-theme-on-surface));
-  border-color: rgba(var(--v-border-color), var(--v-border-opacity));
+  border-color: color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 100%), transparent);
 }
 
 :deep() {
@@ -111,7 +111,7 @@ function clearEmoji() {
   }
 
   .emoji-mart-search input {
-    border-color: rgba(var(--v-border-color), var(--v-border-opacity));
+    border-color: color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 100%), transparent);
   }
 
   .emoji-mart-category .emoji-mart-emoji:hover:before,
@@ -121,7 +121,7 @@ function clearEmoji() {
   }
 
   .emoji-mart-category-label h3 {
-    background-color: rgba(var(--v-theme-surface), 0.95);
+    background-color: color-mix(in srgb, rgb(var(--v-theme-surface)) 95%, transparent);
   }
 
   .emoji-mart-anchor:hover {
@@ -134,11 +134,11 @@ function clearEmoji() {
     background-color: rgb(var(--v-theme-primary)) !important;
   }
   .emoji-mart-bar {
-    border-color: rgba(var(--v-theme-on-surface), var(--v-border-opacity));
+    border-color: color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 100%), transparent);
   }
 
   .emoji-mart-no-results {
-    color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+    color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc(var(--v-medium-emphasis-opacity) * 100%), transparent);
   }
 }
 </style>

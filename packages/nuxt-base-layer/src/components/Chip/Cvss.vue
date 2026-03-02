@@ -41,11 +41,12 @@ const levelNumber = computed(() => levelNumberFromLevelName(levelName.value));
 
 @for $level from 1 through 5 {
   .risk-level-#{$level} {
-    background-color: map.get(settings.$risk-color-levels, $level) !important;
-    color: white !important;
+    background-color: map.get(settings.$risk-color-levels, $level);
+    color: white;
     width: 7.7em;
     min-width: 7.7em;
     text-align: center;
+    letter-spacing: 0.01em;
 
     :deep(.v-chip__content) {
       width: 100%;

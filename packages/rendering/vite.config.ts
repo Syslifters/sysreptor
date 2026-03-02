@@ -16,7 +16,14 @@ export default defineConfig({
       // Use a modified version of "@vue/compiler-core" that supports parsing tag content as raw text
       // See package.json postinstall script for installation and patching
       // When updating Vue, make sure that the patch still works
-      // Checkout vue-core, apply patches, run "nr build" and "nr build-dts", copy packages/compiler-core/dist/{compiler-core.esm-bundler.js,compiler-core.d.ts} to node_modules/@vue/compiler-core/dist/, run npx patch-package @vue/compiler-core
+      // How to update the patch:
+      // * Checkout vue-core repo with patches for old versions and switch to branch "sysreptor-patches"
+      // * git fetch --tags git@github.com:vuejs/core.git
+      // * git rebase v<tag>
+      // * pnpm install && nr build && nr build-dts
+      // * git push --force origin sysreptor-patches
+      // * copy packages/compiler-core/dist/{compiler-core.esm-bundler.js,compiler-core.d.ts} to node_modules/@vue/compiler-core/dist/
+      // * npx patch-package @vue/compiler-core
       '@vue/compiler-core': fileURLToPath(new URL('node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js', import.meta.url)),
     }
   },

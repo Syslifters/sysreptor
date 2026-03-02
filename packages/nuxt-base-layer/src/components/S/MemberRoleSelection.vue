@@ -1,7 +1,6 @@
 <template>
   <v-select
-    :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event)"
+    v-model="modelValue"
     v-model:menu="menuVisible"
     :items="props.items"
     :disabled="props.disabled"
@@ -18,13 +17,13 @@
     @focus.stop
     class="select-roles"
   >
-    <template #chip="{item, props: chipProps}">
+    <template #chip="{internalItem: { title }, props: chipProps}">
       <v-chip
         size="small"
         @click="menuVisible = true"
         v-bind="chipProps"
       >
-        {{ item.title }}
+        {{ title }}
       </v-chip>
     </template>
     <template #append-inner>
@@ -36,14 +35,11 @@
 </template>
 
 <script setup lang="ts">
+const modelValue = defineModel<string[]>({ default: () => [] });
 const props = defineProps<{
-  modelValue: string[];
   items: string[];
   disabled?: boolean;
   readonly?: boolean;
-}>();
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string[]): void;
 }>();
 
 const menuVisible = ref(false);
@@ -66,7 +62,7 @@ const menuVisible = ref(false);
   }
 
   .v-chip {
-    margin: 0.2em 0.2em 0 0 !important;
+    margin: 0.2em 0.2em 0 0;
 
     &:not(.v-chip--disabled) {
       cursor: pointer;

@@ -29,7 +29,7 @@
     />
 
     <v-divider class="my-2"></v-divider>
-    <p class="text-subtitle-2 mb-2">Custom Range:</p>
+    <p class="text-title-small mb-2">Custom Range:</p>
 
     <s-text-field
       v-model="filter.value[0]"

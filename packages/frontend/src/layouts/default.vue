@@ -264,7 +264,7 @@ head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
     border-right-color: vuetify.$navigation-drawer-border-color;
     flex-grow: 1;
     min-height: 0;
-    overflow-y: auto !important;
+    overflow-y: auto;
   }
 
   &:deep(.v-navigation-drawer__content) {

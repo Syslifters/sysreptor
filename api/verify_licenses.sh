@@ -31,6 +31,7 @@ allow_only="$allow_only;PSF-2.0"
 allow_only="$allow_only;Zope Public License"
 allow_only="$allow_only;ZPL-2.1"
 allow_only="$allow_only;MIT AND Python-2.0"
+allow_only="$allow_only;MIT AND PSF-2.0"
 allow_only="$allow_only;ISC License (ISCL)"
 allow_only="$allow_only;The Unlicense (Unlicense)"
 

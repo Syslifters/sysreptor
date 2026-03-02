@@ -2,7 +2,7 @@
   <div>
     <v-card-item class="comment-header">
       <div v-if="!props.initialEdit">
-        <span v-if="modelValue.user" class="text-subtitle-2 text-medium-emphasis">
+        <span v-if="modelValue.user" class="text-title-small text-medium-emphasis">
           @{{ modelValue.user.username }}
           <s-tooltip activator="parent" :text="modelValue.user.name" />
         </span>

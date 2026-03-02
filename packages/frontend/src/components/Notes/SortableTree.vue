@@ -51,7 +51,7 @@
           </div>
         </template>
         <template #default>
-          <v-list-item-title class="text-body-2">
+          <v-list-item-title class="text-body-medium">
             <v-icon v-if="note.is_shared" size="small" icon="mdi-share-variant" />
             {{ note.title }}
           </v-list-item-title>
@@ -232,7 +232,7 @@ defineExpose({
 <style scoped lang="scss">
 .note-list-item {
   min-height: 1em;
-  padding-left: 0 !important;
+  padding-left: 0;
 
   .note-list-children-icon {
     width: 1.5rem;
@@ -266,8 +266,8 @@ defineExpose({
   .drag-placeholder {
     height: 2rem !important;
     width: 100%;
-    background: rgba(var(--v-theme-on-surface), calc(var(--v-activated-opacity) * 2));
-    border: 1px dashed rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+    background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity) * 2) * 100%), transparent);
+    border: 1px dashed color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc(var(--v-high-emphasis-opacity) * 100%), transparent);
   }
 }
 </style>

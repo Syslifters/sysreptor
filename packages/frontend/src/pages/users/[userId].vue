@@ -2,7 +2,7 @@
   <split-menu>
     <template #menu>
       <v-list nav density="compact">
-        <v-list-item-title class="text-h6 pl-2 mb-2">{{ user.username }}</v-list-item-title>
+        <v-list-item-title class="text-title-large pl-2 mb-2">{{ user.username }}</v-list-item-title>
 
         <v-list-item
           :to="`/users/${user.id}/`" exact

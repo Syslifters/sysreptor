@@ -11,7 +11,7 @@
     <template #default>
       <div class="h-100 d-flex flex-column">
         <div class="pa-2">
-          <h1>{{ project.name }}</h1>
+          <h1 class="text-headline-large font-weight-bold ma-0">{{ project.name }}</h1>
           <v-row>
             <v-col cols="auto">
               <s-btn-secondary
@@ -47,15 +47,14 @@
             </v-col>
           </v-row>
           <v-row>
-              <v-col cols="auto" class="flex-grow-1">
-                  <s-text-field
-                    v-model="renderPassword"
-                    label="PDF password (optional)"
-                    append-inner-icon="mdi-lock-reset" @click:append-inner="renderPassword = generateRandomPassword()"
-                    spellcheck="false"
-                  >
-                  </s-text-field>
-              </v-col>
+            <v-col cols="auto" class="flex-grow-1">
+              <s-text-field
+                v-model="renderPassword"
+                label="PDF password (optional)"
+                append-inner-icon="mdi-lock-reset" @click:append-inner="renderPassword = generateRandomPassword()"
+                spellcheck="false"
+              />
+            </v-col>
           </v-row>
           <div>
             <v-btn
@@ -88,7 +87,7 @@
                   size="20"
                   width="2"
                 />
-                <span class="text-body-2 ml-2">Loading sections...</span>
+                <span class="text-body-medium ml-2">Loading sections...</span>
               </div>
             </template>
           </v-list-item>
@@ -106,7 +105,7 @@
               </v-list-item-action>
             </template>
             <template #default>
-              <v-list-item-title class="text-body-2">{{ section.name }}</v-list-item-title>
+              <v-list-item-title class="text-body-medium">{{ section.name }}</v-list-item-title>
             </template>
           </v-list-item>
           <v-list-item v-if="!loadingSections && sections.length === 0"
@@ -168,6 +167,7 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }, allowEncry
   if (sectionIds.length === 0) {
     return {
       pdf: null,
+      filename: null,
       messages: [{
         level: MessageLevel.INFO,
         message: 'Select one or more sections.',

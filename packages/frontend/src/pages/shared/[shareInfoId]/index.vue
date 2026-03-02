@@ -1,51 +1,47 @@
 <template>
-  <v-container fluid class="fill-height">
-    <v-row justify="center">
-      <v-col xs="12" sm="8" md="4" align-self="center">
-        <s-card v-if="error">
-          <v-toolbar
-            title="Invalid shared link"
-            color="error"
-            flat
+  <centered-view>
+    <s-card v-if="error" class="w-100">
+      <v-toolbar
+        title="Invalid shared link"
+        color="error"
+        flat
+      />
+      <v-card-text>
+        <p>Maybe the shared link expired or was revoked.</p>
+      </v-card-text>
+    </s-card>
+    <s-card v-else-if="shareInfo?.password_required" class="w-100">
+      <v-toolbar 
+        title="Access Shared Data"
+        color="header" 
+        flat 
+      />
+      <v-form @submit.prevent="submitPasswordForm">
+        <v-card-text>
+          <s-password-field
+            v-model="passwordForm.data.password"
+            :error-messages="passwordForm.error"
+            label="Password"
+            required
+            class="mt-4"
           />
-          <v-card-text>
-            <p>Maybe the shared link expired or was revoked.</p>
-          </v-card-text>
-        </s-card>
-        <s-card v-else-if="shareInfo?.password_required">
-          <v-toolbar 
-            title="Access Shared Data"
-            color="header" 
-            flat 
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <s-btn-primary
+            type="submit"
+            text="Submit"
+            :loading="passwordForm.inProgress"
           />
-          <v-form @submit.prevent="submitPasswordForm">
-            <v-card-text>
-              <s-password-field
-                v-model="passwordForm.data.password"
-                :error-messages="passwordForm.error"
-                label="Password"
-                required
-                class="mt-4"
-              />
-            </v-card-text>
-            <v-card-actions>
-              <v-spacer />
-              <s-btn-primary
-                type="submit"
-                text="Submit"
-                :loading="passwordForm.inProgress"
-              />
-            </v-card-actions>
-          </v-form>
-        </s-card>
-        <s-card v-else>
-          <div class="mt-4 d-flex flex-column align-center">
-            <v-progress-circular indeterminate size="50" />
-          </div>
-        </s-card>
-      </v-col>
-    </v-row>
-  </v-container>
+        </v-card-actions>
+      </v-form>
+    </s-card>
+    <s-card v-else class="w-100">
+      <div class="mt-4 d-flex flex-column align-center">
+        <v-progress-circular indeterminate size="50" />
+      </div>
+    </s-card>
+  </centered-view>
 </template>
 
 <script setup lang="ts">

@@ -34,7 +34,7 @@
                     hint="If disabled, this key cannot be used to encrypt archives. But it can still be used to decrypt existing archives."
                   />
 
-                  <h4 class="text-subtitle-1 mt-4">Public Key</h4>
+                  <h4 class="text-title-medium mt-4 mb-0">Public Key</h4>
                   <div v-if="encryptionKeyInfo" class="mb-1">
                     <v-chip size="small" v-if="['1', '2'].includes(encryptionKeyInfo.algo)">RSA {{ encryptionKeyInfo.length }} bit</v-chip>
                     <v-chip size="small" v-else-if="encryptionKeyInfo.algo === '16'">ElGamal {{ encryptionKeyInfo.length }} bit</v-chip>

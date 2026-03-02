@@ -11,7 +11,7 @@
       <v-icon size="small" start icon="mdi-translate" />
     </template>
     <template #item="{item, props: itemProps}">
-      <v-list-item :title="item.title" v-bind="itemProps">
+      <v-list-item :title="item.name" v-bind="itemProps">
         <template #prepend>
           <v-icon size="small" start icon="mdi-translate" />
         </template>

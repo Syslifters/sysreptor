@@ -203,7 +203,7 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
 @use "@base/assets/vuetify" as vuetify;
 
 :deep(.v-list-subheader) {
-  padding-left: 0.5em !important;
+  padding-left: 0.5em;
 
   .v-list-subheader__text {
     display: flex;

@@ -13,12 +13,12 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer"
   },
   "devDependencies": {
-    "nuxt": "~4.2",
-    "vuetify": "~3.11",
+    "nuxt": "~4.3",
+    "vuetify": "~4.0",
     "pinia": "^3.0.0",
 
     "sass-embedded": "^1.79.5",
-    "eslint": "^9.0.0",
+    "eslint": "^10.0",
     "vue-tsc": "^3.0.4"
   },
   "peerDependencies": {

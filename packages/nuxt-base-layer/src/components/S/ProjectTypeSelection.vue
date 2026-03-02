@@ -19,7 +19,7 @@
     <template #no-data v-if="allItems.length === 0 && items.hasNextPage.value">
       <page-loader :items="items" />
     </template>
-    <template #item="{item: { raw: projectType}, props: itemProps}">
+    <template #item="{item: projectType, props: itemProps}">
       <design-list-item :item="projectType" :format-title="true" :to="null" lines="one" v-bind="itemProps" />
     </template>
     <template #append v-if="appendLink">

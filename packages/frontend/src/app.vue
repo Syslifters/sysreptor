@@ -1,8 +1,9 @@
 <template>
-  <v-app :theme="theme">
+  <v-app>
     <nuxt-layout>
       <nuxt-page />
     </nuxt-layout>
+    <toast-snackbar-queue />
   </v-app>
 </template>
 
@@ -22,7 +23,8 @@ useEventListener(colorSchemeQueryList, 'change', (event: MediaQueryListEvent) =>
   systemThemeIsDark.value = event.matches;
 });
 
-const theme = computed(() => {
+const vuetifyTheme = useTheme();
+const themeName = computed(() => {
   let baseTheme = localSettings.theme;
   if (!baseTheme || !['light', 'dark'].includes(baseTheme)) {
     // Use system theme
@@ -40,8 +42,9 @@ const theme = computed(() => {
     return baseTheme;
   }
 });
-watch(theme, () => {
-  document.documentElement.style.setProperty('color-scheme', (theme.value.toLowerCase().includes('dark') ? 'dark' : 'light'));
+watch(themeName, () => {
+  document.documentElement.style.setProperty('color-scheme', (themeName.value.toLowerCase().includes('dark') ? 'dark' : 'light'));
+  vuetifyTheme.change(themeName.value);
 }, { immediate: true });
 
 

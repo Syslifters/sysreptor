@@ -35,7 +35,7 @@
             </div>
           </template>
           <template #default>
-            <v-list-item-title class="text-body-2">
+            <v-list-item-title class="text-body-medium">
               <s-emoji v-if="note.icon_emoji" :value="note.icon_emoji" size="small" start class="emoji-icon" />
               {{ note.title }}
             </v-list-item-title>
@@ -185,7 +185,7 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: an
 <style scoped lang="scss">
 .note-list-item {
   min-height: 1em;
-  padding-left: 0 !important;
+  padding-left: 0;
 
   .note-list-children-icon {
     width: 1.5rem;

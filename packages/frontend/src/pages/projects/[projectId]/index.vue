@@ -152,7 +152,6 @@
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
 import { ProjectTypeScope } from '#imports';
-import type { EditToolbar } from "#components";
 
 const route = useRoute();
 const auth = useAuth();

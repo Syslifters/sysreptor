@@ -3,7 +3,7 @@
     <v-expansion-panels v-if="group" multiple>
       <v-expansion-panel v-if="props.showNoMessageInfo && messageGroups.length === 0" class="error-group" readonly>
         <v-expansion-panel-title hide-actions>
-          <div class="error-header text-body-1">
+          <div class="error-header text-body-large">
             <v-icon color="green" start icon="mdi-checkbox-marked" />
             All clear! Your report is ready for download.
           </div>
@@ -12,7 +12,7 @@
 
       <v-expansion-panel v-for="(msgGroup, groupIdx) in messageGroups" :key="'group-' + groupIdx" class="error-group">
         <v-expansion-panel-title>
-          <div class="error-header text-body-1 flex-grow-1">
+          <div class="error-header text-body-large flex-grow-1">
             <v-chip class="mr-2 flex-shrink-0" :class="'bg-' + msgGroup.level" size="small" label>{{ msgGroup.level.toUpperCase() }}</v-chip>
             {{ msgGroup.message }}
             <v-spacer />
@@ -40,7 +40,7 @@
 
     <div v-else>
       <div v-if="showNoMessageInfo && messageList.length === 0" class="error-group">
-        <div class="error-header text-body-1">
+        <div class="error-header text-body-large">
           <v-icon color="green" start icon="mdi-checkbox-marked" />
           Everything looks fine. There are no errors or warnings.
         </div>
@@ -107,6 +107,7 @@ const messageGroups = computed(() => {
 .error-message {
   display: inline-block;
   flex-grow: 1;
+  margin-top: 0;
   margin-bottom: 0;
 }
 .error-location {
@@ -118,6 +119,6 @@ const messageGroups = computed(() => {
 }
 
 .error-group {
-  background-color: inherit !important;
+  background-color: inherit;
 }
 </style>

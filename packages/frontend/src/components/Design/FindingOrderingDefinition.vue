@@ -16,12 +16,14 @@
           <template #item="{element: orderConfig, index: idx}">
             <v-list-item>
               <template #prepend>
-                <span v-if="idx === 0">Sort by</span>
-                <span v-else>then by</span>
+                <span class="ordering-prefix-text">
+                  <template v-if="idx === 0">Sort by</template>
+                  <template v-else>then by</template>
+                </span>
                 <v-icon size="x-large" class="draggable-handle ml-6" :disabled="props.readonly" icon="mdi-drag-horizontal" />
               </template>
               <template #default>
-                <v-row dense>
+                <v-row density="compact">
                   <v-col cols="6">
                     <s-select
                       :model-value="orderConfig.field"
@@ -113,6 +115,9 @@ function updateOrder(idx: number, orderConfig: FindingOrderingDefinition, order:
   cursor: grab;
 }
 
+.ordering-prefix-text {
+  width: 4em;
+}
 .v-list-item:deep(.v-list-item__prepend .v-list-item__spacer) {
   width: 0.5em;
 }

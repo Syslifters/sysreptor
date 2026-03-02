@@ -86,7 +86,7 @@ const { markdownPreviewAttrsHistoric, markdownPreviewAttrsCurrent, markdownToolb
   .cm-wrap { border: 1px solid silver; }
 
   .cm-merge-a, .cm-merge-b {
-    border-left: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+    border-left: thin solid color-mix(in srgb, rgb(var(--v-border-color)) calc(var(--v-border-opacity) * 100%), transparent);
   }
 }
 </style>

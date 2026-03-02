@@ -9,7 +9,7 @@
     </template>
 
     <template #default>
-      <h1>{{ project.name }}</h1>
+      <h1 class="text-headline-large font-weight-bold mt-1 mb-3">{{ project.name }}</h1>
 
       <v-form>
         <div class="mt-2">

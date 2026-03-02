@@ -55,7 +55,7 @@
                             <v-icon icon="mdi-drag-horizontal" />
                           </template>
                           <template #default>
-                            <v-list-item-title class="text-body-2">{{ f.id }}</v-list-item-title>
+                            <v-list-item-title class="text-body-medium">{{ f.id }}</v-list-item-title>
                           </template>
                           <template #append>
                             <btn-delete
