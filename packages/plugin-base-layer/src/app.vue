@@ -3,6 +3,7 @@
     <nuxt-layout>
       <nuxt-page />
     </nuxt-layout>
+    <toast-snackbar-queue />
   </v-app>
 </template>
 

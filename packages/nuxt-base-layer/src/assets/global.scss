@@ -24,22 +24,11 @@ body {
 }
 
 
-.Vue-Toastification__toast--warning {
-  // Vuetify warning color
-  background-color: #FFC107 !important;
-  color: black !important;
-
-  .Vue-Toastification__close-button {
-    color: black !important;
-  }
-}
-
-
 // Vuetify overrides
 .v-field--focused .v-field__outline {
   --v-field-border-opacity: var(--v-high-emphasis-opacity);
 }
-.v-btn.v-btn--icon:not(.text-error, .v-btn--variant-flat):hover .v-icon, 
+.v-btn.v-btn--icon:not(.text-error, .v-btn--variant-flat, .toast-snackbar-btn):hover .v-icon, 
 .v-breadcrumbs-item--link:hover {
   color: rgb(var(--v-theme-primary));
 }
