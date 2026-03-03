@@ -94,7 +94,7 @@ def file_viewset_urls(basename, get_obj, get_base_kwargs=None, read=False, write
         obj = get_obj(s)
         return get_base_kwargs(s) | ({'filename': obj.name} if detail == 'name' else {'pk': obj.pk} if detail else {})
 
-    out = viewset_urls(basename=basename, get_kwargs=get_kwargs, retrieve=read, update_partial=write, destroy=write)
+    out = viewset_urls(basename=basename, get_kwargs=get_kwargs, retrieve=read, destroy=write)
     if read:
         out.append((basename + ' retrieve-by-name', lambda s, c: c.get(reverse(basename + '-retrieve-by-name', kwargs=get_kwargs(s, 'name')))))
     if write:
@@ -102,11 +102,6 @@ def file_viewset_urls(basename, get_obj, get_base_kwargs=None, read=False, write
             (basename + ' create', lambda s, c: c.post(
                 path=reverse(basename + '-list', kwargs=get_kwargs(s, False)),
                 data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())},
-                format='multipart',
-            )),
-            (basename + ' update', lambda s, c: c.put(
-                path=reverse(basename + '-detail', kwargs=get_kwargs(s, True)),
-                data={'name': 'image.png', 'file': ContentFile(name='image2.png', content=create_png_file())},
                 format='multipart',
             )),
         ])

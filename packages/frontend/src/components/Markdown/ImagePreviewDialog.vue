@@ -78,7 +78,7 @@
         v-if="!editMode"
         ref="windowRef"
         v-model="modelValue"
-        show-arrows="hover"
+        :show-arrows="props.images.length > 1 ? 'hover' : false"
         :continuous="true"
       >
         <v-window-item v-for="image in props.images" :key="image.src" :value="image">
@@ -212,7 +212,7 @@ async function performSave() {
   const original = editedImageInfo.value || await getOriginalImageInfo(modelValue.value.src);
   const file = new File([blob], 'edited.png', { type: 'image/png' });
   const newMd = await props.uploadFile(file, { 
-    original: original?.id || null,
+    original: original?.original || original?.id || null,
   });
 
   updateImageUrlInMarkdown(newMd);

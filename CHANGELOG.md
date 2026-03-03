@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Markdown editor: Add image editor
+
+
 ## v2026.12 - 2026-02-25
 * Allow configuring filenames of PDF reports (https://docs.sysreptor.com/designer/filenames/)
 * Disable browsable API by default
