@@ -100,11 +100,12 @@
       </template>
     </s-color-picker>
     
-    <s-tooltip text="Stroke width" location="top">
+    <s-tooltip text="Stroke width (scroll to adjust)" location="top">
       <template #activator="{ props: tooltipProps }">
         <s-number-input
           v-model="localSettings.imageEditorSettings.strokeWidth"
           :min="1"
+          @wheel="onWheel"
           v-bind="tooltipProps"
         >
           <template #prepend>
@@ -131,6 +132,29 @@ const colorSwatches = [
 
 function setTool(tool: ImageEditorTool) {
   activeTool.value = tool;
+}
+
+const strokeWheelAccum = ref(0);
+const WHEEL_DELTA_PER_INCREMENT = 100;
+function onWheel(event: WheelEvent) {
+  if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+
+  strokeWheelAccum.value += event.deltaY;
+  const min = 1;
+
+  while (strokeWheelAccum.value >= WHEEL_DELTA_PER_INCREMENT) {
+    strokeWheelAccum.value -= WHEEL_DELTA_PER_INCREMENT;
+    localSettings.imageEditorSettings.strokeWidth = Math.max(min, localSettings.imageEditorSettings.strokeWidth - 1);
+  }
+  while (strokeWheelAccum.value <= -WHEEL_DELTA_PER_INCREMENT) {
+    strokeWheelAccum.value += WHEEL_DELTA_PER_INCREMENT;
+    localSettings.imageEditorSettings.strokeWidth = Math.max(min, localSettings.imageEditorSettings.strokeWidth + 1);
+  }
 }
 
 // Keyboard shortcuts for tool selection
