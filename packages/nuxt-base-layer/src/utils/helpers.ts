@@ -232,3 +232,154 @@ export function getScrollParent(node?: HTMLElement|null): HTMLElement|null {
   }
 }
 
+
+export function useZoomImage(containerEl: Ref<HTMLElement|null>, intrinsicSize: MaybeRefOrGetter<{ width: number; height: number; }|null>) {
+  const intrinsicSizeRef = toRef(intrinsicSize);
+  const zoomFactor = ref(1.0);
+  const MIN_ZOOM = 0.5;
+  const MAX_ZOOM = 10.0;
+
+  const scaleFactor = computed(() => {
+    if (!containerEl.value || !intrinsicSizeRef.value) {
+      return 1;
+    }
+    const containerStyle = window.getComputedStyle(containerEl.value);
+    const targetScale = Math.min(
+      (containerEl.value.clientWidth - parseFloat(containerStyle.paddingLeft) - parseFloat(containerStyle.paddingRight)) / intrinsicSizeRef.value.width,
+      (containerEl.value.clientHeight - parseFloat(containerStyle.paddingTop) - parseFloat(containerStyle.paddingBottom)) / intrinsicSizeRef.value.height,
+    );
+    return targetScale * zoomFactor.value;
+  });
+  const scaledSize = computed(() => ({
+    width: (intrinsicSizeRef.value?.width ?? 0) * scaleFactor.value,
+    height: (intrinsicSizeRef.value?.height ?? 0) * scaleFactor.value,
+  }));
+
+  function getScrollCenterAfterZoom(mouseX: number, mouseY: number, oldScaleFactor: number, newScaleFactor: number): { scrollLeft: number, scrollTop: number } {
+    if (!containerEl.value || !intrinsicSizeRef.value) {
+      return { scrollLeft: 0, scrollTop: 0 };
+    }
+    
+    // Get current scroll position and container dimensions
+    const scrollLeft = containerEl.value.scrollLeft;
+    const scrollTop = containerEl.value.scrollTop;
+    const clientWidth = containerEl.value.clientWidth;
+    const clientHeight = containerEl.value.clientHeight;
+    
+    // Calculate old and new scaled dimensions
+    const oldWidth = intrinsicSizeRef.value.width * oldScaleFactor;
+    const oldHeight = intrinsicSizeRef.value.height * oldScaleFactor;
+    const newWidth = intrinsicSizeRef.value.width * newScaleFactor;
+    const newHeight = intrinsicSizeRef.value.height * newScaleFactor;
+    
+    // Calculate image offset from container content area (due to centering)
+    const oldOffsetX = Math.max(0, (clientWidth - oldWidth) / 2);
+    const oldOffsetY = Math.max(0, (clientHeight - oldHeight) / 2);
+    const newOffsetX = Math.max(0, (clientWidth - newWidth) / 2);
+    const newOffsetY = Math.max(0, (clientHeight - newHeight) / 2);
+    
+    // Mouse position relative to the image (before zoom)
+    const imageMouseX = scrollLeft + mouseX - oldOffsetX;
+    const imageMouseY = scrollTop + mouseY - oldOffsetY;
+    
+    // Position in image coordinates (0 to 1)
+    const relativeX = imageMouseX / oldWidth;
+    const relativeY = imageMouseY / oldHeight;
+    
+    // Calculate where that point should be after zoom
+    const newImageMouseX = relativeX * newWidth;
+    const newImageMouseY = relativeY * newHeight;
+    
+    // Calculate new scroll position to keep mouse at the same image point
+    return {
+      scrollLeft: newImageMouseX + newOffsetX - mouseX,
+      scrollTop: newImageMouseY + newOffsetY - mouseY,
+    };
+  }
+
+  useEventListener(containerEl, 'wheel', async (event) => {
+    if (!containerEl.value || !intrinsicSizeRef.value || !(event.ctrlKey || event.metaKey)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Get mouse position relative to container's content area
+    const rect = containerEl.value.getBoundingClientRect();
+    const containerStyle = window.getComputedStyle(containerEl.value);
+    const mouseX = event.clientX - rect.left - parseFloat(containerStyle.paddingLeft);
+    const mouseY = event.clientY - rect.top - parseFloat(containerStyle.paddingTop);
+    
+    // Store old scale factor
+    const oldScale = scaleFactor.value;
+    
+    // Calculate zoom delta
+    let delta = -event.deltaY;
+    if (event.deltaMode === WheelEvent.DOM_DELTA_PIXEL) {
+      delta = delta / 100;
+    } else if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+      delta = delta / 3;
+    }
+    
+    // Update zoom factor
+    let newZoom = zoomFactor.value * (1 + delta * 0.1);
+    newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
+    zoomFactor.value = newZoom;
+    
+    // Update target size with new zoom
+    await nextTick();
+    
+    // Adjust scroll position to keep the same point under the mouse
+    const newScroll = getScrollCenterAfterZoom(mouseX, mouseY, oldScale, scaleFactor.value);
+    containerEl.value.scrollLeft = newScroll.scrollLeft;
+    containerEl.value.scrollTop = newScroll.scrollTop;
+  });
+
+  async function setZoom(newZoom: number, mouseEvent?: MouseEvent) {
+    if (!containerEl.value || !intrinsicSizeRef.value) {
+      zoomFactor.value = newZoom;
+      return;
+    }
+
+    // Clamp zoom value
+    newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZoom));
+
+    if (mouseEvent) {
+      // Get mouse position relative to container's content area
+      const rect = containerEl.value.getBoundingClientRect();
+      const containerStyle = window.getComputedStyle(containerEl.value);
+      const mouseX = mouseEvent.clientX - rect.left - parseFloat(containerStyle.paddingLeft);
+      const mouseY = mouseEvent.clientY - rect.top - parseFloat(containerStyle.paddingTop);
+      
+      // Store old scale factor
+      const oldScale = scaleFactor.value;
+      
+      // Update zoom factor
+      zoomFactor.value = newZoom;
+      
+      // Update target size with new zoom
+      await nextTick();
+      
+      // Adjust scroll position to keep the same point under the mouse
+      const newScroll = getScrollCenterAfterZoom(mouseX, mouseY, oldScale, scaleFactor.value);
+      containerEl.value.scrollLeft = newScroll.scrollLeft;
+      containerEl.value.scrollTop = newScroll.scrollTop;
+    } else {
+      // No mouse event, just set zoom without adjusting scroll
+      zoomFactor.value = newZoom;
+    }
+  }
+
+  function resetZoom() {
+    zoomFactor.value = 1.0;
+  }
+
+  return {
+    zoomFactor,
+    scaleFactor,
+    scaledSize,
+    setZoom,
+    resetZoom,
+  }
+}

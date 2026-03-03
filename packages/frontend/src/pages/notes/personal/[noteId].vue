@@ -129,8 +129,8 @@ async function performCopy() {
   await navigateTo(`/notes/personal/${newNote.id}/`);
 }
 
-async function uploadFile(file: File) {
-  const obj = await uploadFileHelper<UploadedFileInfo>('/api/v1/pentestusers/self/notes/upload/', file);
+async function uploadFile(file: File, body?: Record<string, any>) {
+  const obj = await uploadFileHelper<UploadedFileInfo>('/api/v1/pentestusers/self/notes/upload/', file, body);
   if (obj.resource_type === 'file') {
     return `[${obj.name}](/files/name/${obj.name})`;
   } else {

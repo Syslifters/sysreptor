@@ -13,28 +13,38 @@
           >
             <template #prepend v-if="buttonIcon">
               <v-progress-circular v-if="actionInProgress" indeterminate size="24" />
-              <v-icon v-else :icon="buttonIcon" :color="(attrs.color as string|undefined) || buttonColor" />
+              <slot v-else name="icon">
+                <v-icon :icon="buttonIcon" :color="(attrs.color as string|undefined) || buttonColor" />
+              </slot>
             </template>
           </v-list-item>
           <s-btn-icon
             v-else-if="buttonVariant === 'icon'"
-            :icon="buttonIcon"
             :loading="actionInProgress"
             :disabled="disabled"
             :color="(attrs.color as string|undefined) || buttonColor || 'secondary'"
             @click="onClick"
             v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
-          />
+          >
+            <slot name="icon">
+              <v-icon :icon="buttonIcon" />
+            </slot>
+          </s-btn-icon>
           <s-btn
             v-else
-            :prepend-icon="buttonIcon"
             :text="buttonText"
             :loading="actionInProgress"
             :disabled="disabled"
             :color="(attrs.color as string|undefined) || buttonColor || 'secondary'"
             @click="onClick"
             v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
-          />
+          >
+            <template #prepend v-if="buttonIcon">
+              <slot name="icon">
+                <v-icon :icon="buttonIcon" />
+              </slot>
+            </template>
+          </s-btn>
         </template>
       </s-tooltip>
     </template>

@@ -9,7 +9,13 @@ from django.test import override_settings
 from django.utils import timezone
 from pytest_django.asserts import assertNumQueries
 
-from sysreptor.pentests.models import ArchivedProject, CollabEvent, CollabEventType, NoteType, PentestProject
+from sysreptor.pentests.models import (
+    ArchivedProject,
+    CollabEvent,
+    CollabEventType,
+    NoteType,
+    PentestProject,
+)
 from sysreptor.pentests.tasks import (
     automatically_archive_projects,
     automatically_delete_archived_projects,
@@ -178,9 +184,9 @@ class TestCleanupUnreferencedFiles:
                 images_kwargs=[{'name': 'image.png'}],
             )
             template_image = template.images.first()
-        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 2 + 2 * 1)
-        self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1)
-        self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 2 + 1 * 1)
+        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 3 + 2 * 1)
+        self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 3 + 2 * 1)
+        self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 3 + 1 * 1)
         # Deleted from DB
         assert project.images.count() == 0
         assert project.files.count() == 0
@@ -296,6 +302,49 @@ class TestCleanupUnreferencedFiles:
         self.run_cleanup_template_files(num_queries=1 + 2)
         assert template.images.count() == 1
 
+    def test_original_files_not_removed_when_edited_exists(self):
+        """Original files referenced by edited files should not be removed even when unreferenced in content"""
+        with mock_time(before=timedelta(days=10)):
+            project = create_project(
+                notes_kwargs=[{'text': '![](/images/name/edited.png)\n[](/files/name/edited.pdf)'}],
+                images_kwargs=[{'name': 'original.png'}, {'name': 'edited.png'}, {'name': 'edited-unreferenced.png'}],
+                files_kwargs=[{'name': 'original.pdf'}, {'name': 'edited.pdf'}, {'name': 'edited-unreferenced.pdf'}],
+            )
+            update(project.images.filter_name('edited.png').get(), original=project.images.filter_name('original.png').get())
+            update(project.images.filter_name('edited-unreferenced.png').get(), original=project.images.filter_name('original.png').get())
+            update(project.files.filter_name('edited.pdf').get(), original=project.files.filter_name('original.pdf').get())
+            update(project.files.filter_name('edited-unreferenced.pdf').get(), original=project.files.filter_name('original.pdf').get())
+
+            user = create_user(
+                notes_kwargs=[{'text': '![](/images/name/edited.png)\n[](/files/name/edited.pdf)'}],
+                images_kwargs=[{'name': 'original.png'}, {'name': 'edited.png'}, {'name': 'edited-unreferenced.png'}],
+                files_kwargs=[{'name': 'original.pdf'}, {'name': 'edited.pdf'}, {'name': 'edited-unreferenced.pdf'}],
+            )
+            update(user.images.filter_name('edited.png').get(), original=user.images.filter_name('original.png').get())
+            update(user.images.filter_name('edited-unreferenced.png').get(), original=user.images.filter_name('original.png').get())
+            update(user.files.filter_name('edited.pdf').get(), original=user.files.filter_name('original.pdf').get())
+            update(user.files.filter_name('edited-unreferenced.pdf').get(), original=user.files.filter_name('original.pdf').get())
+
+            # Test template images
+            template = create_template(
+                data={'description': '![](/images/name/edited.png)'},
+                images_kwargs=[{'name': 'original.png'}, {'name': 'edited.png'}, {'name': 'edited-unreferenced.png'}],
+            )
+            update(template.images.filter_name('edited.png').get(), original=template.images.filter_name('original.png').get())
+            update(template.images.filter_name('edited-unreferenced.png').get(), original=template.images.filter_name('original.png').get())
+
+        # Run cleanup for all types
+        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 3 + 2 * 1)
+        self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 3 + 2 * 1)
+        self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 3 + 1 * 1)
+
+        # Original files not deleted
+        assert project.images.count() == 2
+        assert project.files.count() == 2
+        assert user.images.count() == 2
+        assert user.files.count() == 2
+        assert template.images.count() == 2
+
     def test_file_referenced_by_multiple_projects(self):
         with mock_time(before=timedelta(days=10)):
             project_unreferenced = create_project(
@@ -308,7 +357,7 @@ class TestCleanupUnreferencedFiles:
             update(
                 obj=project_referenced.sections.filter(section_id='other').get(),
                 data={'field_markdown': '![](/images/name/image.png)\n[](/files/name/file.pdf)'})
-        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 2 + 2 * 1)
+        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 3 + 2 * 1)
 
         # Files deleted for unreferenced project
         assert project_unreferenced.images.count() == 0
@@ -348,9 +397,9 @@ class TestCleanupUnreferencedFiles:
             user_new.notes.first().save()
             template_new.save()
         last_task_run = timezone.now() - timedelta(days=15)
-        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 2 + 2 * 1, last_success=last_task_run)
-        self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 2 + 2 * 1, last_success=last_task_run)
-        self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 2 + 1 * 1, last_success=last_task_run)
+        self.run_cleanup_project_files(num_queries=1 + 5 + 2 * 3 + 2 * 1, last_success=last_task_run)
+        self.run_cleanup_user_files(num_queries=1 + 3 + 2 * 3 + 2 * 1, last_success=last_task_run)
+        self.run_cleanup_template_files(num_queries=1 + 2 + 1 * 3 + 1 * 1, last_success=last_task_run)
 
         # Old project should be ignored because it was already cleaned in the last run
         assert project_old.images.count() == 1

@@ -701,13 +701,14 @@ class TestFileApi:
         ('script.js', 'application/octet-stream'),
     ])
     def test_image_download(self, name, content_type):
-        UploadedImage.objects.create(linked_object=self.project, name=name, file=SimpleUploadedFile(name=name, content=create_png_file()))
+        f = UploadedImage.objects.create(linked_object=self.project, name=name, file=SimpleUploadedFile(name=name, content=create_png_file()))
 
         res = self.client.get(reverse('uploadedimage-retrieve-by-name', kwargs={'project_pk': self.project.pk, 'filename': name}))
         assert res.status_code == 200
         assert res.headers['Content-Type'] == content_type
         assert res.headers['Content-Disposition'] == f'{"inline" if content_type.startswith("image/") else "attachment"}; filename="{name}"'
         assert res.headers['Content-Security-Policy'] == "default-src 'none'"
+        assert res.headers['X-Sysreptor-Id'] == str(f.id)
 
     @pytest.mark.parametrize('name', [
         'file.txt',
@@ -720,10 +721,64 @@ class TestFileApi:
         'file.js',
     ])
     def test_file_download(self, name):
-        UploadedProjectFile.objects.create(linked_object=self.project, name=name, file=SimpleUploadedFile(name=name, content=b'File content'))
+        f = UploadedProjectFile.objects.create(linked_object=self.project, name=name, file=SimpleUploadedFile(name=name, content=b'File content'))
 
         res = self.client.get(reverse('uploadedprojectfile-retrieve-by-name', kwargs={'project_pk': self.project.pk, 'filename': name}))
         assert res.status_code == 200
         assert res.headers['Content-Type'] == 'application/octet-stream'
         assert res.headers['Content-Disposition'] == f'attachment; filename="{name}"'
         assert res.headers['Content-Security-Policy'] == "default-src 'none'"
+        assert res.headers['X-Sysreptor-Id'] == str(f.id)
+
+    def test_upload_edited(self):
+        # Upload original image
+        res_original = self.client.post(reverse('uploadedimage-list', kwargs={'project_pk': self.project.pk}), data={
+            'name': 'original.png',
+            'file': SimpleUploadedFile(name='original.png', content=create_png_file()),
+        }, format='multipart')
+        assert res_original.status_code == 201
+
+        res_img = self.client.get(reverse('uploadedimage-retrieve-by-name', kwargs={'project_pk': self.project.pk, 'filename': 'original.png'}))
+        assert res_img.status_code == 200
+        assert res_img.headers['X-Sysreptor-Id'] == res_original.data['id']
+
+        # Upload edited image with original reference
+        res_edited = self.client.post(reverse('uploadedimage-list', kwargs={'project_pk': self.project.pk}), data={
+            'name': 'edited.png',
+            'file': SimpleUploadedFile(name='edited.png', content=create_png_file()),
+            'original': res_original.data['id'],
+        }, format='multipart')
+        assert res_edited.status_code == 201
+        assert res_edited.data['original'] == res_original.data['id']
+        assert str(UploadedImage.objects.get(id=res_edited.data['id']).original.id) == res_original.data['id']
+
+    @pytest.mark.parametrize(('original', 'expected'), [
+        ('', None),
+        ('original', 'original'),
+        ('edited', 'original'),
+        ('otherproject', 400),
+        ('11111111-1111-1111-1111-111111111111', 400),
+    ])
+    def test_upload_edited_original(self, original, expected):
+        f_original = self.project.images.first()
+        p_other = create_project(members=[self.user], images_kwargs=[{'name': 'other.png'}])
+        files_map = {
+            'original': f_original.id,
+            'edited': UploadedImage.objects.create(linked_object=self.project, name='edited.png', file=SimpleUploadedFile(name='edited.png', content=create_png_file()), original=f_original).id,
+            'otherproject': p_other.images.first().id,
+        }
+
+        res = self.client.post(reverse('uploadedimage-list', kwargs={'project_pk': self.project.pk}), data={
+            'name': 'new.png',
+            'file': SimpleUploadedFile(name='new.png', content=create_png_file()),
+            'original': files_map.get(original, original),
+        }, format='multipart')
+        if isinstance(expected, int):
+            assert res.status_code == expected
+        elif expected:
+            assert res.status_code == 201
+            assert str(UploadedImage.objects.get(id=res.data['id']).original.id) == str(files_map['original'])
+        else:
+            assert res.status_code == 201
+            assert UploadedImage.objects.get(id=res.data['id']).original is None
+

@@ -18,6 +18,7 @@ nav:
       - References: reporting/references.md
       - Finding Templates: finding-templates/create-finding.md
       - Collaborative Editing: reporting/collaborative-editing.md
+      - Image Editor: reporting/image-editor.md
   - Designing Reports:
       - Designer: designer/designer.md
       - Field Types: designer/field-types.md

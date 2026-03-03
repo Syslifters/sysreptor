@@ -1,91 +1,87 @@
 <template>
   <div 
-    ref="imgContainerRef"
-    class="img-container zoom-on-hover" 
-    :class="{ 'zoomed': isZoomed }"
-    @mouseenter="zoomHover = true"
-    @mouseleave="zoomHover = false"
-    @mousemove="moveZoom"
-    @click="zoomEnabled = !zoomEnabled"
+    ref="containerEl"
+    class="image-preview-container"
   >
-    <img ref="imgNormalRef" :src="props.src" class="img-normal" />
-    <img ref="imgZoomRef" :src="props.src" class="img-zoom" :style="{ 'transform': `scale(${props.scaleFactor})` }" />
+    <div 
+      class="image-wrapper elevation-4"
+      :class="{ 'cursor-zoom-in': zoomFactor <= 1, 'cursor-zoom-out': zoomFactor > 1 }"
+      :style="{ 
+        width: scaledSize.width + 'px', 
+        height: scaledSize.height + 'px' 
+      }"
+      @click="toggleZoom"
+    >
+      <img 
+        ref="imgEl" 
+        :src="props.src" 
+        @load="onImageLoad"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-const zoomEnabled = defineModel<boolean>();
-const props = withDefaults(defineProps<{
+import { useZoomImage } from '@base/utils/helpers';
+
+const props = defineProps<{
   src: string;
-  scaleFactor?: number;
-}>(), {
-  scaleFactor: 3,
-});
+}>();
 
-const zoomHover = ref(false);
-const isZoomed = computed(() => zoomEnabled.value && zoomHover.value);
+const containerEl = useTemplateRef('containerEl');
+const imgEl = useTemplateRef('imgEl');
+const intrinsicSize = ref<{ width: number; height: number } | null>(null);
+const { scaledSize, zoomFactor, setZoom, resetZoom } = useZoomImage(containerEl, intrinsicSize);
 
-const imgContainerRef = useTemplateRef('imgContainerRef');
-const imgNormalRef = useTemplateRef('imgNormalRef');
-const imgZoomRef = useTemplateRef('imgZoomRef');
-
-function pageOffset(el: HTMLElement) {
-  // get the left and top offset of a dom block element
-  const rect = el.getBoundingClientRect();
-  const scrollLeft = document.documentElement.scrollLeft;
-  const scrollTop = document.documentElement.scrollTop;
-  return {
-    y: rect.top + scrollTop,
-    x: rect.left + scrollLeft
+function onImageLoad() {
+  if (imgEl.value) {
+    intrinsicSize.value = {
+      width: imgEl.value.naturalWidth,
+      height: imgEl.value.naturalHeight,
+    };
   }
 }
 
-function moveZoom(event: MouseEvent) {
-  if (!zoomHover.value) { return; }
-  const offset = pageOffset(imgContainerRef.value!);
-  const relativeX = event.clientX - offset.x + window.scrollX
-  const relativeY = event.clientY - offset.y + window.scrollY
-  const normalFactorX = relativeX / imgNormalRef.value!.offsetWidth
-  const normalFactorY = relativeY / imgNormalRef.value!.offsetHeight
-  const x = normalFactorX * (imgZoomRef.value!.offsetWidth * props.scaleFactor - imgNormalRef.value!.offsetWidth)
-  const y = normalFactorY * (imgZoomRef.value!.offsetHeight * props.scaleFactor - imgNormalRef.value!.offsetHeight)
-  imgZoomRef.value!.style.left = -x + "px"
-  imgZoomRef.value!.style.top = -y + "px"
+function toggleZoom(event: MouseEvent) {
+  if (zoomFactor.value <= 1) {
+    setZoom(3, event);
+  } else {
+    setZoom(1, event);
+  }
 }
+
+defineExpose({ resetZoom });
 </script>
 
 <style lang="scss" scoped>
-.img-container {
+.image-preview-container {
+  display: grid;
+  place-items: center;
   width: 100%;
   height: 100%;
+  overflow: auto;
+  padding: 0.5rem;
+  touch-action: none;
+}
 
-  img {
+.image-wrapper {
+  background: 
+    repeating-conic-gradient(rgb(var(--v-theme-surface)) 0% 25%, rgba(var(--v-theme-on-surface), 0.1) 0% 50%) 
+    50% / 20px 20px;
+
+  & > img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    padding: 1rem;
+    user-select: none;
   }
 }
 
-.zoom-on-hover {
-  position: relative;
-  overflow: hidden;
+.cursor-zoom-in {
   cursor: zoom-in;
-
-  .img-zoom {
-    position: absolute;
-    opacity: 0;
-    transform-origin: top left;
-  }
 }
-.zoom-on-hover.zoomed {
+
+.cursor-zoom-out {
   cursor: zoom-out;
-  .img-zoom {
-    opacity: 1;
-  }
-  .img-normal {
-    opacity: 0;
-  }
 }
 </style>

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { CvssVersion } from "@base/utils/cvss/base";
-import { ReportingSidebarType, MarkdownEditorMode, type FilterValue } from "#imports";
+import { ReportingSidebarType, MarkdownEditorMode, type FilterValue, type ImageEditorSettings } from "#imports";
 
 export const useLocalSettings = defineStore('settings', {
   state: () => ({
@@ -40,6 +40,10 @@ export const useLocalSettings = defineStore('settings', {
     pluginMenuExpanded: true,
     pdfPasswordEnabled: false,
     theme: null as 'light'|'dark'|null,
+    imageEditorSettings: {
+      color: '#FF0000',
+      strokeWidth: 3,
+    } as ImageEditorSettings,
   }),
   actions: {
     setNoteExpandState({ noteId, isExpanded }: { noteId: string, isExpanded: boolean }) {

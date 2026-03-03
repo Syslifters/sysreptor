@@ -8,7 +8,7 @@
         density="comfortable"
         class="ml-1 mr-1"
       >
-        <v-icon>mdi-pencil</v-icon>
+        <v-icon icon="mdi-pencil" />
         <s-tooltip activator="parent" text="Edit" />
       </s-btn-icon>
     </template>

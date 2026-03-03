@@ -48,14 +48,14 @@ export default {
               <v-list-item v-if="hashcat != null">
                 <v-code class="code-container">
                   <v-icon size="small" class="copy-icon"
-                    @click="copyToClipboard(`hashcat --hash-type=${hashcat} ${hash}`)">mdi-content-copy</v-icon>
+                    @click="copyToClipboard(`hashcat --hash-type=${hashcat} ${hash}`)" icon="mdi-content-copy" />
                   <span class="command"> hashcat --hash-type={{ hashcat }} {{ hash }}</span>
                 </v-code>
               </v-list-item>
               <v-list-item v-if="john != null">
                 <v-code class="code-container">
                   <v-icon size="small" class="copy-icon"
-                    @click="copyToClipboard(`john --format=${john} <(echo '${hash}')`)">mdi-content-copy</v-icon>
+                    @click="copyToClipboard(`john --format=${john} <(echo '${hash}')`)" icon="mdi-content-copy" />
                   <span class="command"> john --format={{ john }} <(echo '{{ hash }}')</span>
                 </v-code>
               </v-list-item>

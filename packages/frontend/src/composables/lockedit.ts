@@ -144,9 +144,9 @@ export function useProjectEditBase(options: {
   const projectUrl = computed(() => `/api/v1/pentestprojects/${projectId.value}/`);
   const projectTypeUrl = computed(() => options.project.value ? `/api/v1/projecttypes/${options.project.value.project_type}/` : null);
 
-  async function uploadFile(file: File) {
+  async function uploadFile(file: File, body?: Record<string, any>) {
     const uploadUrl = urlJoin(projectUrl.value, options.canUploadFiles ? '/upload/' : '/images/');
-    const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file);
+    const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file, body);
     if (res.resource_type === UploadedFileType.IMAGE) {
       return `![](/images/name/${res.name}){width="auto"}`;
     } else {
