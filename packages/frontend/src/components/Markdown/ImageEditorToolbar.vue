@@ -113,21 +113,6 @@
         </s-number-input>
       </template>
     </s-tooltip>
-
-    <s-tooltip text="Font size" location="top">
-      <template #activator="{ props: tooltipProps }">
-        <s-number-input
-          v-model="localSettings.imageEditorSettings.fontSize"
-          :min="1"
-          v-bind="tooltipProps"
-        >
-          <template #prepend>
-            <v-icon size="small" icon="mdi-format-size" />
-          </template>
-        </s-number-input>
-      </template>
-    </s-tooltip>
-
   </v-toolbar>
 </template>
 

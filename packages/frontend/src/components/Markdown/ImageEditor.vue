@@ -61,6 +61,7 @@ const selectModeArgs = computed(() => {
     lockMovementY: !isSelectMode,
   };
 });
+const fontSize = computed(() => localSettings.imageEditorSettings.strokeWidth * 12);
 
 // Drawing state
 const isDrawing = ref(false);
@@ -305,7 +306,7 @@ function createDrawingShape(x: number, y: number) {
     }
     case ImageEditorTool.MARKER: {
       const circle = new Circle({
-        radius: localSettings.imageEditorSettings.fontSize,
+        radius: fontSize.value,
         fill: localSettings.imageEditorSettings.color,
         strokeWidth: 0,
         originX: 'center',
@@ -313,7 +314,7 @@ function createDrawingShape(x: number, y: number) {
       });
       
       const text = new IText(markerCounter.value.toString(), {
-        fontSize: localSettings.imageEditorSettings.fontSize,
+        fontSize: fontSize.value,
         fill: getContrastTextColor(localSettings.imageEditorSettings.color),
         originX: 'center',
         originY: 'center',
@@ -485,7 +486,7 @@ function addTextAtPosition(x: number, y: number) {
   const text = new IText('Text', {
     left: x,
     top: y,
-    fontSize: localSettings.imageEditorSettings.fontSize, // localSettings.imageEditorSettings.strokeWidth * 12,
+    fontSize: fontSize.value,
     fill: localSettings.imageEditorSettings.color,
     fontFamily: 'Noto Sans',
     ...selectModeArgs.value,
@@ -714,11 +715,10 @@ watch(() => localSettings.imageEditorSettings.color, (color) => {
   updateActiveObjects({ stroke: color }, (obj) => !!obj.stroke && obj.stroke !== 'transparent');
   updateActiveObjects({ fill: color }, (obj) => obj.fill !== 'transparent');
 });
-watch(() => localSettings.imageEditorSettings.strokeWidth, (width) => updateActiveObjects({ strokeWidth: width }, (obj) => obj.strokeWidth > 0));
-watch(() => localSettings.imageEditorSettings.fontSize, (fontSize) => {
-  updateActiveObjects({ fontSize }, (obj) => obj.type === 'i-text' || obj.type === 'text');
+watch(() => localSettings.imageEditorSettings.strokeWidth, (width) => {
+  updateActiveObjects({ strokeWidth: width }, (obj) => obj.strokeWidth > 0);
+  updateActiveObjects({ fontSize: fontSize.value }, (obj) => obj.type === 'i-text' || obj.type === 'text');
 });
-
 
 async function exportAsBlob(): Promise<Blob | null> {
   return await canvas.value?.toBlob({

@@ -43,7 +43,6 @@ export const useLocalSettings = defineStore('settings', {
     imageEditorSettings: {
       color: '#FF0000',
       strokeWidth: 3,
-      fontSize: 24,
     } as ImageEditorSettings,
   }),
   actions: {

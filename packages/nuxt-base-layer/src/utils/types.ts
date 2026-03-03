@@ -687,6 +687,5 @@ export enum ReportingSidebarType {
 export type ImageEditorSettings = {
   color: string;
   strokeWidth: number;
-  fontSize: number;
 }
 
