@@ -7,10 +7,11 @@
       <!-- Placeholder of raw text while markdown is initially rendered -->
       <p>{{ props.value }}</p>
     </div>
-    <markdown-image-preview-dialog 
-      v-model="previewImageSrc" 
+    <markdown-image-preview-dialog
+      ref="previewDialogRef"
+      v-model="previewImageSrc"
       :images="previewImagesAll"
-      :readonly="props.readonly" 
+      :readonly="props.readonly"
       :upload-file="props.uploadFile"
       :rewrite-file-url-map="props.rewriteFileUrlMap"
       @image-edited="emit('image-edited', $event)"
@@ -70,6 +71,51 @@ watchThrottled(() => props.value, async () => {
 }, { throttle: throttleMs, leading: true, immediate: true });
 
 const previewRef = useTemplateRef('previewRef');
+const previewDialogRef = useTemplateRef('previewDialogRef');
+
+const previewImageSrc = ref<PreviewImage|null>(null);
+const previewImagesAll = ref<PreviewImage[]>([]);
+function getPreviewImagesAndSelected(clickedImg: HTMLImageElement | null): { images: PreviewImage[]; selected: PreviewImage | null } {
+  if (!previewRef.value) {
+    return { images: [], selected: null };
+  }
+  const images = Array.from(previewRef.value.querySelectorAll<HTMLImageElement>('img')).map((img: HTMLImageElement) => {
+    const figureEl = img.parentElement?.classList.contains('preview-image-wrapper') ? img.parentElement.parentElement : img.parentElement;
+    const captionEl = figureEl?.querySelector('figcaption');
+    let markdown: string | undefined;
+    try {
+      const position = JSON.parse(figureEl?.getAttribute('data-position') || '');
+      if (Number.isInteger(position?.start?.offset) && Number.isInteger(position?.end?.offset)) {
+        markdown = renderedMarkdownText.value.substring(position.start.offset, position.end.offset) || undefined;
+      }
+    } catch {
+      // Ignore error
+    }
+    return {
+      src: img.src,
+      caption: captionEl?.innerText,
+      markdown,
+    };
+  });
+  const selected = clickedImg ? images.find(img => img.src === clickedImg.src) ?? null : null;
+  return { images, selected };
+}
+function openImageDialog(img: HTMLImageElement, editMode?: boolean) {
+  const { images, selected } = getPreviewImagesAndSelected(img);
+  if (selected) {
+    previewImagesAll.value = images;
+    previewDialogRef.value?.open?.(selected, editMode);
+  }
+}
+useEventListener(previewRef, 'click', (e) => {
+  const img = e.target as HTMLImageElement;
+  if (img.tagName !== 'IMG' || !img.src) {
+    return;
+  }
+  e.stopPropagation();
+  openImageDialog(img);
+});
+
 async function postProcessRenderedHtml() {
   if (!previewRef.value) {
     return;
@@ -86,6 +132,32 @@ async function postProcessRenderedHtml() {
     });
   });
 
+  // Wrap all images, inject edit buttons
+  const canEdit = !!props.uploadFile && !props.readonly;
+  previewRef.value.querySelectorAll<HTMLImageElement>('figure > img').forEach((img) => {
+    const figure = img.parentElement?.tagName === 'FIGURE' ? img.parentElement as HTMLElement : null;
+    if (figure && canEdit) {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'preview-image-wrapper';
+      img.parentNode!.insertBefore(wrapper, img);
+      wrapper.appendChild(img);
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.classList.add('preview-image-edit-btn', 'v-btn', 'v-btn--icon', 'v-btn--density-compact');
+      const icon = document.createElement('i');
+      icon.className = 'mdi mdi-image-edit-outline v-icon v-icon--size-small';
+      btn.appendChild(icon);
+      wrapper.appendChild(btn);
+
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        openImageDialog(img, true);
+      });
+    }
+  });
+
   // Render mermaid diagrams
   const mermaidNodes = previewRef.value.querySelectorAll<HTMLElement>('.preview div.mermaid-diagram');
   try {
@@ -98,38 +170,6 @@ async function postProcessRenderedHtml() {
   emit('rendered');
 }
 whenever(previewRef, postProcessRenderedHtml, { immediate: true });
-
-const previewImageSrc = ref<PreviewImage|null>(null);
-const previewImagesAll = ref<PreviewImage[]>([]);
-function showPreviewImage(event: MouseEvent) {
-  const imgElement = event.target as HTMLImageElement;
-  if (previewRef.value && imgElement && imgElement.tagName === 'IMG' && imgElement.src) {
-    // Collect all images in the preview
-    previewImagesAll.value = Array.from(previewRef.value.querySelectorAll('img')).map((img: HTMLImageElement) => {
-      const captionEl = img.parentElement?.querySelector('figcaption');
-
-      let markdown = undefined;
-      try {
-        const position = JSON.parse(img.parentElement?.getAttribute('data-position') || '');
-        if (Number.isInteger(position?.start?.offset) && Number.isInteger(position?.end?.offset)) {
-          markdown = renderedMarkdownText.value.substring(position.start.offset, position.end.offset) || undefined;
-        }
-      } catch {
-        // Ignore error
-      }
-      return {
-        src: img.src,
-        caption: captionEl?.innerText,
-        markdown,
-      };
-    });
-    // Select the clicked image
-    previewImageSrc.value = previewImagesAll.value.find(img => img.src === imgElement.src) || null;
-
-    event.stopPropagation();
-  }
-}
-useEventListener(previewRef, 'click', showPreviewImage);
 
 defineExpose({
   element: previewRef,
@@ -182,6 +222,27 @@ defineExpose({
 
   figure img {
     cursor: zoom-in;
+  }
+
+  .preview-image-wrapper {
+    display: inline-block;
+    position: relative;
+
+    &:hover .preview-image-edit-btn {
+      opacity: 1;
+    }
+
+    .preview-image-edit-btn {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.25rem;
+      width: 2rem;
+      height: 2rem;
+
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
   }
 
   .file-download-preview {
