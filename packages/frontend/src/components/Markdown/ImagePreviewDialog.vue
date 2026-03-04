@@ -115,10 +115,12 @@ const imageEditorRef = useTemplateRef('imageEditorRef');
 const imageZoomRefs = ref<any[]>([]);
 
 const editMode = ref(false);
+const wasOpenedInEditMode = ref(false);
 const editedImageInfo = ref<UploadedFileInfo|null>(null);
 const saveInProgress = ref(false);
 watch(modelValue, async () => {
   editMode.value = false;
+  wasOpenedInEditMode.value = false;
   saveInProgress.value = false;
   editedImageInfo.value = null;
   // Reset zoom when navigating to another image
@@ -136,6 +138,10 @@ function onClose(val: boolean) {
         }
       }
       editMode.value = false;
+      if (wasOpenedInEditMode.value) {
+        // Close dialog
+        modelValue.value = null;
+      }
     } else {
       modelValue.value = null;
     }
@@ -219,6 +225,7 @@ async function performSave() {
   // Close dialog and show success
   successToast('Image saved successfully');
   editMode.value = false;
+  wasOpenedInEditMode.value = false;
 }
 
 async function revertToOriginal() {
@@ -234,6 +241,17 @@ async function revertToOriginal() {
   successToast('Reverted to original image');
   editMode.value = false;
 }
+
+async function open(image: PreviewImage, editModeParam?: boolean) {
+  modelValue.value = image;
+  await nextTick();
+  editMode.value = !!editModeParam;
+  wasOpenedInEditMode.value = editMode.value;
+}
+
+defineExpose({
+  open,
+});
 </script>
 
 <style lang="scss">
