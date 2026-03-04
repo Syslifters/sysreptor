@@ -39,6 +39,7 @@
         button-text="Revert"
         tooltip-text="Revert to Original Image"
         dialog-text="Are you sure you want to revert to the original image? This will discard all annotations and edits you've made to this image."
+        class="dialog-toolbar-btn"
       >
         <template #icon>
           <v-icon size="large" icon="mdi-undo-variant" />
@@ -52,6 +53,7 @@
         button-variant="icon"
         button-text="Edit Image"
         tooltip-text="Edit Image"
+        class="dialog-toolbar-btn"
       >
         <template #icon>
           <v-icon size="large" icon="mdi-image-edit-outline" />
@@ -65,6 +67,7 @@
         button-variant="icon"
         button-text="Save"
         tooltip-text="Save Changes"
+        class="dialog-toolbar-btn"
       >
         <template #icon>
           <v-icon size="x-large" icon="mdi-check-bold" />
@@ -267,5 +270,9 @@ defineExpose({
     // display: none;
     min-width: 0
   }
+}
+
+.dialog-toolbar-btn {
+  color: inherit;
 }
 </style>
