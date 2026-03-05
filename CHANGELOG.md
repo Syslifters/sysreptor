@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Markdown editor: Add image editor
+* Fix missing reauth redirect in UI for edit user pages
 
 
 ## v2026.12 - 2026-02-25
