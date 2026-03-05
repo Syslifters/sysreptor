@@ -201,14 +201,14 @@ files = [
 
 [[package]]
 name = "authlib"
-version = "1.6.8"
+version = "1.6.9"
 description = "The ultimate Python library in building OAuth and OpenID Connect servers and clients."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "authlib-1.6.8-py2.py3-none-any.whl", hash = "sha256:97286fd7a15e6cfefc32771c8ef9c54f0ed58028f1322de6a2a7c969c3817888"},
-    {file = "authlib-1.6.8.tar.gz", hash = "sha256:41ae180a17cf672bc784e4a518e5c82687f1fe1e98b0cafaeda80c8e4ab2d1cb"},
+    {file = "authlib-1.6.9-py2.py3-none-any.whl", hash = "sha256:f08b4c14e08f0861dc18a32357b33fbcfd2ea86cfe3fe149484b4d764c4a0ac3"},
+    {file = "authlib-1.6.9.tar.gz", hash = "sha256:d8f2421e7e5980cc1ddb4e32d3f5fa659cfaf60d8eaf3281ebed192e4ab74f04"},
 ]
 
 [package.dependencies]
@@ -315,18 +315,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.42.59"
+version = "1.42.61"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "boto3-1.42.59-py3-none-any.whl", hash = "sha256:7a66e3e8e2087ea4403e135e9de592e6d63fc9a91080d8dac415bb74df873a72"},
-    {file = "boto3-1.42.59.tar.gz", hash = "sha256:6c4a14a4eb37b58a9048901bdeefbe1c529638b73e8f55413319a25f010ca211"},
+    {file = "boto3-1.42.61-py3-none-any.whl", hash = "sha256:156efcc298a33206be6dfd220815c64aa8b09424017534cabe717636961fc306"},
+    {file = "boto3-1.42.61.tar.gz", hash = "sha256:117ebfc597c95bfb64c6d37ba77bd1c2a97a1885c1dcac2a8be1a14e2139a76d"},
 ]
 
 [package.dependencies]
-botocore = ">=1.42.59,<1.43.0"
+botocore = ">=1.42.61,<1.43.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.16.0,<0.17.0"
 
@@ -335,14 +335,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.42.59"
+version = "1.42.61"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "botocore-1.42.59-py3-none-any.whl", hash = "sha256:d2f2ff7ecc31e86ef46b5daee112cfbca052c13801285fb23af909f7bff5b657"},
-    {file = "botocore-1.42.59.tar.gz", hash = "sha256:5314f19e1da8fc0ebc41bdb8bbe17c9a7397d87f4d887076ac8bdef972a34138"},
+    {file = "botocore-1.42.61-py3-none-any.whl", hash = "sha256:476059beb3f462042742950cf195d26bc313461a77189c16e37e205b0a924b26"},
+    {file = "botocore-1.42.61.tar.gz", hash = "sha256:702d6011ace2b5b652a0dbb45053d4d9f79da2c5b184463042434e1754bdd601"},
 ]
 
 [package.dependencies]
@@ -1274,14 +1274,14 @@ files = [
 
 [[package]]
 name = "django"
-version = "6.0.2"
+version = "6.0.3"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "django-6.0.2-py3-none-any.whl", hash = "sha256:610dd3b13d15ec3f1e1d257caedd751db8033c5ad8ea0e2d1219a8acf446ecc6"},
-    {file = "django-6.0.2.tar.gz", hash = "sha256:3046a53b0e40d4b676c3b774c73411d7184ae2745fe8ce5e45c0f33d3ddb71a7"},
+    {file = "django-6.0.3-py3-none-any.whl", hash = "sha256:2e5974441491ddb34c3f13d5e7a9f97b07ba03bf70234c0a9c68b79bbb235bc3"},
+    {file = "django-6.0.3.tar.gz", hash = "sha256:90be765ee756af8a6cbd6693e56452404b5ad15294f4d5e40c0a55a0f4870fe1"},
 ]
 
 [package.dependencies]
@@ -2402,14 +2402,14 @@ pydantic = ">=2.7.4,<3.0.0"
 
 [[package]]
 name = "langchain-core"
-version = "1.2.16"
+version = "1.2.17"
 description = "Building applications with LLMs through composability"
 optional = false
 python-versions = "<4.0.0,>=3.10.0"
 groups = ["main"]
 files = [
-    {file = "langchain_core-1.2.16-py3-none-any.whl", hash = "sha256:2768add9aa97232a7712580f678e0ba045ee1036c71fe471355be0434fcb6e30"},
-    {file = "langchain_core-1.2.16.tar.gz", hash = "sha256:055a4bfe7d62f4ac45ed49fd759ee2e6bdd15abf998fbeea695fda5da2de6413"},
+    {file = "langchain_core-1.2.17-py3-none-any.whl", hash = "sha256:bf6bd6ce503874e9c2da1669a69383e967c3de1ea808921d19a9a6bff1a9fbbe"},
+    {file = "langchain_core-1.2.17.tar.gz", hash = "sha256:54aa267f3311e347fb2e50951fe08e53761cebfb999ab80e6748d70525bbe872"},
 ]
 
 [package.dependencies]
@@ -2560,14 +2560,14 @@ orjson = ">=3.11.5"
 
 [[package]]
 name = "langsmith"
-version = "0.7.9"
+version = "0.7.12"
 description = "Client library to connect to the LangSmith Observability and Evaluation Platform."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "langsmith-0.7.9-py3-none-any.whl", hash = "sha256:e73478f4c4ae9b7407e0fcdced181f9f8b0e024c62a1552dbf0667ef6b19e82d"},
-    {file = "langsmith-0.7.9.tar.gz", hash = "sha256:c6dfcc4cb8fea249714ac60a1963faa84cc59ded9cd1882794ffce8a8d1d1588"},
+    {file = "langsmith-0.7.12-py3-none-any.whl", hash = "sha256:ff0a3310cd0bc546752017b38715d6607d1e4f82277d3e612e7cfd249710d419"},
+    {file = "langsmith-0.7.12.tar.gz", hash = "sha256:4ad729ea1908b0b5cf1305e1cc54693320f3420a9af66ebaadff76ec6e7e103d"},
 ]
 
 [package.dependencies]
