@@ -38,7 +38,18 @@ const route = useRoute();
 const auth = useAuth();
 
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' })
-const mfaMethods = await useFetchE<MfaMethod[]>(`/api/v1/pentestusers/${route.params.userId}/mfa/`, { method: 'GET' });
+const mfaMethods = await useAsyncDataE(async () => {
+  try {
+    return await $fetch<MfaMethod[]>(`/api/v1/pentestusers/${route.params.userId}/mfa/`, { method: 'GET' });
+  } catch (error: any) {
+    if (error?.data?.code === 'reauth-required') {
+      auth.redirectToReAuth({ replace: true });
+      return [];
+    } else {
+      throw error;
+    }
+  }
+});
 const canEdit = computed(() => auth.permissions.value.user_manager && !user.value.is_system_user)
 
 async function deleteMfaMethod(mfaMethod: MfaMethod) {

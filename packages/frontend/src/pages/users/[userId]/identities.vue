@@ -69,7 +69,18 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
-const identities = await useFetchE<AuthIdentity[]>(`/api/v1/pentestusers/${route.params.userId}/identities/`, { method: 'GET' });
+const identities = await useAsyncDataE(async () => {
+  try {
+    return await $fetch<AuthIdentity[]>(`/api/v1/pentestusers/${route.params.userId}/identities/`, { method: 'GET' });
+  } catch (error: any) {
+    if (error?.data?.code === 'reauth-required') {
+      auth.redirectToReAuth({ replace: true });
+      return [];
+    } else {
+      throw error;
+    }
+  }
+});
 
 const createWizard = ref({
   visible: false,
