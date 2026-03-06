@@ -179,7 +179,9 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
         with history_context(history_user=thread.user, set_history_date=False):
             yield {'type': 'metadata', 'content': {'thread_id': str(thread.id)}}
 
-            async for stream_mode, chunk in agent.astream(
+            pending_tool_call_ids = []
+            namespace_to_tool_call_id = {}
+            async for namespace, stream_mode, chunk in agent.astream(
                 stream_mode=["messages", "values", "updates"],
                 config={
                     'configurable': {
@@ -189,17 +191,32 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                 },
                 context=agent.context_schema(**(context or {}) | {'user_id': thread.user_id, 'project_id': thread.project_id}),
                 durability='exit',
+                subgraphs=True,
                 **kwargs,
             ):
+                # Map subagent namespace to tool call id
+                # https://github.com/langchain-ai/langgraph/issues/6714
+                meta = {
+                    'subagent': None,
+                }
+                if namespace and (src := namespace[0] if isinstance(namespace[0], str) else str(namespace[0])):
+                    if src not in namespace_to_tool_call_id and pending_tool_call_ids:
+                        namespace_to_tool_call_id[src] = pending_tool_call_ids.pop(0)
+                    meta['subagent'] = namespace_to_tool_call_id.get(src)
+
+                # Stream messages and tool calls
                 if stream_mode == 'messages' and isinstance(chunk[0], AIMessage):
                     if m := format_message(chunk[0]):
                         yield {
                             'type': 'text',
                             'content': m,
+                            **meta,
                         }
                 elif stream_mode == 'updates' and isinstance(chunk, dict) and \
                     (messages := (chunk.get('model') or {}).get('messages')) and len(messages) >= 1 and isinstance(messages[0], AIMessage):
                     for c in messages[0].tool_calls:
+                        if c.get('name') == 'task' and c.get('id') and isinstance(c.get('args'), dict):
+                            pending_tool_call_ids.append(c['id'])
                         yield {
                             'type': 'tool_call',
                             'content': {
@@ -208,6 +225,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                                 'output': None,
                                 **copy_keys(c, ['id', 'name', 'args']),
                             },
+                            **meta,
                         }
                 elif stream_mode == 'updates' and isinstance(chunk, dict) and (messages := (chunk.get('tools') or {}).get('messages')):
                     for c in messages:
@@ -220,6 +238,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                                     'status': c.status,
                                     **copy_keys(c.additional_kwargs or {}, ['timestamp', 'output']),
                                 },
+                                **meta,
                             }
     except Exception as ex:
         logging.exception(ex)
