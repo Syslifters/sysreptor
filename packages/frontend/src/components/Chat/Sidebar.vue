@@ -33,6 +33,7 @@
         v-for="msg in agent.messageHistory.value" :key="msg.id"
         :msg="msg"
         :project="props.project"
+        :is-streaming="msg.id === currentStreamingMessageId"
       />
     </div>
     <div class="pa-2">
@@ -147,6 +148,13 @@ const projectStore = useProjectStore();
 const reportingCollab = projectStore.useReportingCollab({ project: props.project, projectType: props.projectType });
 
 const agent = projectStore.useReportingAgent({ project: props.project });
+
+const currentStreamingMessageId = computed(() => {
+  if (!agent.inProgress.value) {
+    return null;
+  }
+  return agent.messageHistory.value.at(-1)?.id ?? null;
+});
 const messagesContainerRef = useTemplateRef('messagesContainerRef');
 const isScrolledToBottom = ref(true);
 

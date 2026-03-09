@@ -236,6 +236,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                                     'id': c.tool_call_id,
                                     'name': c.name,
                                     'status': c.status,
+                                    'content': c.content,
                                     **copy_keys(c.additional_kwargs or {}, ['timestamp', 'output']),
                                 },
                                 **meta,

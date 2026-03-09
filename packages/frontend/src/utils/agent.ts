@@ -37,6 +37,7 @@ export type ToolCall = {
   args: Record<string, any>;
   status: ToolCallStatus;
   timestamp: string;
+  content?: string;
   output?: any|null;
   subagentMessages?: ChatHistoryEntry[];
 }
