@@ -462,7 +462,7 @@ def update_markdown_field(runtime: ToolRuntime[ProjectContext], path: str, old_t
     return 'Updated successfully'
 
 
-class InjectProjectContextMiddleware(AgentMiddleware):
+class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]):
     """
     Inject context about the current project and section/finding into the agent.
     Ensure that the agent "sees" the same data as the user in the UI and
@@ -471,7 +471,7 @@ class InjectProjectContextMiddleware(AgentMiddleware):
     """
 
     @sync_to_async()
-    def abefore_agent(self, state: AgentState, runtime: Runtime):
+    def abefore_agent(self, state, runtime):
         project = get_project(runtime.context.project_id, prefetch=True)
 
         # Inject short info (ID, title) about the current section/finding
@@ -512,7 +512,7 @@ class InjectProjectContextMiddleware(AgentMiddleware):
             if isinstance(state['messages'][-1], HumanMessage):
                 state['messages'].insert(-1, hint_message)
 
-    async def awrap_model_call(self, request: ModelRequest, handler: Callable[[ModelRequest], ModelResponse]):
+    async def awrap_model_call(self, request, handler):
         # Live context about current project and section/finding
         project = await sync_to_async(get_project)(request.runtime.context.project_id, prefetch=True)
         page_context = []

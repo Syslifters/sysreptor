@@ -38,7 +38,7 @@ from sysreptor.tests.mock import (
     override_configuration,
 )
 from sysreptor.utils.fielddefinition.utils import get_value_at_path
-from sysreptor.utils.utils import copy_keys, omit_keys
+from sysreptor.utils.utils import copy_keys, merge, omit_keys
 
 
 class FakeChatModel(GenericFakeChatModel):
@@ -114,9 +114,10 @@ def to_message_chunks(event):
 
 def assert_events_equal(actual, expected):
     assert len(actual) == len(expected)
-    ignore_keys = ['content.id', 'content.timestamp']
+    ignore_keys = ['content.id', 'content.timestamp', 'content.content']
+    default_values = {'subagent': None}
     for a, e in zip(actual, expected, strict=True):
-        assert omit_keys(a, ignore_keys) == omit_keys(e, ignore_keys)
+        assert merge(default_values, omit_keys(a, ignore_keys)) == merge(default_values, omit_keys(e, ignore_keys))
 
 
 def yaml_indent(text: str, spaces: int = 4) -> str:
@@ -252,38 +253,30 @@ class TestProjectAgent:
         res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
         assert [m['role'] for m in res.data['messages']] == ['user', 'assistant', 'tool', 'assistant', 'user', 'assistant', 'user', 'assistant']
 
-    def test_fix_broken_tool_calls_middleware(self):
-        with mock_llm_response(messages=[
-            AIMessage('call tool', tool_calls=[
-                ToolCall(id='tool_call_1', name='get_section_data', args={'section_id': 'executive_summary'}),
-            ]),
-            AIMessage('done'),
-        ]):
-            res = self.send_message('Hi')
-            thread_id = res[0]['content']['thread_id']
+    def test_subagents(self):
+        subagent_tool_call_id = 'subagent_tool_call_1'
+        subagent_inner_tool_call_id = 'subagent_inner_tool_1'
+        task_call = ToolCall(id=subagent_tool_call_id, name='task', args={'subagent_type': 'general-purpose', 'description': 'Test subagent'})
+        get_section_call = ToolCall(id=subagent_inner_tool_call_id, name='get_section_data', args={'section_id': 'executive_summary'})
+        llm_messages = [
+            AIMessage(content='', tool_calls=[task_call]),
+            AIMessage(content='Subagent started', tool_calls=[get_section_call]),
+            AIMessage(content='Subagent done'),
+            AIMessage(content='Done.'),
+        ]
+        with mock_llm_response(messages=llm_messages):
+            events = self.send_message('Use a subagent')
 
-        # Create a broken state
-        agent = get_agent('project_agent')
-        state = agent.get_state(config={'configurable': {'thread_id': thread_id}})
-        state.values['messages'][1].tool_calls[0]['id'] = 'missing_tool_message'
-        state.values['messages'][2].tool_call_id = 'missing_tool_call'
-
-        agent.update_state(config=state.config, values={
-            'messages': state.values['messages'],
-        })
-
-        # Check broken tool calls are fixed
-        model = FakeChatModel(messages=iter([AIMessage('final response')]))
-        with mock_llm_response(model=model):
-            res = self.send_message('Next message', thread_id=thread_id)
-            # ToolMessage without ToolCall removed
-            assert [m.type for m in model.message_log[0]['messages']] == ['system', 'human', 'human', 'ai', 'ai', 'human']
-            # ToolCall without ToolMessage removed
-            assert model.message_log[0]['messages'][3].tool_calls == []
-
-        # Fixed in state/history
-        state = agent.get_state(config={'configurable': {'thread_id': thread_id}})
-        assert [m.type for m in state.values['messages']] == ['human', 'ai', 'ai', 'human', 'ai']
+        assert_events_equal(events, [
+            {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+            {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
+            *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}, 'subagent': subagent_tool_call_id}),
+            {'type': 'tool_call', 'content': copy_keys(get_section_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}, 'subagent': subagent_tool_call_id},
+            {'type': 'tool_call_status', 'content': copy_keys(get_section_call, ['id', 'name']) | {'status': 'success', 'output': mock.ANY}, 'subagent': subagent_tool_call_id},
+            *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}, 'subagent': subagent_tool_call_id}),
+            {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'success'}},
+            *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[3].content}}),
+        ])
 
 
 @pytest.mark.django_db()

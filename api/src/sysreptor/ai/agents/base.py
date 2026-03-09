@@ -140,7 +140,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         ],
         checkpointer=DjangoModelCheckpointer(),
         **kwargs,
-    )
+    ).with_config({"recursion_limit": 1000})
     return agent
 
 
