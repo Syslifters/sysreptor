@@ -1,7 +1,7 @@
 # Changelog
 
 ## Upcoming
-* Markdown editor: Add image editor
+* Markdown editor: Add image editor (https://docs.sysreptor.com/reporting/image-editor/)
 * Fix missing reauth redirect in UI for edit user pages
 
 
