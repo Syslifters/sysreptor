@@ -105,9 +105,13 @@ async def elasticapm_capture_websocket_transaction(scope, event=None):
         elasticapm.set_transaction_outcome(constants.OUTCOME.SUCCESS, override=False)
     except (StopConsumer, ClientDisconnected):
         elasticapm.set_transaction_outcome(constants.OUTCOME.SUCCESS, override=False)
-    except Exception:
-        client.capture_exception()
-        elasticapm.set_transaction_outcome(constants.OUTCOME.FAILURE)
+        raise
+    except Exception as ex:
+        if isinstance(ex, RuntimeError) and ex.args and ex.args[0] == "Unexpected ASGI message 'websocket.send', after sending 'websocket.close' or response already completed.":
+            elasticapm.set_transaction_outcome(constants.OUTCOME.SUCCESS, override=False)
+        else:
+            client.capture_exception()
+            elasticapm.set_transaction_outcome(constants.OUTCOME.FAILURE)
         raise
     finally:
         client.end_transaction()
