@@ -48,6 +48,7 @@ dependencies = [
   "psutil (~=7.0)",
   "markdownify (~=1.2)",
   "langchain[anthropic,openai,deepseek,ollama,mistralai] (~=1.0)",
+  "deepagents (~=0.4)",
 
   "django-debug-toolbar (~=6.0)",
   "elastic-apm (~=6.20)",

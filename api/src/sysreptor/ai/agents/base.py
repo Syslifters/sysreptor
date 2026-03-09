@@ -7,18 +7,25 @@ from typing import Any
 
 import yaml
 from asgiref.sync import sync_to_async
+from deepagents.backends import StateBackend
+from deepagents.graph import BASE_AGENT_PROMPT
+from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
+from deepagents.middleware.subagents import GENERAL_PURPOSE_SUBAGENT, SubAgentMiddleware
+from deepagents.middleware.summarization import create_summarization_middleware
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from langchain import chat_models
-from langchain.agents.middleware import AgentState, before_agent
+from langchain.agents import create_agent
+from langchain.agents.middleware import TodoListMiddleware
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
-from langgraph.runtime import Runtime
+from langgraph.config import get_config
 from langgraph.types import Command
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
+from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
 from sysreptor.ai.models import ChatThread, LangchainCheckpoint
 from sysreptor.utils.history import history_context
 from sysreptor.utils.utils import copy_keys
@@ -89,55 +96,52 @@ def agent_tool(metadata=None, **kwargs):
     return decorator
 
 
-@before_agent
-async def fix_broken_tool_calls(state: AgentState, runtime: Runtime):
-    """
-    Fix broken tool calls in the last AIMessage.
-    This is a workaround for issues where tool calls are aborted and not properly saved to state.
-    """
-    has_fixes = False
-
-    messages_fixed = []
-    i = 0
-    while i < len(state['messages']):
-        m = state['messages'][i]
-        if isinstance(m, AIMessage):
-            messages_fixed.append(m)
-            # Ensure that all tool calls have a matching ToolMessage directly after the AIMessage
-            # If not, remove the tool call
-            tool_calls = set(tc['id'] for tc in m.tool_calls)
-            tool_messages = {}
-            for tm in state['messages'][i + 1:]:
-                if not isinstance(tm, ToolMessage):
-                    break
-                tool_messages[tm.tool_call_id] = tm
-                i += 1
-
-            # Missing ToolMessage: remove tool call from AIMessage
-            for tc_id in tool_calls.difference(tool_messages.keys()):
-                m.tool_calls = [tc for tc in m.tool_calls if tc['id'] != tc_id]
-                has_fixes = True
-            # Missing ToolCall in AIMessage: remove ToolMessage
-            for tc_id in tool_messages:
-                if tc_id not in tool_calls:
-                    # Unmatched ToolMessage: remove
-                    has_fixes = True
-                else:
-                    messages_fixed.append(tool_messages[tc_id])
-        elif isinstance(m, ToolMessage):
-            # Unexpected ToolMessage: remove
-            has_fixes = True
-        else:
-            messages_fixed.append(m)
-        i += 1
-
-    if has_fixes:
-        state['messages'].clear()
-        state['messages'].extend(messages_fixed)
+def is_in_subagent() -> bool:
+    try:
+        config = get_config()
+        ns = (config or {}).get('configurable') or {}
+        checkpoint_ns = ns.get('checkpoint_ns')
+        return bool(checkpoint_ns)
+    except RuntimeError:
+        return False
 
 
 def init_chat_model():
-    return chat_models.init_chat_model()
+    if not settings.AI_AGENT_MODEL:
+        raise ValueError('AI_AGENT_MODEL must be set to use the AI agent')
+    return chat_models.init_chat_model(settings.AI_AGENT_MODEL)
+
+
+def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **kwargs):
+    """
+    Create a SysReptor agent. 
+    Based on langchain deepagents library but without filesystem tools.
+    """
+    model = init_chat_model()
+    backend = StateBackend
+    middleware = [
+        TodoListMiddleware(),
+        PatchToolCallsMiddleware(),
+        create_summarization_middleware(model=model, backend=backend),
+    ] + middleware
+    subagents = [
+        GENERAL_PURPOSE_SUBAGENT | {
+            'model': model,
+            'tools': tools,
+            'middleware': middleware,
+        },
+    ]
+    agent = create_agent(
+        model=model,
+        system_prompt=BASE_AGENT_PROMPT + '\n\n' + system_prompt,
+        tools=tools,
+        middleware=middleware + [
+            SubAgentMiddleware(backend=backend, subagents=subagents),
+        ],
+        checkpointer=DjangoModelCheckpointer(),
+        **kwargs,
+    )
+    return agent
 
 
 def format_message(m: AnyMessage) -> dict|None:
@@ -185,7 +189,6 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                 stream_mode=["messages", "values", "updates"],
                 config={
                     'configurable': {
-                        'model': settings.AI_AGENT_MODEL,
                         'thread_id': thread.id,
                     },
                 },

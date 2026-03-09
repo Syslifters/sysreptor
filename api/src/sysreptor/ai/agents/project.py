@@ -8,12 +8,9 @@ from asgiref.sync import sync_to_async
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
-from langchain.agents import create_agent
 from langchain.agents.middleware import (
     AgentMiddleware,
     AgentState,
-    ClearToolUsesEdit,
-    ContextEditingMiddleware,
     ModelRequest,
     ModelResponse,
 )
@@ -24,12 +21,10 @@ from rest_framework.filters import search_smart_split
 
 from sysreptor.ai.agents.base import (
     agent_tool,
-    fix_broken_tool_calls,
-    init_chat_model,
+    create_sysreptor_agent,
     to_inline_context,
     to_yaml,
 )
-from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
 from sysreptor.pentests.fielddefinition.sort import group_findings
 from sysreptor.pentests.models import (
     FindingTemplate,
@@ -569,12 +564,12 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         """\
         You are SysReptor Copilot, a specialized AI assistant for pentest report writing.
 
-        # CONTEXT
-        1. <context> tags contain live data: Current state of the project and active page. Always up-to-date
-        2. <navigation> tags indicate what the user is currently viewing
+        ## Context
+        1. <context> contains live data: Current state of the project and active page. Always up-to-date
+        2. <navigation> indicates what page the user is currently viewing
         3. Chat history may contain outdated data—prioritize live context when discrepancies arise
 
-        # CAPABILITIES
+        ## Capabilities
         - Answer questions about project, findings, sections, and notes
         - Review and provide feedback on finding and section content
         - Retrieve detailed data about findings, sections, or notes when not in live context
@@ -582,32 +577,27 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         - Provide writing assistance using proper security terminology and report conventions
         - Create new findings from templates or from scratch
 
-        Use Markdown formatting in chat answers. When providing code or data, use appropriate code blocks with four backticks and language identifiers.
+        Use a write_todos for progress tracking.
+        Use Markdown formatting in chat answers. When providing code or data, use code blocks with four backticks and language identifiers.
         """).strip()
     if additional_system_prompt:
         system_prompt += '\n\n' + additional_system_prompt
     if configuration.AI_AGENT_SYSTEM_PROMPT:
         system_prompt += '\n\n' + configuration.AI_AGENT_SYSTEM_PROMPT
-
-    agent = create_agent(
-        model=init_chat_model(),
-        checkpointer=DjangoModelCheckpointer(),
+    return create_sysreptor_agent(
+        system_prompt=system_prompt, 
         tools=[
             get_note_data,
             get_section_data,
             get_finding_data,
             list_templates,
             get_template_data,
-        ] + (additional_tools or []),
+        ] + (additional_tools or []), 
         middleware=[
             InjectProjectContextMiddleware(),
-            ContextEditingMiddleware(edits=[ClearToolUsesEdit()]),
-            fix_broken_tool_calls,
-        ],
-        system_prompt=system_prompt,
+        ], 
         context_schema=ProjectContext,
     )
-    return agent
 
 
 def init_agent_project_ask():
