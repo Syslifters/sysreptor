@@ -1,4 +1,5 @@
 import contextlib
+import gc
 import io
 import itertools
 import json
@@ -8,6 +9,7 @@ import zipfile
 from pathlib import Path
 
 import boto3
+from django.utils import timezone
 import zipstream
 from django.apps import apps
 from django.conf import settings
@@ -113,13 +115,16 @@ def get_storage_dirs():
     return {k: storages[k] for k in storages.backends.keys() if k not in ['staticfiles', 'default']}
 
 
-def backup_files(z, path, storage):
+def backup_files(z, path, storage, backup_stats: dict=None):
     def file_chunks(f):
         try:
             with storage.open(f) as fp:
                 yield from fp.chunks()
+            if backup_stats is not None:
+                backup_stats['file_successes'] = backup_stats.get('file_successes', 0) + 1
         except (FileNotFoundError, OSError) as ex:
-            logging.warning(f'Could not backup file {f}: {ex}')
+            if backup_stats is not None:
+                backup_stats['file_errors'] = backup_stats.get('file_errors', 0) + 1
 
     for f in walk_storage_dir(storage):
         z.add(arcname=str(Path(path) / f), data=file_chunks(f))
@@ -127,7 +132,7 @@ def backup_files(z, path, storage):
 
 def create_backup(user=None):
     logging.info('Backup requested')
-    BackupLog.objects.create(type=BackupLogType.BACKUP_STARTED, user=user)
+    backup_log_started = BackupLog.objects.create(type=BackupLogType.BACKUP_STARTED, user=user)
 
     z = zipstream.ZipStream(compress_type=zipstream.ZIP_DEFLATED)
     z.add(arcname='VERSION', data=settings.VERSION.encode())
@@ -135,9 +140,26 @@ def create_backup(user=None):
     z.add(arcname='configurations.json', data=json.dumps(create_configurations_backup()).encode())
     z.add(arcname='backup.jsonl', data=create_database_dump())
 
+    backup_stats = {}
     for d, storage in get_storage_dirs().items():
-        backup_files(z, d, storage)
+        backup_files(z, d, storage, backup_stats=backup_stats)
 
+    def get_backup_stats():
+        yield b''
+        finished = timezone.now()
+        yield json.dumps({
+            'started': backup_log_started.created.isoformat(),
+            'finished': finished.isoformat(),
+        }).encode()
+ 
+        if backup_stats.get('file_errors', 0) > 0:
+            logging.warning(f'Could not backup {backup_stats.get("file_errors", 0)} / {backup_stats.get("file_errors", 0) + backup_stats.get("file_successes", 0)} files.')
+        
+        BackupLog.objects.create(type=BackupLogType.BACKUP_FINISHED, user=user, created=finished)
+        logging.info('Backup finished')
+        gc.collect()
+    z.add(arcname='stats.json', data=get_backup_stats())
+    
     return z
 
 

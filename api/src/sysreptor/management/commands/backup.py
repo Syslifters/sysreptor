@@ -37,5 +37,4 @@ class Command(BaseCommand):
             for c in to_chunks(z):
                 file.write(c)
 
-        BackupLog.objects.create(type=BackupLogType.BACKUP_FINISHED, user=None)
-        logging.info('Backup finished')
+        

@@ -82,11 +82,6 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         serializer.is_valid(raise_exception=True)
         data = serializer.data
 
-        def finish_backup():
-            BackupLog.objects.create(type=BackupLogType.BACKUP_FINISHED, user=request.user)
-            logging.info('Backup finished')
-            gc.collect()
-
         if data.get('check'):
             return Response(status=200)
 
@@ -100,14 +95,9 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
 
         if s3_params := data.get('s3_params'):
             backup_utils.upload_to_s3_bucket(z, s3_params)
-            finish_backup()
             return Response(status=200)
         else:
-            def backup_chunks():
-                yield from backup_utils.to_chunks(z, allow_small_first_chunk=True)
-                finish_backup()
-
-            response = StreamingHttpResponseAsync(backup_chunks())
+            response = StreamingHttpResponseAsync(backup_utils.to_chunks(z, allow_small_first_chunk=True))
             filename = f'backup-{timezone.now().isoformat()}.zip'
             if aes_key:
                 filename += '.crypt'
