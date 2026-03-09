@@ -46,7 +46,7 @@ class LanguageToolSerializerBase(serializers.Serializer):
             raise exceptions.PermissionDenied('Spell checker not configured')
 
         try:
-            async with httpx.AsyncClient(timeout=10) as client:
+            async with httpx.AsyncClient(timeout=11) as client:
                 res = await client.post(
                     url=urljoin(settings.SPELLCHECK_URL, path),
                     data=(await self.languagetool_auth()) | data,
@@ -54,8 +54,8 @@ class LanguageToolSerializerBase(serializers.Serializer):
                 if res.status_code != 200:
                     raise exceptions.APIException(detail='Spellcheck error', code='spellcheck')
                 return res.json()
-        except httpx.ReadTimeout as ex:
-            logging.warning('LanguageTool timeout. Spellcheck request took too long to complete.')
+        except (httpx.ConnectTimeout, httpx.ReadTimeout, httpx.ReadError, httpx.RemoteProtocolError) as ex:
+            log.warning('LanguageTool timeout. Spellcheck request took too long to complete.')
             raise exceptions.APIException(detail='Spellcheck timeout', code='spellcheck') from ex
 
 
