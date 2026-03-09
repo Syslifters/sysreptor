@@ -534,6 +534,7 @@ function deleteSelected() {
   }
 }
 useHotkey('Delete', deleteSelected);
+useHotkey('Backspace', deleteSelected);
 
 
 function enterCropMode() {
