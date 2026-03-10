@@ -379,7 +379,7 @@ class TestProjectAgentTools:
             assert str(info) in res
 
     @pytest.mark.parametrize(('search_terms', 'expected_templates'), [
-        (None, ['t1', 't2', 't3']),  # List all templates (no search terms)
+        ('', ['t1', 't2', 't3']),  # List all templates (no search terms)
         ('xss', ['t1']),  # Search by tag
         ('SQL Injection', ['t2']),  # Search by title
         ('web', ['t1', 't3']),  # Search with multiple matches
@@ -416,7 +416,6 @@ class TestProjectAgentTools:
         ('field_cvss', 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H'),
         ('field_cwe', 'CWE-79'),
         # Edge cases
-        ('field_string', None),
         ('field_string', ''),
         # List field
         ('field_list', ['item1', 'item2', 'item3']),
@@ -501,7 +500,7 @@ class TestProjectAgentTools:
 
     def test_tool_create_finding_empty(self):
         initial_count = self.project.findings.count()
-        res = self.run_tool(create_finding, data=None, template_id=None, template_language=None)
+        res = self.run_tool(create_finding)
 
         assert 'Successfully created finding' in res
         assert self.project.findings.count() == initial_count + 1
@@ -518,7 +517,7 @@ class TestProjectAgentTools:
             'cvss': 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
             'description': 'Custom description',
         }
-        res = self.run_tool(create_finding, data=finding_data, template_id=None, template_language=None)
+        res = self.run_tool(create_finding, data=finding_data)
 
         assert 'Successfully created finding' in res
         assert self.project.findings.count() == initial_count + 1
@@ -536,7 +535,7 @@ class TestProjectAgentTools:
         })
         initial_count = self.project.findings.count()
 
-        res = self.run_tool(create_finding, data=None, template_id=str(template.id), template_language=None)
+        res = self.run_tool(create_finding, data={}, template_id=str(template.id))
 
         assert 'Successfully created finding' in res
         assert self.project.findings.count() == initial_count + 1
@@ -559,7 +558,7 @@ class TestProjectAgentTools:
             'description': 'Overridden Description',
         }
 
-        res = self.run_tool(create_finding, data=override_data, template_id=str(template.id), template_language=None)
+        res = self.run_tool(create_finding, data=override_data, template_id=str(template.id))
 
         assert 'Successfully created finding' in res
         assert self.project.findings.count() == initial_count + 1

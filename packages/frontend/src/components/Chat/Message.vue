@@ -3,7 +3,7 @@
     <chat-reasoning-panel
       v-if="props.msg.reasoning"
       title="Reasoning..."
-      :is-streaming="props.isStreaming"
+      :is-streaming="props.isStreaming && !props.msg.text"
     >
       <template #default>
         <div class="reasoning-content message-text">
