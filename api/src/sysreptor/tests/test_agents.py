@@ -20,8 +20,10 @@ from sysreptor.ai.agents.project import (
     create_finding,
     get_finding_data,
     get_note_data,
+    get_project_info,
     get_section_data,
     get_template_data,
+    list_notes,
     list_templates,
     update_field_value,
     update_markdown_field,
@@ -307,6 +309,30 @@ class TestProjectAgentTools:
             },
         )
         return res.update['messages'][0].content
+
+    def test_tool_get_project_info(self):
+        contains_infos = [
+            f'name: {self.project.name}',
+            f'language: {self.project.get_language_display()}',
+            '## Sections',
+            *[s.section_id for s in self.project.sections.all()],
+            *[s.title for s in self.project.sections.all()],
+            '## Findings',
+            *[f.finding_id for f in self.project.findings.all()],
+            *[f.title for f in self.project.findings.all()],
+        ]
+        res = self.run_tool(get_project_info)
+        for info in contains_infos:
+            assert str(info) in res
+
+    def test_tool_list_notes(self):
+        contains_infos = [
+            *[n.title for n in self.project.notes.all()],
+            *[n.note_id for n in self.project.notes.all()],
+        ]
+        res = self.run_tool(list_notes)
+        for info in contains_infos:
+            assert str(info) in res
 
     def test_tool_get_section_data(self):
         section = self.project.sections.get(section_id='other')

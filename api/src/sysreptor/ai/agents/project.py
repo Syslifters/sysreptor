@@ -1,7 +1,6 @@
 import dataclasses
 import itertools
 import textwrap
-from collections.abc import Callable
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
@@ -11,12 +10,9 @@ from django.db.models import Prefetch
 from langchain.agents.middleware import (
     AgentMiddleware,
     AgentState,
-    ModelRequest,
-    ModelResponse,
 )
 from langchain.messages import HumanMessage
 from langchain.tools import ToolRuntime
-from langgraph.runtime import Runtime
 from rest_framework.filters import search_smart_split
 
 from sysreptor.ai.agents.base import (
@@ -133,12 +129,7 @@ def format_project_info(project: PentestProject) -> str:
         }) for f in findings_sorted],
         '',
         '## Notes',
-        *[to_inline_context({
-            'id': n.note_id,
-            'parent_id': n.parent.note_id if n.parent else None,
-            'title': n.title,
-            **format_assignee(n.assignee),
-        }) for n in project.notes.all()],
+        f'Use {list_notes.name} tool to list all notes.',
     ]) + '</project>'
 
 
@@ -216,6 +207,16 @@ def parse_id(value: str, prefix: str) -> str:
 
 
 @agent_tool(parse_docstring=True)
+def get_project_info(runtime: ToolRuntime[ProjectContext]) -> str:
+    """
+    Get an overview of the current project. 
+    Contains a list of all sections, findings and project metadata.
+    """
+    project = get_project(runtime.context.project_id)
+    return format_project_info(project=project)
+
+
+@agent_tool(parse_docstring=True)
 def get_section_data(runtime: ToolRuntime[ProjectContext], section_id: str) -> tuple[str, dict]:
     """
     Get data for a specific section by its section_id.
@@ -261,6 +262,32 @@ def get_note_data(runtime: ToolRuntime[ProjectContext], note_id: str) -> tuple[s
         'id': str(note.note_id),
         'title': note.title,
     }
+
+
+@agent_tool(parse_docstring=True)
+def list_notes(runtime: ToolRuntime[ProjectContext]) -> str:
+    """
+    Get all notes in the current project. Notes are organized in a tree structure with parent-child relationships.
+    """
+
+    project = get_project(runtime.context.project_id)
+    notes_tree = project.notes.to_tree(project.notes.all())
+    
+    def format_note_tree(tree, level=0):
+        out = []
+        for e in tree:
+            prefix = '    ' * (level - 1) + '- '
+            n = to_inline_context({
+                'id': e['note'].note_id,
+                # 'parent_id': e['note'].parent.note_id if e['note'].parent else None,
+                'title': e['note'].title,
+                **format_assignee(e['note'].assignee),
+            })
+            out.append(prefix + n)
+            out.extend(format_note_tree(e['children'], level + 1))
+        return out
+
+    return '\n'.join(format_note_tree(notes_tree))
 
 
 @agent_tool(parse_docstring=True)
@@ -587,9 +614,11 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
     return create_sysreptor_agent(
         system_prompt=system_prompt, 
         tools=[
+            get_project_info,
             get_note_data,
             get_section_data,
             get_finding_data,
+            list_notes,
             list_templates,
             get_template_data,
         ] + (additional_tools or []), 
