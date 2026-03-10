@@ -29,22 +29,12 @@
       v-mutate.sub.child.char="() => syncScroll()"
       @scroll="onScrollMessages()"
     >
-      <template v-for="msg in agent.messageHistory.value" :key="msg.id">
-        <chat-ai-message
-          v-if="msg.role === MessageRole.ASSISTANT"
-          :msg="msg"
-        />
-        <chat-tool-call
-          v-else-if="msg.role === MessageRole.TOOL && msg.tool_call"
-          :value="msg.tool_call"
-          :project="props.project"
-        />
-        <s-card v-else-if="msg.role === MessageRole.USER" variant="tonal">
-          <v-card-text class="message-text">
-            {{ msg.text }}
-          </v-card-text>
-        </s-card>
-      </template>
+      <chat-message
+        v-for="msg in agent.messageHistory.value" :key="msg.id"
+        :msg="msg"
+        :project="props.project"
+        :is-streaming="msg.id === currentStreamingMessageId"
+      />
     </div>
     <div class="pa-2">
       <s-card density="compact" variant="tonal">
@@ -158,6 +148,13 @@ const projectStore = useProjectStore();
 const reportingCollab = projectStore.useReportingCollab({ project: props.project, projectType: props.projectType });
 
 const agent = projectStore.useReportingAgent({ project: props.project });
+
+const currentStreamingMessageId = computed(() => {
+  if (!agent.inProgress.value) {
+    return null;
+  }
+  return agent.messageHistory.value.at(-1)?.id ?? null;
+});
 const messagesContainerRef = useTemplateRef('messagesContainerRef');
 const isScrolledToBottom = ref(true);
 

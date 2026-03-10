@@ -37,7 +37,9 @@ export type ToolCall = {
   args: Record<string, any>;
   status: ToolCallStatus;
   timestamp: string;
+  content?: string;
   output?: any|null;
+  subagentMessages?: ChatHistoryEntry[];
 }
 
 export enum StreamEventType {
@@ -56,17 +58,48 @@ export type StreamEvent = {
 } | {
   type: StreamEventType.TEXT;
   content: AssistantMessage;
+  subagent?: string|null;
 } | {
   type: StreamEventType.TOOL_CALL;
   content: ToolCall;
+  subagent?: string|null;
 } | {
   type: StreamEventType.TOOL_CALL_STATUS;
   content: Partial<ToolCall>;
+  subagent?: string|null;
 } | {
   type: StreamEventType.ERROR;
   content: string;
 };
 
+export function findToolCall(
+  messages: ChatHistoryEntry[],
+  toolCallId?: string|null,
+): ToolCall|null {
+  if (!toolCallId) {
+    return null;
+  }
+  for (const m of messages) {
+    if (m.role === MessageRole.TOOL && m.tool_call?.id === toolCallId) {
+      return m.tool_call;
+    }
+    if (m.role === MessageRole.TOOL && m.tool_call?.name === 'task' && m.tool_call.subagentMessages) {
+      const toolCall = findToolCall(m.tool_call.subagentMessages, toolCallId);
+      if (toolCall) { 
+        return toolCall;
+      }
+    }
+  }
+  return null;
+}
+
+function getSubagentMessageList(messages: ChatHistoryEntry[], subagent?: string | null): ChatHistoryEntry[] {
+  if (!subagent) { 
+    return messages;
+  }
+  const subagentToolCall = findToolCall(messages, subagent);
+  return subagentToolCall?.subagentMessages ?? [];
+}
 
 /**
  * Parse Server-Sent Events (SSE) from a ReadableStream
@@ -224,26 +257,32 @@ export async function submitMessageStreamed(options: {
       if (data.type === StreamEventType.METADATA) {
         Object.assign(metadata, data.content);
       } else if (data.type === StreamEventType.TEXT) {
-        // Reconstruct message by concatenating message chunks
-        const currentMessage = messages.find(m => m.id === data.content.id);
+        const messageList = getSubagentMessageList(options.messageHistory ?? [], data.subagent);
+        const currentMessage = messageList.find(m => m.id === data.content.id);
         if (currentMessage) {
           currentMessage.text = (currentMessage.text || '') + (data.content.text || '');
           currentMessage.reasoning = (currentMessage.reasoning || '') + (data.content.reasoning || '');
         } else {
           const newMessage = reactive(data.content);
-          messages.push(newMessage);
-          options.messageHistory?.push(newMessage);
+          messageList.push(newMessage);
+          if (!data.subagent) { 
+            messages.push(newMessage);
+          }
         }
       } else if (data.type === StreamEventType.TOOL_CALL) {
-        options.messageHistory?.push(reactive({
+        const messageList = getSubagentMessageList(options.messageHistory ?? [], data.subagent);
+        messageList.push(reactive({
           id: data.content.id,
           role: MessageRole.TOOL,
-          tool_call: data.content,
+          tool_call: {
+            ...data.content,
+            subagentMessages: [],
+          },
         }));
       } else if (data.type === StreamEventType.TOOL_CALL_STATUS) {
-        const toolCallMsg = options.messageHistory?.find(tc => tc.id === data.content.id);
-        if (toolCallMsg?.tool_call) {
-          Object.assign(toolCallMsg.tool_call!, data.content);
+        const toolCall = findToolCall(options.messageHistory ?? [], data.content.id);
+        if (toolCall) {
+          Object.assign(toolCall, data.content);
         }
       } else if (data.type === 'error') {
         throw new Error(data.content);

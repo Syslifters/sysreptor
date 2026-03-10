@@ -2,6 +2,8 @@
 
 ## Upcoming
 * Markdown editor: Add image editor (https://docs.sysreptor.com/reporting/image-editor/)
+* AI agent: rework prompts and tool descriptions
+* AI agent: add write_todos tool and subagents
 * Fix missing reauth redirect in UI for edit user pages
 
 
