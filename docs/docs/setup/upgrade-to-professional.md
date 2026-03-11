@@ -17,7 +17,7 @@ Here's how:
 3. `cd` to `deploy` and run `docker compose up -d`
 4. Enjoy
 
-
+<!--
 <div class="grid cards" style="margin-top: 2em;" markdown>
 
 -   :material-calendar:{ .lg .middle } __Book a demo__
@@ -30,3 +30,4 @@ Here's how:
     [:octicons-arrow-right-24: Choose your time slot](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ target="_blank"}
 
 </div>
+-->
