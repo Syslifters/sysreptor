@@ -2,7 +2,7 @@ name: sysreptor-dev
 
 services:
   db:
-    image: 'postgres:14'
+    image: 'postgres:${SYSREPTOR_POSTGRES_VERSION:-14}'
     environment:
       POSTGRES_USER: reportcreator
       POSTGRES_PASSWORD: reportcreator

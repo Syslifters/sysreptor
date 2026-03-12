@@ -132,6 +132,23 @@ else
     fi
 fi
 
+# Set SYSREPTOR_POSTGRES_VERSION if not already set
+if [ -f .env ]
+then
+    # Set SYSREPTOR_POSTGRES_VERSION=18 if not already set
+    if ! grep -q "^SYSREPTOR_POSTGRES_VERSION=" .env
+    then
+        echo "Setting PostgreSQL version..."
+        # Check if commented line exists and replace it, otherwise append
+        if grep -q "^[[:space:]]*#.*SYSREPTOR_POSTGRES_VERSION" .env
+        then
+            sed -i 's|^[[:space:]]*#.*SYSREPTOR_POSTGRES_VERSION.*|SYSREPTOR_POSTGRES_VERSION=18|' .env
+        else
+            echo "SYSREPTOR_POSTGRES_VERSION=18" >> .env
+        fi
+    fi
+fi
+
 # Webserver setup (Caddy)
 if
     test -f ./caddy/setup.sh
