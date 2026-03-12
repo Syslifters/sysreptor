@@ -608,7 +608,7 @@
   {
     "id": 120,
     "name": "Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')",
-    "description": "The product copies an input buffer to an output buffer without verifying that the size of the input buffer is less than the size of the output buffer, leading to a buffer overflow.",
+    "description": "The product copies an input buffer to an output buffer without verifying that the size of the input buffer is less than the size of the output buffer.",
     "parent": 787
   },
   {
@@ -1310,7 +1310,7 @@
   {
     "id": 256,
     "name": "Plaintext Storage of a Password",
-    "description": "Storing a password in plaintext may result in a system compromise.",
+    "description": "The product stores a password in plaintext within resources such as memory or files.",
     "parent": 522
   },
   {
@@ -1598,7 +1598,7 @@
   {
     "id": 308,
     "name": "Use of Single-factor Authentication",
-    "description": "The use of single-factor authentication can lead to unnecessary risk of compromise when compared with the benefits of a dual-factor authentication scheme.",
+    "description": "The product uses an authentication algorithm that uses a single factor (e.g., a password) in a security context that should require more than one factor.",
     "parent": 1390
   },
   {
@@ -1689,7 +1689,7 @@
     "id": 325,
     "name": "Missing Cryptographic Step",
     "description": "The product does not implement a required step in a cryptographic algorithm, resulting in weaker encryption than advertised by the algorithm.",
-    "parent": 573
+    "parent": 1240
   },
   {
     "id": 326,
@@ -1899,7 +1899,7 @@
     "id": 362,
     "name": "Concurrent Execution using Shared Resource with Improper Synchronization ('Race Condition')",
     "description": "The product contains a concurrent code sequence that requires temporary, exclusive access to a shared resource, but a timing window exists in which the shared resource can be modified by another code sequence operating concurrently.",
-    "parent": 691
+    "parent": 662
   },
   {
     "id": 363,
@@ -1922,7 +1922,7 @@
   {
     "id": 367,
     "name": "Time-of-check Time-of-use (TOCTOU) Race Condition",
-    "description": "The product checks the state of a resource before using that resource, but the resource's state can change between the check and the use in a way that invalidates the results of the check. This can cause the product to perform invalid actions when the resource is in an unexpected state.",
+    "description": "The product checks the state of a resource before using that resource, but the resource's state can change between the check and the use in a way that invalidates the results of the check.",
     "parent": 362
   },
   {
@@ -2510,7 +2510,7 @@
   {
     "id": 489,
     "name": "Active Debug Code",
-    "description": "The product is deployed to unauthorized actors with debugging code still enabled or active, which can create unintended entry points or expose sensitive information.",
+    "description": "The product is released with debugging code still enabled or active.",
     "parent": 710
   },
   {
@@ -2648,7 +2648,7 @@
   {
     "id": 521,
     "name": "Weak Password Requirements",
-    "description": "The product does not require that users should have strong passwords, which makes it easier for attackers to compromise user accounts.",
+    "description": "The product does not require that users should have strong passwords.",
     "parent": 1391
   },
   {
@@ -2726,7 +2726,7 @@
   {
     "id": 536,
     "name": "Servlet Runtime Error Message Containing Sensitive Information",
-    "description": "A servlet error message indicates that there exists an unhandled exception in your web application code and may provide useful information to an attacker.",
+    "description": "A servlet error message indicates that there exists an unhandled exception in the web application code and may provide useful information to an attacker.",
     "parent": 211
   },
   {
@@ -3146,7 +3146,7 @@
   {
     "id": 614,
     "name": "Sensitive Cookie in HTTPS Session Without 'Secure' Attribute",
-    "description": "The Secure attribute for sensitive cookies in HTTPS sessions is not set, which could cause the user agent to send those cookies in plaintext over an HTTP session.",
+    "description": "The Secure attribute for sensitive cookies in HTTPS sessions is not set.",
     "parent": 319
   },
   {
@@ -3165,7 +3165,7 @@
     "id": 617,
     "name": "Reachable Assertion",
     "description": "The product contains an assert() or similar statement that can be triggered by an attacker, which leads to an application exit or other behavior that is more severe than necessary.",
-    "parent": 670
+    "parent": 705
   },
   {
     "id": 618,
@@ -3368,7 +3368,7 @@
   {
     "id": 662,
     "name": "Improper Synchronization",
-    "description": "The product utilizes multiple threads or processes to allow temporary access to a shared resource that can only be exclusive to one process at a time, but it does not properly synchronize these actions, which might cause simultaneous accesses of this resource by multiple threads or processes.",
+    "description": "The product utilizes multiple threads, processes, components, or systems to allow temporary access to a shared resource that can only be exclusive to one process at a time, but it does not properly synchronize these actions, which might cause simultaneous accesses of this resource by multiple threads or processes.",
     "parent": 664
   },
   {
@@ -3554,13 +3554,13 @@
   {
     "id": 696,
     "name": "Incorrect Behavior Order",
-    "description": "The product performs multiple related behaviors, but the behaviors are performed in the wrong order in ways which may produce resultant weaknesses.",
+    "description": "The product performs multiple related behaviors, but the behaviors are performed in the wrong order in ways that may produce resultant weaknesses.",
     "parent": 691
   },
   {
     "id": 697,
     "name": "Incorrect Comparison",
-    "description": "The product compares two entities in a security-relevant context, but the comparison is incorrect, which may lead to resultant weaknesses.",
+    "description": "The product compares two entities in a security-relevant context, but the comparison is incorrect.",
     "parent": null
   },
   {
@@ -3722,7 +3722,7 @@
   {
     "id": 770,
     "name": "Allocation of Resources Without Limits or Throttling",
-    "description": "The product allocates a reusable resource or group of resources on behalf of an actor without imposing any restrictions on the size or number of resources that can be allocated, in violation of the intended security policy for that actor.",
+    "description": "The product allocates a reusable resource or group of resources on behalf of an actor without imposing any intended restrictions on the size or number of resources that can be allocated.",
     "parent": 400
   },
   {
@@ -4207,8 +4207,8 @@
   },
   {
     "id": 942,
-    "name": "Permissive Cross-domain Policy with Untrusted Domains",
-    "description": "The product uses a cross-domain policy file that includes domains that should not be trusted.",
+    "name": "Permissive Cross-domain Security Policy with Untrusted Domains",
+    "description": "The product uses a web-client protection\n         mechanism such as a Content Security Policy (CSP) or\n         cross-domain policy file, but the policy includes untrusted\n         domains with which the web client is allowed to\n         communicate.",
     "parent": 863
   },
   {
@@ -4238,7 +4238,7 @@
   {
     "id": 1022,
     "name": "Use of Web Link to Untrusted Target with window.opener Access",
-    "description": "The web application produces links to untrusted external sites outside of its sphere of control, but it does not properly prevent the external site from modifying  security-critical properties of the window.opener object, such as the location property.",
+    "description": "The web application produces links to untrusted external sites outside of its sphere of control, but it does not properly prevent the external site from modifying security-critical properties of the window.opener object, such as the location property.",
     "parent": 266
   },
   {
@@ -4723,7 +4723,7 @@
   },
   {
     "id": 1116,
-    "name": "Inaccurate Comments",
+    "name": "Inaccurate Source Code Comments",
     "description": "The source code contains comments that do not accurately\n\t\t\t\t\tdescribe or explain aspects of the portion of the code with which the comment is\n\t\t\t\t\tassociated.",
     "parent": 1078
   },
@@ -4766,7 +4766,7 @@
   {
     "id": 1123,
     "name": "Excessive Use of Self-Modifying Code",
-    "description": "The product uses too much self-modifying\n\t\t\t\t\tcode.",
+    "description": "The product uses too much self-modifying code.",
     "parent": 1120
   },
   {
@@ -4826,7 +4826,7 @@
   {
     "id": 1188,
     "name": "Initialization of a Resource with an Insecure Default",
-    "description": "The product initializes or sets a resource with a default that is intended to be changed by the administrator, but the default is not secure.",
+    "description": "The product initializes or sets a resource with a default that is intended to be changed by the product's installer, administrator, or maintainer, but the default is not secure.",
     "parent": 1419
   },
   {
@@ -5036,7 +5036,7 @@
   {
     "id": 1253,
     "name": "Incorrect Selection of Fuse Values",
-    "description": "The logic level used to set a system to a secure state relies on a fuse being unblown. An attacker can set the system to an insecure state merely by blowing the fuse.",
+    "description": "The logic level used to set a system to a secure state relies on a fuse being unblown.",
     "parent": 693
   },
   {
@@ -5108,8 +5108,8 @@
   {
     "id": 1265,
     "name": "Unintended Reentrant Invocation of Non-reentrant Code Via Nested Calls",
-    "description": "During execution of non-reentrant code, the product performs a call that unintentionally produces a nested invocation of the non-reentrant code.",
-    "parent": 691
+    "description": "The product invokes code that is believed to be reentrant, but the code performs a call that unintentionally produces a nested invocation of the non-reentrant code.",
+    "parent": 662
   },
   {
     "id": 1266,
@@ -5127,7 +5127,7 @@
     "id": 1268,
     "name": "Policy Privileges are not Assigned Consistently Between Control and Data Agents",
     "description": "The product's hardware-enforced access control for a particular resource improperly accounts for privilege discrepancies between control and write policies.\n\t\t\t   ",
-    "parent": 284
+    "parent": 266
   },
   {
     "id": 1269,
@@ -5396,7 +5396,7 @@
   {
     "id": 1318,
     "name": "Missing Support for Security Features in On-chip Fabrics or Buses",
-    "description": " On-chip fabrics or buses either do not support or are not configured to support privilege separation or other security features, such as access control. ",
+    "description": "On-chip fabrics or buses either do not support or are not configured to support privilege separation or other security features, such as access control.",
     "parent": 693
   },
   {
@@ -5656,5 +5656,11 @@
     "name": "Driving Intermediate Cryptographic State/Results to Hardware Module Outputs",
     "description": "The product uses a hardware module implementing a cryptographic\n\t\t  algorithm that writes sensitive information about the intermediate\n\t\t  state or results of its cryptographic operations via one of its output\n\t\t  wires (typically the output port containing the final result).",
     "parent": 200
+  },
+  {
+    "id": 1434,
+    "name": "Insecure Setting of Generative AI/ML Model Inference Parameters",
+    "description": "The product has a component that relies on a\n\t  generative AI/ML model configured with inference parameters that\n\t  produce an unacceptably high rate of erroneous or unexpected\n\t  outputs.",
+    "parent": 440
   }
 ]
