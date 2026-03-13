@@ -72,6 +72,18 @@
       icon="mdi-crop"
       :active="activeTool === ImageEditorTool.CROP"
     />
+    <template v-if="activeTool === ImageEditorTool.CROP">
+      <markdown-toolbar-button
+        @click="emit('applyCrop')"
+        title="Apply Crop"
+        icon="mdi-check"
+      />
+      <markdown-toolbar-button
+        @click="setTool(ImageEditorTool.SELECT)"
+        title="Cancel Crop"
+        icon="mdi-close"
+      />
+    </template>
     
     <span class="separator" />
     
@@ -122,6 +134,10 @@ import { ImageEditorTool } from './ImageEditor.vue';
 
 const activeTool = defineModel<ImageEditorTool>('activeTool', { required: true });
 const markerNumber = defineModel<number>('markerNumber', { required: true });
+
+const emit = defineEmits<{
+  applyCrop: [];
+}>();
 
 const localSettings = useLocalSettings();
 
