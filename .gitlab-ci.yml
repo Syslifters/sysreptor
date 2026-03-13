@@ -265,9 +265,6 @@ release-prod:
     - sed -i '/^\(# *\)\?SYSREPTOR_VERSION=/d' deploy/.env
     - sed -i "1s/^/SYSREPTOR_VERSION=${VERSION_NUMBER}\n/" deploy/.env
 
-    # Delete unnecessary files
-    - rm -rf docs/docs/s docs/README.md docs/reporting_software.yml docs/wip docs/hooks.py dev .vscode api/.vscode
-
     # Build container with copyleft source code
     - docker buildx build --provenance false --build-arg PROD_API_IMAGE=$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG --target=api-src --platform linux/amd64,linux/arm64 --push --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER-src .
     - docker buildx build --provenance false --build-arg PROD_LANGUAGETOOL_IMAGE=$CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG --target=languagetool-src --platform linux/amd64,linux/arm64 --push --tag $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER-src ./languagetool
@@ -275,34 +272,14 @@ release-prod:
     - docker buildx imagetools create $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE:latest
     - docker buildx imagetools create $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG --tag $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE-languagetool:latest
 
+    # Create archive with setup files
+    - tar -czf /tmp/setup.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/deploy/.gitignore sysreptor/deploy sysreptor/update.sh sysreptor/upgrade_postgres.sh sysreptor/LICENSE sysreptor/INSTALL.md
+
     # Publish to github
     - apk add git github-cli
-
-    # Create a GitHub release with pre-built JS files
-    # Copy pre-built frontend files
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-    - CONTAINER_ID=$(docker create $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG)
-    - docker cp $CONTAINER_ID:/app/api/src/static api/src/
-    - docker cp $CONTAINER_ID:/app/api/src/frontend/index.html api/src/frontend/index.html
-    - sed -i "/^src\/static$/d" api/.gitignore
-    # Copy pre-built rendering files
-    - docker cp $CONTAINER_ID:/app/packages/rendering/dist packages/rendering/dist
-    - docker rm -v $CONTAINER_ID
-    - sed -i "/^dist$/d" packages/rendering/.gitignore
-    - rm -rf api/.vscode
-    # Create archive with prebuilt sources
-    - mkdir -p /tmp/sysreptor
-    - cp -r * .gitignore .dockerignore /tmp/sysreptor
-    # Prebuilt sources are deprecated, required for legacy update scripts. Delete in 08/2025.
-    - tar -czf /tmp/source-prebuilt.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/demo_data --exclude=sysreptor/docs sysreptor 
-
-    # Create archive with setup files
-    - tar -czf /tmp/setup.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/deploy/.gitignore sysreptor/deploy sysreptor/update.sh sysreptor/LICENSE sysreptor/INSTALL.md
-
     - git remote add public https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor.git
     - git config --global user.email $GITHUB_USER_MAIL
     - git config --global user.name $GITHUB_USERNAME
-    # Upload to GitHub
     - "RELEASE_NOTES=$RELEASE_NOTES$(echo -n '\n\nClick here to go to the update instructions: https://docs.sysreptor.com/setup/updates/')"
     - gh release create "${VERSION_NUMBER}" /tmp/source-prebuilt.tar.gz /tmp/setup.tar.gz --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}" --notes="$RELEASE_NOTES"
     
