@@ -4,6 +4,7 @@
     <markdown-image-editor-toolbar
       v-model:active-tool="activeTool"
       v-model:marker-number="markerCounter"
+      @apply-crop="onApplyCrop"
     />
     
     <!-- Canvas -->
@@ -155,7 +156,7 @@ watch(activeTool, (tool, oldTool) =>  {
   if (tool === ImageEditorTool.CROP) {
     enterCropMode();
   } else if (oldTool === ImageEditorTool.CROP) {
-    exitCropMode();
+    exitCropMode({ apply: false });
   }
   
   canvas.value.selection = (tool === ImageEditorTool.SELECT);
@@ -659,26 +660,26 @@ function enterCropMode() {
   canvas.value.renderAll();
 }
 
-function exitCropMode() {
+function exitCropMode(options?: { apply?: boolean }) {
   if (!canvas.value || !cropRect.value || !canvas.value.contains(cropRect.value)) {
     return;
   }
 
   const cropRectObj = cropRect.value;
   const area = cropRectObj.getBoundingRect();
-  
-  // Check if actual cropping happened (dimensions changed)
-  const isCropped = area.left !== 0 || area.top !== 0 || 
-                    area.width !== canvas.value.width || area.height !== canvas.value.height;
-  if (!isCropped) {
-    return;
-  }
-  
+
   canvas.value.remove(cropBackground.value!);
   cropBackground.value = null;
   cropRect.value = null;
   canvas.value.remove(cropRectObj);
   canvas.value.renderAll();
+  
+  // Check if actual cropping happened (dimensions changed)
+  const isCropped = area.left !== 0 || area.top !== 0 || 
+                    area.width !== canvas.value.width || area.height !== canvas.value.height;
+  if (!isCropped || !options?.apply) {
+    return;
+  }
 
   function updatePosAfterCrop(obj?: FabricObject) {
     if (!obj) {
@@ -695,6 +696,11 @@ function exitCropMode() {
   updateSize();
   
   hasChanges.value = true;
+}
+
+function onApplyCrop() {
+  exitCropMode({ apply: true });
+  activeTool.value = ImageEditorTool.SELECT;
 }
 
 // Set colors
