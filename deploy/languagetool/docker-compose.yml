@@ -3,6 +3,7 @@
 services:
   languagetool:
     image: syslifters/sysreptor-languagetool:${SYSREPTOR_VERSION:-latest}
+    build: ../../languagetool
     container_name: 'sysreptor-languagetool'
     init: true
     environment:
