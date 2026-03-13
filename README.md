@@ -6,24 +6,12 @@
 <h4 align="center">An easy and customizable pentest reporting platform designed to simplify pentest report creation for security professionals.</h4>
 
 <p align="center">
-<a href="https://github.com/syslifters/sysreptor/">
-    <img src="https://img.shields.io/github/stars/Syslifters/sysreptor?color=yellow&style=flat-square">
-</a>
-<a href="https://github.com/syslifters/sysreptor/releases/latest">
-    <img src="https://img.shields.io/github/v/release/syslifters/sysreptor?color=green&style=flat-square">
-</a>
-<a href="https://github.com/syslifters/sysreptor/releases/latest">
-    <img src="https://img.shields.io/github/release-date/syslifters/sysreptor?color=blue&style=flat-square">
-</a>
-<a href="https://github.com/syslifters/sysreptor/releases/latest">
-    <img src="https://img.shields.io/github/repo-size/syslifters/sysreptor?color=red&style=flat-square">
-</a>
-<a href="https://www.linkedin.com/showcase/sysreptor/">
-    <img src="https://img.shields.io/badge/-Linkedin-blue?style=flat-square&logo=linkedin">
-</a>
-<a href="https://twitter.com/intent/user?screen_name=sysreptor">
-    <img src="https://img.shields.io/twitter/follow/sysreptor?style=social">
-</a>
+[![GitHub stars](https://img.shields.io/github/stars/Syslifters/sysreptor?color=yellow&style=flat-square)](https://github.com/syslifters/sysreptor/)
+[![Release](https://img.shields.io/github/v/release/syslifters/sysreptor?color=green&style=flat-square)](https://github.com/syslifters/sysreptor/releases/latest)
+[![Release date](https://img.shields.io/github/release-date/syslifters/sysreptor?color=blue&style=flat-square)](https://github.com/syslifters/sysreptor/releases/latest)
+[![Repo size](https://img.shields.io/github/repo-size/syslifters/sysreptor?color=red&style=flat-square)](https://github.com/syslifters/sysreptor/releases/latest)
+[![LinkedIn](https://img.shields.io/badge/-Linkedin-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/showcase/sysreptor/)
+[![Twitter](https://img.shields.io/twitter/follow/sysreptor?style=social)](https://twitter.com/intent/user?screen_name=sysreptor)
 </p>
 
 <p align="center">
