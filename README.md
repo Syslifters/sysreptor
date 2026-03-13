@@ -5,7 +5,8 @@
 
 <h4 align="center">An easy and customizable pentest reporting platform designed to simplify pentest report creation for security professionals.</h4>
 
-<p align="center">
+<div align="center">
+    
 [![GitHub stars](https://img.shields.io/github/stars/Syslifters/sysreptor?color=yellow&style=flat-square)](https://github.com/syslifters/sysreptor/)
 [![Release](https://img.shields.io/github/v/release/syslifters/sysreptor?color=green&style=flat-square)](https://github.com/syslifters/sysreptor/releases/latest)
 [![Release date](https://img.shields.io/github/release-date/syslifters/sysreptor?color=blue&style=flat-square)](https://github.com/syslifters/sysreptor/releases/latest)
@@ -13,17 +14,20 @@
 [![LinkedIn](https://img.shields.io/badge/-Linkedin-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/showcase/sysreptor/)
 [![Twitter](https://img.shields.io/twitter/follow/sysreptor?style=social)](https://twitter.com/intent/user?screen_name=sysreptor)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1fa669?style=flat&colorA=080f12&colorB=1fa669)](https://deepwiki.com/syslifters/sysreptor)
-</p>
 
-<p align="center">
-  <a href="https://sysreptor.com/demo">Playground</a> •
-  <a href="https://github.com/Syslifters/sysreptor/discussions/categories/ideas">Ideas</a> •
-  <a href="https://github.com/Syslifters/sysreptor/discussions/categories/q-a">Questions</a> •
-  <a href="https://docs.sysreptor.com/">Documentation</a> •
-  <a href="https://sysreptor.com/pricing">Features and Pricing</a> •
-  <a href="https://docs.sysreptor.com/setup/installation/">Installation</a> •
-  <a href="https://portal.sysreptor.com/order/">Buy SysReptor</a>
-</p>
+</div>
+
+<div align="center">
+
+[Playground](https://sysreptor.com/demo) •
+[Ideas](https://github.com/Syslifters/sysreptor/discussions/categories/ideas) •
+[Questions](https://github.com/Syslifters/sysreptor/discussions/categories/q-a) •
+[Documentation](https://docs.sysreptor.com/) •
+[Features and Pricing](https://sysreptor.com/pricing) •
+[Installation](https://docs.sysreptor.com/setup/installation/) •
+[Buy SysReptor](https://portal.sysreptor.com/order/)
+
+</div>
 
 ---
 
