@@ -12,6 +12,7 @@
 [![Repo size](https://img.shields.io/github/repo-size/syslifters/sysreptor?color=red&style=flat-square)](https://github.com/syslifters/sysreptor/releases/latest)
 [![LinkedIn](https://img.shields.io/badge/-Linkedin-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/showcase/sysreptor/)
 [![Twitter](https://img.shields.io/twitter/follow/sysreptor?style=social)](https://twitter.com/intent/user?screen_name=sysreptor)
+[![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-1fa669?style=flat&colorA=080f12&colorB=1fa669)](https://deepwiki.com/syslifters/sysreptor)
 </p>
 
 <p align="center">
