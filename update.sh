@@ -7,7 +7,7 @@ error_cleanup() {
         set +e
         echo cd "$script_location"
         echo "Trying to restore your old version..."
-        cd `dirname "$script_location"`
+        cd "$(dirname "$script_location")"
         mv "$sysreptor_directory" "$sysreptor_directory-failed-update-$filename_date"
         mv "$backup_copy" "$sysreptor_directory"
         cd "$sysreptor_directory"/deploy
@@ -56,7 +56,7 @@ cd "$script_location"
 if
     ! test -w ..
 then
-    echo "\"`readlink -e ..`\" not writeable. Exiting..."
+    echo "\"$(readlink -e ..)\" not writeable. Exiting..."
     exit -2
 fi
 
@@ -64,7 +64,7 @@ fi
 while [[ $# -gt 0 ]]; do
   case $1 in
     --backup)
-      BACKUP_LOCATION=`realpath "$script_location/../sysreptor-full-backup-$filename_date.zip"`
+      BACKUP_LOCATION=$(realpath "$script_location/../sysreptor-full-backup-$filename_date.zip")
       shift
       ;;
     -*|--*)
@@ -87,7 +87,7 @@ OLD_SYSREPTOR_VERSION=$SYSREPTOR_VERSION
 echo "Your current version is $OLD_SYSREPTOR_VERSION"
 
 echo "Checking if update is available..."
-version=`curl -s https://docs.sysreptor.com/latest.version`
+version=$(curl -s https://docs.sysreptor.com/latest.version)
 if ! [[ $version =~ ^[0-9]{4}\.[0-9]+$ ]]
 then
     echo "Checking for new version failed."

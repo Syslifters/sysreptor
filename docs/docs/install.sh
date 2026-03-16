@@ -41,7 +41,7 @@ then
     exit -1
 fi
 if
-    docker --version | grep podman
+    docker --version | grep -q podman
 then
     echo "Error: You have podman installed. Please install official Docker instead."
     echo "Follow the installation instructions at https://docs.docker.com/engine/install/ubuntu/"
@@ -192,7 +192,7 @@ echo ""
 
 echo "Setting up initial data..."
 echo "Creating initial user..."
-password=`openssl rand -base64 20 | tr -d '\n='`
+password=$(openssl rand -base64 20 | tr -d '\n=')
 echo '' | docker compose exec --no-TTY -e DJANGO_SUPERUSER_USERNAME="reptor" -e DJANGO_SUPERUSER_PASSWORD="$password" app python3 manage.py createsuperuser --noinput
 echo "Importing demo projects..."
 url="https://docs.sysreptor.com/assets/demo-projects.tar.gz"
