@@ -307,7 +307,7 @@ function createDrawingShape(x: number, y: number) {
     }
     case ImageEditorTool.MARKER: {
       const circle = new Circle({
-        radius: fontSize.value,
+        radius: fontSize.value * 0.8,
         fill: localSettings.imageEditorSettings.color,
         strokeWidth: 0,
         originX: 'center',

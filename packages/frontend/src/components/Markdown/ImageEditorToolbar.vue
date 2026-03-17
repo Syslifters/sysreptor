@@ -10,7 +10,7 @@
     <!-- Shape tools -->
     <markdown-toolbar-button
       @click="setTool(ImageEditorTool.SELECT)"
-      title="Select and Move (V)"
+      title="Select and Move [V]"
       icon="mdi-cursor-default"
       :active="activeTool === ImageEditorTool.SELECT"
     />
@@ -114,7 +114,7 @@
       </template>
     </s-color-picker>
     
-    <s-tooltip text="Stroke width (scroll to adjust)" location="top">
+    <s-tooltip text="Stroke width" location="top">
       <template #activator="{ props: tooltipProps }">
         <s-number-input
           v-model="localSettings.imageEditorSettings.strokeWidth"
