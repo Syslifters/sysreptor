@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e  # exit on error
 
 # PostgreSQL Migration Script for SysReptor
@@ -38,6 +38,7 @@ echo "This process will:"
 echo "  1. Stop all SysReptor services"
 echo "  2. Create a backup of your current database volume"
 echo "  3. Upgrade PostgreSQL volume"
+echo "  4. Restart SysReptor services"
 echo ""
 printf "Do you want to continue? [y/N]: "
 read -r CONFIRM
@@ -85,4 +86,10 @@ else
     echo "SYSREPTOR_POSTGRES_VERSION=${TARGET_VERSION}" >> .env
 fi
 echo "Updated .env file"
+
+
+echo "Starting SysReptor services..."
+docker compose up -d
+echo ""
+echo "PostgreSQL migration to version ${TARGET_VERSION} completed successfully."
 

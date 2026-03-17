@@ -282,7 +282,7 @@ release-prod:
     - git config --global user.email $GITHUB_USER_MAIL
     - git config --global user.name $GITHUB_USERNAME
     - "RELEASE_NOTES=$RELEASE_NOTES$(echo -n '\n\nClick here to go to the update instructions: https://docs.sysreptor.com/setup/updates/')"
-    - gh release create "${VERSION_NUMBER}" /tmp/source-prebuilt.tar.gz /tmp/setup.tar.gz --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}" --notes="$RELEASE_NOTES"
+    - gh release create "${VERSION_NUMBER}" /tmp/setup.tar.gz --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}" --notes="$RELEASE_NOTES"
     
     # Send notification for new release
     - >
