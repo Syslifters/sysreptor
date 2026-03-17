@@ -74,7 +74,7 @@ import { EditorView, syntaxTree, type ViewUpdate, type SyntaxNode, Transaction }
 const props = defineProps(makeMarkdownProps());
 const emit = defineEmits(makeMarkdownEmits());
 
-const { editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
+const { editorRef, editorView, markdownToolbarAttrs, markdownStatusbarAttrs, markdownPreviewAttrs, onIntersect, focus, blur } = useMarkdownEditor({
   props: computed(() => props),
   emit,
   extensions: [
@@ -88,7 +88,6 @@ const toolbarRef = useTemplateRef<InstanceType<typeof MarkdownToolbar>>('toolbar
 
 
 // Sync scroll
-const editorRef = ref<HTMLDivElement>();
 const previewRef = useTemplateRef('previewRef');
 const previewContainerRef = useTemplateRef('previewContainerRef');
 const scrollParentEditor = computed(() => {
