@@ -115,8 +115,6 @@
 </template>
 
 <script setup lang="ts">
-import { renderDOMHead } from '@unhead/vue/client'
-
 const notificationStore = useNotificationStore();
 
 const closedGroups = ref<string[]>([]);
@@ -173,13 +171,12 @@ function onOpenGroup(event: {id: unknown, value: unknown}) {
 }
 
 
-const nuxtApp = useNuxtApp();
-const head = nuxtApp.vueApp._context.provides.usehead
+const head = useHead({});
 watch([() => notificationStore.unreadNotificationCount, () => notificationStore.enabled], () => {
   // Nuxt does not reactively update the page title when unreadNotificationCount changes
   // So we manually update it here
-  renderDOMHead(head);
-});
+  head.patch({});
+}, { immediate: true });
 
 </script>
 
