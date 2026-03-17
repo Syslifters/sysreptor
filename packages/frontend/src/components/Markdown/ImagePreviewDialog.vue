@@ -30,7 +30,7 @@
 
     <template #toolbar>
       <btn-confirm
-        v-if="editMode && editedImageInfo?.original"
+        v-if="editMode && editedImageInfo?.original && originalImageSrc"
         :action="revertToOriginal"
         :confirm="true"
         :disabled="props.readonly"
@@ -38,11 +38,16 @@
         button-icon="mdi-undo-variant"
         button-text="Revert"
         tooltip-text="Revert to Original Image"
-        dialog-text="Are you sure you want to revert to the original image? This will discard all annotations and edits you've made to this image."
         class="dialog-toolbar-btn"
       >
         <template #icon>
           <v-icon size="large" icon="mdi-undo-variant" />
+        </template>
+        <template #dialog-text>
+          <p class="mt-0">
+            Are you sure you want to revert to the original image? This will discard all annotations and edits you've made to this image.
+          </p>
+          <v-img :src="originalImageSrc" />
         </template>
       </btn-confirm>
       <btn-confirm
@@ -70,7 +75,7 @@
         class="dialog-toolbar-btn"
       >
         <template #icon>
-          <v-icon size="x-large" icon="mdi-check-bold" />
+          <v-icon size="x-large" icon="mdi-content-save" />
         </template>
       </btn-confirm>
     </template>
@@ -119,7 +124,7 @@ const imageZoomRefs = ref<any[]>([]);
 
 const editMode = ref(false);
 const wasOpenedInEditMode = ref(false);
-const editedImageInfo = ref<UploadedFileInfo|null>(null);
+const editedImageInfo = ref<Omit<UploadedFileInfo, 'original'> & { original: UploadedFileInfo|null }|null>(null);
 const saveInProgress = ref(false);
 watch(modelValue, async () => {
   editMode.value = false;
@@ -151,9 +156,20 @@ function onClose(val: boolean) {
   }
 }
 
+const originalImageSrc = computed(() => {
+  if (!editedImageInfo.value?.original?.name || !modelValue.value?.src) {
+    return null;
+  }
+  return modelValue.value.src.replace('/' + editedImageInfo.value.name, '/' + editedImageInfo.value.original.name);
+});
+
 watch(editMode, async () => {
   if (editMode.value) {
-    editedImageInfo.value = await getOriginalImageInfo(modelValue.value?.src || '');
+    const img = await getImageInfoFromSrc(modelValue.value?.src || '');
+    editedImageInfo.value = img ? {
+      ...img,
+      original: img?.original ? await getImageInfoById(img.original) : null,
+    } : null;
   } else {
     editedImageInfo.value = null;
   }
@@ -162,7 +178,7 @@ async function getImageInfoById(id: string) {
   const imageApiUrl = new URL(modelValue.value!.src).pathname.replace(/\/name\/.*/, '/' + id);
   return await $fetch<UploadedFileInfo>(imageApiUrl, { method: 'GET' });
 }
-async function getOriginalImageInfo(imageSrc?: string|null) {
+async function getImageInfoFromSrc(imageSrc?: string|null) {
   if (!imageSrc) {
     return null;
   }
@@ -218,10 +234,9 @@ async function performSave() {
   if (!blob) {
     throw new Error('Failed to export image');
   }
-  const original = editedImageInfo.value || await getOriginalImageInfo(modelValue.value.src);
   const file = new File([blob], 'edited.png', { type: 'image/png' });
   const newMd = await props.uploadFile(file, { 
-    original: original?.original || original?.id || null,
+    original: editedImageInfo.value?.original?.id || editedImageInfo.value?.id || null,
   });
 
   updateImageUrlInMarkdown(newMd);
@@ -236,8 +251,7 @@ async function revertToOriginal() {
     return;
   }
 
-  const originalInfo = await getImageInfoById(editedImageInfo.value.original);
-  const newMd = modelValue.value.markdown.replaceAll('/' + editedImageInfo.value.name, '/' + originalInfo.name);
+  const newMd = modelValue.value.markdown.replaceAll('/' + editedImageInfo.value.name, '/' + editedImageInfo.value.original.name);
   updateImageUrlInMarkdown(newMd);
 
   // Update model and exit edit mode
