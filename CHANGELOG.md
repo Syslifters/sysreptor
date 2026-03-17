@@ -5,6 +5,7 @@
 * AI agent: rework prompts and tool descriptions
 * AI agent: add write_todos tool and subagents
 * Fix missing reauth redirect in UI for edit user pages
+* Fix window title not updated when notification count changes
 
 
 ## v2026.12 - 2026-02-25
