@@ -52,7 +52,10 @@
     <template #title>{{ props.dialogTitle }}</template>
     <template #default>
       <v-card-text>
-        <template v-if="props.dialogText">{{ props.dialogText }}</template>
+        <slot name="dialog-text">
+          <template v-if="props.dialogText">{{ props.dialogText }}</template>
+        </slot>
+        
         <template v-if="props.confirmInput">
           <br><br>
           Enter the following text to confirm: <br>
