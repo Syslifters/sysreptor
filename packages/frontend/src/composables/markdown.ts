@@ -637,7 +637,10 @@ export function useMarkdownEditor(options: {
     editorView.value?.destroy();
   });
 
-  return mdBase;
+  return {
+    ...mdBase,
+    editorRef,
+  };
 }
 
 export function markdownEditorDefaultExtensions() {
