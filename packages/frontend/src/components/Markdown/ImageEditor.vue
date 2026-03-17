@@ -4,7 +4,7 @@
     <markdown-image-editor-toolbar
       v-model:active-tool="activeTool"
       v-model:marker-number="markerCounter"
-      @apply-crop="onApplyCrop"
+      @cancel-crop="onCancelCrop"
     />
     
     <!-- Canvas -->
@@ -156,7 +156,7 @@ watch(activeTool, (tool, oldTool) =>  {
   if (tool === ImageEditorTool.CROP) {
     enterCropMode();
   } else if (oldTool === ImageEditorTool.CROP) {
-    exitCropMode({ apply: false });
+    exitCropMode({ apply: true });
   }
   
   canvas.value.selection = (tool === ImageEditorTool.SELECT);
@@ -698,8 +698,8 @@ function exitCropMode(options?: { apply?: boolean }) {
   hasChanges.value = true;
 }
 
-function onApplyCrop() {
-  exitCropMode({ apply: true });
+function onCancelCrop() {
+  exitCropMode({ apply: false });
   activeTool.value = ImageEditorTool.SELECT;
 }
 
@@ -728,7 +728,14 @@ watch(() => localSettings.imageEditorSettings.strokeWidth, (width) => {
 });
 
 async function exportAsBlob(): Promise<Blob | null> {
-  return await canvas.value?.toBlob({
+  if (!canvas.value) {
+    return null;
+  }
+  if (activeTool.value === ImageEditorTool.CROP) {
+    exitCropMode({ apply: true });
+  }
+
+  return await canvas.value.toBlob({
     multiplier: 1,
     format: 'png',
     quality: 0.95,
@@ -737,7 +744,7 @@ async function exportAsBlob(): Promise<Blob | null> {
 
 defineExpose({
   exportAsBlob,
-  hasChanges,
+  hasChanges: computed(() => hasChanges.value || (activeTool.value === ImageEditorTool.CROP)),
 });
 </script>
 

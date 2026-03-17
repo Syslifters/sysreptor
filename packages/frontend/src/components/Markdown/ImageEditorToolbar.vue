@@ -74,14 +74,16 @@
     />
     <template v-if="activeTool === ImageEditorTool.CROP">
       <markdown-toolbar-button
-        @click="emit('applyCrop')"
+        @click="setTool(ImageEditorTool.SELECT)"
         title="Apply Crop"
         icon="mdi-check"
+        color="success"
       />
       <markdown-toolbar-button
-        @click="setTool(ImageEditorTool.SELECT)"
+        @click="emit('cancelCrop')"
         title="Cancel Crop"
         icon="mdi-close"
+        color="error"
       />
     </template>
     
@@ -136,7 +138,7 @@ const activeTool = defineModel<ImageEditorTool>('activeTool', { required: true }
 const markerNumber = defineModel<number>('markerNumber', { required: true });
 
 const emit = defineEmits<{
-  applyCrop: [];
+  cancelCrop: [];
 }>();
 
 const localSettings = useLocalSettings();
