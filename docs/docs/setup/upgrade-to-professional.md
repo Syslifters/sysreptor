@@ -17,7 +17,7 @@ Here's how:
 3. `cd` to `deploy` and run `docker compose up -d`
 4. Enjoy
 
-<!--
+
 <div class="grid cards" style="margin-top: 2em;" markdown>
 
 -   :material-calendar:{ .lg .middle } __Book a demo__
@@ -27,7 +27,7 @@ Here's how:
     Interested in SysReptor Professional?  
     Book a Teams call with us and get you questions answered.
 
-    [:octicons-arrow-right-24: Choose your time slot](https://outlook.office365.com/book/SysReptorDemo@syslifters.com/s/gUjy2xF2GEeSc_6mDLvvkA2){ target="_blank"}
+    [:octicons-arrow-right-24: Choose your time slot](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form
+){ target="_blank"}
 
 </div>
--->
