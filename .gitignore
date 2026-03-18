@@ -1,6 +1,8 @@
 .idea
 app.env
-**/app.env
+deploy/app.env
+deploy/.env
+dev/.env
 .DS_Store
 .scannerwork
 

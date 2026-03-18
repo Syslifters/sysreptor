@@ -4,7 +4,7 @@ name: sysreptor
 
 services:
   db:
-    image: 'postgres:14'
+    image: 'postgres:${SYSREPTOR_POSTGRES_VERSION:-14}'
     container_name: 'sysreptor-db'
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-reportcreator}
@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
   app:
     image: 'syslifters/sysreptor:${SYSREPTOR_VERSION:-latest}'
-    # build: ../../
+    build: ../../
     container_name: 'sysreptor-app'
     init: true
     volumes:

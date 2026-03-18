@@ -1,6 +1,8 @@
 # Changelog
 
 ## Upcoming
+* Add `upgrade_postgres.sh` script to update database
+* Allow enabling auto-updates in `install.sh`
 * Allow starting PDF download while preview is loading
 
 

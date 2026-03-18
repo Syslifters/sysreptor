@@ -41,7 +41,7 @@ then
     exit -1
 fi
 if
-    docker --version | grep podman
+    docker --version | grep -q podman
 then
     echo "Error: You have podman installed. Please install official Docker instead."
     echo "Follow the installation instructions at https://docs.docker.com/engine/install/ubuntu/"
@@ -132,6 +132,23 @@ else
     fi
 fi
 
+# Set SYSREPTOR_POSTGRES_VERSION if not already set
+if [ -f .env ]
+then
+    # Set SYSREPTOR_POSTGRES_VERSION=18 if not already set
+    if ! grep -q "^SYSREPTOR_POSTGRES_VERSION=" .env
+    then
+        echo "Setting PostgreSQL version..."
+        # Check if commented line exists and replace it, otherwise append
+        if grep -q "^[[:space:]]*#.*SYSREPTOR_POSTGRES_VERSION" .env
+        then
+            sed -i 's|^[[:space:]]*#.*SYSREPTOR_POSTGRES_VERSION.*|SYSREPTOR_POSTGRES_VERSION=18|' .env
+        else
+            echo "SYSREPTOR_POSTGRES_VERSION=18" >> .env
+        fi
+    fi
+fi
+
 # Webserver setup (Caddy)
 if
     test -f ./caddy/setup.sh
@@ -175,7 +192,7 @@ echo ""
 
 echo "Setting up initial data..."
 echo "Creating initial user..."
-password=`openssl rand -base64 20 | tr -d '\n='`
+password=$(openssl rand -base64 20 | tr -d '\n=')
 echo '' | docker compose exec --no-TTY -e DJANGO_SUPERUSER_USERNAME="reptor" -e DJANGO_SUPERUSER_PASSWORD="$password" app python3 manage.py createsuperuser --noinput
 echo "Importing demo projects..."
 url="https://docs.sysreptor.com/assets/demo-projects.tar.gz"
@@ -227,6 +244,24 @@ then
             echo "Not your keys, not your data. Backup them!"
         fi
     done
+fi
+
+# Auto-update setup
+if 
+    command -v crontab >/dev/null 2>&1
+    test -w ../..
+then
+    CONFIRM_AUTOUPDATE=""
+    while [[ $CONFIRM_AUTOUPDATE != [yY] && $CONFIRM_AUTOUPDATE != [nN] ]]
+    do
+        read -p "Enable automatic updates? [y/n]: " CONFIRM_AUTOUPDATE
+    done
+    if [[ $CONFIRM_AUTOUPDATE == [yY] ]]
+    then
+        UPDATE_SH_PATH="$(realpath ../update.sh)"
+        (crontab -l 2>/dev/null; echo "0 0 * * * /bin/bash '$UPDATE_SH_PATH'") | crontab -
+        echo "Automatic updates enabled. SysReptor will update daily at midnight."
+    fi
 fi
 
 echo ""

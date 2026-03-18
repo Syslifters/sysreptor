@@ -6,6 +6,7 @@ import httpx
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import connection
 from django.utils import timezone
 
 from sysreptor.api_utils.models import BackupLog, BackupLogType
@@ -14,6 +15,16 @@ from sysreptor.notifications.serializers import RemoteNotificationSpecSerializer
 from sysreptor.tasks.models import TaskStatus, periodic_task
 from sysreptor.users.models import PentestUser
 from sysreptor.utils import license
+
+
+@sync_to_async()
+def get_db_version():
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW server_version;")
+            return cursor.fetchone()[0].split(' ')[0]
+    except Exception:
+        return None
 
 
 async def fetch_notifications_request():
@@ -25,6 +36,7 @@ async def fetch_notifications_request():
                 'version': settings.VERSION,
                 'license': await license.aget_license_info(),
                 'instance_tags': settings.INSTANCE_TAGS,
+                'database_version': await get_db_version(),
             }, cls=DjangoJSONEncoder).encode(),
         )
         res.raise_for_status()
