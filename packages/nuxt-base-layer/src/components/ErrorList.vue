@@ -1,7 +1,7 @@
 <template>
   <div class="pa-4">
     <v-expansion-panels v-if="group" multiple>
-      <v-expansion-panel v-if="props.showNoMessageInfo && messageGroups.length === 0" class="error-group" readonly>
+      <v-expansion-panel v-if="props.showNoMessageInfo && messageGroups.length === 0 && !props.loading" class="error-group" readonly>
         <v-expansion-panel-title hide-actions>
           <div class="error-header text-body-large">
             <v-icon color="green" start icon="mdi-checkbox-marked" />
@@ -36,10 +36,19 @@
           </div>
         </v-expansion-panel-text>
       </v-expansion-panel>
+
+      <v-expansion-panel v-if="loading">
+        <v-expansion-panel-title hide-actions>
+          <div class="error-header text-body-large">
+            <v-progress-circular size="24" indeterminate class="mr-2"/>
+            <span>Checks in progress...</span>
+          </div>
+        </v-expansion-panel-title>
+      </v-expansion-panel>
     </v-expansion-panels>
 
     <div v-else>
-      <div v-if="showNoMessageInfo && messageList.length === 0" class="error-group">
+      <div v-if="showNoMessageInfo && messageList.length === 0 && !props.loading" class="error-group">
         <div class="error-header text-body-large">
           <v-icon color="green" start icon="mdi-checkbox-marked" />
           Everything looks fine. There are no errors or warnings.
@@ -63,6 +72,13 @@
 
         <pre v-if="msg.details" class="error-details ml-4">{{ msg.details }}</pre>
       </div>
+
+      <div v-if="loading" class="error-group">
+        <div class="error-header text-body-large">
+          <v-progress-circular size="24" indeterminate class="mr-2"/>
+          <span>Checks in progress...</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -75,6 +91,7 @@ const props = defineProps<{
   value: ErrorMessage[];
   group?: boolean;
   showNoMessageInfo?: boolean;
+  loading?: boolean;
 }>();
 
 function levelToNumber(level: MessageLevelType) {

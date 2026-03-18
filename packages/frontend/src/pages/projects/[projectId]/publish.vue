@@ -42,6 +42,7 @@
             @update:model-value="updateFilename"
             label="Filename"
             :rules="rules.filename"
+            :loading="!wasFilenameEdited && checksOrPreviewInProgress"
             spellcheck="false"
           />
         </div>
@@ -62,7 +63,7 @@
 
         <div id="publish-actions-download" class="mt-4">
           <btn-confirm
-            :disabled="!canGenerateFinalReport"
+            :disabled="hasErrors"
             :action="generateFinalReport.run"
             :confirm="false"
             button-text="Download"
@@ -79,7 +80,7 @@
               <s-btn-primary
                 prepend-icon="mdi-share-variant"
                 text="Share by Link"
-                :disabled="!canGenerateFinalReport || !auth.permissions.value.share_project_notes || !auth.permissions.value.edit_projects"
+                :disabled="hasErrors || !auth.permissions.value.share_project_notes || !auth.permissions.value.edit_projects"
                 :loading="shareReport.pending.value"
                 class="mr-1 mb-1"
                 v-bind="dialogProps"
@@ -136,7 +137,12 @@
       <div class="mt-4">
         <v-list-subheader>Warnings</v-list-subheader>
         <v-divider />
-        <error-list v-if="checkMessagesStatus !== 'pending'" :value="allMessages" :group="true" :show-no-message-info="true">
+        <error-list 
+          :value="allMessages" 
+          :group="true" 
+          :show-no-message-info="true"
+          :loading="checksOrPreviewInProgress"
+        >
           <template #location="{msg}">
             <NuxtLink v-if="messageLocationUrl(msg) && msg.location" :to="messageLocationUrl(msg)" @click="onBeforeOpenMessageLocationUrl(msg)" target="_blank" class="text-primary">
               in {{ msg.location.type }}
@@ -150,9 +156,6 @@
             </span>
           </template>
         </error-list>
-        <div v-else class="text-center pa-6">
-          <v-progress-circular indeterminate />
-        </div>
       </div>
     </template>
   </split-menu>
@@ -201,6 +204,17 @@ const generatePdfForm = ref({
   password: localSettings.pdfPasswordEnabled ? generateRandomPassword() : '',
   filename: '',
 });
+const filename = computed(() => {
+  let fn = generatePdfForm.value.filename;
+  if (!fn) {
+    fn = (project.value.name + '_report.pdf').replaceAll(/\s+/g, ' ');
+  }
+  fn = fn.replaceAll(/[\\/]/g, '');
+  if (!fn.toLowerCase().endsWith('.pdf')) {
+    fn += '.pdf'
+  }
+  return fn;
+});
 const wasFilenameEdited = ref(false);
 function updateFilename(value: string) {
   generatePdfForm.value.filename = value;
@@ -230,11 +244,6 @@ const rules = {
 
 const menuSize = ref(window.innerWidth * 0.6);
 const checksOrPreviewInProgress = computed(() => checkMessagesStatus.value === 'pending' || pdfPreviewRef.value?.renderingInProgress);
-const canGenerateFinalReport = computed(() => {
-  return !hasErrors.value &&
-        !checksOrPreviewInProgress.value &&
-        pdfPreviewRef.value?.pdfData !== null;
-});
 
 function refreshPreviewAndChecks() {
   if (checksOrPreviewInProgress.value) {
@@ -252,7 +261,7 @@ async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }) {
   });
 
   if (!wasFilenameEdited.value) {
-    generatePdfForm.value.filename = res.filename || (project.value.name + '_report.pdf').replaceAll(/[\\/]/g, '').replaceAll(/\s+/g, ' ');
+    generatePdfForm.value.filename = res.filename || filename.value;
   }
 
   return res;
@@ -270,13 +279,12 @@ async function generatePdfRequest(fetchOptions: { signal: AbortSignal }) {
 }
 const generateFinalReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
   const res = await generatePdfRequest(fetchOptions);
-  fileDownload(res, generatePdfForm.value.filename + (generatePdfForm.value.filename.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
+  fileDownload(res, filename.value);
 });
 const shareReport = useAbortController(async (fetchOptions: { signal: AbortSignal }) => {
   try {
     const reportPdf = await generatePdfRequest(fetchOptions);
-    const filename = generatePdfForm.value.filename + (generatePdfForm.value.filename.toLowerCase().endsWith('.pdf') ? '' : '.pdf')
-    const uploadedFile = await uploadFileHelper<UploadedFileInfo>(`/api/v1/pentestprojects/${project.value.id}/upload/`, new File([reportPdf], filename), {}, fetchOptions);
+    const uploadedFile = await uploadFileHelper<UploadedFileInfo>(`/api/v1/pentestprojects/${project.value.id}/upload/`, new File([reportPdf], filename.value), {}, fetchOptions);
     const note = await projectStore.createNote(project.value, {
       title: 'Report',
       icon_emoji: '📄',
