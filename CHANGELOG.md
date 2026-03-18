@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Allow starting PDF download while preview is loading
+
+
 ## v2026.18 - 2026-03-18
 * Markdown editor: Add image editor (https://docs.sysreptor.com/reporting/image-editor/)
 * AI agent: rework prompts and tool descriptions
