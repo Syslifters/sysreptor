@@ -224,6 +224,31 @@ const selectedNotes = computed(() => {
     .filter(n => !!n);
 });
 
+async function focusCurrentNote() {
+  if (!currentNoteId.value || !draggableRef.value || !props.modelValue.length) { 
+    return;
+  }
+  const noteGroupItem = getNoteGroupById(currentNoteId.value);
+  if (!noteGroupItem) { 
+    return;
+  }
+  // Expand all ancestors via he-tree's built-in API
+  let parentId = noteGroupItem.note.parent;
+  while (parentId) {
+    localSettings.setNoteExpandState({ noteId: parentId, isExpanded: true });
+    parentId = getNoteGroupById(parentId)?.note.parent ?? null;
+  }
+
+  // Scroll to active note after DOM update
+  await nextTick();
+  const el = draggableRef.value.$el as HTMLElement|null;
+  const activeNoteEl = el?.querySelector('.v-list-item--active');
+  activeNoteEl?.scrollIntoView({ block: 'center', behavior: 'instant' });
+}
+whenever(() => props.modelValue.length > 0 && !!draggableRef.value, async () => {
+  await focusCurrentNote();
+}, { immediate: true, once: true });
+
 defineExpose({
   selectedNotes,
 });
