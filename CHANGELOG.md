@@ -4,6 +4,7 @@
 * Add `upgrade_postgres.sh` script to update database
 * Allow enabling auto-updates in `install.sh`
 * Allow starting PDF download while preview is loading
+* Autofocus current note in tree on navigate
 
 
 ## v2026.18 - 2026-03-18
