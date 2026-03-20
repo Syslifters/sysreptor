@@ -138,8 +138,8 @@ export function useSearchableCursorPaginationFetcher<T>(options: { baseURL: stri
     set: (val: string) => applyFilters({ search: val }, { debounce: true }),
   });
 
-  function reset(opts?: { baseURL: string|null, query?: object }) {
-    createFetcher(opts || options);
+  function reset(opts?: { baseURL?: string|null, query?: object }) {
+    createFetcher({...options, ...opts});
   }
 
   return {

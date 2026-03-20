@@ -149,7 +149,8 @@ watch(activeFilters, () => {
 
     router.replace({
       query: {
-        ...pick(route.query, ['search', 'ordering']),
+        ...pick(route.query, ['search']),
+        ordering: ordering.value?.value || '',
         ...filterParams,
       }
     });
@@ -166,7 +167,7 @@ watch(() => props.url, async () => {
 
 function updateSearch(search: string) {
   items.search.value = search;
-  router.replace({ query: { ...route.query, search } });
+  router.replace({ query: { ...route.query, ordering: ordering.value?.value || '', search } });
 }
 
 function updateOrdering(ordering?: OrderingOption|null) {
@@ -189,12 +190,22 @@ function updatePinnedFilters() {
   }
 }
 
+async function refresh() {
+  items.reset({
+    query: {
+      ordering: ordering.value?.value,
+    },
+  });
+  await items.fetchNextPage();
+}
+
 defineExpose({
   items,
   activeFilters,
   updateSearch,
   updateOrdering,
   addFilter,
+  refresh,
 });
 </script>
 
