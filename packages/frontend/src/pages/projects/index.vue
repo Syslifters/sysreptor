@@ -10,15 +10,37 @@
       ]"
       v-model:pinned-filters="localSettings.projectListPinnedFilters"
       :filter-properties="filterProperties"
+      :selectable="true"
       ref="listViewRef"
     >
       <template #title>Projects</template>
-      <template #actions>
+      <template #actions="{ selectedItems }">
         <permission-info :value="auth.permissions.value.create_projects">
           <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
         </permission-info>
         <permission-info :value="auth.permissions.value.import_projects">
           <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
+        </permission-info>
+        <permission-info :value="auth.permissions.value.delete_projects">
+          <btn-delete
+            :delete="() => performDeleteSelected(selectedItems as PentestProject[])"
+            :disabled="selectedItems.length === 0"
+            confirm-input="delete"
+            color="error"
+            tooltip-text="Delete selected"
+            icon="mdi-delete"
+          >
+            <template #dialog-text>
+              <p class="mt-0">
+                Do you really want to delete {{ selectedItems.length }} projects?
+              </p>
+              <ul class="mt-0">
+                <li v-for="p in selectedItems" :key="p.id">
+                  {{ (p as PentestProject).name }}
+                </li>  
+              </ul>
+            </template>
+          </btn-delete>
         </permission-info>
       </template>
       <template #tabs>
@@ -51,6 +73,7 @@ const auth = useAuth();
 const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+const projectStore = useProjectStore();
 
 const importBtn = useTemplateRef('importBtn');
 async function performImport(file: File) {
@@ -71,4 +94,10 @@ const filterProperties = computed((): FilterProperties[] => [
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
 ]);
+
+async function performDeleteSelected(projects: PentestProject[]) {
+  await bulkAction(projects, projectStore.deleteProject, p => `Failed to delete "${p.name}"`);
+  await listViewRef.value?.refresh();
+}
+
 </script>

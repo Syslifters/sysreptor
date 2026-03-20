@@ -1,13 +1,34 @@
 <template>
   <full-height-page scrollbar>
     <v-container class="pt-0">
-      <v-list v-if="items" class="pt-0 overflow-visible">
+      <v-list
+        v-if="items"
+        v-bind="selection.listProps.value"
+        class="pt-0 overflow-visible"
+      >
         <div class="list-header pt-2 mb-4">
           <h1 class="text-headline-large font-weight-bold ma-0">
             <slot name="title" />
 
             <div v-if="$slots.actions" class="list-header-actions">
-              <slot name="actions" />
+              <slot
+                name="actions"
+                :items="items.data.value"
+                :selected-items="selection.selectedItems.value"
+              />
+
+              <s-checkbox
+                v-if="props.selectable"
+                :model-value="selection.selectedItems.value.length > 0"
+                @update:model-value="selection.selectedItems.value.length === 0 ? selection.selectAll() : selection.clearSelection()"
+                :indeterminate="selection.selectedItems.value.length > 0 && selection.selectedItems.value.length < items.data.value.length"
+                :disabled="items.data.value.length === 0"
+              >
+                <template #label>
+                  <span v-if="selection.selectedItems.value.length === 0">Select all</span>
+                  <span v-else>{{ selection.selectedItems.value.length }} selected</span>
+                </template>
+              </s-checkbox>
             </div>
           </h1>
 
@@ -59,6 +80,7 @@
         <v-list-item
           v-if="items.data.value.length === 0 && !items.hasNextPage.value && items.hasBaseURL.value"
           title="No data found"
+          class="no-data-item"
         >
           <div class="w-100 text-center">
             <img src="@base/assets/dino/notfound.svg" alt="" class="img-raptor" />
@@ -79,12 +101,10 @@ const props = defineProps<{
   url: string|null;
   orderingOptions?: OrderingOption[];
   filterProperties?: FilterProperties[];
+  selectable?: boolean;
 }>();
 
-// pinnedFilters is a model bound from the page (v-model:pinnedFilters)
 const pinnedFilters = defineModel<FilterValue[]>('pinnedFilters');
-
-// Filter-related state
 const activeFilters = ref<FilterValue[]>([]);
 
 const ordering = computed(() => {
@@ -106,6 +126,11 @@ const items = useSearchableCursorPaginationFetcher<T>({
 });
 useLazyAsyncData(async () => {
   await items.fetchNextPage()
+});
+
+const selection = useListSelection<T & { id: string}>({ 
+  items: items.data as unknown as MaybeRefOrGetter<(T & { id: string})[]>,
+  enabled: () => props.selectable,
 });
 
 onMounted(async () => {
@@ -201,6 +226,7 @@ async function refresh() {
 
 defineExpose({
   items,
+  selection,
   activeFilters,
   updateSearch,
   updateOrdering,
@@ -219,7 +245,7 @@ defineExpose({
 }
 .list-header-actions {
   margin-left: 1rem;
-  display: inline-block;
+  display: inline-flex;
   
   &:deep() > * {
     margin-left: 0.5rem;
@@ -230,8 +256,24 @@ defineExpose({
   text-transform: initial;
 }
 
-:deep(.v-list-item .v-list-item-subtitle) {
-  opacity: var(--v-high-emphasis-opacity);
+:deep(.v-list-item) {
+  .v-list-item-subtitle {
+    opacity: var(--v-high-emphasis-opacity);
+  }
+
+  .list-item-checkbox {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+  &:hover, &.v-list-item--active {
+    .list-item-checkbox {
+      opacity: 1;
+    }
+  }
+}
+
+.no-data-item {
+  pointer-events: none;
 }
 
 .img-raptor {

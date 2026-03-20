@@ -1,9 +1,20 @@
 <template>
-  <v-list-item 
-    :to="`/projects/${props.item.id}/reporting/`" 
+  <v-list-item
+    :to="`/projects/${props.item.id}/reporting/`"
+    :value="props.item.id"
     lines="two"
     class="project-list-item"
   >
+    <template #prepend="{ isSelected, select }">
+      <v-list-item-action start>
+        <v-checkbox-btn
+          :model-value="isSelected"
+          @update:model-value="select(!isSelected)"
+          class="list-item-checkbox"
+        />
+      </v-list-item-action>
+    </template>
+
     <template #title>
       {{ props.item.name }}
 
