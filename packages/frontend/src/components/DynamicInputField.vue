@@ -546,7 +546,10 @@ function validateJson(v: string) {
   return true;
 }
 
-const bulkEditList = ref(false);
+// Initial bulk edit for long lists to improve UI performance
+const bulkEditList = ref(
+  props.definition.type === FieldDataType.LIST && props.definition.items!.type === FieldDataType.STRING && 
+  Array.isArray(props.modelValue) && props.modelValue.length >= 50);
 function emitInputStringList(valuesListString?: string) {
   const values = (valuesListString || '').split('\n').filter(v => !!v);
   emitUpdate(values, { preventCollabEvent: false });
