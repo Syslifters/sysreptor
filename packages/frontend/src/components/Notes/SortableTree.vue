@@ -238,12 +238,19 @@ async function focusCurrentNote() {
     localSettings.setNoteExpandState({ noteId: parentId, isExpanded: true });
     parentId = getNoteGroupById(parentId)?.note.parent ?? null;
   }
-
-  // Scroll to active note after DOM update
   await nextTick();
-  const el = draggableRef.value.$el as HTMLElement|null;
-  const activeNoteEl = el?.querySelector('.v-list-item--active');
-  activeNoteEl?.scrollIntoView({ block: 'center', behavior: 'instant' });
+
+  // Scroll in virtual tree such that the note gets rendered to DOM
+  const vtlist = draggableRef.value.$refs.vtlist as any|null;
+  const nodeIndex = vtlist?.items.findIndex((s: any) => s.data && s.data?.note.id === noteGroupItem.note.id);
+  const scrollOffset = vtlist?.positions[nodeIndex] ?? 0;
+  vtlist?.listElRef?.scrollTo({ top: scrollOffset, behavior: 'instant' });
+  await nextTick();
+  
+  // Scroll to note
+  draggableRef.value.$el
+    ?.querySelector('.v-list-item--active')
+    ?.scrollIntoView({ block: 'center', behavior: 'instant' });
 }
 whenever(() => props.modelValue.length > 0 && !!draggableRef.value, async () => {
   await focusCurrentNote();
