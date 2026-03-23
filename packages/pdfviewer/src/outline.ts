@@ -1,5 +1,5 @@
-import { PDFDocumentProxy, stopEvent } from "pdfjs-dist";
-import { EventBus, PDFLinkService } from "pdfjs-dist/web/pdf_viewer.mjs";
+import { PDFDocumentProxy, stopEvent } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { EventBus, PDFLinkService } from "pdfjs-dist/legacy/web/pdf_viewer.mjs";
 
 type PDFOutline = Awaited<ReturnType<PDFDocumentProxy['getOutline']>>;
 type PDFOutlineItem = PDFOutline[number];

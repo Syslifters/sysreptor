@@ -6,6 +6,7 @@
 * Allow starting PDF download while preview is loading
 * Scroll to current note in tree on navigate
 * Scroll to current note in tree after searching
+* PDF viewer: switch to pdf.js legacy mode
 
 
 ## v2026.18 - 2026-03-18
