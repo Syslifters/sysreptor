@@ -9,7 +9,7 @@ test('A User can create an Project with a Name', async ({ page }) => {
   await createProject(page, { projectName: oldProjectName, designId: new DemoDataState().designs[0]!, designName: 'Demo Calzone' });
 
   // Verify Project Name
-  await expect(page.getByText(oldProjectName)).toBeVisible();
+  await expect(page.getByRole('link', { name: oldProjectName }).first()).toBeVisible();
 
   await page.getByTestId('project-settings-tab').click();
   await page.getByLabel('Name').waitFor();

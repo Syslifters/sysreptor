@@ -1,5 +1,7 @@
 <template>
   <v-app>
+    <nuxt-announcer />
+    <NuxtRouteAnnouncer />
     <nuxt-layout>
       <nuxt-page />
     </nuxt-layout>
