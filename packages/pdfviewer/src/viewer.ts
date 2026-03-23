@@ -7,7 +7,7 @@ import {
   version as pdfjsVersion,
   build as pdfjsBuild,
   TouchManager,
-} from 'pdfjs-dist';
+} from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
   PDFViewer,
   PDFLinkService,
@@ -17,11 +17,11 @@ import {
   DownloadManager,
   PDFFindController,
   FindState,
-} from 'pdfjs-dist/web/pdf_viewer.mjs';
+} from 'pdfjs-dist/legacy/web/pdf_viewer.mjs';
 import { PDFOutlineViewer } from './outline';
 
 // Set up the PDF.js worker
-GlobalWorkerOptions.workerPort = new Worker(new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url), { type: 'module' });
+GlobalWorkerOptions.workerPort = new Worker(new URL('pdfjs-dist/legacy/build/pdf.worker.mjs', import.meta.url), { type: 'module' });
 
 const DEFAULT_SCALE_VALUE = 'auto';
 

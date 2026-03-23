@@ -1,4 +1,4 @@
-@import 'pdfjs-dist/web/pdf_viewer.css';
+@import 'pdfjs-dist/legacy/web/pdf_viewer.css';
 
 :root {
   /* Modern color palette */
