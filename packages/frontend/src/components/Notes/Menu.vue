@@ -52,7 +52,7 @@
                 v-if="props.exportUrl && props.selectedNotes"
                 button-text="Export Selected"
                 :export-url="props.exportUrl"
-                :options="{notes: props.selectedNotes.map(n => n.id)}"
+                :options="{ids: props.selectedNotes.map(n => n.id)}"
                 :name="props.exportName"
                 :disabled="props.readonly || props.selectedNotes.length === 0"
               />

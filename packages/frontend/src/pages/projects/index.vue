@@ -23,6 +23,31 @@
         </permission-info>
         <template v-if="selectedItems.length > 0">
           <v-divider vertical />
+          <s-btn-icon 
+            icon="mdi-download"
+            color="secondary"
+            variant="flat"
+          >
+            <v-icon icon="mdi-download" />
+            <s-tooltip activator="parent" location="bottom" text="Export selected" />
+            <v-menu activator="parent" location="bottom">
+              <v-list>
+                <btn-export
+                  export-url="/api/v1/pentestprojects/export/"
+                  :options="{ids: selectedItems.map(p => p.id), export_all: false}"
+                  name="projects"
+                  extension=".tar.gz"
+                />
+                <btn-export
+                  export-url="/api/v1/pentestprojects/export/"
+                  :options="{ids: selectedItems.map(p => p.id), export_all: true}"
+                  name="projects"
+                  extension=".tar.gz"
+                  button-text="Export (with notes)"
+                />
+              </v-list>
+            </v-menu>
+          </s-btn-icon>
           <permission-info :value="auth.permissions.value.delete_projects">
             <btn-delete
               :delete="() => performDeleteSelected(selectedItems as PentestProject[])"
