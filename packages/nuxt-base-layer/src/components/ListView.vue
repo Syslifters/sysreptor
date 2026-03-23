@@ -6,7 +6,7 @@
         v-bind="selection.listProps.value"
         class="pt-0 overflow-visible"
       >
-        <div class="list-header pt-2 mb-4">
+        <div class="list-header pt-2">
           <h1 class="text-headline-large font-weight-bold ma-0">
             <slot name="title" />
 
@@ -16,61 +16,74 @@
                 :items="items.data.value"
                 :selected-items="selection.selectedItems.value"
               />
-
-              <s-checkbox
-                v-if="props.selectable"
-                :model-value="selection.selectedItems.value.length > 0"
-                @update:model-value="selection.selectedItems.value.length === 0 ? selection.selectAll() : selection.clearSelection()"
-                :indeterminate="selection.selectedItems.value.length > 0 && selection.selectedItems.value.length < items.data.value.length"
-                :disabled="items.data.value.length === 0"
-              >
-                <template #label>
-                  <span v-if="selection.selectedItems.value.length === 0">Select all</span>
-                  <span v-else>{{ selection.selectedItems.value.length }} selected</span>
-                </template>
-              </s-checkbox>
             </div>
           </h1>
+          
+          <div class="list-header-controls" :class="{ 'list-header-controls-mobile': mobile }">
+             <v-tabs v-if="$slots.tabs" selected-class="text-primary" class="list-header-tabs">
+              <slot name="tabs" />
+            </v-tabs>
+            
+           <div class="flex-grow-width">
+              <div class="list-header-searchbar">
+                <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties">
+                  <v-text-field
+                    ref="searchbarRef"
+                    :model-value="items.search.value"
+                    @update:model-value="updateSearch"
+                    label="Search"
+                    variant="underlined"
+                    spellcheck="false"
+                    hide-details="auto"
+                    autofocus
+                    class="flex-grow-width"
+                    clearable
+                  />
+                  <filter-chip-selector
+                    v-if="props.filterProperties && props.filterProperties.length > 0"
+                    v-model:active-filters="activeFilters"
+                    :filter-properties="props.filterProperties"
+                  />
+                  <s-select-ordering
+                    v-if="props.orderingOptions && props.orderingOptions.length > 0"
+                    :model-value="ordering"
+                    @update:model-value="updateOrdering"
+                    :ordering-options="props.orderingOptions"
+                  />
+                  <v-badge
+                    v-if="props.selectable"
+                    :content="selectedCount"
+                    :model-value="selectedCount > 0"
+                    floating
+                    :offset-x="8"
+                    :offset-y="16"
+                  >
+                    <s-checkbox
+                      :model-value="allSelected"
+                      @update:model-value="(checked: boolean) => checked ? selection.selectAll() : selection.clearSelection()"
+                      :indeterminate="selectedCount > 0 && !allSelected"
+                      :disabled="items.data.value.length === 0"
+                      density="comfortable"
+                    />
+                    <s-tooltip activator="parent" location="top">
+                      <span v-if="selectedCount === 0">Select all</span>
+                      <span v-else>{{ selectedCount }} selected</span>
+                    </s-tooltip>
+                  </v-badge>
+                </slot>
+              </div>
 
-          <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties">
-            <div class="d-flex flex-row">
-              <filter-chip-selector
-                v-if="props.filterProperties && props.filterProperties.length > 0"
-                v-model:active-filters="activeFilters"
-                :filter-properties="props.filterProperties"
-                class="mr-1"
-              />
-              <v-text-field
-                :model-value="items.search.value"
-                @update:model-value="updateSearch"
-                label="Search"
-                variant="underlined"
-                spellcheck="false"
-                hide-details="auto"
-                autofocus
-                class="mt-0 mb-2"
-                clearable
-              />
-              <s-select-ordering
-                v-if="props.orderingOptions && props.orderingOptions.length > 0"
-                :model-value="ordering"
-                @update:model-value="updateOrdering"
-                :ordering-options="props.orderingOptions"
-                class="ml-1"
-              />
+              <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
+                <filter-chip-list
+                  v-if="props.filterProperties && props.filterProperties.length > 0"
+                  v-model="activeFilters"
+                  :filter-properties="props.filterProperties"
+                  @update-pinned="updatePinnedFilters"
+                  class="filter-chip-list"
+                />
+              </slot>
             </div>
-          </slot>
-          <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
-            <filter-chip-list
-              v-if="props.filterProperties && props.filterProperties.length > 0"
-              v-model="activeFilters"
-              :filter-properties="props.filterProperties"
-              @update-pinned="updatePinnedFilters"
-            />
-          </slot>
-          <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
-            <slot name="tabs" />
-          </v-tabs>
+          </div>
         </div>
 
         <slot name="items" :items="items">
@@ -97,6 +110,7 @@ import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
 
 const orderingModel = defineModel<string|null>('ordering');
+const { mobile } = useDisplay();
 const props = defineProps<{
   url: string|null;
   orderingOptions?: OrderingOption[];
@@ -132,6 +146,8 @@ const selection = useListSelection<T & { id: string}>({
   items: items.data as unknown as MaybeRefOrGetter<(T & { id: string})[]>,
   enabled: () => props.selectable,
 });
+const selectedCount = computed(() => selection.selectedItems.value.length);
+const allSelected = computed(() => selectedCount.value > 0 && selectedCount.value === items.data.value.length);
 
 onMounted(async () => {
   if (!props.filterProperties || props.filterProperties.length === 0) {
@@ -190,6 +206,8 @@ watch(() => props.url, async () => {
   await items.fetchNextPage();
 });
 
+const searchbarRef = useTemplateRef('searchbarRef');
+useKeyboardShortcut('ctrl+f', () => searchbarRef.value?.focus());
 function updateSearch(search: string) {
   items.search.value = search;
   router.replace({ query: { ...route.query, ordering: ordering.value?.value || '', search } });
@@ -252,9 +270,28 @@ defineExpose({
   }
 }
 
+
+.list-header-controls {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+
+  &.list-header-controls-mobile {
+    flex-direction: column-reverse;
+  }
+}
 .list-header-tabs:deep(.v-tab) {
   text-transform: initial;
 }
+.list-header-searchbar {
+  display: flex;
+  flex-direction: row;
+}
+.filter-chip-list:deep(.v-chip) {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+
 
 :deep(.v-list-item) {
   .v-list-item-subtitle {

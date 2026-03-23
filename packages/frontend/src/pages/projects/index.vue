@@ -21,27 +21,30 @@
         <permission-info :value="auth.permissions.value.import_projects">
           <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
         </permission-info>
-        <permission-info :value="auth.permissions.value.delete_projects">
-          <btn-delete
-            :delete="() => performDeleteSelected(selectedItems as PentestProject[])"
-            :disabled="selectedItems.length === 0"
-            confirm-input="delete"
-            color="error"
-            tooltip-text="Delete selected"
-            icon="mdi-delete"
-          >
-            <template #dialog-text>
-              <p class="mt-0">
-                Do you really want to delete {{ selectedItems.length }} projects?
-              </p>
-              <ul class="mt-0">
-                <li v-for="p in selectedItems" :key="p.id">
-                  {{ (p as PentestProject).name }}
-                </li>  
-              </ul>
-            </template>
-          </btn-delete>
-        </permission-info>
+        <template v-if="selectedItems.length > 0">
+          <v-divider vertical />
+          <permission-info :value="auth.permissions.value.delete_projects">
+            <btn-delete
+              :delete="() => performDeleteSelected(selectedItems as PentestProject[])"
+              :disabled="selectedItems.length === 0"
+              confirm-input="delete"
+              color="error"
+              tooltip-text="Delete selected"
+              icon="mdi-delete"
+            >
+              <template #dialog-text>
+                <p class="mt-0">
+                  Do you really want to delete {{ selectedItems.length }} projects?
+                </p>
+                <ul class="mt-0">
+                  <li v-for="p in selectedItems" :key="p.id">
+                    {{ (p as PentestProject).name }}
+                  </li>  
+                </ul>
+              </template>
+            </btn-delete>
+          </permission-info>
+        </template>
       </template>
       <template #tabs>
         <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />

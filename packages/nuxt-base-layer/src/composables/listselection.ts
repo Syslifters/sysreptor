@@ -29,8 +29,6 @@ export function useListSelection<T extends { id: string }>(options: {
 
   const shiftKey = useKeyModifier('Shift');
   async function onClickSelect(event: { id: any, value: boolean }) {
-    console.log('onClickSelect', event, shiftKey.value);
-
     // Handle range selection
     // Regular selection is handled by vuetify
     if (shiftKey.value) {
