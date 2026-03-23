@@ -15,7 +15,7 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer",
     "@sysreptor/markdown": "../markdown",
 
-    "nuxt": "~4.3",
+    "nuxt": "~4.4",
     "vuetify": "~4.0",
     "pinia": "^3.0",
 
