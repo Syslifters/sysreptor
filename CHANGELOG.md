@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2026.21 - 2026-03-24
 * Add `upgrade_postgres.sh` script to update database
 * Allow enabling auto-updates in `install.sh`
 * Allow starting PDF download while preview is loading
