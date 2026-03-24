@@ -122,7 +122,7 @@ export function groupFindings<T extends PentestFinding>(options: SortFindingsOpt
 export function getFindingRiskLevel(options: { finding: PentestFinding, projectType: ProjectType, topLevelFields?: boolean }) {
   const findingData = options.topLevelFields ? options.finding as PentestFinding['data'] : options.finding.data;
 
-  if (options.projectType.finding_fields.some(f => f.id === 'severity')) {
+  if (options.projectType.finding_fields.some(f => f.id === 'severity') && findingData.severity) {
     return levelNumberFromLevelName(findingData.severity);
   } else if (options.projectType.finding_fields.some(f => f.id === 'cvss')) {
     return levelNumberFromScore(scoreFromVector(findingData.cvss));

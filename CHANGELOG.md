@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Highlight findings by CVSS if severity field is empty
+
+
 ## v2026.21 - 2026-03-24
 * Add `upgrade_postgres.sh` script to update database
 * Allow enabling auto-updates in `install.sh`
