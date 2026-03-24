@@ -274,7 +274,9 @@ release-prod:
     - docker buildx imagetools create $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG --tag $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE-languagetool:latest
 
     # Create archive with setup files
-    - tar -czf /tmp/setup.tar.gz -C /tmp --exclude=sysreptor/.git --exclude=sysreptor/deploy/.gitignore sysreptor/deploy sysreptor/update.sh sysreptor/upgrade_postgres.sh sysreptor/LICENSE sysreptor/INSTALL.md
+    - mkdir -p /tmp/sysreptor
+    - cp -r deploy update.sh upgrade_postgres.sh LICENSE INSTALL.md /tmp/sysreptor
+    - tar -czf /tmp/setup.tar.gz -C /tmp --exclude=sysreptor/deploy/.gitignore sysreptor
 
     # Publish to github
     - apk add git github-cli
