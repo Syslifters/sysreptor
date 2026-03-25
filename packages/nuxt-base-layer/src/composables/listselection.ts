@@ -1,30 +1,49 @@
+import { uniq } from "lodash-es";
+
 export function useListSelection<T extends { id: string }>(options: {
   items: MaybeRefOrGetter<T[]>;
   enabled?: MaybeRefOrGetter<boolean>;
 }) {
-  const items = toRef(options.items);
-  const enabled = toRef(options.enabled ?? true);
-  const selectedIds = ref<string[]>([]);
+  const items = computed<T[]>(() => toValue(options.items) as T[]);
+  const enabled = computed<boolean>(() => toValue(options.enabled ?? true) as boolean);
+  const selectedIdsAll = ref<string[]>([]);
+  
+  const itemById = shallowRef(new Map<string, T>());
+  watch(items, () => {
+    const newItemById = new Map<string, T>(itemById.value);
+    items.value.forEach(i => newItemById.set(i.id, i));
+    itemById.value = newItemById;
+  }, { deep: 1, immediate: true });
+
+  const visibleIds = computed(() => items.value.map(i => i.id));
+  const selectedIdsVisible = computed(() => {
+    if (!enabled.value) {
+      return [];
+    }
+    const visibleSet = new Set(visibleIds.value);
+    return selectedIdsAll.value.filter(id => visibleSet.has(id));
+  });
   const selectedItems = computed(() => {
     if (!enabled.value) {
       return [];
     }
-    return items.value.filter(item => selectedIds.value.includes(item.id));
+    return selectedIdsAll.value
+      .map(id => itemById.value.get(id))
+      .filter((item): item is T => Boolean(item));
   });
+  const selectedItemsVisible = computed(() => selectedItems.value.filter(item => visibleIds.value.includes(item.id)));
+  
   const rangeAnchorId = ref<string|null>(null);
-
   function clearSelection() {
-    selectedIds.value = [];
+    selectedIdsAll.value = selectedIdsAll.value.filter(id => !visibleIds.value.includes(id));
     rangeAnchorId.value = null;
   }
-  watch(items, () => clearSelection());
-
   function selectAll() {
     if (!enabled.value) {
       return;
     }
-    selectedIds.value = items.value.map(i => i.id);
-    rangeAnchorId.value = selectedItems.value.at(-1)?.id ?? null;
+    selectedIdsAll.value = uniq([...selectedIdsAll.value, ...visibleIds.value]);;
+    rangeAnchorId.value = visibleIds.value.at(-1) ?? null;
   }
 
   const shiftKey = useKeyModifier('Shift');
@@ -43,9 +62,9 @@ export function useListSelection<T extends { id: string }>(options: {
       
       await nextTick();
       if (event.value) {
-        selectedIds.value = selectedIds.value.concat(idsInRange.filter(i => !selectedIds.value.includes(i)));
+        selectedIdsAll.value = uniq([...selectedIdsAll.value, ...idsInRange]);
       } else {
-        selectedIds.value = selectedIds.value.filter(i => !idsInRange.includes(i));
+        selectedIdsAll.value = selectedIdsAll.value.filter(i => !idsInRange.includes(i));
       }
     }
 
@@ -53,17 +72,26 @@ export function useListSelection<T extends { id: string }>(options: {
   }
 
   const listProps = computed(() => ({
-    selected: selectedIds.value,
-    'onUpdate:selected': (v: string[]) => { selectedIds.value = v; },
+    selected: selectedIdsVisible.value,
+    'onUpdate:selected': (value: string[]) => {
+      const prevVisible = selectedIdsVisible.value;
+
+      const removedFromVisible = prevVisible.filter(id => !value.includes(id));
+      const kept = selectedIdsAll.value.filter(id => !removedFromVisible.includes(id));
+      const added = value.filter(id => !kept.includes(id));
+
+      selectedIdsAll.value = uniq([...kept, ...added]);
+    },
     selectable: enabled.value,
     selectStrategy: 'leaf' as const,
     'onClick:select': onClickSelect,
-  }))
+  }));
 
   return {
     enabled,
     items,
     selectedItems,
+    selectedItemsVisible,
     clearSelection,
     selectAll,
     listProps,

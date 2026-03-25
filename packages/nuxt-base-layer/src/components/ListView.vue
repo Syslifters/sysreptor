@@ -52,22 +52,24 @@
                   />
                   <v-badge
                     v-if="props.selectable"
-                    :content="selectedCount"
-                    :model-value="selectedCount > 0"
+                    :content="allSelectedCount"
+                    :model-value="allSelectedCount > 0"
                     floating
                     :offset-x="8"
                     :offset-y="16"
                   >
                     <s-checkbox
-                      :model-value="allSelected"
-                      @update:model-value="(checked: boolean) => checked ? selection.selectAll() : selection.clearSelection()"
-                      :indeterminate="selectedCount > 0 && !allSelected"
+                      :model-value="visibleSelectedAllItemsInCurrentPage"
+                      @update:model-value="$event ? selection.selectAll() : selection.clearSelection()"
+                      :indeterminate="visibleSelectedCount > 0 && !visibleSelectedAllItemsInCurrentPage"
                       :disabled="items.data.value.length === 0"
                       density="comfortable"
+                      class="select-all-checkbox"
                     />
                     <s-tooltip activator="parent" location="top">
-                      <span v-if="selectedCount === 0">Select all</span>
-                      <span v-else>{{ selectedCount }} selected</span>
+                      <span v-if="allSelectedCount === 0">Select all</span>
+                      <span v-else-if="allSelectedCount === visibleSelectedCount">{{ allSelectedCount }} selected</span>
+                      <span v-else>{{ allSelectedCount }} selected ({{ visibleSelectedCount }} visible)</span>
                     </s-tooltip>
                   </v-badge>
                 </slot>
@@ -146,8 +148,9 @@ const selection = useListSelection<T & { id: string}>({
   items: items.data as unknown as MaybeRefOrGetter<(T & { id: string})[]>,
   enabled: () => props.selectable,
 });
-const selectedCount = computed(() => selection.selectedItems.value.length);
-const allSelected = computed(() => selectedCount.value > 0 && selectedCount.value === items.data.value.length);
+const allSelectedCount = computed(() => selection.selectedItems.value.length);
+const visibleSelectedCount = computed(() => selection.selectedItemsVisible.value.length);
+const visibleSelectedAllItemsInCurrentPage = computed(() => selection.enabled.value && items.data.value.length > 0 && visibleSelectedCount.value === items.data.value.length);
 
 onMounted(async () => {
   if (!props.filterProperties || props.filterProperties.length === 0) {
@@ -207,7 +210,7 @@ watch(() => props.url, async () => {
 });
 
 const searchbarRef = useTemplateRef('searchbarRef');
-useKeyboardShortcut('ctrl+f', () => searchbarRef.value?.focus());
+useHotkey('ctrl+f', () => searchbarRef.value?.focus(), { inputs: true });
 function updateSearch(search: string) {
   items.search.value = search;
   router.replace({ query: { ...route.query, ordering: ordering.value?.value || '', search } });
@@ -291,7 +294,9 @@ defineExpose({
   margin-top: 0.2em;
   margin-bottom: 0.2em;
 }
-
+.select-all-checkbox:deep(.v-icon) {
+  opacity: 1;
+}
 
 :deep(.v-list-item) {
   .v-list-item-subtitle {
