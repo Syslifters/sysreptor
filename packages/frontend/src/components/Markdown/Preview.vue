@@ -54,21 +54,31 @@ const renderedMarkdown = ref('');
 const renderedMarkdownText = ref('');
 const isRendered = ref(false);
 const throttleMs = computed(() => props.throttleMs ?? 500);
+const abortController = shallowRef(new AbortController());
 watchThrottled(() => props.value, async () => {
-  const mdText = props.value || '';
-  renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
-    text: mdText,
-    preview: true,
-    referenceItems: toRaw(props.referenceItems),
-    rewriteFileUrlMap: props.rewriteFileUrlMap,
-    cacheBuster: cacheBuster.value,
-  });
-  renderedMarkdownText.value = mdText;
-  isRendered.value = true;
+  try {
+    const mdText = props.value || '';
+    renderedMarkdown.value = await renderMarkdownToHtmlInWorker({
+      text: mdText,
+      preview: true,
+      referenceItems: toRaw(props.referenceItems),
+      rewriteFileUrlMap: props.rewriteFileUrlMap,
+      cacheBuster: cacheBuster.value,
+    }, { signal: abortController.value.signal });
+    renderedMarkdownText.value = mdText;
+    isRendered.value = true;
 
-  await nextTick();
-  postProcessRenderedHtml();
+    await nextTick();
+    postProcessRenderedHtml();
+  } catch (error: any) {
+    if (error?.name === 'AbortError') {
+      return;
+    }
+    // eslint-disable-next-line no-console
+    console.error('Markdown rendering error', { error });
+  }
 }, { throttle: throttleMs, leading: true, immediate: true });
+onUnmounted(() => abortController.value.abort());
 
 const previewRef = useTemplateRef('previewRef');
 const previewDialogRef = useTemplateRef('previewDialogRef');
