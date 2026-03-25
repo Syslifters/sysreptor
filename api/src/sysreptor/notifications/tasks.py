@@ -17,16 +17,6 @@ from sysreptor.users.models import PentestUser
 from sysreptor.utils import license
 
 
-@sync_to_async()
-def get_db_version():
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("SHOW server_version;")
-            return cursor.fetchone()[0].split(' ')[0]
-    except Exception:
-        return None
-
-
 async def fetch_notifications_request():
     async with httpx.AsyncClient(timeout=10) as client:
         res = await client.post(
@@ -36,7 +26,6 @@ async def fetch_notifications_request():
                 'version': settings.VERSION,
                 'license': await license.aget_license_info(),
                 'instance_tags': settings.INSTANCE_TAGS,
-                'database_version': await get_db_version(),
             }, cls=DjangoJSONEncoder).encode(),
         )
         res.raise_for_status()

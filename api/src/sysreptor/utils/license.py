@@ -10,7 +10,7 @@ from Cryptodome.Hash import SHA512
 from Cryptodome.PublicKey import ECC
 from Cryptodome.Signature import eddsa
 from django.conf import settings
-from django.db import models
+from django.db import connection, models
 from django.utils import dateparse, timezone
 from rest_framework import permissions
 
@@ -163,6 +163,15 @@ def get_installation_id():
     return value
 
 
+def get_database_version():
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SHOW server_version;")
+            return cursor.fetchone()[0].split(' ')[0]
+    except Exception:
+        return None
+
+
 def get_license_info():
     from sysreptor.conf import plugins
     from sysreptor.tasks.models import LicenseActivationInfo
@@ -175,6 +184,7 @@ def get_license_info():
         'total_users': PentestUser.objects.get_total_user_count(),
         'installation_id': get_installation_id(),
         'software_version': settings.VERSION,
+        'database_version': get_database_version(),
         'plugins': [p.name.split('.')[-1] for p in plugins.enabled_plugins],
         'activation_info': {
             'created': activation_info.created,
