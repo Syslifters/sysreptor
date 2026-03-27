@@ -10,7 +10,6 @@
         <v-checkbox-btn
           :model-value="isSelected"
           @update:model-value="select(!isSelected)"
-          class="list-item-checkbox"
         />
       </v-list-item-action>
     </template>

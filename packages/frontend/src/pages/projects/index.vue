@@ -14,7 +14,7 @@
       ref="listViewRef"
     >
       <template #title>Projects</template>
-      <template #actions="{ selectedItems }">
+      <template #actions="{ selectedItems }: { selectedItems: PentestProject[] }">
         <permission-info :value="auth.permissions.value.create_projects">
           <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
         </permission-info>
@@ -48,12 +48,32 @@
               </v-list>
             </v-menu>
           </s-btn-icon>
+          <permission-info :value="auth.permissions.value.update_project_settings">
+            <btn-readonly
+              :value="false"
+              :set-readonly="() => setReadonlySelected(selectedItems)"
+              :disabled="!auth.permissions.value.update_project_settings"
+              :show-toast="false"
+              button-variant="icon"
+              variant="flat"
+            >
+              <template #dialog-text>
+                <p class="mt-0">
+                  Mark {{ selectedItems.length }} projects as finished and make them readonly?
+                </p>
+                <ul class="mt-0">
+                  <li v-for="p in selectedItems" :key="p.id">
+                    {{ p.name }}
+                  </li>  
+                </ul>
+              </template>
+            </btn-readonly>
+          </permission-info>
           <permission-info :value="auth.permissions.value.delete_projects">
             <btn-delete
-              :delete="() => performDeleteSelected(selectedItems as PentestProject[])"
-              :disabled="selectedItems.length === 0"
-              confirm-input="delete"
-              color="error"
+              :delete="() => performDeleteSelected(selectedItems)"
+              :disabled="!auth.permissions.value.delete_projects"
+              :confirm-input="`delete ${selectedItems.length} projects`"
               tooltip-text="Delete selected"
               icon="mdi-delete"
             >
@@ -63,8 +83,8 @@
                 </p>
                 <ul class="mt-0">
                   <li v-for="p in selectedItems" :key="p.id">
-                    {{ (p as PentestProject).name }}
-                  </li>  
+                    {{ p.name }}
+                  </li>
                 </ul>
               </template>
             </btn-delete>
@@ -125,6 +145,10 @@ const filterProperties = computed((): FilterProperties[] => [
 
 async function performDeleteSelected(projects: PentestProject[]) {
   await bulkAction(projects, projectStore.deleteProject, p => `Failed to delete "${p.name}"`);
+  await listViewRef.value?.refresh();
+}
+async function setReadonlySelected(projects: PentestProject[]) {
+  await bulkAction(projects, p => projectStore.setReadonly(p, true), p => `Failed to finish "${p.name}"`);
   await listViewRef.value?.refresh();
 }
 

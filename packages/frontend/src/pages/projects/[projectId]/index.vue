@@ -4,12 +4,15 @@
       <edit-toolbar v-bind="toolbarAttrs" ref="toolbarRef">
         <template #title>Project Settings</template>
         <template #default>
-          <btn-readonly 
-            :value="project.readonly" 
-            :set-readonly="setReadonly" 
-            :disabled="!auth.permissions.value.update_project_settings"
-            class="ml-1 mr-1" 
-          />
+          <permission-info :value="auth.permissions.value.update_project_settings">
+            <btn-readonly 
+              :value="project.readonly" 
+              :set-readonly="setReadonly" 
+              :disabled="!auth.permissions.value.update_project_settings"
+              :show-toast="true"
+              class="ml-1 mr-1" 
+            />
+          </permission-info>
           <permission-info :value="auth.permissions.value.archive_projects || !apiSettings.isProfessionalLicense" permission-name="Global Archiver">
             <s-btn-secondary
               v-if="project.readonly"

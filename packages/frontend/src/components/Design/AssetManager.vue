@@ -91,14 +91,6 @@ const assets = useSearchableCursorPaginationFetcher<UploadedFileInfo>({
 
 const uploadInProgress = ref(false);
 const fileInput = useTemplateRef('fileInput');
-async function uploadSingleFile(file: File) {
-  try {
-    const asset = await uploadFileHelper<UploadedFileInfo>(`/api/v1/projecttypes/${props.projectType.id}/assets/`, file);
-    assets.data.value.unshift(asset);
-  } catch (error) {
-    requestErrorToast({ error, message: 'Failed to upload ' + file.name });
-  }
-}
 async function performFileUpload(files?: File[]|FileList|null) {
   if (uploadInProgress.value || props.disabled || !files) {
     return;
@@ -108,7 +100,10 @@ async function performFileUpload(files?: File[]|FileList|null) {
     uploadInProgress.value = true;
 
     // upload all files
-    await Promise.all(Array.from(files).map(uploadSingleFile));
+    await bulkAction(Array.from(files), async f => {
+      const asset = await uploadFileHelper<UploadedFileInfo>(`/api/v1/projecttypes/${props.projectType.id}/assets/`, f);
+      assets.data.value.unshift(asset);
+    }, f => `Failed to upload ${f.name}`);
   } finally {
     // clear file input
     fileInput.value!.value = '';

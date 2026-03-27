@@ -264,16 +264,18 @@ export const useProjectStore = defineStore('project', {
           readonly,
         }
       });
-      this.ensureExists(project.id);
-      this.data[project.id]!.project!.readonly = readonly;
+      if (project.id in this.data) {
+        this.data[project.id]!.project!.readonly = readonly;
+      }
     },
     async customizeDesign(project: PentestProject) {
       const res = await $fetch<{ project_type: string }>(`/api/v1/pentestprojects/${project.id}/customize-projecttype/`, {
         method: 'POST',
         body: {}
       });
-      this.ensureExists(project.id);
-      this.setProject({ ...this.data[project.id]!.project!, project_type: res.project_type });
+      if (project.id in this.data) {
+        this.data[project.id]!.project!.project_type = res.project_type;
+      }
     },
     async createFinding(project: PentestProject, findingData: Partial<PentestFinding>) {
       const finding = await $fetch<PentestFinding>(`/api/v1/pentestprojects/${project.id}/findings/`, {

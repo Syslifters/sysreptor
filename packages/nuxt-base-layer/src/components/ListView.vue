@@ -14,7 +14,7 @@
               <slot
                 name="actions"
                 :items="items.data.value"
-                :selected-items="selection.selectedItems.value"
+                :selected-items="selection.selectedItems.value as any"
               />
             </div>
           </h1>
@@ -60,7 +60,7 @@
                   >
                     <s-checkbox
                       :model-value="visibleSelectedAllItemsInCurrentPage"
-                      @update:model-value="$event ? selection.selectAll() : selection.clearSelection()"
+                      @update:model-value="$event ? selection.selectAll() : selection.clearSelection({ onlyVisible: true })"
                       :indeterminate="visibleSelectedCount > 0 && !visibleSelectedAllItemsInCurrentPage"
                       :disabled="items.data.value.length === 0"
                       density="comfortable"
@@ -110,6 +110,7 @@
 import { pick, isEqual, sortBy, omit } from 'lodash-es';
 import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
+import { useListSelection } from '@base/composables/listselection';
 
 const orderingModel = defineModel<string|null>('ordering');
 const { mobile } = useDisplay();
@@ -144,7 +145,7 @@ useLazyAsyncData(async () => {
   await items.fetchNextPage()
 });
 
-const selection = useListSelection<T & { id: string}>({ 
+const selection = useListSelection<T & { id: string }>({
   items: items.data as unknown as MaybeRefOrGetter<(T & { id: string})[]>,
   enabled: () => props.selectable,
 });
@@ -237,6 +238,7 @@ function updatePinnedFilters() {
 }
 
 async function refresh() {
+  selection.clearSelection({ onlyVisible: false });
   items.reset({
     query: {
       ordering: ordering.value?.value,
@@ -303,12 +305,12 @@ defineExpose({
     opacity: var(--v-high-emphasis-opacity);
   }
 
-  .list-item-checkbox {
+  .v-list-item-action .v-checkbox-btn {
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
   }
   &:hover, &.v-list-item--active {
-    .list-item-checkbox {
+    .v-list-item-action .v-checkbox-btn {
       opacity: 1;
     }
   }

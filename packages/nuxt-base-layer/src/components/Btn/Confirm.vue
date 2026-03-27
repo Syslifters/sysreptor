@@ -51,7 +51,7 @@
 
     <template #title>{{ props.dialogTitle }}</template>
     <template #default>
-      <v-card-text class="pt-0">
+      <v-card-text class="pt-0 overflow-y-auto">
         <slot name="dialog-text">
           <p v-if="props.dialogText" class="mt-0">{{ props.dialogText }}</p>
         </slot>

@@ -34,8 +34,12 @@ export function useListSelection<T extends { id: string }>(options: {
   const selectedItemsVisible = computed(() => selectedItems.value.filter(item => visibleIds.value.includes(item.id)));
   
   const rangeAnchorId = ref<string|null>(null);
-  function clearSelection() {
-    selectedIdsAll.value = selectedIdsAll.value.filter(id => !visibleIds.value.includes(id));
+  function clearSelection(opts?: { onlyVisible?: boolean }) {
+    if (opts?.onlyVisible) {
+      selectedIdsAll.value = selectedIdsAll.value.filter(id => !visibleIds.value.includes(id));
+    } else {
+      selectedIdsAll.value = [];
+    }
     rangeAnchorId.value = null;
   }
   function selectAll() {
@@ -99,14 +103,14 @@ export function useListSelection<T extends { id: string }>(options: {
 }
 
 
-export async function bulkAction<T>(
+export async function bulkAction<T, R>(
   items: T[],
-  actionForItem: (item: T) => Promise<void> | void,
+  actionForItem: (item: T) => Promise<R> | R,
   formatErrorMessage?: (item: T) => string,
 ) {
-  const deleteTasks = items.map(async (item) => {
+  const tasks = items.map(item => (async () => {
     try {
-      await Promise.resolve(actionForItem(item));
+      return await Promise.resolve(actionForItem(item));
     } catch (error: any) {
       if (error?.status === 404) {
         // Item was already deleted (or not found): ignore.
@@ -114,8 +118,7 @@ export async function bulkAction<T>(
       }
       requestErrorToast({ error, message: formatErrorMessage?.(item) });
     }
-  });
-
-  await Promise.all(deleteTasks);
+  })());
+  return await Promise.all(tasks);
 }
 

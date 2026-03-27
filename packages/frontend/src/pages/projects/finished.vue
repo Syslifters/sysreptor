@@ -10,8 +10,79 @@
     ]"
     v-model:pinned-filters="localSettings.projectListPinnedFilters"
     :filter-properties="filterProperties"
+    :selectable="true"
   >
     <template #title>Projects</template>
+    <template #actions="{ selectedItems }: { selectedItems: PentestProject[] }">
+      <template v-if="selectedItems.length > 0">
+        <s-btn-icon 
+          icon="mdi-download"
+          color="secondary"
+          variant="flat"
+        >
+          <v-icon icon="mdi-download" />
+          <s-tooltip activator="parent" location="bottom" text="Export selected" />
+          <v-menu activator="parent" location="bottom">
+            <v-list>
+              <btn-export
+                export-url="/api/v1/pentestprojects/export/"
+                :options="{ids: selectedItems.map(p => p.id), export_all: false}"
+                name="projects"
+                extension=".tar.gz"
+              />
+              <btn-export
+                export-url="/api/v1/pentestprojects/export/"
+                :options="{ids: selectedItems.map(p => p.id), export_all: true}"
+                name="projects"
+                extension=".tar.gz"
+                button-text="Export (with notes)"
+              />
+            </v-list>
+          </v-menu>
+        </s-btn-icon>
+        <permission-info :value="auth.permissions.value.update_project_settings">
+          <btn-readonly
+            :value="true"
+            :set-readonly="() => setReadonlySelected(selectedItems)"
+            :disabled="!auth.permissions.value.update_project_settings"
+            :show-toast="false"
+            button-variant="icon"
+            variant="flat"
+          >
+            <template #dialog-text>
+              <p class="mt-0">
+                Mark {{ selectedItems.length }} projects as active and allow editing?
+              </p>
+              <ul class="mt-0">
+                <li v-for="p in selectedItems" :key="p.id">
+                  {{ p.name }}
+                </li>  
+              </ul>
+            </template>
+          </btn-readonly>
+        </permission-info>
+        <permission-info :value="auth.permissions.value.delete_projects">
+          <btn-delete
+            :delete="() => performDeleteSelected(selectedItems)"
+            :disabled="!auth.permissions.value.delete_projects"
+            :confirm-input="`delete ${selectedItems.length} projects`"
+            tooltip-text="Delete selected"
+            icon="mdi-delete"
+          >
+            <template #dialog-text>
+              <p class="mt-0">
+                Do you really want to delete {{ selectedItems.length }} projects?
+              </p>
+              <ul class="mt-0">
+                <li v-for="p in selectedItems" :key="p.id">
+                  {{ p.name }}
+                </li>
+              </ul>
+            </template>
+          </btn-delete>
+        </permission-info>
+      </template>
+    </template>
     <template #tabs>
       <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
       <v-tab :to="{path: '/projects/finished/', query: route.query}" prepend-icon="mdi-flag-checkered" text="Finished" />
@@ -36,9 +107,11 @@ useHeadExtended({
   breadcrumbs: () => projectListBreadcrumbs(),
 });
 
+const auth = useAuth();
 const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+const projectStore = useProjectStore();
 
 const listViewRef = useTemplateRef('listViewRef');
 const suggestedMembers = ref<string[]>([]);
@@ -53,4 +126,13 @@ const filterProperties = computed((): FilterProperties[] => [
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
 ]);
+
+async function performDeleteSelected(projects: PentestProject[]) {
+  await bulkAction(projects, projectStore.deleteProject, p => `Failed to delete "${p.name}"`);
+  await listViewRef.value?.refresh();
+}
+async function setReadonlySelected(projects: PentestProject[]) {
+  await bulkAction(projects, p => projectStore.setReadonly(p, false), p => `Failed to activate "${p.name}"`);
+  await listViewRef.value?.refresh();
+}
 </script>

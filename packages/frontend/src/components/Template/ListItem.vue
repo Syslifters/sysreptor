@@ -1,10 +1,21 @@
 <template>
-  <v-list-item>
-    <v-list-item-title>
+  <v-list-item
+    :value="props.template.id"
+    lines="two"
+  >
+    <template #prepend="{ isSelected, select }">
+      <v-list-item-action start>
+        <v-checkbox-btn
+          :model-value="isSelected"
+          @update:model-value="select(!isSelected)"
+        />
+      </v-list-item-action>
+    </template>
+    <template #title>
       <chip-cvss :risk-score="translation.risk_score" :risk-level="translation.risk_level" />
       {{ translation.data.title }}
-    </v-list-item-title>
-    <v-list-item-subtitle>
+    </template>
+    <template #subtitle>
       <chip-status
         :value="translation.status"
         :filterable="true"
@@ -30,7 +41,7 @@
         :filterable="true"
         @filter="emit('filter', $event)"
       />
-    </v-list-item-subtitle>
+    </template>
   </v-list-item>
 </template>
 
@@ -46,6 +57,4 @@ const emit = defineEmits<{
 }>();
 
 const translation = computed(() => props.template.translations.find(tr => tr.language === props.language) || props.template.translations.find(tr => tr.is_main)!);
-
-
 </script>
