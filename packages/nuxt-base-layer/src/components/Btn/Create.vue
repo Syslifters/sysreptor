@@ -2,6 +2,7 @@
   <s-btn-icon
     color="secondary"
     variant="flat"
+    density="comfortable"
     data-testid="create-button"
   >
     <v-icon icon="mdi-plus" />

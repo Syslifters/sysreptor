@@ -695,7 +695,6 @@ export function markdownEditorPageExtensions() {
 }
 
 
-
 export async function renderMarkdownToHtmlInWorker(markdownOptions: Parameters<typeof renderMarkdownToHtml>[0], taskOptions?: { signal?: AbortSignal }) {
   const markdownWorker = useWorkerQueue<Parameters<typeof renderMarkdownToHtml>[0], string>(
     'markdownWorker', 

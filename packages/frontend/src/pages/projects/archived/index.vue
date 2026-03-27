@@ -5,11 +5,9 @@
     :filter-properties="filterProperties"
   >
     <template #title>Projects</template>
-    <template #tabs>
-      <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
-      <v-tab :to="{path: '/projects/finished/', query: route.query}" prepend-icon="mdi-flag-checkered" text="Finished" />
-      <v-tab :to="{path: '/projects/archived/', query: route.query}" prepend-icon="mdi-folder-lock-outline" text="Archived" />
-    </template>
+    <template #navigation>
+        <project-navigation-dropdown value="archived" />
+      </template>
     <template #item="{item}: { item: ArchivedProject}">
       <v-list-item :to="`/projects/archived/${item.id}/`" lines="two">
         <v-list-item-title> {{ item.name }}</v-list-item-title>
@@ -64,8 +62,6 @@ definePageMeta({
 useHeadExtended({
   breadcrumbs: () => archivedProjectListBreadcrumbs(),
 });
-
-const route = useRoute();
 
 const listViewRef = useTemplateRef('listViewRef');
 const suggestedTags = useArchivedProjectTags();

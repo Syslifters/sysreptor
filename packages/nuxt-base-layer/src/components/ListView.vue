@@ -7,9 +7,15 @@
         class="pt-0 overflow-visible"
       >
         <div class="list-header pt-2">
-          <h1 class="text-headline-large font-weight-bold ma-0">
-            <slot name="title" />
+          <div class="list-header-titlebar">
+            <h1 class="text-headline-large font-weight-bold ma-0">
+              <slot name="title" />
+            </h1>
 
+            <div v-if="$slots.navigation">
+              <slot name="navigation" />
+            </div>
+            
             <div v-if="$slots.actions" class="list-header-actions">
               <slot
                 name="actions"
@@ -17,74 +23,75 @@
                 :selected-items="selection.selectedItems.value as any"
               />
             </div>
-          </h1>
-          
-          <div class="list-header-controls" :class="{ 'list-header-controls-mobile': mobile }">
-             <v-tabs v-if="$slots.tabs" selected-class="text-primary" class="list-header-tabs">
-              <slot name="tabs" />
-            </v-tabs>
-            
-           <div class="flex-grow-width">
-              <div class="list-header-searchbar">
-                <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties">
-                  <v-text-field
-                    ref="searchbarRef"
-                    :model-value="items.search.value"
-                    @update:model-value="updateSearch"
-                    label="Search"
-                    variant="underlined"
-                    spellcheck="false"
-                    hide-details="auto"
-                    autofocus
-                    class="flex-grow-width"
-                    clearable
+          </div>
+         
+          <div class="searchbar mt-1">
+            <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties" :selection="selection">
+              <div v-if="props.selectable" class="searchbar-prepend">
+                <v-badge
+                  v-if="props.selectable"
+                  :content="allSelectedCount"
+                  :model-value="allSelectedCount > 0"
+                  floating
+                  location="top left"
+                  :offset-x="8"
+                  :offset-y="16"
+                >
+                  <s-checkbox
+                    :model-value="visibleSelectedAllItemsInCurrentPage"
+                    @update:model-value="$event ? selection.selectAll() : selection.clearSelection({ onlyVisible: true })"
+                    :indeterminate="visibleSelectedCount > 0 && !visibleSelectedAllItemsInCurrentPage"
+                    :disabled="items.data.value.length === 0"
+                    density="comfortable"
+                    class="select-all-checkbox"
                   />
-                  <filter-chip-selector
+                  <s-tooltip activator="parent" location="top">
+                    <span v-if="allSelectedCount === 0">Select all</span>
+                    <span v-else-if="allSelectedCount === visibleSelectedCount">{{ allSelectedCount }} selected</span>
+                    <span v-else>{{ allSelectedCount }} selected ({{ visibleSelectedCount }} visible)</span>
+                  </s-tooltip>
+                </v-badge>
+              </div>
+
+              <div class="searchbar-input flex-grow-width">
+                <v-text-field
+                  ref="searchbarRef"
+                  :model-value="items.search.value"
+                  @update:model-value="updateSearch"
+                  label="Search"
+                  variant="underlined"
+                  spellcheck="false"
+                  hide-details="auto"
+                  autofocus
+                  class="flex-grow-width"
+                  clearable
+                />
+
+                <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
+                  <filter-chip-list
                     v-if="props.filterProperties && props.filterProperties.length > 0"
-                    v-model:active-filters="activeFilters"
+                    v-model="activeFilters"
                     :filter-properties="props.filterProperties"
+                    @update-pinned="updatePinnedFilters"
+                    class="filter-chip-list"
                   />
-                  <s-select-ordering
-                    v-if="props.orderingOptions && props.orderingOptions.length > 0"
-                    :model-value="ordering"
-                    @update:model-value="updateOrdering"
-                    :ordering-options="props.orderingOptions"
-                  />
-                  <v-badge
-                    v-if="props.selectable"
-                    :content="allSelectedCount"
-                    :model-value="allSelectedCount > 0"
-                    floating
-                    :offset-x="8"
-                    :offset-y="16"
-                  >
-                    <s-checkbox
-                      :model-value="visibleSelectedAllItemsInCurrentPage"
-                      @update:model-value="$event ? selection.selectAll() : selection.clearSelection({ onlyVisible: true })"
-                      :indeterminate="visibleSelectedCount > 0 && !visibleSelectedAllItemsInCurrentPage"
-                      :disabled="items.data.value.length === 0"
-                      density="comfortable"
-                      class="select-all-checkbox"
-                    />
-                    <s-tooltip activator="parent" location="top">
-                      <span v-if="allSelectedCount === 0">Select all</span>
-                      <span v-else-if="allSelectedCount === visibleSelectedCount">{{ allSelectedCount }} selected</span>
-                      <span v-else>{{ allSelectedCount }} selected ({{ visibleSelectedCount }} visible)</span>
-                    </s-tooltip>
-                  </v-badge>
                 </slot>
               </div>
 
-              <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
-                <filter-chip-list
+              <div class="searchbar-append">
+                <filter-chip-selector
                   v-if="props.filterProperties && props.filterProperties.length > 0"
-                  v-model="activeFilters"
+                  v-model:active-filters="activeFilters"
                   :filter-properties="props.filterProperties"
-                  @update-pinned="updatePinnedFilters"
-                  class="filter-chip-list"
                 />
-              </slot>
-            </div>
+                <s-select-ordering
+                  v-if="props.orderingOptions && props.orderingOptions.length > 0"
+                  :model-value="ordering"
+                  @update:model-value="updateOrdering"
+                  :ordering-options="props.orderingOptions"
+                />
+              </div>
+            </slot>
           </div>
         </div>
 
@@ -113,7 +120,6 @@ import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery
 import { useListSelection } from '@base/composables/listselection';
 
 const orderingModel = defineModel<string|null>('ordering');
-const { mobile } = useDisplay();
 const props = defineProps<{
   url: string|null;
   orderingOptions?: OrderingOption[];
@@ -266,32 +272,30 @@ defineExpose({
   z-index: 10;
   background-color: vuetify.$list-background;
 }
-.list-header-actions {
-  margin-left: 1rem;
-  display: inline-flex;
-  
-  &:deep() > * {
-    margin-left: 0.5rem;
-  }
-}
 
-
-.list-header-controls {
+.list-header-titlebar {
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 0.5rem;
-
-  &.list-header-controls-mobile {
-    flex-direction: column-reverse;
-  }
 }
-.list-header-tabs:deep(.v-tab) {
-  text-transform: initial;
-}
-.list-header-searchbar {
+.list-header-actions {
   display: flex;
   flex-direction: row;
+  align-items: center;
+  gap: 0.3rem;
 }
+
+.searchbar {
+  display: flex;
+  flex-direction: row;
+
+  &-prepend {
+    padding-inline-start: 10px;
+    padding-inline-end: 10px;
+  }
+}
+
 .filter-chip-list:deep(.v-chip) {
   margin-top: 0.2em;
   margin-bottom: 0.2em;

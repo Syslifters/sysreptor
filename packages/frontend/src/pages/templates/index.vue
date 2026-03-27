@@ -15,6 +15,7 @@
     >
       <template #title>Templates</template>
       <template #actions="{ selectedItems }: { selectedItems: FindingTemplate[] }">
+        <v-divider vertical />
         <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
           <btn-create 
             @click="performCreate"
@@ -33,14 +34,14 @@
         <template v-if="selectedItems.length > 0">
           <v-divider vertical />
           <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
-            <btn-confirm
-              :action="() => performExport(selectedItems)"
-              :confirm="false"
-              button-text="Export"
+            <btn-export
+              export-url="/api/v1/findingtemplates/export/"
+              :options="{ids: selectedItems.map(p => p.id)}"
+              name="templates"
+              extension=".tar.gz"
               button-variant="icon"
-              button-icon="mdi-download"
-              button-color="secondary"
               variant="flat"
+              density="comfortable"
             />
           </permission-info>
           <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
@@ -50,6 +51,7 @@
               :confirm-input="`delete ${selectedItems.length} templates`"
               tooltip-text="Delete selected"
               icon="mdi-delete"
+              density="comfortable"
             >
             <template #dialog-text>
                 <p class="mt-0">
@@ -149,17 +151,5 @@ const filterProperties = computed((): FilterProperties[] => [
 async function performDeleteSelected(templates: FindingTemplate[]) {
   await bulkAction(templates, templateStore.delete, t => `Failed to delete template "${t.translations.find(tr => tr.is_main)?.data.title}"`);
   await listViewRef.value?.refresh();
-}
-async function performExport(templates: FindingTemplate[]) {
-  try {
-    const res = await $fetch<Blob>('/api/v1/findingtemplates/export/', {
-      method: 'POST',
-      body: { ids: templates.map(t => t.id) },
-      responseType: "blob"
-    });
-    fileDownload(res, 'templates.tar.gz');
-  } catch (error) {
-    requestErrorToast({ error, message: `Failed to export ${templates.length} templates` });
-  }
 }
 </script>

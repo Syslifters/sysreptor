@@ -1,7 +1,7 @@
 <template>
   <file-drop-area @drop="importBtn?.performImport($event)" class="h-100">
     <list-view
-      url="/api/v1/pentestprojects/?readonly=false" 
+      url="/api/v1/pentestprojects/?readonly=false"
       v-model:ordering="localSettings.projectListOrdering"
       :ordering-options="[
         {id: 'created', title: 'Created', value: '-created'},
@@ -14,7 +14,11 @@
       ref="listViewRef"
     >
       <template #title>Projects</template>
+      <template #navigation>
+        <project-navigation-dropdown value="active" />
+      </template>
       <template #actions="{ selectedItems }: { selectedItems: PentestProject[] }">
+        <v-divider vertical />
         <permission-info :value="auth.permissions.value.create_projects">
           <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
         </permission-info>
@@ -27,6 +31,7 @@
             icon="mdi-download"
             color="secondary"
             variant="flat"
+            density="comfortable"
           >
             <v-icon icon="mdi-download" />
             <s-tooltip activator="parent" location="bottom" text="Export selected" />
@@ -56,6 +61,7 @@
               :show-toast="false"
               button-variant="icon"
               variant="flat"
+              density="comfortable"
             >
               <template #dialog-text>
                 <p class="mt-0">
@@ -76,6 +82,7 @@
               :confirm-input="`delete ${selectedItems.length} projects`"
               tooltip-text="Delete selected"
               icon="mdi-delete"
+              density="comfortable"
             >
               <template #dialog-text>
                 <p class="mt-0">
@@ -90,13 +97,6 @@
             </btn-delete>
           </permission-info>
         </template>
-      </template>
-      <template #tabs>
-        <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
-        <v-tab :to="{path: '/projects/finished/', query: route.query}" prepend-icon="mdi-flag-checkered" text="Finished" />
-        <v-tab :to="{path: '/projects/archived/', query: route.query}" :disabled="!apiSettings.settings!.features.archiving" prepend-icon="mdi-folder-lock-outline">
-          <pro-info>Archived</pro-info>
-        </v-tab>
       </template>
       <template #item="{item}: {item: PentestProject}">
         <project-list-item :item="item" @filter="listViewRef?.addFilter($event)" />
@@ -118,7 +118,6 @@ useHeadExtended({
 });
 
 const auth = useAuth();
-const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();

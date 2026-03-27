@@ -13,12 +13,17 @@
     :selectable="true"
   >
     <template #title>Projects</template>
+    <template #navigation>
+        <project-navigation-dropdown value="finished" />
+      </template>
     <template #actions="{ selectedItems }: { selectedItems: PentestProject[] }">
       <template v-if="selectedItems.length > 0">
+        <v-divider vertical />
         <s-btn-icon 
           icon="mdi-download"
           color="secondary"
           variant="flat"
+          density="comfortable"
         >
           <v-icon icon="mdi-download" />
           <s-tooltip activator="parent" location="bottom" text="Export selected" />
@@ -48,6 +53,7 @@
             :show-toast="false"
             button-variant="icon"
             variant="flat"
+            density="comfortable"
           >
             <template #dialog-text>
               <p class="mt-0">
@@ -68,6 +74,7 @@
             :confirm-input="`delete ${selectedItems.length} projects`"
             tooltip-text="Delete selected"
             icon="mdi-delete"
+            density="comfortable"
           >
             <template #dialog-text>
               <p class="mt-0">
@@ -82,13 +89,6 @@
           </btn-delete>
         </permission-info>
       </template>
-    </template>
-    <template #tabs>
-      <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
-      <v-tab :to="{path: '/projects/finished/', query: route.query}" prepend-icon="mdi-flag-checkered" text="Finished" />
-      <v-tab :to="{path: '/projects/archived/', query: route.query}" :disabled="!apiSettings.settings!.features.archiving" prepend-icon="mdi-folder-lock-outline">
-        <pro-info>Archived</pro-info>
-      </v-tab>
     </template>
     <template #item="{item}: {item: PentestProject}">
       <project-list-item :item="item" @filter="listViewRef?.addFilter($event)" />
@@ -108,7 +108,6 @@ useHeadExtended({
 });
 
 const auth = useAuth();
-const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();

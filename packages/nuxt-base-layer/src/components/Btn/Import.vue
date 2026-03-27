@@ -6,6 +6,7 @@
     :disabled="props.disabled"
     color="secondary"
     variant="flat"
+    density="comfortable"
   >
     <v-icon icon="mdi-upload" />
     <input
