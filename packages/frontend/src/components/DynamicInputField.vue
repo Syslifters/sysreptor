@@ -329,9 +329,9 @@ import Draggable from 'vuedraggable';
 import { isEqual, omit, pick, uniq } from 'lodash-es';
 import { collabSubpath, type MarkdownEditorMode, FieldDataType, type FieldDefinition, type UserShortInfo, useCollabSubpaths } from '#imports';
 import type { MarkdownProps } from "@/composables/markdown";
+import { useWorkerQueue } from '@/composables/workerQueue';
 import regexWorkerUrl from '~/workers/regexWorker?worker&url';
 import { workerUrlPolicy } from '~/plugins/trustedtypes';
-import { wait } from '@base/utils/helpers';
 
 defineOptions({
   inheritAttrs: false,
@@ -485,8 +485,11 @@ function isEmptyOrDefault(value: any, definition: FieldDefinition): boolean {
 }
 
 // Regex validation
-// Global worker instance reused for all components
-const regexWorker = useState<Worker|null>('regexWorker', () => null);
+const regexWorker = useWorkerQueue<{ pattern: RegExp; value: string }, boolean>(
+  'regexWorker',
+  () => new Worker(workerUrlPolicy.createScriptURL!(regexWorkerUrl) as string, { type: 'module' }),
+  { timeout: 500 },
+);
 async function validateRegexPattern(value: string) {
   if (props.definition.type !== FieldDataType.STRING || !props.definition.pattern || !value) {
     return true;
@@ -494,42 +497,16 @@ async function validateRegexPattern(value: string) {
 
   try {
     const pattern = new RegExp(props.definition.pattern);
-
-    if (!regexWorker.value) {
-      regexWorker.value = new Worker(workerUrlPolicy.createScriptURL!(regexWorkerUrl) as string, { type: 'module' });
-    }
-
-    const threadedRegexMatch = new Promise((resolve) => {
-      regexWorker.value!.addEventListener('message', (e: MessageEvent) => resolve(e.data), { once: true });
-      regexWorker.value!.postMessage({ pattern, value }); // Send the string and regex to the worker
-    });
-    async function timeoutReject(timeoutMs: number) {
-      await wait(timeoutMs);
-      throw new Error("RegEx timeout");
-    }
-    try {
-      // Execute regex in a web worker with timeout to prevent RegEx DoS
-      const res = await Promise.race([threadedRegexMatch, timeoutReject(500)]);
-      if (!res) {
-        return `Invalid format. Value does not match pattern ${pattern}`;
-      }
-    } catch (e: any) {
-      const w = regexWorker.value;
-      regexWorker.value = null;
-      await w.terminate();
-      return e.message;
+    // Execute regex in a web worker with timeout to prevent RegEx DoS
+    const res = await regexWorker.run({ pattern, value });
+    if (!res) {
+      return `Invalid format. Value does not match pattern ${pattern}`;
     }
   } catch (e: any) {
     return e.message;
   }
   return true;
 }
-onBeforeUnmount(async () => {
-  if (regexWorker.value) {
-    await regexWorker.value.terminate();
-    regexWorker.value = null;
-  }
-})
 
 // JSON validation
 function validateJson(v: string) {

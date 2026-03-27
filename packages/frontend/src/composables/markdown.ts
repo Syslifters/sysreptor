@@ -29,6 +29,7 @@ import { MarkdownEditorMode } from '#imports';
 import { formatHtmlToMarkdown, type renderMarkdownToHtml } from "@sysreptor/markdown";
 import { workerUrlPolicy } from "~/plugins/trustedtypes";
 import markdownWorkerUrl from "~/workers/markdownWorker?worker&url"
+import { useWorkerQueue } from "./workerQueue";
 
 export type ReferenceItem = {
   id: string;
@@ -701,26 +702,11 @@ export function markdownEditorPageExtensions() {
 }
 
 
-export async function renderMarkdownToHtmlInWorker(options: Parameters<typeof renderMarkdownToHtml>[0]): Promise<string> {
-  // Global worker instance reused for all components
-  const worker = useState('markdownWorker', () => new Worker(workerUrlPolicy.createScriptURL!(markdownWorkerUrl) as string, { type: 'module' }));
 
-  // Render markdown in worker
-  return new Promise((resolve, reject) => {
-    const messageId = uuidv4();
-    function onMessage(e: MessageEvent<{ messageId: string, status: 'success'|'error', error?: any, result?: string }>) {
-      if (e.data.messageId === messageId) {
-        worker.value.removeEventListener('message', onMessage);
-        if (e.data.status === 'success') {
-          resolve(e.data.result!);
-        } else {
-          reject(e.data.error);
-        }
-      }
-    }
-    worker.value.addEventListener('message', onMessage);
-    worker.value.postMessage({ messageId, options });
-  });
+export async function renderMarkdownToHtmlInWorker(markdownOptions: Parameters<typeof renderMarkdownToHtml>[0], taskOptions?: { signal?: AbortSignal }) {
+  const markdownWorker = useWorkerQueue<Parameters<typeof renderMarkdownToHtml>[0], string>(
+    'markdownWorker', 
+    () => new Worker(workerUrlPolicy.createScriptURL!(markdownWorkerUrl) as string, { type: 'module' }), 
+  );
+  return await markdownWorker.run(markdownOptions, taskOptions);
 }
-
-
