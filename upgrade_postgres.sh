@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e  # exit on error
+set -o pipefail  # fail pipeline if any command fails
 
 # PostgreSQL Migration Script for SysReptor
 # This script migrates the PostgreSQL database to a new version
@@ -66,6 +67,8 @@ docker run \
 
 
 echo "Upgrading postgres volume data..."
+PGAUTOUPGRADE_LOGFILE="${BACKUP_DIR}/pgautoupgrade.log"
+echo "Logging pgautoupgrade output to ${PGAUTOUPGRADE_LOGFILE}"
 docker run \
     --rm \
     --volume="sysreptor-db-data:/data" \
@@ -74,8 +77,10 @@ docker run \
     --env="POSTGRES_DB=${POSTGRES_NAME:-reportcreator}" \
     --env="PGDATA=/data" \
     --env="PGAUTO_ONESHOT=yes" \
-    "pgautoupgrade/pgautoupgrade:${TARGET_VERSION}-debian"
-
+    "pgautoupgrade/pgautoupgrade:${TARGET_VERSION}-debian" 2>&1 | tee "${PGAUTOUPGRADE_LOGFILE}"
+echo ""
+echo "pgautoupgrade logfile: ${PGAUTOUPGRADE_LOGFILE}"
+echo ""
 
 echo "Updating .env with PostgreSQL version ${TARGET_VERSION}..."
 if grep -qE "^[[:space:]]*(#[[:space:]]*)?SYSREPTOR_POSTGRES_VERSION" .env; then

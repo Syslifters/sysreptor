@@ -176,6 +176,7 @@ export type LicenseInfoDetails = {
   readonly users: number;
   readonly active_users: number;
   readonly software_version: string;
+  readonly database_version: string;
   readonly plugins: string[];
 }
 

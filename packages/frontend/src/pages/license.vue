@@ -47,6 +47,10 @@
           <td>{{ license.software_version }}</td>
         </tr>
         <tr>
+          <td>Database Version:</td>
+          <td>{{ license.database_version }}</td>
+        </tr>
+        <tr>
           <td>Plugins:</td>
           <td>{{ license.plugins.join(', ') || '-' }}</td>
         </tr>
