@@ -5,6 +5,7 @@
       url="/api/v1/projecttypes/?scope=private"
       v-model:ordering="localSettings.designListOrdering"
       :ordering-options="[
+        {id: 'usage', title: 'Usage', value: 'status,-usage,name'},
         {id: 'name', title: 'Name', value: 'name'},
         {id: 'created', title: 'Created', value: '-created'},
         {id: 'updated', title: 'Updated', value: '-updated'},
