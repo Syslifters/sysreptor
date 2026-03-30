@@ -9,7 +9,7 @@ mkdocs-git-revision-date-localized-plugin==1.5.1
 mkdocs-git-committers-plugin-2==2.5.0
 mkdocs-minify-plugin==0.8.0
 mkdocstrings[python]==1.0.3
-pymdown-extensions==10.21
+pymdown-extensions==10.21.2
 pillow>=12.1.1
 cairosvg==2.9.0
 requests>=2.32.5
