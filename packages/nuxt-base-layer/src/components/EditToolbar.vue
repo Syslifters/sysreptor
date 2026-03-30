@@ -96,7 +96,7 @@
 <script setup lang="ts" generic="T extends { id?: string, lock_info?: LockInfo|null }">
 import { type LockInfo, EditMode } from '#imports';
 import { cloneDeep, debounce, isEqual } from 'lodash-es';
-import type { NavigationGuardNext, RouteLocationNormalized } from "vue-router";
+import type { RouteLocationNormalized } from "vue-router";
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
 const props = withDefaults(defineProps<{
@@ -383,21 +383,22 @@ function beforeLeaveBrowser(event: BeforeUnloadEvent) {
   return 'Leave?';
 }
 
-async function beforeLeave(_to: RouteLocationNormalized, _from: RouteLocationNormalized, next: NavigationGuardNext) {
+async function beforeLeave(_to: RouteLocationNormalized, _from: RouteLocationNormalized): Promise<boolean> {
   if (!canSave.value || !hasChangesValue.value || actionInProgress.value) {
-    next();
-    await resetComponent()
+    await resetComponent();
+    return true;
   } else if (autoSaveEnabled.value) {
-    next();
     await performSave();
     await resetComponent();
+    return true;
   } else {
     // vue-router navigation event: user navigates to a different SPA page
     const answer = window.confirm('Do you really want to leave? You have unsaved changes!');
-    next(answer);
     if (answer) {
       await resetComponent();
+      return true;
     }
+    return false;
   }
 }
 
