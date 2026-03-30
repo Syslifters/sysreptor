@@ -49,27 +49,25 @@ export function useLockEdit<T>(options: LockEditOptions<T>) {
   });
 
   const navigationInProgress = ref(false);
-  onBeforeRouteLeave(async (to, from, next) => {
-    if (toolbarRef.value) {
-      await toolbarRef.value.beforeLeave(to, from, (res = true) => {
-        navigationInProgress.value = res;
-      });
-      await nextTick();
-      next(navigationInProgress.value);
-    } else {
-      next();
+  onBeforeRouteLeave(async (to, from) => {
+    if (!toolbarRef.value) {
+      return;
     }
+
+    const res = await toolbarRef.value.beforeLeave(to, from);
+    navigationInProgress.value = res !== false;
+    await nextTick();
+    return res;
   });
-  onBeforeRouteUpdate(async (to, from, next) => {
-    if (toolbarRef.value && to.path !== from.path) {
-      await toolbarRef.value.beforeLeave(to, from, (res = true) => {
-        navigationInProgress.value = res;
-      });
-      await nextTick();
-      next(navigationInProgress.value);
-    } else {
-      next();
+  onBeforeRouteUpdate(async (to, from) => {
+    if (!toolbarRef.value || to.path === from.path) {
+      return;
     }
+
+    const res = await toolbarRef.value.beforeLeave(to, from);
+    navigationInProgress.value = res !== false;
+    await nextTick();
+    return res;
   });
 
   const fetchLoaderAttrs = computed(() => {
