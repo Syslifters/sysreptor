@@ -1,7 +1,7 @@
 <template>
   <file-drop-area @drop="importBtn?.performImport($event)" class="h-100">
     <list-view
-      url="/api/v1/pentestprojects/?readonly=false" 
+      url="/api/v1/pentestprojects/?readonly=false"
       v-model:ordering="localSettings.projectListOrdering"
       :ordering-options="[
         {id: 'created', title: 'Created', value: '-created'},
@@ -10,23 +10,93 @@
       ]"
       v-model:pinned-filters="localSettings.projectListPinnedFilters"
       :filter-properties="filterProperties"
+      :selectable="true"
       ref="listViewRef"
     >
       <template #title>Projects</template>
-      <template #actions>
+      <template #navigation>
+        <project-navigation-dropdown value="active" />
+      </template>
+      <template #actions="{ selectedItems }: { selectedItems: PentestProject[] }">
+        <v-divider vertical />
         <permission-info :value="auth.permissions.value.create_projects">
           <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
         </permission-info>
         <permission-info :value="auth.permissions.value.import_projects">
           <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
         </permission-info>
-      </template>
-      <template #tabs>
-        <v-tab :to="{path: '/projects/', query: route.query}" exact prepend-icon="mdi-file-document" text="Active" />
-        <v-tab :to="{path: '/projects/finished/', query: route.query}" prepend-icon="mdi-flag-checkered" text="Finished" />
-        <v-tab :to="{path: '/projects/archived/', query: route.query}" :disabled="!apiSettings.settings!.features.archiving" prepend-icon="mdi-folder-lock-outline">
-          <pro-info>Archived</pro-info>
-        </v-tab>
+        <template v-if="selectedItems.length > 0">
+          <v-divider vertical />
+          <s-btn-icon 
+            icon="mdi-download"
+            color="secondary"
+            variant="flat"
+            density="comfortable"
+          >
+            <v-icon icon="mdi-download" />
+            <s-tooltip activator="parent" location="bottom" text="Export selected" />
+            <v-menu activator="parent" location="bottom">
+              <v-list>
+                <btn-export
+                  export-url="/api/v1/pentestprojects/export/"
+                  :options="{ids: selectedItems.map(p => p.id), export_all: false}"
+                  name="projects"
+                  extension=".tar.gz"
+                />
+                <btn-export
+                  export-url="/api/v1/pentestprojects/export/"
+                  :options="{ids: selectedItems.map(p => p.id), export_all: true}"
+                  name="projects"
+                  extension=".tar.gz"
+                  button-text="Export (with notes)"
+                />
+              </v-list>
+            </v-menu>
+          </s-btn-icon>
+          <permission-info :value="auth.permissions.value.update_project_settings">
+            <btn-readonly
+              :value="false"
+              :set-readonly="() => setReadonlySelected(selectedItems)"
+              :disabled="!auth.permissions.value.update_project_settings"
+              :show-toast="false"
+              button-variant="icon"
+              variant="flat"
+              density="comfortable"
+            >
+              <template #dialog-text>
+                <p class="mt-0">
+                  Mark {{ selectedItems.length }} projects as finished and make them readonly?
+                </p>
+                <ul class="mt-0">
+                  <li v-for="p in selectedItems" :key="p.id">
+                    {{ p.name }}
+                  </li>  
+                </ul>
+              </template>
+            </btn-readonly>
+          </permission-info>
+          <permission-info :value="auth.permissions.value.delete_projects">
+            <btn-delete
+              :delete="() => performDeleteSelected(selectedItems)"
+              :disabled="!auth.permissions.value.delete_projects"
+              :confirm-input="`delete ${selectedItems.length} projects`"
+              tooltip-text="Delete selected"
+              icon="mdi-delete"
+              density="comfortable"
+            >
+              <template #dialog-text>
+                <p class="mt-0">
+                  Do you really want to delete {{ selectedItems.length }} projects?
+                </p>
+                <ul class="mt-0">
+                  <li v-for="p in selectedItems" :key="p.id">
+                    {{ p.name }}
+                  </li>
+                </ul>
+              </template>
+            </btn-delete>
+          </permission-info>
+        </template>
       </template>
       <template #item="{item}: {item: PentestProject}">
         <project-list-item :item="item" @filter="listViewRef?.addFilter($event)" />
@@ -48,9 +118,9 @@ useHeadExtended({
 });
 
 const auth = useAuth();
-const route = useRoute();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+const projectStore = useProjectStore();
 
 const importBtn = useTemplateRef('importBtn');
 async function performImport(file: File) {
@@ -71,4 +141,14 @@ const filterProperties = computed((): FilterProperties[] => [
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
 ]);
+
+async function performDeleteSelected(projects: PentestProject[]) {
+  await bulkAction(projects, projectStore.deleteProject, p => `Failed to delete "${p.name}"`);
+  await listViewRef.value?.refresh();
+}
+async function setReadonlySelected(projects: PentestProject[]) {
+  await bulkAction(projects, p => projectStore.setReadonly(p, true), p => `Failed to finish "${p.name}"`);
+  await listViewRef.value?.refresh();
+}
+
 </script>

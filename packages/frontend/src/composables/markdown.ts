@@ -171,14 +171,7 @@ export function useMarkdownEditorBase(options: {
   
     try {
       fileUploadInProgress.value = true;
-      const results = await Promise.all(Array.from(files).map(async (file: File) => {
-        try {
-          return await options.props.value.uploadFile!(file);
-        } catch (error) {
-          requestErrorToast({ error, message: 'Failed to upload ' + file.name })
-          return null;
-        }
-      }));
+      const results = await bulkAction(Array.from(files), options.props.value.uploadFile!, f => `Failed to upload ${f.name}`);
   
       const mdFileText = results.filter(u => u).join('\n');
       if (pos === undefined || pos === null) {
@@ -700,7 +693,6 @@ export function markdownEditorPageExtensions() {
     scrollPastEnd(),
   ] as Extension[];
 }
-
 
 
 export async function renderMarkdownToHtmlInWorker(markdownOptions: Parameters<typeof renderMarkdownToHtml>[0], taskOptions?: { signal?: AbortSignal }) {

@@ -1,55 +1,98 @@
 <template>
   <full-height-page scrollbar>
     <v-container class="pt-0">
-      <v-list v-if="items" class="pt-0 overflow-visible">
-        <div class="list-header pt-2 mb-4">
-          <h1 class="text-headline-large font-weight-bold ma-0">
-            <slot name="title" />
+      <v-list
+        v-if="items"
+        v-bind="selection.listProps.value"
+        class="pt-0 overflow-visible"
+      >
+        <div class="list-header pt-2">
+          <div class="list-header-titlebar">
+            <h1 class="text-headline-large font-weight-bold ma-0">
+              <slot name="title" />
+            </h1>
 
+            <div v-if="$slots.navigation">
+              <slot name="navigation" />
+            </div>
+            
             <div v-if="$slots.actions" class="list-header-actions">
-              <slot name="actions" />
+              <slot
+                name="actions"
+                :items="items.data.value"
+                :selected-items="selection.selectedItems.value as any"
+              />
             </div>
-          </h1>
+          </div>
+         
+          <div class="searchbar mt-1">
+            <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties" :selection="selection">
+              <div v-if="props.selectable" class="searchbar-prepend">
+                <v-badge
+                  v-if="props.selectable"
+                  :content="allSelectedCount"
+                  :model-value="allSelectedCount > 0"
+                  floating
+                  location="top left"
+                  :offset-x="8"
+                  :offset-y="16"
+                >
+                  <s-checkbox
+                    :model-value="visibleSelectedAllItemsInCurrentPage"
+                    @update:model-value="$event ? selection.selectAll() : selection.clearSelection({ onlyVisible: true })"
+                    :indeterminate="visibleSelectedCount > 0 && !visibleSelectedAllItemsInCurrentPage"
+                    :disabled="items.data.value.length === 0"
+                    density="comfortable"
+                    class="select-all-checkbox"
+                  />
+                  <s-tooltip activator="parent" location="top">
+                    <span v-if="allSelectedCount === 0">Select all</span>
+                    <span v-else-if="allSelectedCount === visibleSelectedCount">{{ allSelectedCount }} selected</span>
+                    <span v-else>{{ allSelectedCount }} selected ({{ visibleSelectedCount }} visible)</span>
+                  </s-tooltip>
+                </v-badge>
+              </div>
 
-          <slot name="searchbar" :items="items" :ordering="ordering" :ordering-options="orderingOptions" :filter-properties="filterProperties">
-            <div class="d-flex flex-row">
-              <filter-chip-selector
-                v-if="props.filterProperties && props.filterProperties.length > 0"
-                v-model:active-filters="activeFilters"
-                :filter-properties="props.filterProperties"
-                class="mr-1"
-              />
-              <v-text-field
-                :model-value="items.search.value"
-                @update:model-value="updateSearch"
-                label="Search"
-                variant="underlined"
-                spellcheck="false"
-                hide-details="auto"
-                autofocus
-                class="mt-0 mb-2"
-                clearable
-              />
-              <s-select-ordering
-                v-if="props.orderingOptions && props.orderingOptions.length > 0"
-                :model-value="ordering"
-                @update:model-value="updateOrdering"
-                :ordering-options="props.orderingOptions"
-                class="ml-1"
-              />
-            </div>
-          </slot>
-          <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
-            <filter-chip-list
-              v-if="props.filterProperties && props.filterProperties.length > 0"
-              v-model="activeFilters"
-              :filter-properties="props.filterProperties"
-              @update-pinned="updatePinnedFilters"
-            />
-          </slot>
-          <v-tabs v-if="$slots.tabs" height="30" selected-class="text-primary" class="list-header-tabs">
-            <slot name="tabs" />
-          </v-tabs>
+              <div class="searchbar-input flex-grow-width">
+                <v-text-field
+                  ref="searchbarRef"
+                  :model-value="items.search.value"
+                  @update:model-value="updateSearch"
+                  label="Search"
+                  variant="underlined"
+                  spellcheck="false"
+                  hide-details="auto"
+                  autofocus
+                  class="flex-grow-width"
+                  clearable
+                />
+
+                <slot name="filters" :active-filters="activeFilters" :filter-properties="props.filterProperties">
+                  <filter-chip-list
+                    v-if="props.filterProperties && props.filterProperties.length > 0"
+                    v-model="activeFilters"
+                    :filter-properties="props.filterProperties"
+                    @update-pinned="updatePinnedFilters"
+                    class="filter-chip-list"
+                  />
+                </slot>
+              </div>
+
+              <div class="searchbar-append">
+                <filter-chip-selector
+                  v-if="props.filterProperties && props.filterProperties.length > 0"
+                  v-model:active-filters="activeFilters"
+                  :filter-properties="props.filterProperties"
+                />
+                <s-select-ordering
+                  v-if="props.orderingOptions && props.orderingOptions.length > 0"
+                  :model-value="ordering"
+                  @update:model-value="updateOrdering"
+                  :ordering-options="props.orderingOptions"
+                />
+              </div>
+            </slot>
+          </div>
         </div>
 
         <slot name="items" :items="items">
@@ -59,6 +102,7 @@
         <v-list-item
           v-if="items.data.value.length === 0 && !items.hasNextPage.value && items.hasBaseURL.value"
           title="No data found"
+          class="no-data-item"
         >
           <div class="w-100 text-center">
             <img src="@base/assets/dino/notfound.svg" alt="" class="img-raptor" />
@@ -73,18 +117,17 @@
 import { pick, isEqual, sortBy, omit } from 'lodash-es';
 import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
+import { useListSelection } from '@base/composables/listselection';
 
 const orderingModel = defineModel<string|null>('ordering');
 const props = defineProps<{
   url: string|null;
   orderingOptions?: OrderingOption[];
   filterProperties?: FilterProperties[];
+  selectable?: boolean;
 }>();
 
-// pinnedFilters is a model bound from the page (v-model:pinnedFilters)
 const pinnedFilters = defineModel<FilterValue[]>('pinnedFilters');
-
-// Filter-related state
 const activeFilters = ref<FilterValue[]>([]);
 
 const ordering = computed(() => {
@@ -107,6 +150,14 @@ const items = useSearchableCursorPaginationFetcher<T>({
 useLazyAsyncData(async () => {
   await items.fetchNextPage()
 });
+
+const selection = useListSelection<T & { id: string }>({
+  items: items.data as unknown as MaybeRefOrGetter<(T & { id: string})[]>,
+  enabled: () => props.selectable,
+});
+const allSelectedCount = computed(() => selection.selectedItems.value.length);
+const visibleSelectedCount = computed(() => selection.selectedItemsVisible.value.length);
+const visibleSelectedAllItemsInCurrentPage = computed(() => selection.enabled.value && items.data.value.length > 0 && visibleSelectedCount.value === items.data.value.length);
 
 onMounted(async () => {
   if (!props.filterProperties || props.filterProperties.length === 0) {
@@ -149,7 +200,8 @@ watch(activeFilters, () => {
 
     router.replace({
       query: {
-        ...pick(route.query, ['search', 'ordering']),
+        ...pick(route.query, ['search']),
+        ordering: ordering.value?.value || '',
         ...filterParams,
       }
     });
@@ -164,9 +216,11 @@ watch(() => props.url, async () => {
   await items.fetchNextPage();
 });
 
+const searchbarRef = useTemplateRef('searchbarRef');
+useHotkey('ctrl+f', () => searchbarRef.value?.focus(), { inputs: true });
 function updateSearch(search: string) {
   items.search.value = search;
-  router.replace({ query: { ...route.query, search } });
+  router.replace({ query: { ...route.query, ordering: ordering.value?.value || '', search } });
 }
 
 function updateOrdering(ordering?: OrderingOption|null) {
@@ -189,12 +243,24 @@ function updatePinnedFilters() {
   }
 }
 
+async function refresh() {
+  selection.clearSelection({ onlyVisible: false });
+  items.reset({
+    query: {
+      ordering: ordering.value?.value,
+    },
+  });
+  await items.fetchNextPage();
+}
+
 defineExpose({
   items,
+  selection,
   activeFilters,
   updateSearch,
   updateOrdering,
   addFilter,
+  refresh,
 });
 </script>
 
@@ -206,21 +272,56 @@ defineExpose({
   z-index: 10;
   background-color: vuetify.$list-background;
 }
+
+.list-header-titlebar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
 .list-header-actions {
-  margin-left: 1rem;
-  display: inline-block;
-  
-  &:deep() > * {
-    margin-left: 0.5rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.searchbar {
+  display: flex;
+  flex-direction: row;
+
+  &-prepend {
+    padding-inline-start: 10px;
+    padding-inline-end: 10px;
   }
 }
 
-.list-header-tabs:deep(.v-tab) {
-  text-transform: initial;
+.filter-chip-list:deep(.v-chip) {
+  margin-top: 0.2em;
+  margin-bottom: 0.2em;
+}
+.select-all-checkbox:deep(.v-icon) {
+  opacity: 1;
 }
 
-:deep(.v-list-item .v-list-item-subtitle) {
-  opacity: var(--v-high-emphasis-opacity);
+:deep(.v-list-item) {
+  .v-list-item-subtitle {
+    opacity: var(--v-high-emphasis-opacity);
+  }
+
+  .v-list-item-action .v-checkbox-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+  }
+  &:hover, &.v-list-item--active {
+    .v-list-item-action .v-checkbox-btn {
+      opacity: 1;
+    }
+  }
+}
+
+.no-data-item {
+  pointer-events: none;
 }
 
 .img-raptor {

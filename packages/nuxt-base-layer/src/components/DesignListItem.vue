@@ -1,10 +1,19 @@
 <template>
   <v-list-item 
     :to="`/designs/${item.id}/pdfdesigner/`" 
+    :value="item.id"
     lines="two" 
     :data-testid="`design-${item.id}`"
     class="design-list-item"
   >
+    <template #prepend="{ isSelected, select }" v-if="props.selectable">
+      <v-list-item-action start>
+        <v-checkbox-btn
+          :model-value="isSelected"
+          @update:model-value="select(!isSelected)"
+        />
+      </v-list-item-action>
+    </template>
     <template #title>
       {{ title }}
 
@@ -80,6 +89,7 @@ const props = defineProps<{
   item: ProjectType;
   formatTitle?: boolean;
   actionButtons?: boolean;
+  selectable?: boolean;
 }>();
 const emit = defineEmits<{
   filter: [filter: FilterValue];

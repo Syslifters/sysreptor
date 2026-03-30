@@ -632,7 +632,8 @@ class TestNotesApi:
         assert res.status_code == 204, res.data
         assert set(n.id for n in self.user.notes.all()) == {note2.id, note2_1.id}
 
-    def test_export_multiple(self):
+    @pytest.mark.parametrize('request_key', ['ids', 'notes'])
+    def test_export_multiple(self, request_key):
         self.user.notes.all().delete()
 
         note1 = create_usernotebookpage(user=self.user, parent=None, order=1)
@@ -640,8 +641,8 @@ class TestNotesApi:
         _note1_2 = create_usernotebookpage(user=self.user, parent=note1, order=2)
         note2 = create_usernotebookpage(user=self.user, parent=None, order=2)
 
-        res = self.client.post(reverse('usernotebookpage-export-all', kwargs={'pentestuser_pk': 'self'}), data={
-            'notes': [note1_1.note_id, note2.note_id],
+        res = self.client.post(reverse('usernotebookpage-export-bulk', kwargs={'pentestuser_pk': 'self'}), data={
+            request_key: [note1_1.note_id, note2.note_id],
         })
         assert res.status_code == 200, res.data
         archive = b''.join(res.streaming_content)

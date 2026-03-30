@@ -28,7 +28,7 @@
         <div v-if="selectForm.importAs === ImportAs.FINDINGS">
           <p v-if="parsedData.length === 0">No findings available for import.</p>
           <finding-list-selection
-            :findings="parsedData as PentestFinding[]"
+            :findings="parsedData as ParsedPentestFinding[]"
             v-model:selected-finding-ids="selectForm.selected"
           />
         </div>
@@ -158,11 +158,11 @@ async function importScanFile(importAs: ImportAs) {
 
 async function createFinding(finding: ParsedPentestFinding) {
   try {
-    await $fetch(`/api/v1/pentestprojects/${route.params.projectId}/findings/`, {
-      method: 'POST',
-      body: finding,
-    });
-    importedCount.value += 1;
+  await $fetch(`/api/v1/pentestprojects/${route.params.projectId}/findings/`, {
+    method: 'POST',
+    body: finding,
+  });
+  importedCount.value += 1;
   } catch (error) {
     requestErrorToast({ error, message: 'Failed to upload ' + finding.data.title });
   }

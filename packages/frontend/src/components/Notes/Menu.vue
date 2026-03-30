@@ -52,7 +52,7 @@
                 v-if="props.exportUrl && props.selectedNotes"
                 button-text="Export Selected"
                 :export-url="props.exportUrl"
-                :options="{notes: props.selectedNotes.map(n => n.id)}"
+                :options="{ids: props.selectedNotes.map(n => n.id)}"
                 :name="props.exportName"
                 :disabled="props.readonly || props.selectedNotes.length === 0"
               />
@@ -164,20 +164,7 @@ async function deleteNotes(notes?: NoteBase[]) {
   }
 
   // Optimize delete: skip deleting children if parent is also being deleted
-  const deleteTasks = filterParentNotes(notes)
-    .map(n => (async () => {
-      try {
-        await Promise.resolve(props.performDelete!(n));
-      } catch (error: any) {
-        if (error?.status === 404) {
-          // Note was already deleted, ignore
-          return;
-        } else {
-          requestErrorToast({ error,  message: `Failed to delete note "${n.title}"` });
-        }
-      }
-    })());
-  await Promise.all(deleteTasks);
+  await bulkAction(filterParentNotes(notes), props.performDelete, n => `Failed to delete note "${n.title}"`);
 }
 
 async function copyNotes(notes?: NoteBase[]) {
@@ -185,15 +172,7 @@ async function copyNotes(notes?: NoteBase[]) {
     return;
   }
 
-  const copyTasks = filterParentNotes(notes)
-    .map(n => (async () => {
-      try {
-        await Promise.resolve(props.performCopy!(n));
-      } catch (error: any) {
-        requestErrorToast({ error, message: `Failed to copy note "${n.title}"` });
-      }
-    })());
-  await Promise.all(copyTasks);
+  await bulkAction(filterParentNotes(notes), props.performCopy, n => `Failed to copy note "${n.title}"`);
 }
 
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());

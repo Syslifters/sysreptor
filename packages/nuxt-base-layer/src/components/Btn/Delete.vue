@@ -10,7 +10,9 @@
     :confirm="props.confirm"
     :confirm-input="props.confirmInput"
     :action="props.delete"
-  />
+  >
+    <template v-for="(_, name) in $slots" #[name]="slotData: any"><slot :name="name" v-bind="slotData" /></template>
+  </btn-confirm>
 </template>
 
 <script setup lang="ts">

@@ -51,24 +51,25 @@
 
     <template #title>{{ props.dialogTitle }}</template>
     <template #default>
-      <v-card-text>
+      <v-card-text class="pt-0 overflow-y-auto">
         <slot name="dialog-text">
-          <template v-if="props.dialogText">{{ props.dialogText }}</template>
+          <p v-if="props.dialogText" class="mt-0">{{ props.dialogText }}</p>
         </slot>
         
         <template v-if="props.confirmInput">
-          <br><br>
-          Enter the following text to confirm: <br>
-          <strong>{{ props.confirmInput }}</strong>
-          <s-btn-icon 
-            @click="copyToClipboard(props.confirmInput)" 
-            size="small" 
-            density="compact"
-            class="ml-1"
-          >
-            <v-icon icon="mdi-content-copy" />
-            <s-tooltip activator="parent" text="Copy to clipboard" />
-          </s-btn-icon>
+          <div>
+            Enter the following text to confirm: <br>
+            <strong>{{ props.confirmInput }}</strong>
+            <s-btn-icon 
+              @click="copyToClipboard(props.confirmInput)" 
+              size="small" 
+              density="compact"
+              class="ml-1"
+            >
+              <v-icon icon="mdi-content-copy" />
+              <s-tooltip activator="parent" text="Copy to clipboard" />
+            </s-btn-icon>
+          </div>
 
           <s-text-field
             v-model="confirmUserInput"

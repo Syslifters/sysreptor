@@ -11,9 +11,11 @@
       ]"
       v-model:pinned-filters="localSettings.templateListPinnedFilters"
       :filter-properties="filterProperties"
+      :selectable="true"
     >
       <template #title>Templates</template>
-      <template #actions>
+      <template #actions="{ selectedItems }: { selectedItems: FindingTemplate[] }">
+        <v-divider vertical />
         <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
           <btn-create 
             @click="performCreate"
@@ -29,6 +31,41 @@
             :disabled="!auth.permissions.value.template_editor"
           />
         </permission-info>
+        <template v-if="selectedItems.length > 0">
+          <v-divider vertical />
+          <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+            <btn-export
+              export-url="/api/v1/findingtemplates/export/"
+              :options="{ids: selectedItems.map(p => p.id)}"
+              name="templates"
+              extension=".tar.gz"
+              button-variant="icon"
+              variant="flat"
+              density="comfortable"
+            />
+          </permission-info>
+          <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+            <btn-delete
+              :delete="() => performDeleteSelected(selectedItems)"
+              :disabled="!auth.permissions.value.template_editor"
+              :confirm-input="`delete ${selectedItems.length} templates`"
+              tooltip-text="Delete selected"
+              icon="mdi-delete"
+              density="comfortable"
+            >
+            <template #dialog-text>
+                <p class="mt-0">
+                  Do you really want to delete {{ selectedItems.length }} templates?
+                </p>
+                <ul class="mt-0">
+                  <li v-for="t in selectedItems" :key="t.id">
+                    {{ t.translations.find(tr => tr.is_main)?.data.title }}
+                  </li>
+                </ul>
+              </template>
+            </btn-delete>
+          </permission-info>
+        </template>
       </template>
       <template #item="{item}: {item: FindingTemplate}">
         <template-list-item
@@ -110,4 +147,9 @@ const filterProperties = computed((): FilterProperties[] => [
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: languageOptions.value, allow_exclude: true, default: '', multiple: true },
 ]);
+
+async function performDeleteSelected(templates: FindingTemplate[]) {
+  await bulkAction(templates, templateStore.delete, t => `Failed to delete template "${t.translations.find(tr => tr.is_main)?.data.title}"`);
+  await listViewRef.value?.refresh();
+}
 </script>
