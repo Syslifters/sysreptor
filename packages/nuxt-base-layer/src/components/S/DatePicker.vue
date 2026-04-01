@@ -24,18 +24,28 @@
     >
       <v-date-picker
         v-model="dateValue"
-        :disabled="props.disabled || props.disabled"
+        :disabled="props.disabled || props.readonly"
         :min="props.minDate"
         view-mode="month"
         :first-day-of-week="1"
         show-adjacent-months
         show-week
-      />
+      >
+        <template #append>
+          <v-btn
+            v-if="isTodayAllowed"
+            @click="setToday"
+            text="Today"
+            prepend-icon="mdi-calendar-today"
+            variant="text"
+          />
+        </template>
+      </v-date-picker>
     </v-menu>
   </s-text-field>
 </template>
 <script setup lang="ts">
-import { formatISO, isValid, parseISO } from "date-fns";
+import { formatISO, isAfter, isValid, parseISO, startOfDay } from "date-fns";
 
 const props = withDefaults(defineProps<{
   modelValue?: string|null;
@@ -74,6 +84,21 @@ const dateValue = computed({
     const formatted = val ? formatISO(val, { representation: 'date' }) : null;
     emit('update:modelValue', formatted);
   },
+});
+
+function setToday() {
+  dateValue.value = startOfDay(new Date());
+}
+
+const isTodayAllowed = computed(() => {
+  if (!props.minDate) {
+    return true;
+  }
+  const minDate = parseISO(props.minDate);
+  if (!isValid(minDate)) {
+    return true;
+  }
+  return !isAfter(startOfDay(minDate), startOfDay(new Date()));
 });
 
 const rules = [
