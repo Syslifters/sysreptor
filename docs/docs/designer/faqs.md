@@ -84,7 +84,7 @@
     <a href="https://www.example.com" class="link-none">https://www.example.com</a>
     ```
     Markdown:
-    ```markdown
+    ```md
     [example.com](https://www.example.com){.link-none}
     ```
 
@@ -100,14 +100,14 @@
 
     Highlighting within code-blocks works with the attribute `highlight-manual` and the marker `§§` ([see also](../reporting/markdown-features.md#code-blocks)):
 
-    ````
+    ````md
     ```http highlight-manual
     POST /§§important.php§§ HTTP/1.1
     ```
     ````
 
     To customize the hightlight style, add CSS styles for the `<mark>` tag, e.g.:
-    ```
+    ```css
     mark {
         background-color: red;
     }
@@ -153,6 +153,30 @@
     @page page-landscape {
         size: A4 landscape;
     }
+    ```
+
+
+??? note "How to add markdown headings to table of contents?"
+
+    SysReptor uses the CSS class `in-toc` to add headings to the table of contents. Optionally in combination with class `numbered` for chapter numbers.
+
+    ```md
+    ### Markdown Heading in ToC {.in-toc.numbered}
+    ### Markdown Heading not in ToC
+    ```
+
+    If you want to automatically add all markdown headings to table of contents, add following function at the top of your design's HTML code.
+
+    ```vue
+    {{
+        (function setMarkdownHeadingClasses() {
+            new window.MutationObserver((m) => {
+                document
+                    .querySelectorAll('.markdown h1,h2,h3,h4,h5,h6')
+                    .forEach(h => h.classList.add('in-toc', 'numbered'));
+            }).observe(document, { childList: true, subtree: true });
+        })()
+    }}
     ```
 
 
