@@ -6,6 +6,7 @@
 * Show database version in license info page
 * Support multi select and bulk actions in list views
 * UI: Redesign list view header
+* UI: Add today button to date picker
 
 
 ## v2026.21 - 2026-03-24
