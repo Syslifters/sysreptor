@@ -308,7 +308,7 @@ export function rehypeHighlightCode({ preview = false } = {}) {
         const {code, highlightInfos} = parseManualHighlightAreas(toString(node), meta);
         // Syntax highlighting
         let tree = highlightSyntax(code, node);
-        // Add manual highighting
+        // Add manual highlighting
         if (highlightInfos.length > 0) {
           tree = applyManualHighlighting(tree, highlightInfos);
         }
