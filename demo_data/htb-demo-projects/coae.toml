@@ -1,0 +1,144 @@
+format = "projects/v2"
+id = "4dcb8a0e-cf87-4723-8cd6-40784cedc13e"
+name = "COAE Exam Report"
+language = "en-US"
+tags = []
+members = []
+override_finding_order = false
+images = []
+
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[[sections]]
+id = "meta"
+status = "in-progress"
+
+[[sections]]
+id = "assessment_overview"
+status = "in-progress"
+
+[[sections]]
+id = "overview_summary"
+status = "in-progress"
+
+[[sections]]
+id = "document_control"
+status = "in-progress"
+
+[report_data]
+title = "COAE Exam Report"
+appendix_flags = """
+| Flag # | Host | Flag Value | Flag Location | Method Used |
+| ------ | ---- | ---------- | ------------- | ----------- |
+| 1. | TODO www.phantomkernel.htb - Flag 1 | | | |
+| 2. | TODO www.phantomkernel.htb - Flag 2 | | | |
+| 3. | TODO www.phantomkernel.htb - Flag 3 (`/secret_data.txt`) | | | |
+| 4. | TODO mcp.phantomkernel.htb - Flag | | | |
+| 5. | TODO staging.phantomkernel.htb - TicketFlow Flag | | | |
+| 6. | TODO staging.phantomkernel.htb - OmniDigit Flag | | | |
+| 7. | TODO staging.phantomkernel.htb - PassPort Flag | | | |
+"""
+appendix_additional_sections = []
+customer_full = "TODO Customer Ltd."
+customer_short = "TODO Customer"
+pentest_approach = "BLACKBOX"
+report_version = "TODO 1.0"
+assessment_overview = """
+{{ report.customer_full }} (“{{ report.customer_short }}” herein) invited {{ report.candidate.name }} to perform a targeted Security Assessment of their systems to identify high-risk security weaknesses, assess their impact, document all findings in a clear, professional, and repeatable manner, and provide remediation recommendations.
+
+The objective of this engagement is to identify, analyse, and document security vulnerabilities, safety risks, and misuse vectors affecting the {{ report.customer_short }}'s AI products, including those that may:
+
+* Cause harm to end users, customers, or the client
+* Enable bypass of the intended use cases or operational safeguards
+* Allow manipulation of model behavior
+* Expose sensitive data or internal system components
+* Facilitate unauthorized access, control, or output manipulation
+
+The engagement will focus on both technical and behavioral vulnerabilities within AI systems. However, the following types of activities are considered out of scope for this assessment:
+
+* Physical attacks against the client's properties
+* Unverified scanner output
+* Any vulnerabilities identified through DDoS or spam attacks
+* Vulnerabilities in third-party libraries
+* Any theoretical attacks or attacks that require significant user interaction.
+"""
+approach = """
+{{ report.candidate.name }} performed testing under a “{{ report.pentest_approach.label }}” approach from {{ formatDate(report.pentest_start, 'long') }}, to {{ formatDate(report.pentest_end, 'long') }}. The engagement followed a hybrid methodology combining elements from established security testing frameworks and industry best practices for web applications, APIs, and AI systems
+
+Testing was performed remotely from a non-evasive standpoint, with the goal of uncovering as many misconfigurations and vulnerabilities as possible. Each weakness identified was documented and manually investigated to determine exploitation possibilities and escalation potential.
+
+Identified issues were validated through controlled proof-of-concept exploitation to confirm their feasibility and full impact. Exploits were performed in a manner designed to avoid disruption to production services or access to real customer data.
+"""
+scope = """
+The scope of this assessment was as follows:
+
+TODO: scope
+
+* `www.phantomkernel.htb`: The main company website. The client placed a file `/secret_data.txt` on the filesystem, which {{ report.candidate.name }} was tasked with retrieving as proof of compromise.
+*  `mcp.phantomkernel.htb`: PhantomKernel's MCP server, which has not been released and is thus not yet publicly accessible. However, {{ report.candidate.name }} was able to access it by exploiting vulnerabilities documented in this report.
+*  `staging.phantomkernel.htb`: PhantomKernel's staging environment for their AI products. All AI systems hosted in the staging environment were considered in scope.
+
+
+| URL | Description |
+| --- | ----------- |
+| TODO http://www.phantomkernel.htb:PORT | Main PhantomKernel Website |
+| TODO http://mcp.phantomkernel.htb:PORT | PhantomKernel MCP Server (not yet released and thus protected from unauthorized access) |
+| TODO http://staging.phantomkernel.htb:PORT | Staging Environment for AI Systems |
+
+"""
+finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. The below chart provides a summary of the findings by severity level."
+customer_contacts = []
+
+[report_data.candidate]
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
+
+[[findings]]
+id = "2a13e66b-d5e5-40d5-a707-d507ba7f04d4"
+created = "2026-03-30T12:29:46.275329Z"
+updated = "2026-03-30T12:30:41.389875Z"
+status = "in-progress"
+order = 1
+
+[findings.assignee]
+id = "27a04015-353f-4237-8c71-f297c8395ad5"
+
+[findings.data]
+title = "TODO FINDING TITLE"
+cvss = "n/a"
+summary = "TODO DESCRIPTION"
+impact = "TODO IMPACT"
+description = """
+{{ report.candidate.name }} performed the following:
+
+1. TODO: LIST HIGH LEVEL STEPS
+
+
+```
+ADD COMMAND OUTPUT AS APPROPRIATE
+```
+
+TODO ADD SCREENSHOTS AS APPROPRIATE
+"""
+recommendation = "TODO REMEDIATION"
+affected_domain = "staging.phantomkernel.htb"
+references = []
+remediation_summary = """
+TODO: remediation summary
+
+#### Short Term
+TODO
+
+#### Medium Term
+TODO
+
+#### Long Term
+TODO
+"""
+
+[project_type]
+file = "../htb-designs/coae.toml"
