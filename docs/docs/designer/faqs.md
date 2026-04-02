@@ -106,7 +106,7 @@
     ```
     ````
 
-    To customize the hightlight style, add CSS styles for the `<mark>` tag, e.g.:
+    To customize the highlight style, add CSS styles for the `<mark>` tag, e.g.:
     ```css
     mark {
         background-color: red;
