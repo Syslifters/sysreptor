@@ -7,6 +7,7 @@
 * Support multi select and bulk actions in list views
 * UI: Redesign list view header
 * UI: Add today button to date picker
+* Add design for HTB COAE certification
 
 
 ## v2026.21 - 2026-03-24
