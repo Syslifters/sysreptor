@@ -28,67 +28,86 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
 ## OffSec Reports
 ### Penetration Testing
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: row; gap: 1em;">
-<figure>
-    <a href="/assets/reports/OffSec-OSCP-Exam-Report.pdf" target="_blank"><img alt="OffSec OSCP+ Exam Report Demo" src="/assets/reports/OffSec-OSCP-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSCP+ Exam Report Demo</figcaption>
-</figure>
-<figure>
-    <a href="/assets/reports/OffSec-OSWP-Exam-Report.pdf" target="_blank"><img alt="OffSec OSWP Exam Report Demo" src="/assets/reports/OffSec-OSWP-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSWP Exam Report Demo</figcaption>
-</figure>
-<figure>
-    <a href="/assets/reports/OffSec-OSEP-Exam-Report.pdf" target="_blank"><img alt="OffSec OSEP Exam Report Demo" src="/assets/reports/OffSec-OSEP-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSEP Exam Report Demo</figcaption>
-</figure>
+<a href="/assets/reports/OffSec-OSCP-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSCP+ Exam Report Demo" src="/assets/reports/OffSec-OSCP-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSCP+ Exam Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/OffSec-OSWP-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSWP Exam Report Demo" src="/assets/reports/OffSec-OSWP-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSWP Exam Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/OffSec-OSEP-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSEP Exam Report Demo" src="/assets/reports/OffSec-OSEP-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSEP Exam Report Demo</figcaption>
+    </figure>
+</a>
 </div>
 
 ### Web Application Security
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: row; gap: 1em;">
-<figure>
-    <a href="/assets/reports/OffSec-OSWA-Exam-Report.pdf" target="_blank"><img alt="OffSec OSWA Exam Report Demo" src="/assets/reports/OffSec-OSWA-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSWA Exam Report Demo</figcaption>
-</figure>
-<figure>
-    <a href="/assets/reports/OffSec-OSWE-Exam-Report.pdf" target="_blank"><img alt="OffSec OSWE Exam Report Demo" src="/assets/reports/OffSec-OSWE-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSWE Exam Report Demo</figcaption>
-</figure>
+<a href="/assets/reports/OffSec-OSWA-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSWA Exam Report Demo" src="/assets/reports/OffSec-OSWA-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSWA Exam Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/OffSec-OSWE-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSWE Exam Report Demo" src="/assets/reports/OffSec-OSWE-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSWE Exam Report Demo</figcaption>
+    </figure>
+</a>
 </div>
-
 
 ### Exploit Development
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: row; gap: 1em;">
-<figure>
-    <a href="/assets/reports/OffSec-OSED-Exam-Report.pdf" target="_blank"><img alt="OffSec OSED Exam Report Demo" src="/assets/reports/OffSec-OSED-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSED Exam Report Demo</figcaption>
-</figure>
-<figure>
-    <a href="/assets/reports/OffSec-OSMR-Exam-Report.pdf" target="_blank"><img alt="OffSec OSMR Exam Report Demo" src="/assets/reports/OffSec-OSMR-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSMR Exam Report Demo</figcaption>
-</figure>
-<figure>
-    <a href="/assets/reports/OffSec-OSEE-Exam-Report.pdf" target="_blank"><img alt="OffSec OSEE Exam Report Demo" src="/assets/reports/OffSec-OSEE-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSEE Exam Report Demo</figcaption>
-</figure>
+<a href="/assets/reports/OffSec-OSED-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSED Exam Report Demo" src="/assets/reports/OffSec-OSED-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSED Exam Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/OffSec-OSMR-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSMR Exam Report Demo" src="/assets/reports/OffSec-OSMR-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSMR Exam Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/OffSec-OSEE-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSEE Exam Report Demo" src="/assets/reports/OffSec-OSEE-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSEE Exam Report Demo</figcaption>
+    </figure>
+</a>
 </div>
-
 
 ### Defensive Security
 <div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: row; gap: 1em;">
-<figure>
-    <a href="/assets/reports/OffSec-OSDA-Exam-Report.pdf" target="_blank"><img alt="OffSec OSDA Exam Report Demo" src="/assets/reports/OffSec-OSDA-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSDA Exam Report Demo</figcaption>
-</figure>
-<figure>
-    <a href="/assets/reports/OffSec-OSIR-Exam-Report.pdf" target="_blank"><img alt="OffSec OSIR Exam Report Demo" src="/assets/reports/OffSec-OSIR-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSIR Exam Report Demo</figcaption>
-</figure>
-<figure>
-    <a href="/assets/reports/OffSec-OSTH-Exam-Report.pdf" target="_blank"><img alt="OffSec OSTH Exam Report Demo" src="/assets/reports/OffSec-OSTH-Exam-Report-Preview.png" style="border:1px solid;" /></a>
-    <figcaption>OffSec OSTH Exam Report Demo</figcaption>
-</figure>
+<a href="/assets/reports/OffSec-OSDA-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSDA Exam Report Demo" src="/assets/reports/OffSec-OSDA-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSDA Exam Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/OffSec-OSIR-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSIR Exam Report Demo" src="/assets/reports/OffSec-OSIR-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSIR Exam Report Demo</figcaption>
+    </figure>
+</a>
+<a href="/assets/reports/OffSec-OSTH-Exam-Report.pdf" target="_blank">
+    <figure>
+        <img alt="OffSec OSTH Exam Report Demo" src="/assets/reports/OffSec-OSTH-Exam-Report-Preview.png" style="border:1px solid;" />
+        <figcaption>OffSec OSTH Exam Report Demo</figcaption>
+    </figure>
+</a>
 </div>
 
-<br style="clear:both" />
 The structure follows the official OffSec reports (with kind permission by OffSec).
 
 ## Creating an OSCP Exam Report
