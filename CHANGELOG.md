@@ -5,6 +5,7 @@
 * Fix web worker hangs when rendering large markdown previews
 * Show database version in license info page
 * Support multi select and bulk actions in list views
+* Support bulk moving in notes tree
 * UI: Redesign list view header
 * UI: Add today button to date picker
 * Add design for HTB COAE certification

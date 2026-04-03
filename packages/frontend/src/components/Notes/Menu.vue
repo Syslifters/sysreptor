@@ -14,7 +14,6 @@
           variant="flat"
           color="secondary"
           density="compact"
-          class="ml-2"
         >
           <v-icon icon="mdi-plus" />
           <s-tooltip activator="parent" location="top">Add Note (Ctrl+J)</s-tooltip>
@@ -26,7 +25,6 @@
           icon="mdi-magnify"
           size="small"
           density="compact"
-          class="ml-2"
         />
         <s-btn-icon 
           v-if="props.exportUrl || props.performImport || (props.exportPdfUrl && props.selectedNotes) || (props.performDelete && props.selectedNotes) || (props.performCopy && props.selectedNotes)" 
@@ -187,6 +185,8 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   .v-list-subheader__text {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    gap: 0.5em;
     width: 100%;
   }
 }
