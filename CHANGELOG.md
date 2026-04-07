@@ -8,6 +8,7 @@
 * Support bulk moving in notes tree
 * UI: Redesign list view header
 * UI: Add today button to date picker
+* AI agent: add field labels to context
 * Add design for HTB COAE certification
 
 
