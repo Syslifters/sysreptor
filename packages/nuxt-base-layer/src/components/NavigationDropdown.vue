@@ -6,6 +6,7 @@
     item-value="value"
     density="compact"
     rounded="xl"
+    menu-icon=""
     class="navigation-dropdown"
   >
     <template #selection="{ item }">
@@ -38,16 +39,26 @@
     <template #prepend-inner v-if="prevItem">
       <s-btn-icon
         :to="prevItem.to"
-        icon="mdi-chevron-left"
         density="compact"
-      />
+      >
+        <v-icon icon="mdi-chevron-left" />
+        <s-tooltip activator="parent" location="top">
+          <v-icon v-if="prevItem.icon" start :icon="prevItem.icon" />
+          <span>{{ prevItem.title }}</span>
+        </s-tooltip>
+      </s-btn-icon>
     </template>
     <template #append-inner v-if="nextItem">
       <s-btn-icon
         :to="nextItem.to"
-        icon="mdi-chevron-right"
         density="compact"
-      />
+      >
+        <v-icon icon="mdi-chevron-right" />
+        <s-tooltip activator="parent" location="top">
+          <v-icon v-if="nextItem.icon" start :icon="nextItem.icon" />
+          <span>{{ nextItem.title }}</span>
+        </s-tooltip>
+      </s-btn-icon>
     </template>
   </s-select>
 </template>
@@ -75,7 +86,7 @@ const nextItem = computed(() => props.items.at((currentIndex.value + 1) % props.
 
 <style lang="scss" scoped>
 .navigation-dropdown {
-  min-width: 13em
+  min-width: 11em
 }
 
 .navigation-dropdown:deep() {
