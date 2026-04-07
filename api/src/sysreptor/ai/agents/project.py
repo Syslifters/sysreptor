@@ -146,6 +146,8 @@ def format_finding_data(finding) -> str:
         to_yaml(metadata),
         f'## Data (path: findings.{finding.finding_id}.data)',
         to_yaml(finding_data),
+        f'## Field definitions (for findings.{finding.finding_id}.data)',
+        format_field_definition(finding.field_definition),
     ]) + '</finding>'
 
 
@@ -160,6 +162,8 @@ def format_section_data(section) -> str:
         to_yaml(metadata),
         f'### Data (path: sections.{section.section_id}.data)',
         to_yaml(section_data),
+        f'### Field definitions (for sections.{section.section_id}.data)',
+        format_field_definition(section.field_definition),
     ]) + '</section>'
 
 
@@ -195,7 +199,7 @@ def format_template_data(template: FindingTemplate, short=False) -> str:
 
 
 def format_field_definition(definition: FieldDefinition):
-    data = serialize_field_definition(definition, only_fields=['id', 'type', 'label', 'items', 'properties', 'choices', 'cvss_version'])
+    data = serialize_field_definition(definition, only_fields=['id', 'type', 'label', 'items', 'properties', 'choices'])
     return to_yaml(data)
 
 

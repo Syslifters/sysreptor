@@ -370,16 +370,15 @@ def _serialize_field_definition_entry(definition: list[BaseField]|Any, extra_inf
             d |= copy_keys(d_extra_info, extra_info)
         elif extra_info:
             d |= d_extra_info
+        if only_fields:
+            d = copy_keys(d, keys=only_fields)
         return _serialize_field_definition_entry(d, extra_info=extra_info, only_fields=only_fields)
     elif isinstance(definition, enum.Enum):
         return definition.value
     elif isinstance(definition, date):
         return definition.isoformat()
     else:
-        if only_fields:
-            return copy_keys(definition, keys=only_fields)
-        else:
-            return definition
+        return definition
 
 
 def serialize_field_definition(definition: FieldDefinition, **kwargs) -> list[dict]:
