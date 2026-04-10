@@ -106,7 +106,7 @@ class S3ParamsSerializer(serializers.Serializer):
 
 class BackupSerializer(serializers.Serializer):
     key = serializers.CharField()
-    aes_key = serializers.CharField(required=False, allow_null=True)
+    aes_key = serializers.CharField(required=False, allow_null=True, help_text='AES key for encrypting the backup, base64-encoded 256-bit key')
     s3_params = S3ParamsSerializer(required=False, allow_null=True)
     check = serializers.BooleanField(default=False, required=False)
 

@@ -44,7 +44,7 @@ The backup can optionally be encrypted via a 256-bit AES key provided in the HTT
 curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>"}' -H 'Authorization: Bearer <api-token>' -H "Content-Type: application/json" -o backup.zip
 
 # Create encrypted backup
-curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>", "aes_key": "<aes-key-as-hex>"}' -H 'Authorization: Bearer <api-token>' -H "Content-Type: application/json" -o backup.zip.crypt
+curl -X POST https://sysreptor.example.com/api/v1/utils/backup/ -d '{"key": "<backup-key>", "aes_key": "<aes-key-as-base64>"}' -H 'Authorization: Bearer <api-token>' -H "Content-Type: application/json" -o backup.zip.crypt
 ```
 
 ## Restore backups
