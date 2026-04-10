@@ -35,9 +35,6 @@ class ChatThreadPermissions(BasePermission):
             raise PermissionDenied('AI agent chat is disabled in settings')
         if not settings.AI_AGENT_MODEL:
             raise PermissionDenied('No LLM model configured')
-
-        if view.action == 'create':
-            forbidden_with_apitoken_auth(request)
         return True
 
 
