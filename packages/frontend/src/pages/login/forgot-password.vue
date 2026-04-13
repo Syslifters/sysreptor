@@ -17,7 +17,7 @@
             prepend-icon="mdi-email"
             variant="outlined"
             spellcheck="false"
-            autocomplete="off"
+            autocomplete="email"
             required
           />
         </v-card-text>

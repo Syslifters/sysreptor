@@ -17,6 +17,7 @@
               v-model="userForm.password"
               confirm show-strength generate
               :error-messages="serverErrors?.password || []"
+              autocomplete="new-password"
               class="mt-4"
             />
             <s-checkbox

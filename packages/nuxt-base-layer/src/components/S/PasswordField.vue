@@ -10,7 +10,7 @@
       @click:append-inner="showPassword = !showPassword"
       :loading="props.showStrength"
       :variant="props.variant"
-      autocomplete="off"
+      :autocomplete="props.autocomplete"
       spellcheck="false"
     >
       <template #loader v-if="props.showStrength">
@@ -43,7 +43,7 @@
       @click:append-inner="showPassword = !showPassword"
       :rules="rules.confirmMatches"
       :variant="props.variant"
-      autocomplete="off"
+      :autocomplete="props.autocomplete"
       spellcheck="false"
       class="mt-6"
     />
@@ -62,12 +62,14 @@ const props = withDefaults(defineProps<{
   confirm?: boolean,
   showStrength?: boolean,
   generate?: boolean,
+  autocomplete?: string,
 }>(), {
   label: 'Password',
   variant: undefined,
   disabled: false,
   confirm: false,
   showStrength: false,
+  autocomplete: 'off',
 });
 
 const confirmField = useTemplateRef<VTextField>('confirmField');

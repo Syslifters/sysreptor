@@ -19,7 +19,7 @@
             label="Username"
             prepend-icon="mdi-account"
             spellcheck="false"
-            autocomplete="off"
+            autocomplete="username"
             :autofocus="!username"
             :disabled="Boolean(username)"
             required
@@ -30,6 +30,8 @@
             name="password"
             label="Password"
             prepend-icon="mdi-lock"
+            spellcheck="false"
+            autocomplete="current-password"
             class="mt-4"
             :autofocus="Boolean(username)"
             required
@@ -71,7 +73,7 @@
               length="6"
               @finish="loginCode"
               spellcheck="false"
-              autocomplete="off"
+              autocomplete="one-time-code"
               autofocus
               required
             />
@@ -84,7 +86,7 @@
               length="12"
               @finish="loginCode"
               spellcheck="false"
-              autocomplete="off"
+              autocomplete="one-time-code"
               autofocus
               required
             />
@@ -139,6 +141,8 @@
             v-model="formChangePassword.password"
             confirm show-strength generate
             label="New Password"
+            spellcheck="false"
+            autocomplete="new-password"
           />
 
           <p v-if="errorMessage" class="text-error">

@@ -32,6 +32,7 @@
           @update:model-value="updateProp('password', $event)"
           label="Link Password (optional)"
           generate
+          autocomplete="new-password"
           :disabled="props.disabled"
           :error-messages="props.error?.password"
         />
