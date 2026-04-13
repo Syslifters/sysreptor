@@ -51,6 +51,7 @@
               :error-messages="props.errors?.first_name || []"
               :disabled="!canEdit"
               spellcheck="false"
+              autocomplete="given-name"
             />
           </v-col>
           <v-col :md="2">
@@ -60,6 +61,7 @@
               :error-messages="props.errors?.middle_name || []"
               :disabled="!canEdit"
               spellcheck="false"
+              autocomplete="middle-name"
             />
           </v-col>
           <v-col :md="5">
@@ -71,6 +73,7 @@
               :error-messages="props.errors?.last_name || []"
               :disabled="!canEdit"
               spellcheck="false"
+              autocomplete="family-name"
             />
           </v-col>
         </v-row>
@@ -82,6 +85,7 @@
               :error-messages="props.errors?.title_before || []"
               :disabled="!canEdit"
               spellcheck="false"
+              autocomplete="honorific-prefix"
             />
           </v-col>
           <v-col :md="6">
@@ -91,6 +95,7 @@
               :error-messages="props.errors?.title_after || []"
               :disabled="!canEdit"
               spellcheck="false"
+              autocomplete="honorific-suffix"
             />
           </v-col>
         </v-row>
@@ -104,6 +109,7 @@
           :error-messages="props.errors?.email || []"
           :disabled="!canEditUsername"
           spellcheck="false"
+          autocomplete="email"
           class="mt-8"
         />
         <v-row class="mt-4">
@@ -115,6 +121,7 @@
               :error-messages="props.errors?.phone || []"
               :disabled="!canEdit"
               spellcheck="false"
+              autocomplete="work tel"
             />
           </v-col>
           <v-col :md="6">
@@ -125,6 +132,7 @@
               :error-messages="props.errors?.mobile || []"
               :disabled="!canEdit"
               spellcheck="false"
+              autocomplete="mobile tel"
             />
           </v-col>
         </v-row>

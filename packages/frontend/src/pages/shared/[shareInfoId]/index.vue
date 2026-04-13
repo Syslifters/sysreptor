@@ -22,6 +22,7 @@
             v-model="passwordForm.data.password"
             :error-messages="passwordForm.error"
             label="Password"
+            autocomplete="current-password"
             required
             class="mt-4"
           />

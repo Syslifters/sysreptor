@@ -17,6 +17,7 @@
             :error-messages="formError?.data?.detail"
             confirm show-strength generate
             label="New Password"
+            autocomplete="new-password"
             class="mt-4"
           />
           <v-alert v-if="formError?.data?.detail" type="error" :text="formError.data.detail" />

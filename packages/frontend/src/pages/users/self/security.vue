@@ -39,6 +39,7 @@
                   label="New Password"
                   :error-messages="changePasswordWizard.errors?.password"
                   confirm show-strength generate
+                  autocomplete="new-password"
                   class="mt-4"
                 />
               </v-card-text>
@@ -202,6 +203,9 @@
                       :length="setupWizard.data.digits"
                       @finish="setupWizardCompleteTotp"
                       :error-messages="setupWizard.error"
+                      spellcheck="false"
+                      autocomplete="one-time-code"
+                      autofocus
                       class="totp-confirm"
                     />
                   </v-card-text>

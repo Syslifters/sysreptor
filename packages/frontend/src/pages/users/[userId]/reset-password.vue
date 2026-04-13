@@ -11,6 +11,7 @@
       label="New password"
       :error-messages="serverErrors?.password || []"
       confirm show-strength generate
+      autocomplete="new-password"
       :disabled="!canEdit"
       class="mt-4"
     />
