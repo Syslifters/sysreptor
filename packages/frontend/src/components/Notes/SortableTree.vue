@@ -208,7 +208,7 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: an
     lastSelectedNoteId.value = note.id;
     event.preventDefault();
   } else if (event.ctrlKey) {
-    selectNote(note, !selectedNoteIds.value.has(note.id));
+    selectNote(note, !selectedNoteIds.value.has(note.id) || currentNoteId.value === note.id);
     lastSelectedNoteId.value = note.id;
     event.preventDefault();
   } else {
@@ -218,6 +218,9 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: an
 watch(currentNoteId, () => {
   // On navigate: reset selection
   selectedNoteIds.value.clear();
+  if (currentNoteId.value) {
+    selectedNoteIds.value.add(currentNoteId.value);
+  }
   lastSelectedNoteId.value = currentNoteId.value;
 }, { immediate: true });
 
@@ -382,7 +385,6 @@ defineExpose({
   }
 }
 .note-list-item--selected {
-  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity) * 2) * 100%), transparent);
-  border-radius: 4px;
+  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity)) * 100%), transparent);
 }
 </style>
