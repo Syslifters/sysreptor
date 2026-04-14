@@ -32,8 +32,6 @@
 </template>
 
 <script setup lang="ts">
-import ReasoningPanel from './ReasoningPanel.vue';
-
 const props = defineProps<{
   msg: ChatHistoryEntry;
   project?: PentestProject;

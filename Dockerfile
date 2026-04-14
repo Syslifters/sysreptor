@@ -151,7 +151,7 @@ ENV PYTHONUNBUFFERED=on \
 
 COPY api/pyproject.toml api/poetry.lock /app/api/
 RUN python3 -m venv /opt/poetry \
-    && /opt/poetry/bin/pip install --no-cache poetry==2.3.2 \ 
+    && /opt/poetry/bin/pip install --no-cache poetry==2.3.4 \ 
     && /opt/poetry/bin/poetry config virtualenvs.create false \
     && /opt/poetry/bin/poetry install --directory=/app/api --no-cache --no-interaction --no-root \
     && rm -rf /opt/poetry

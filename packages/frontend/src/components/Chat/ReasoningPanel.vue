@@ -29,6 +29,7 @@ const props = withDefaults(
     maxHeightStreaming?: string;
   }>(),
   {
+    title: undefined,
     isStreaming: false,
     maxHeightStreaming: '7em',
   },

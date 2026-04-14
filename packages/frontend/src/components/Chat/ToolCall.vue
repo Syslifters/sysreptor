@@ -90,13 +90,14 @@
           </v-expansion-panel-title>
         </template>
         <template #default>
-          <chat-message
-            v-if="props.value.subagentMessages?.length"
-            v-for="msg, idx in props.value.subagentMessages" :key="msg.id"
-            :msg="msg"
-            :project="props.project"
-            :is-streaming="props.isStreaming && idx === props.value.subagentMessages!.length - 1"
-          />
+          <template v-if="props.value.subagentMessages?.length">
+            <chat-message
+              v-for="msg, idx in props.value.subagentMessages" :key="msg.id"
+              :msg="msg"
+              :project="props.project"
+              :is-streaming="props.isStreaming && idx === props.value.subagentMessages!.length - 1"
+            />
+          </template>
           <markdown-preview
             v-if="props.value.content"
             :value="props.value.content"
