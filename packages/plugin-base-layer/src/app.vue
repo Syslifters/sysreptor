@@ -18,6 +18,7 @@ onBeforeMount(() => {
   try {
     const parentThemeConfig = window.parent?.useNuxtApp?.().$vuetify?.theme;
     if (parentThemeConfig) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const themes = {} as any;
       for (const themeName of ['light', 'dark']) {
         if (parentThemeConfig.themes.value[themeName]) {
