@@ -262,9 +262,19 @@ function setupDrawingHandlers() {
 }
 
 function createDrawingShape(x: number, y: number) {
+  function normalizeObjectScale(obj: Rect|Ellipse) {
+    obj.set({
+      width: obj.width * obj.scaleX,
+      height: obj.height * obj.scaleY,
+      scaleX: 1,
+      scaleY: 1,
+    });
+    obj.setCoords();
+  }
+
   switch (activeTool.value) {
     case ImageEditorTool.RECTANGLE_OUTLINED: {
-      return new Rect({
+      const rect = new Rect({
         left: x,
         top: y,
         width: 0,
@@ -273,6 +283,8 @@ function createDrawingShape(x: number, y: number) {
         stroke: localSettings.imageEditorSettings.color,
         strokeWidth: localSettings.imageEditorSettings.strokeWidth,
       });
+      rect.on('modified', () => normalizeObjectScale(rect));
+      return rect;
     }
     case ImageEditorTool.RECTANGLE_FILLED: {
       return new Rect({
@@ -291,13 +303,11 @@ function createDrawingShape(x: number, y: number) {
         top: y,
         width: 0,
         height: 0,
-        originX: 'left',
-        originY: 'top',
         pixelBlockSize: localSettings.imageEditorSettings.strokeWidth * 2,
       });
     }
     case ImageEditorTool.ELLIPSE: {
-      return new Ellipse({
+      const ellipse = new Ellipse({
         left: x,
         top: y,
         rx: 0,
@@ -308,6 +318,8 @@ function createDrawingShape(x: number, y: number) {
         originX: 'center',
         originY: 'center',
       });
+      ellipse.on('modified', () => normalizeObjectScale(ellipse));
+      return ellipse;
     } 
     case ImageEditorTool.LINE: {
       return new Polyline([{ x: 0, y: 0 }, { x: 0, y: 0 }], {
@@ -411,16 +423,14 @@ function updateDrawingShape(x: number, y: number) {
     case ImageEditorTool.RECTANGLE_OUTLINED:
     case ImageEditorTool.RECTANGLE_FILLED:
     case ImageEditorTool.PIXELATE: {
-      // Calculate top-left corner position regardless of drag direction
-      const left = Math.min(startX, x);
-      const top = Math.min(startY, y);
+      // Keep the default rect origin (center) while drawing in any drag direction.
+      const left = (startX + x) / 2;
+      const top = (startY + y) / 2;
       drawingShape.value.set({
         left,
         top,
         width,
         height,
-        originX: 'left',
-        originY: 'top',
       });
       break;
     } 
@@ -732,6 +742,7 @@ function updateActiveObjects(values: Record<string, any>, predicate?: (obj: Fabr
   }
   activeObjects.forEach((obj) => {
     obj.set(values);
+    obj.setCoords();
   });
   canvas.value.renderAll();
 }
