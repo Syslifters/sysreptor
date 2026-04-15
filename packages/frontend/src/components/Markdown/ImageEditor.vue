@@ -76,9 +76,6 @@ const drawStartY = ref(0);
 const cropRect = shallowRef<FabricObject|null> (null);
 const cropBackground = shallowRef<FabricObject|null>(null);
 const cropExcludeObjects = computed(() => new Set([cropRect.value, cropBackground.value].filter(Boolean) as FabricObject[]));
-const pixelationSource = usePixelationSource(canvas, {
-  excludeObjects: cropExcludeObjects,
-});
 
 
 // Initialize canvas
@@ -89,6 +86,8 @@ onMounted(async () => {
   const img = await FabricImage.fromURL(props.imageSrc, {});
   img.positionByLeftTop(new Point(0, 0));
 
+  // Create a fabricjs canvas with willReadFrequently context
+  canvasEl.value.getContext('2d', { willReadFrequently: true });
   canvas.value = new Canvas(canvasEl.value, {
     width: img.width,
     height: img.height,
@@ -294,7 +293,6 @@ function createDrawingShape(x: number, y: number) {
         height: 0,
         originX: 'left',
         originY: 'top',
-        pixelationSource,
       });
     }
     case ImageEditorTool.ELLIPSE: {

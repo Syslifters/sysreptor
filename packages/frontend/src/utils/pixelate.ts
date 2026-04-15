@@ -1,9 +1,13 @@
 import { clamp } from 'lodash-es';
-import { Canvas, Rect, type FabricObject, Point, util as fabricUtil } from 'fabric';
+import { Canvas, Rect, Point, util as fabricUtil } from 'fabric';
 
 type Pixel01 = { r: number; g: number; b: number };
 type ViewportRect = { left: number; top: number; width: number; height: number };
-type SrcRingCache = { key: string; img: ImageData; left: number; top: number; width: number; height: number };
+type SrcStripe =
+  | { dir: 'h'; img: ImageData; left: number; y: number; width: number } // horizontal 1px stripe
+  | { dir: 'v'; img: ImageData; x: number; top: number; height: number }; // vertical 1px stripe
+
+type SrcFringeStripes = Partial<Record<'top' | 'bottom' | 'left' | 'right', SrcStripe>>;
 type FringeAvailability = {
   hasTop: boolean;
   hasBottom: boolean;
@@ -29,20 +33,6 @@ function getViewportRect(c: Canvas, obj: Rect, w: number, h: number): ViewportRe
   const top = Math.min(tl.y, br.y);
   const width = Math.abs(br.x - tl.x);
   const height = Math.abs(br.y - tl.y);
-  if (!width || !height) {
-    return null;
-  }
-  return { left, top, width, height };
-}
-
-function getRingRoi(rect: ViewportRect, srcW: number, srcH: number) {
-  // Tight region of interest that includes a 1px ring around the rect.
-  const left = clamp(Math.floor(rect.left - 1), 0, Math.max(0, srcW - 1));
-  const top = clamp(Math.floor(rect.top - 1), 0, Math.max(0, srcH - 1));
-  const right = clamp(Math.ceil(rect.left + rect.width + 1), 0, srcW);
-  const bottom = clamp(Math.ceil(rect.top + rect.height + 1), 0, srcH);
-  const width = Math.max(0, right - left);
-  const height = Math.max(0, bottom - top);
   if (!width || !height) {
     return null;
   }
@@ -125,9 +115,14 @@ function ensureEffectCanvasSize(
   return prev;
 }
 
-function getRingPixel01(ring: SrcRingCache, x: number, y: number): Pixel01 {
-  const i = (((y - ring.top) * ring.width + (x - ring.left)) * 4) | 0;
-  const d = ring.img.data;
+function getStripePixel01(stripe: SrcStripe, x: number, y: number): Pixel01 {
+  let i = 0;
+  if (stripe.dir === 'h') {
+    i = ((x - stripe.left) * 4) | 0;
+  } else {
+    i = ((y - stripe.top) * 4) | 0;
+  }
+  const d = stripe.img.data;
   return { r: (d[i] ?? 0) / 255, g: (d[i + 1] ?? 0) / 255, b: (d[i + 2] ?? 0) / 255 };
 }
 
@@ -155,35 +150,37 @@ function isFringeAvailable(f: FringeAvailability, which: FringeCandidate) {
 
 function sampleFringePixel01(args: {
   fringes: FringeAvailability;
-  ring: SrcRingCache;
+  stripes: SrcFringeStripes;
   samplingNoiseStd: number;
   randn: (mean?: number, std?: number) => number;
   preferred: 'top' | 'bottom' | 'left' | 'right';
   horizontal: number;
   vertical: number;
 }) {
-  const { fringes, ring, samplingNoiseStd, randn, preferred, horizontal, vertical } = args;
+  const { fringes, stripes, samplingNoiseStd, randn, preferred, horizontal, vertical } = args;
   const { rectL, rectT, rectR, rectB, topY, bottomY, leftX, rightX } = fringes;
 
   for (const which of FRINGE_CANDIDATES[preferred]) {
     if (!isFringeAvailable(fringes, which)) continue;
+    const stripe = stripes[which];
+    if (!stripe) continue;
 
     const jitter = randn(0, samplingNoiseStd);
     if (which === 'top') {
       const x = clamp(Math.round(horizontal * (rectR - rectL + 1) + rectL + jitter), rectL, rectR);
-      return getRingPixel01(ring, x, topY);
+      return getStripePixel01(stripe, x, topY);
     }
     if (which === 'bottom') {
       const x = clamp(Math.round(horizontal * (rectR - rectL + 1) + rectL + jitter), rectL, rectR);
-      return getRingPixel01(ring, x, bottomY);
+      return getStripePixel01(stripe, x, bottomY);
     }
     if (which === 'left') {
       const y = clamp(Math.round(vertical * (rectB - rectT + 1) + rectT + jitter), rectT, rectB);
-      return getRingPixel01(ring, leftX, y);
+      return getStripePixel01(stripe, leftX, y);
     }
     // right
     const y = clamp(Math.round(vertical * (rectB - rectT + 1) + rectT + jitter), rectT, rectB);
-    return getRingPixel01(ring, rightX, y);
+    return getStripePixel01(stripe, rightX, y);
   }
 
   // Should not happen, but return neutral grey.
@@ -200,10 +197,10 @@ function renderPixelation(args: {
   h: number;
   noiseStd: number;
   fringes: FringeAvailability;
-  ring: SrcRingCache;
+  stripes: SrcFringeStripes;
   samplingNoiseStd: number;
 }) {
-  const { ctx, ectx, effectCanvas, effectW, effectH, w, h, noiseStd, fringes, ring, samplingNoiseStd } = args;
+  const { ctx, ectx, effectCanvas, effectW, effectH, w, h, noiseStd, fringes, stripes, samplingNoiseStd } = args;
   const out = ectx.createImageData(effectW, effectH);
 
   ctx.save();
@@ -219,10 +216,10 @@ function renderPixelation(args: {
       const horizontal = effectW === 1 ? 0.5 : x / effectW;
       const vertical = effectH === 1 ? 0.5 : y / effectH;
 
-      const top = sampleFringePixel01({ fringes, ring, samplingNoiseStd, randn, preferred: 'top', horizontal, vertical });
-      const bottom = sampleFringePixel01({ fringes, ring, samplingNoiseStd, randn, preferred: 'bottom', horizontal, vertical });
-      const left = sampleFringePixel01({ fringes, ring, samplingNoiseStd, randn, preferred: 'left', horizontal, vertical });
-      const right = sampleFringePixel01({ fringes, ring, samplingNoiseStd, randn, preferred: 'right', horizontal, vertical });
+      const top = sampleFringePixel01({ fringes, stripes, samplingNoiseStd, randn, preferred: 'top', horizontal, vertical });
+      const bottom = sampleFringePixel01({ fringes, stripes, samplingNoiseStd, randn, preferred: 'bottom', horizontal, vertical });
+      const left = sampleFringePixel01({ fringes, stripes, samplingNoiseStd, randn, preferred: 'left', horizontal, vertical });
+      const right = sampleFringePixel01({ fringes, stripes, samplingNoiseStd, randn, preferred: 'right', horizontal, vertical });
 
       // Bias between horizontal vs vertical interpolation.
       const weightH = (Math.min(x, effectW - x) / effectW) - (Math.min(y, effectH - y) / effectH) + 0.5;
@@ -268,11 +265,7 @@ function renderPixelation(args: {
 export class PixelateRect extends Rect {
   static override type = 'pixelate-rect';
 
-  private pixelationSource: ReturnType<typeof usePixelationSource>;
   private _effectCanvas: HTMLCanvasElement | null = null;
-  private _cachedSrcRing:
-    | SrcRingCache
-    | null = null;
   private _effectCanvasSize: { w: number; h: number } | null = null;
 
   static override ownDefaults = {
@@ -285,15 +278,14 @@ export class PixelateRect extends Rect {
     hasRotatingPoint: false,
   };
 
-  constructor(options: ConstructorParameters<typeof Rect>[0] & { pixelationSource: ReturnType<typeof usePixelationSource> }) {
+  constructor(options: ConstructorParameters<typeof Rect>[0]) {
     super(options);
-    this.pixelationSource = options.pixelationSource;
     Object.assign(this, PixelateRect.ownDefaults);
     this.setOptions(options);
   }
 
   override _render(ctx: CanvasRenderingContext2D) {
-    const srcCtx = this.pixelationSource.ctx;
+    const srcCtx = ctx;
     const c = this.canvas;
     if (!srcCtx || !c) {
       return;
@@ -309,6 +301,14 @@ export class PixelateRect extends Rect {
     if (!rect) {
       return;
     }
+
+    const rectScaling = c.getRetinaScaling();
+    const rectPx = {
+      left: rect.left * rectScaling,
+      top: rect.top * rectScaling,
+      width: rect.width * rectScaling,
+      height: rect.height * rectScaling,
+    };
 
     const srcCanvas = srcCtx.canvas;
     const srcW = Math.floor(srcCanvas.width);
@@ -327,35 +327,38 @@ export class PixelateRect extends Rect {
     const samplingNoiseStd = 5 * strength + 1;
     const noiseStd = 0.1;
 
-    // Cache a tight ROI that includes a 1px ring around the rect.
-    // We will only *read* from pixels outside the rect (the fringe strips).
-    const roi = getRingRoi(rect, srcW, srcH);
-    if (!roi) {
-      return;
-    }
-
-    const cacheKey = `${this.pixelationSource.version.value}:${roi.left},${roi.top},${roi.width},${roi.height}`;
-    if (!this._cachedSrcRing || this._cachedSrcRing.key !== cacheKey) {
-      try {
-        this._cachedSrcRing = {
-          key: cacheKey,
-          img: srcCtx.getImageData(roi.left, roi.top, roi.width, roi.height),
-          left: roi.left,
-          top: roi.top,
-          width: roi.width,
-          height: roi.height,
-        };
-      } catch {
-        // If getImageData fails (e.g. tainted canvas), fail closed by doing nothing.
-        return;
-      }
-    }
-
-    const ring = this._cachedSrcRing;
-    const fringes = getFringes(rect, srcW, srcH);
+    const fringes = getFringes(rectPx, srcW, srcH);
     // If there are no outside pixels at all (rect covers whole canvas), fail closed.
     if (!fringes.hasTop && !fringes.hasBottom && !fringes.hasLeft && !fringes.hasRight) {
       fillClippedGrey(ctx, w, h);
+      return;
+    }
+
+    // Only read 1px fringe stripes. Never read any pixel inside the rect into JS memory.
+    const stripes: SrcFringeStripes = {};
+    try {
+      if (fringes.hasTop) {
+        const left = fringes.rectL;
+        const width = fringes.rectR - fringes.rectL + 1;
+        stripes.top = { dir: 'h', img: srcCtx.getImageData(left, fringes.topY, width, 1), left, y: fringes.topY, width };
+      }
+      if (fringes.hasBottom) {
+        const left = fringes.rectL;
+        const width = fringes.rectR - fringes.rectL + 1;
+        stripes.bottom = { dir: 'h', img: srcCtx.getImageData(left, fringes.bottomY, width, 1), left, y: fringes.bottomY, width };
+      }
+      if (fringes.hasLeft) {
+        const top = fringes.rectT;
+        const height = fringes.rectB - fringes.rectT + 1;
+        stripes.left = { dir: 'v', img: srcCtx.getImageData(fringes.leftX, top, 1, height), x: fringes.leftX, top, height };
+      }
+      if (fringes.hasRight) {
+        const top = fringes.rectT;
+        const height = fringes.rectB - fringes.rectT + 1;
+        stripes.right = { dir: 'v', img: srcCtx.getImageData(fringes.rightX, top, 1, height), x: fringes.rightX, top, height };
+      }
+    } catch {
+      // If getImageData fails (e.g. tainted canvas), fail closed by doing nothing.
       return;
     }
 
@@ -375,94 +378,8 @@ export class PixelateRect extends Rect {
       h,
       noiseStd,
       fringes,
-      ring,
+      stripes,
       samplingNoiseStd,
     });
   }
-}
-
-
-export function usePixelationSource(
-  canvasRef: Ref<Canvas | null>,
-  options?: {
-    excludeObjects?: Ref<Set<FabricObject>>;
-  },
-) {
-  let offscreen: HTMLCanvasElement | null = null;
-  let ctx: CanvasRenderingContext2D | null = null;
-  const dirty = ref(true);
-  const version = ref(0);
-
-  const excludeObjects = options?.excludeObjects ?? shallowRef(new Set<FabricObject>());
-  const lastRefreshAt = ref<number>(0);
-
-  function ensureSize(w: number, h: number) {
-    offscreen ??= document.createElement('canvas');
-    const width = Math.max(1, Math.floor(w));
-    const height = Math.max(1, Math.floor(h));
-    if (offscreen.width !== width) {
-      offscreen.width = width;
-      dirty.value = true;
-    }
-    if (offscreen.height !== height) {
-      offscreen.height = height;
-      dirty.value = true;
-    }
-    ctx ??= offscreen.getContext('2d', { willReadFrequently: true });
-  }
-
-  function refreshFromCanvas(c: Canvas) {
-    ensureSize(c.width, c.height);
-    if (!offscreen || !ctx || !dirty.value) {
-      return;
-    }
-
-    dirty.value = false;
-    version.value++;
-    lastRefreshAt.value = Date.now();
-
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, offscreen.width, offscreen.height);
-
-    const objects = c.getObjects().filter((o) => !excludeObjects.value.has(o) && o.type !== PixelateRect.type);
-    c.renderCanvas(ctx, objects);
-  }
-
-  function attachToCanvas(c: Canvas) {
-    function markDirtyIfRelevant(e: any) {
-      const t = e?.target as FabricObject | undefined;
-      if (!t) {
-        dirty.value = true;
-        return;
-      }
-      if (t.type === PixelateRect.type) {
-        return;
-      }
-      if (excludeObjects.value.has(t)) {
-        return;
-      }
-      dirty.value = true;
-    }
-
-    function beforeRender() {
-      refreshFromCanvas(c);
-    }
-
-    c.on('object:added', markDirtyIfRelevant);
-    c.on('object:modified', markDirtyIfRelevant);
-    c.on('object:removed', markDirtyIfRelevant);
-    c.on('text:changed', markDirtyIfRelevant);
-    c.on('before:render', beforeRender);
-
-    dirty.value = true;
-  }
-  whenever(canvasRef, (c) => attachToCanvas(c), { immediate: true },);
-
-  return {
-    get ctx() {
-      return ctx;
-    },
-    version,
-    lastRefreshAt,
-  };
 }
