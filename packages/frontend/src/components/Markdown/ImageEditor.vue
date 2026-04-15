@@ -293,6 +293,7 @@ function createDrawingShape(x: number, y: number) {
         height: 0,
         originX: 'left',
         originY: 'top',
+        pixelBlockSize: localSettings.imageEditorSettings.strokeWidth * 2,
       });
     }
     case ImageEditorTool.ELLIPSE: {
@@ -741,6 +742,7 @@ watch(() => localSettings.imageEditorSettings.color, (color) => {
 watch(() => localSettings.imageEditorSettings.strokeWidth, (width) => {
   updateActiveObjects({ strokeWidth: width }, (obj) => obj.strokeWidth > 0);
   updateActiveObjects({ fontSize: fontSize.value }, (obj) => obj.type === 'i-text' || obj.type === 'text');
+  updateActiveObjects({ pixelBlockSize: width * 2 }, (obj) => obj.type === 'pixelate-rect');
 });
 
 async function exportAsBlob(): Promise<Blob | null> {

@@ -76,6 +76,12 @@ function fillClippedGrey(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.restore();
 }
 
+function clampInt(n: unknown, min: number, max: number) {
+  const v = typeof n === 'number' ? n : Number.NaN;
+  if (!Number.isFinite(v)) return null;
+  return clamp(Math.round(v), min, max);
+}
+
 function mulberry32(seed: number) {
   let t = seed >>> 0;
   return () => {
@@ -264,6 +270,9 @@ function renderPixelation(args: {
 
 export class PixelateRect extends Rect {
   static override type = 'pixelate-rect';
+  static override customProperties = [...(Rect.customProperties ?? []), 'pixelBlockSize'];
+
+  declare pixelBlockSize: number;
 
   private _effectCanvas: HTMLCanvasElement | null = null;
   private _effectCanvasSize: { w: number; h: number } | null = null;
@@ -276,6 +285,7 @@ export class PixelateRect extends Rect {
     objectCaching: false,
     lockRotation: true,
     hasRotatingPoint: false,
+    pixelBlockSize: 18,
   };
 
   constructor(options: ConstructorParameters<typeof Rect>[0]) {
@@ -319,8 +329,7 @@ export class PixelateRect extends Rect {
 
     // Secure pseudo-pixelation: synthesize pixels using only fringe pixels outside the rect.
     // Parameters (in viewport pixel space). Deterministic PRNG seed = 42.
-    const vpt = c.viewportTransform ?? [1, 0, 0, 1, 0, 0];
-    const blockSize = Math.max(6, Math.min(28, Math.round(14 * (vpt[0] || 1))));
+    const blockSize = clamp(this.pixelBlockSize, 2, 256);
     const effectW = Math.max(1, Math.floor(rect.width / blockSize));
     const effectH = Math.max(1, Math.floor(rect.height / blockSize));
     const strength = Math.max(1, Math.round(blockSize / 6));
