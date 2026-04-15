@@ -21,7 +21,7 @@
 
 <script lang="ts">
 import { 
-  Canvas, Rect, Ellipse, Polyline, Polygon, FabricImage, type FabricObject, Point, IText, Group, Circle, Control, 
+  Canvas, Rect, Ellipse, Polyline, Polygon, FabricImage, type FabricObject, Point, IText, Group, Circle, Control,
   type TPointerEvent, type Transform, util as fabricUtil, controlsUtils,
 } from 'fabric';
 import { useZoomImage } from '@base/utils/helpers';
@@ -30,6 +30,7 @@ export enum ImageEditorTool {
   SELECT = 'select',
   RECTANGLE_OUTLINED = 'rectangle_outlined',
   RECTANGLE_FILLED = 'rectangle_filled',
+  PIXELATE = 'pixelate',
   ELLIPSE = 'ellipse',
   LINE = 'line',
   TEXT = 'text',
@@ -74,6 +75,11 @@ const drawStartY = ref(0);
 // Crop mode
 const cropRect = shallowRef<FabricObject|null> (null);
 const cropBackground = shallowRef<FabricObject|null>(null);
+const cropExcludeObjects = computed(() => new Set([cropRect.value, cropBackground.value].filter(Boolean) as FabricObject[]));
+const pixelationSource = usePixelationSource(canvas, {
+  excludeObjects: cropExcludeObjects,
+});
+
 
 // Initialize canvas
 onMounted(async () => {
@@ -169,7 +175,7 @@ watch(activeTool, (tool, oldTool) =>  {
   }
   
   canvas.value.forEachObject((obj) => {
-    if ([cropRect.value, cropBackground.value].includes(obj)) {
+    if (cropExcludeObjects.value.has(obj)) {
       return;
     }
         obj.set(selectModeArgs.value);
@@ -184,7 +190,7 @@ function setupChangeTracking() {
   }
 
   function onChange(e: any) {
-    if (e.target && ![cropRect.value, cropBackground.value].includes(e.target)) {
+    if (e.target && !cropExcludeObjects.value.has(e.target)) {
       hasChanges.value = true;
     }
   }
@@ -278,6 +284,17 @@ function createDrawingShape(x: number, y: number) {
         fill: localSettings.imageEditorSettings.color,
         stroke: localSettings.imageEditorSettings.color,
         strokeWidth: 0,
+      });
+    }
+    case ImageEditorTool.PIXELATE: {
+      return new PixelateRect({
+        left: x,
+        top: y,
+        width: 0,
+        height: 0,
+        originX: 'left',
+        originY: 'top',
+        pixelationSource,
       });
     }
     case ImageEditorTool.ELLIPSE: {
@@ -393,7 +410,8 @@ function updateDrawingShape(x: number, y: number) {
   
   switch (tool) {
     case ImageEditorTool.RECTANGLE_OUTLINED:
-    case ImageEditorTool.RECTANGLE_FILLED: {
+    case ImageEditorTool.RECTANGLE_FILLED:
+    case ImageEditorTool.PIXELATE: {
       // Calculate top-left corner position regardless of drag direction
       const left = Math.min(startX, x);
       const top = Math.min(startY, y);
@@ -527,7 +545,7 @@ function deleteSelected() {
   }
   
   const activeObjects = canvas.value.getActiveObjects()
-    .filter(o => ![cropRect.value, cropBackground.value].includes(o));
+    .filter(o => !cropExcludeObjects.value.has(o));
   if (activeObjects.length > 0) {
     canvas.value.remove(...activeObjects);
     canvas.value.discardActiveObject();

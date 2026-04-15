@@ -29,6 +29,12 @@
       :active="activeTool === ImageEditorTool.RECTANGLE_FILLED"
     />
     <markdown-toolbar-button
+      @click="setTool(ImageEditorTool.PIXELATE)"
+      title="Pixelate [P]"
+      icon="mdi-blur"
+      :active="activeTool === ImageEditorTool.PIXELATE"
+    />
+    <markdown-toolbar-button
       @click="setTool(ImageEditorTool.ELLIPSE)"
       title="Ellipse (Outline) [O]"
       icon="mdi-ellipse-outline"
@@ -179,6 +185,7 @@ function onWheel(event: WheelEvent) {
 useHotkey('v', () => setTool(ImageEditorTool.SELECT));
 useHotkey('r', () => setTool(ImageEditorTool.RECTANGLE_OUTLINED));
 useHotkey('shift+r', () => setTool(ImageEditorTool.RECTANGLE_FILLED));
+useHotkey('p', () => setTool(ImageEditorTool.PIXELATE));
 useHotkey('o', () => setTool(ImageEditorTool.ELLIPSE));
 useHotkey('l', () => setTool(ImageEditorTool.LINE));
 useHotkey('t', () => setTool(ImageEditorTool.TEXT));
