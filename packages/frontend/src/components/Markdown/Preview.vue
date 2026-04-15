@@ -7,15 +7,6 @@
       <!-- Placeholder of raw text while markdown is initially rendered -->
       <p>{{ props.value }}</p>
     </div>
-    <markdown-image-preview-dialog
-      ref="previewDialogRef"
-      v-model="previewImageSrc"
-      :images="previewImagesAll"
-      :readonly="props.readonly"
-      :upload-file="props.uploadFile"
-      :rewrite-file-url-map="props.rewriteFileUrlMap"
-      @image-edited="emit('image-edited', $event)"
-    />
   </div>
 </template>
 
@@ -45,7 +36,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   'rendered': [];
-  'image-edited': [value: { oldUrl: string; newUrl: string }];
+  'open-image-dialog': [value: { selected: PreviewImage; images: PreviewImage[]; editMode?: boolean }];
 }>();
 
 const cacheBusterFallback = uuidv4();
@@ -81,10 +72,6 @@ watchThrottled(() => props.value, async () => {
 onUnmounted(() => abortController.value.abort());
 
 const previewRef = useTemplateRef('previewRef');
-const previewDialogRef = useTemplateRef('previewDialogRef');
-
-const previewImageSrc = ref<PreviewImage|null>(null);
-const previewImagesAll = ref<PreviewImage[]>([]);
 function getPreviewImagesAndSelected(clickedImg: HTMLImageElement | null): { images: PreviewImage[]; selected: PreviewImage | null } {
   if (!previewRef.value) {
     return { images: [], selected: null };
@@ -113,8 +100,7 @@ function getPreviewImagesAndSelected(clickedImg: HTMLImageElement | null): { ima
 function openImageDialog(img: HTMLImageElement, editMode?: boolean) {
   const { images, selected } = getPreviewImagesAndSelected(img);
   if (selected) {
-    previewImagesAll.value = images;
-    previewDialogRef.value?.open?.(selected, editMode);
+    emit('open-image-dialog', { selected, images, editMode });
   }
 }
 useEventListener(previewRef, 'click', (e) => {

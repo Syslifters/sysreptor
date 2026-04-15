@@ -12,13 +12,31 @@
     <markdown-preview
       v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW"
       v-bind="markdownPreviewAttrsHistoric" 
+      @open-image-dialog="openHistoricImageDialog"
       class="mde-preview mde-preview-historic" 
     />
     <v-divider vertical class="mde-separator" />
     <markdown-preview
       v-if="props.historic.markdownEditorMode === MarkdownEditorMode.PREVIEW"
       v-bind="markdownPreviewAttrsCurrent" 
+      @open-image-dialog="openCurrentImageDialog"
       class="mde-preview mde-preview-current" 
+    />
+
+    <markdown-image-preview-dialog
+      ref="historicPreviewDialogRef"
+      v-model="historicPreviewImageSrc"
+      :images="historicPreviewImagesAll"
+      :readonly="true"
+    />
+    <markdown-image-preview-dialog
+      ref="currentPreviewDialogRef"
+      v-model="currentPreviewImageSrc"
+      :images="currentPreviewImagesAll"
+      :readonly="props.current.readonly"
+      :upload-file="markdownPreviewAttrsCurrent.uploadFile"
+      :rewrite-file-url-map="markdownPreviewAttrsCurrent.rewriteFileUrlMap"
+      @image-edited="markdownPreviewAttrsCurrent.onImageEdited"
     />
   </div>
 </template>
@@ -35,6 +53,22 @@ const { markdownPreviewAttrsHistoric, markdownPreviewAttrsCurrent, markdownToolb
   props: computed(() => props),
   extensions: markdownEditorDefaultExtensions(),
 });
+
+const historicPreviewDialogRef = useTemplateRef('historicPreviewDialogRef');
+const historicPreviewImageSrc = ref<PreviewImage|null>(null);
+const historicPreviewImagesAll = ref<PreviewImage[]>([]);
+function openHistoricImageDialog(e: { selected: PreviewImage; images: PreviewImage[]; editMode?: boolean }) {
+  historicPreviewImagesAll.value = e.images;
+  historicPreviewDialogRef.value?.open(e.selected, e.editMode);
+}
+
+const currentPreviewDialogRef = useTemplateRef('currentPreviewDialogRef');
+const currentPreviewImageSrc = ref<PreviewImage|null>(null);
+const currentPreviewImagesAll = ref<PreviewImage[]>([]);
+function openCurrentImageDialog(e: { selected: PreviewImage; images: PreviewImage[]; editMode?: boolean }) {
+  currentPreviewImagesAll.value = e.images;
+  currentPreviewDialogRef.value?.open(e.selected, e.editMode);
+}
 </script>
 
 <style lang="scss" scoped>
