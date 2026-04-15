@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2026.25 - 2026-04-15
 * Highlight findings by CVSS if severity field is empty
 * Fix web worker hangs when rendering large markdown previews
 * Show database version in license info page
