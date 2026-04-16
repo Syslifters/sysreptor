@@ -15,6 +15,7 @@
       v-if="props.msg.text"
       :value="props.msg.text"
       :throttle-ms="100"
+      :readonly="true"
       class="message-text"
     />
   </template>

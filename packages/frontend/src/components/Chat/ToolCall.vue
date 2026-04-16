@@ -101,6 +101,7 @@
           <markdown-preview
             v-if="props.value.content"
             :value="props.value.content"
+            :readonly="true"
             :throttle-ms="100"
             class="message-text"
           />

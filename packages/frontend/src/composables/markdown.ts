@@ -23,6 +23,7 @@ import {
   CustomizedSearchPanel,
   syntaxTree,
   type SyntaxNode,
+  type ChangeSpec,
 } from "@sysreptor/markdown/editor/index";
 import { uuidv4 } from "@base/utils/helpers";
 import { MarkdownEditorMode } from '#imports';
@@ -531,6 +532,7 @@ export function useMarkdownEditorBase(options: {
         options.editorView.value!.dispatch(options.editorView.value!.state.update({
           changes,
           selection: { anchor: changes[0]!.from + replacement.length },
+          annotations: Transaction.userEvent.of('preview'),
         }));
       }
     }
@@ -540,6 +542,16 @@ export function useMarkdownEditorBase(options: {
     } else {
       replaceAllInMarkdown(event.oldUrl, event.newUrl);
     }
+  }
+
+  function onPreviewChange(change: ChangeSpec) {
+    if (options.props.value.readonly || options.props.value.disabled || !options.editorView.value) {
+      return;
+    }
+    options.editorView.value.dispatch(options.editorView.value.state.update({
+      changes: change,
+      annotations: Transaction.userEvent.of('preview'),
+    }));
   }
 
   function focus() {
@@ -582,9 +594,9 @@ export function useMarkdownEditorBase(options: {
     referenceItems: options.props.value.referenceItems,
     rewriteFileUrlMap: options.props.value.rewriteFileUrlMap,
     uploadFile: options.props.value.uploadFile,
-    editorView: options.editorView.value,
     cacheBuster: previewCacheBuster,
     onImageEdited,
+    onChange: onPreviewChange,
   }));
 
   return {
