@@ -29,6 +29,7 @@
             :options="{ids: selectedItems.map(p => p.id)}"
             name="designs"
             extension=".tar.gz"
+            tooltip-text="Export selected"
             button-variant="icon"
             variant="flat"
             density="comfortable"
