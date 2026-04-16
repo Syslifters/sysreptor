@@ -74,4 +74,15 @@
   .tok-attributevalue { color:  #a11; }
   .tok-comment { color: #940; }
 
+  // YAML frontmatter highlighting
+  .tok-meta, .tok-keyword, .tok-atom, .tok-bool, .tok-null, .tok-number, .tok-string, .tok-escape, .tok-punctuation, .tok-property {
+    font-family: monospace;
+  }
+  .tok-meta { color: #085; }
+  .tok-property { color: #795da3; }
+  .tok-string { color: #a11; }
+  .tok-number, .tok-bool, .tok-null, .tok-atom { color: #1c6bba; }
+  .tok-keyword { color: #b75501; }
+  .tok-punctuation, .tok-escape { color: #555; }
+
 }

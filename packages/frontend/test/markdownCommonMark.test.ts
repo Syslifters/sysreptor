@@ -65,6 +65,8 @@ describe('CommonMark', () => {
     1, 2, 3, 5, 6, 7, 8, 18, 36, 48, 69, 85, 100, 134, 183, 
     184, 191, 211, 225, 231, 236, 252, 253, 254, 257, 264, 
     270, 271, 272, 273, 274, 278, 286, 287, 288, 289, 290, 309, 313, 
+    // Parsing conflicts with YAML frontmatter
+    96, 98,
     // Different handling of leading whitespace, because of disabled indented code blocks
     49, 70, 87, 137, 238, 312,
     // Different handling of unicode characters: unicode whitespace is treated the same as normal whitespace

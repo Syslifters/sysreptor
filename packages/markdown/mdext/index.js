@@ -7,6 +7,7 @@ import rehypeParse from 'rehype-parse';
 import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkMath from 'remark-math';
+import remarkFrontmatter from 'remark-frontmatter';
 import { defaultHandlers as defaultHandlersToMdast, defaultNodeHandlers as defaultNodeHandlersToMdast } from 'hast-util-to-mdast';
 
 import { remarkFootnotes, remarkToRehypeHandlersFootnotes, remarkToRehypeHandersFootnotesPreview, rehypeFootnoteSeparator, rehypeFootnoteSeparatorPreview } from './footnotes';
@@ -37,7 +38,8 @@ export function markdownParser() {
     .use(remarkAttrs)
     .use(remarkFigure)
     .use(remarkTodoMarker)
-    .use(remarkMath);
+    .use(remarkMath)
+    .use(remarkFrontmatter);
 }
 
 
