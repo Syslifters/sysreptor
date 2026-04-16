@@ -1,5 +1,6 @@
 import { LanguageSupport, Language, defineLanguageFacet, languageDataProp, indentNodeProp, syntaxHighlighting } from '@codemirror/language';
 import { html } from "@codemirror/lang-html"
+import { yamlLanguage } from "@codemirror/lang-yaml"
 import { Prec, RangeSet, RangeSetBuilder } from "@codemirror/state";
 import { keymap, Decoration, EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { Parser, Tree, NodeSet, NodeType, type Input, TreeFragment, type PartialParse, parseMixed, type SyntaxNode, IterMode } from '@lezer/common';
@@ -77,6 +78,7 @@ enum MarkdownNodeType {
   htmlText, htmlFlow,
   listOrdered, listUnordered, listItem, listItemPrefix, blockQuotePrefix, listItemMarker, taskListCheck,
   reference, definition,
+  yaml,
 }
 const nodeTypes = [NodeType.none].concat(
   Object.keys(MarkdownNodeType)
@@ -439,6 +441,8 @@ class MarkdownParser extends Parser {
     return parseMixed((node, input) => {
       if ([MarkdownNodeType.htmlText, MarkdownNodeType.htmlFlow].includes(node.type.id)) {
         return {parser: htmlLanguage.language.parser, overlay: [{from: node.from, to: node.to}]}
+      } else if (node.type.id === MarkdownNodeType.yaml) {
+        return {parser: yamlLanguage.parser, overlay: [{from: node.from, to: node.to}]}
       }
       return null;
     })(mdParser, input, fragments, ranges);
@@ -470,11 +474,24 @@ export const markdownHighlightStyle = tagHighlighter([
   {tag: tags.footnote, class: 'tok-footnote'},
   {tag: tags.todo, class: 'tok-todo'},
 
+  // HTML highlighting
   {tag: t.tagName, class: 'tok-tagname'},
   {tag: t.angleBracket, class: 'tok-anglebracket'},
   {tag: t.attributeName, class: 'tok-attributename'},
   {tag: t.attributeValue, class: 'tok-attributevalue'},
   {tag: t.comment, class: 'tok-comment'},
+
+  // YAML frontmatter highlighting
+  {tag: t.meta, class: 'tok-meta'},
+  {tag: t.keyword, class: 'tok-keyword'},
+  {tag: t.atom, class: 'tok-atom'},
+  {tag: t.bool, class: 'tok-bool'},
+  {tag: t.null, class: 'tok-null'},
+  {tag: t.number, class: 'tok-number'},
+  {tag: t.string, class: 'tok-string'},
+  {tag: t.escape, class: 'tok-escape'},
+  {tag: t.punctuation, class: 'tok-punctuation'},
+  {tag: t.propertyName, class: 'tok-property'},
 ]);
 
 

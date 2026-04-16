@@ -2,6 +2,8 @@
 
 ## Upcoming
 * Image editor: add pixelation tool
+* MDE: support toggling task list checkboxes in markdown preview
+* MDE: support frontmatter highlighting
 
 
 ## v2026.25 - 2026-04-15

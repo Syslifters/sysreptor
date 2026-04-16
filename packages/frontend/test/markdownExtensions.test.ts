@@ -89,6 +89,10 @@ describe('Markdown extensions', () => {
     '`{{ text }}`': '<p><code class="code-inline">&#x7B;&#x7B; text &#x7D;&#x7D;</code></p>',
     '```\n{{ text }}\n```': codeBlock('&#x7B;&#x7B; text &#x7D;&#x7D;'),
     '```\n\\# \\{\\{ text \\}\\}\n```': codeBlock('\\# \\&#x7B;\\&#x7B; text \\&#x7D;\\&#x7D;'),
+    // YAML frontmatter
+    '---\ntitle: Test\n---\n\ntext': '<p>text</p>',
+    '---\ntitle: Test\n\n\ntext': { html: '<hr>\n<p>title: Test</p>\n<p>text</p>', formatted: '***\n\ntitle: Test\n\ntext' },
+    'text\n\n---\ntitle: Test\n---': { html: '<p>text</p>\n<hr>\n<h2>title: Test</h2>', formatted: 'text\n\n***\n\n## title: Test' },
   }).map(([md, expected]) => [md, typeof expected === 'string' ? { html: expected, formatted: md } : expected]) as [string, { html: string, formatted: string }][]) {
     test(md, () => {
       const html = renderMarkdownToHtml({ text: md }).replaceAll(/ data-position=".*?"/g, '').trim()
