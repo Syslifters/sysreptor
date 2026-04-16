@@ -43,6 +43,7 @@
         v-if="props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN"
         ref="previewRef"
         v-bind="markdownPreviewAttrs"
+        @open-image-dialog="openImageDialog"
         class="mde-preview"
       />
       <div v-if="spacerHeight > 0" class="mde-spacer">
@@ -62,6 +63,16 @@
       <v-divider />
       <markdown-statusbar v-if="editorView" v-bind="markdownStatusbarAttrs" />
     </div>
+
+    <markdown-image-preview-dialog
+      ref="previewDialogRef"
+      v-model="previewImageSrc"
+      :images="previewImagesAll"
+      :readonly="markdownPreviewAttrs.readonly"
+      :upload-file="markdownPreviewAttrs.uploadFile"
+      :rewrite-file-url-map="markdownPreviewAttrs.rewriteFileUrlMap"
+      @image-edited="markdownPreviewAttrs.onImageEdited"
+    />
   </div>
 </template>
 
@@ -85,6 +96,15 @@ const { editorRef, editorView, markdownToolbarAttrs, markdownStatusbarAttrs, mar
 });
 
 const toolbarRef = useTemplateRef<InstanceType<typeof MarkdownToolbar>>('toolbarRef');
+
+// Image preview dialog
+const previewDialogRef = useTemplateRef('previewDialogRef');
+const previewImageSrc = ref<PreviewImage|null>(null);
+const previewImagesAll = ref<PreviewImage[]>([]);
+function openImageDialog(e: { selected: PreviewImage; images: PreviewImage[]; editMode?: boolean }) {
+  previewImagesAll.value = e.images;
+  previewDialogRef.value?.open(e.selected, e.editMode);
+}
 
 
 // Sync scroll

@@ -21,7 +21,7 @@
 
 <script lang="ts">
 import { 
-  Canvas, Rect, Ellipse, Polyline, Polygon, FabricImage, type FabricObject, Point, IText, Group, Circle, Control, 
+  Canvas, Rect, Ellipse, Polyline, Polygon, FabricImage, type FabricObject, Point, IText, Group, Circle, Control,
   type TPointerEvent, type Transform, util as fabricUtil, controlsUtils,
 } from 'fabric';
 import { useZoomImage } from '@base/utils/helpers';
@@ -30,6 +30,7 @@ export enum ImageEditorTool {
   SELECT = 'select',
   RECTANGLE_OUTLINED = 'rectangle_outlined',
   RECTANGLE_FILLED = 'rectangle_filled',
+  PIXELATE = 'pixelate',
   ELLIPSE = 'ellipse',
   LINE = 'line',
   TEXT = 'text',
@@ -74,6 +75,8 @@ const drawStartY = ref(0);
 // Crop mode
 const cropRect = shallowRef<FabricObject|null> (null);
 const cropBackground = shallowRef<FabricObject|null>(null);
+const cropExcludeObjects = computed(() => new Set([cropRect.value, cropBackground.value].filter(Boolean) as FabricObject[]));
+
 
 // Initialize canvas
 onMounted(async () => {
@@ -83,6 +86,8 @@ onMounted(async () => {
   const img = await FabricImage.fromURL(props.imageSrc, {});
   img.positionByLeftTop(new Point(0, 0));
 
+  // Create a fabricjs canvas with willReadFrequently context
+  canvasEl.value.getContext('2d', { willReadFrequently: true });
   canvas.value = new Canvas(canvasEl.value, {
     width: img.width,
     height: img.height,
@@ -169,7 +174,7 @@ watch(activeTool, (tool, oldTool) =>  {
   }
   
   canvas.value.forEachObject((obj) => {
-    if ([cropRect.value, cropBackground.value].includes(obj)) {
+    if (cropExcludeObjects.value.has(obj)) {
       return;
     }
         obj.set(selectModeArgs.value);
@@ -184,7 +189,7 @@ function setupChangeTracking() {
   }
 
   function onChange(e: any) {
-    if (e.target && ![cropRect.value, cropBackground.value].includes(e.target)) {
+    if (e.target && !cropExcludeObjects.value.has(e.target)) {
       hasChanges.value = true;
     }
   }
@@ -257,9 +262,19 @@ function setupDrawingHandlers() {
 }
 
 function createDrawingShape(x: number, y: number) {
+  function normalizeObjectScale(obj: Rect|Ellipse) {
+    obj.set({
+      width: obj.width * obj.scaleX,
+      height: obj.height * obj.scaleY,
+      scaleX: 1,
+      scaleY: 1,
+    });
+    obj.setCoords();
+  }
+
   switch (activeTool.value) {
     case ImageEditorTool.RECTANGLE_OUTLINED: {
-      return new Rect({
+      const rect = new Rect({
         left: x,
         top: y,
         width: 0,
@@ -268,6 +283,8 @@ function createDrawingShape(x: number, y: number) {
         stroke: localSettings.imageEditorSettings.color,
         strokeWidth: localSettings.imageEditorSettings.strokeWidth,
       });
+      rect.on('modified', () => normalizeObjectScale(rect));
+      return rect;
     }
     case ImageEditorTool.RECTANGLE_FILLED: {
       return new Rect({
@@ -280,8 +297,17 @@ function createDrawingShape(x: number, y: number) {
         strokeWidth: 0,
       });
     }
+    case ImageEditorTool.PIXELATE: {
+      return new PixelateRect({
+        left: x,
+        top: y,
+        width: 0,
+        height: 0,
+        pixelBlockSize: localSettings.imageEditorSettings.strokeWidth * 2,
+      });
+    }
     case ImageEditorTool.ELLIPSE: {
-      return new Ellipse({
+      const ellipse = new Ellipse({
         left: x,
         top: y,
         rx: 0,
@@ -292,6 +318,8 @@ function createDrawingShape(x: number, y: number) {
         originX: 'center',
         originY: 'center',
       });
+      ellipse.on('modified', () => normalizeObjectScale(ellipse));
+      return ellipse;
     } 
     case ImageEditorTool.LINE: {
       return new Polyline([{ x: 0, y: 0 }, { x: 0, y: 0 }], {
@@ -393,17 +421,16 @@ function updateDrawingShape(x: number, y: number) {
   
   switch (tool) {
     case ImageEditorTool.RECTANGLE_OUTLINED:
-    case ImageEditorTool.RECTANGLE_FILLED: {
-      // Calculate top-left corner position regardless of drag direction
-      const left = Math.min(startX, x);
-      const top = Math.min(startY, y);
+    case ImageEditorTool.RECTANGLE_FILLED:
+    case ImageEditorTool.PIXELATE: {
+      // Keep the default rect origin (center) while drawing in any drag direction.
+      const left = (startX + x) / 2;
+      const top = (startY + y) / 2;
       drawingShape.value.set({
         left,
         top,
         width,
         height,
-        originX: 'left',
-        originY: 'top',
       });
       break;
     } 
@@ -527,7 +554,7 @@ function deleteSelected() {
   }
   
   const activeObjects = canvas.value.getActiveObjects()
-    .filter(o => ![cropRect.value, cropBackground.value].includes(o));
+    .filter(o => !cropExcludeObjects.value.has(o));
   if (activeObjects.length > 0) {
     canvas.value.remove(...activeObjects);
     canvas.value.discardActiveObject();
@@ -715,6 +742,7 @@ function updateActiveObjects(values: Record<string, any>, predicate?: (obj: Fabr
   }
   activeObjects.forEach((obj) => {
     obj.set(values);
+    obj.setCoords();
   });
   canvas.value.renderAll();
 }
@@ -725,6 +753,7 @@ watch(() => localSettings.imageEditorSettings.color, (color) => {
 watch(() => localSettings.imageEditorSettings.strokeWidth, (width) => {
   updateActiveObjects({ strokeWidth: width }, (obj) => obj.strokeWidth > 0);
   updateActiveObjects({ fontSize: fontSize.value }, (obj) => obj.type === 'i-text' || obj.type === 'text');
+  updateActiveObjects({ pixelBlockSize: width * 2 }, (obj) => obj.type === 'pixelate-rect');
 });
 
 async function exportAsBlob(): Promise<Blob | null> {
