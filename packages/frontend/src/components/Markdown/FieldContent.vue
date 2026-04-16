@@ -221,10 +221,11 @@ async function updateSpacers() {
 }
 
 async function onEditorUpdate(update: ViewUpdate) {
-  if (props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW) {
-    return;
-  }
-  if (!(update.docChanged || update.selectionSet) || update.transactions.some(tr => tr.annotation(Transaction.remote))) {
+  if (
+    props.markdownEditorMode !== MarkdownEditorMode.MARKDOWN_AND_PREVIEW ||
+    !(update.docChanged || update.selectionSet) || 
+    update.transactions.some(tr => tr.annotation(Transaction.remote) || tr.isUserEvent('preview'))
+  ) {
     return;
   }
   await nextTick();

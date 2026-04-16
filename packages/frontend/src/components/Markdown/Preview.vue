@@ -12,6 +12,7 @@
 
 <script lang="ts">
 import { mermaid } from '@sysreptor/markdown';
+import type { ChangeSpec } from '@sysreptor/markdown/editor';
 import { uuidv4 } from "@base/utils/helpers";
 import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
 import 'highlight.js/styles/default.css';
@@ -37,6 +38,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'rendered': [];
   'open-image-dialog': [value: { selected: PreviewImage; images: PreviewImage[]; editMode?: boolean }];
+  'change': [value: ChangeSpec];
 }>();
 
 const cacheBusterFallback = uuidv4();
@@ -129,10 +131,10 @@ async function postProcessRenderedHtml() {
   });
 
   // Wrap all images, inject edit buttons
-  const canEdit = !!props.uploadFile && !props.readonly;
+  const canEditImages = !!props.uploadFile && !props.readonly;
   previewRef.value.querySelectorAll<HTMLImageElement>('figure > img').forEach((img) => {
     const figure = img.parentElement?.tagName === 'FIGURE' ? img.parentElement as HTMLElement : null;
-    if (figure && canEdit) {
+    if (figure && canEditImages) {
       const wrapper = document.createElement('span');
       wrapper.className = 'preview-image-wrapper';
       img.parentNode!.insertBefore(wrapper, img);
@@ -153,6 +155,47 @@ async function postProcessRenderedHtml() {
       });
     }
   });
+
+  // Allow checking task list items by clicking on the checkbox
+  if (!props.readonly) {
+    previewRef.value.querySelectorAll<HTMLInputElement>('li.task-list-item > input[type="checkbox"][disabled]').forEach((input) => {
+      input.removeAttribute('disabled');
+      input.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (props.readonly) { return; }
+
+        try {
+          const position = JSON.parse(input.parentElement?.getAttribute('data-position') || '');
+          if (Number.isInteger(position?.start?.offset) && Number.isInteger(position?.end?.offset)) {
+            // Ensure that the preview is up to date (not outdated due to throttled rendering => position or text might change)
+            const markdown = renderedMarkdownText.value.substring(position.start.offset, position.end.offset) || '';
+            const m = markdown.match(/\[.\]/);
+            if (m && m[0] === props.value?.substring(position.start.offset + m.index, position.start.offset + m.index + m[0].length)) {
+              // Update checkbox state markdown text and DOM (for immediate visual feedback)
+              if (input.hasAttribute('checked')) {
+                input.removeAttribute('checked');
+                emit('change', {
+                  from: position.start.offset + m.index,
+                  to: position.start.offset + m.index + m[0].length,
+                  insert: '[ ]',
+                });
+              } else {
+                input.setAttribute('checked', 'checked');
+                emit('change', {
+                  from: position.start.offset + m.index,
+                  to: position.start.offset + m.index + m[0].length,
+                  insert: '[x]',
+                });
+              }
+            }
+          }
+        } catch {
+          return;
+        }
+      });
+    });
+  }
 
   // Render mermaid diagrams
   const mermaidNodes = previewRef.value.querySelectorAll<HTMLElement>('.preview div.mermaid-diagram');
