@@ -4,6 +4,7 @@
 * Image editor: add pixelation tool
 * MDE: support toggling task list checkboxes in markdown preview
 * MDE: support frontmatter highlighting
+* MDE: prevent undo/redo while image editor is open
 
 
 ## v2026.25 - 2026-04-15

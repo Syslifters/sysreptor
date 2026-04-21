@@ -1,6 +1,7 @@
 <template>
   <s-dialog 
     v-if="modelValue" 
+    ref="dialogRef"
     :model-value="true" 
     @update:model-value="onClose"
     :persistent="editMode"
@@ -81,7 +82,7 @@
     </template>
 
     <v-divider />
-    <v-card-text class="pa-0 flex-grow-height">
+    <v-card-text ref="dialogBodyRef" class="pa-0 flex-grow-height" tabindex="-1">
       <v-window
         v-if="!editMode"
         ref="windowRef"
@@ -118,9 +119,61 @@ const emit = defineEmits<{
   'image-edited': [value: { oldUrl: string; newUrl: string; oldMarkdown: string|null; newMarkdown: string|null; }];
 }>();
 
+const dialogRef = useTemplateRef('dialogRef');
 const windowRef = useTemplateRef('windowRef');
 const imageEditorRef = useTemplateRef('imageEditorRef');
 const imageZoomRefs = ref<any[]>([]);
+
+// function isUndoRedoKeydown(e: KeyboardEvent) {
+//   const key = e.key.toLowerCase();
+//   const mod = e.metaKey || e.ctrlKey;
+//   if (!mod) { return false; }
+//   return key === 'z' || key === 'y';
+// }
+
+// function isHistoryBeforeInput(e: Event): e is InputEvent {
+//   return (e as InputEvent)?.inputType === 'historyUndo' || (e as InputEvent)?.inputType === 'historyRedo';
+// }
+
+// /**
+//  * When this dialog is open, the underlying CodeMirror editor can still receive native undo/redo
+//  * via `beforeinput` (inputType=historyUndo/historyRedo) if focus is not properly trapped.
+//  * We prevent these events at capture phase so they never reach CodeMirror.
+//  */
+// function preventBackgroundUndoRedo() {
+//   const onKeydownCapture = (e: KeyboardEvent) => {
+//     if (!modelValue.value) { return; }
+//     if (!isUndoRedoKeydown(e)) { return; }
+//     // If the dialog didn't get focus for some reason, prevent undo/redo from affecting background editors.
+//     e.preventDefault();
+//     e.stopImmediatePropagation();
+//   };
+//   const onBeforeInputCapture = (e: Event) => {
+//     if (!modelValue.value) { return; }
+//     if (!isHistoryBeforeInput(e)) { return; }
+//     // This is the event CodeMirror's history() listens to. Prevent it while dialog is open.
+//     e.preventDefault();
+//     e.stopImmediatePropagation();
+//   };
+
+//   // Capture on window so we see the event before any component/editor handlers.
+//   window.addEventListener('keydown', onKeydownCapture);
+//   window.addEventListener('beforeinput', onBeforeInputCapture);
+//   return () => {
+//     window.removeEventListener('keydown', onKeydownCapture);
+//     window.removeEventListener('beforeinput', onBeforeInputCapture);
+//   };
+// }
+
+// const cleanupPreventUndoRedo = shallowRef<null | (() => void)>(null);
+// watch(modelValue, (val) => {
+//   cleanupPreventUndoRedo.value?.();
+//   cleanupPreventUndoRedo.value = null;
+//   if (val) {
+//     cleanupPreventUndoRedo.value = preventBackgroundUndoRedo();
+//   }
+// }, { immediate: true });
+// onBeforeUnmount(() => cleanupPreventUndoRedo.value?.());
 
 const editMode = ref(false);
 const wasOpenedInEditMode = ref(false);
@@ -265,6 +318,24 @@ async function open(image: PreviewImage, editModeParam?: boolean) {
   editMode.value = !!editModeParam;
   wasOpenedInEditMode.value = editMode.value;
 }
+
+
+function preventMdeUndoRedo(e: InputEvent|KeyboardEvent) {
+  if (!modelValue.value) {
+    return;
+  }
+  if (
+    (e instanceof InputEvent && ['historyUndo', 'historyRedo'].includes(e.inputType)) ||
+    (e instanceof KeyboardEvent && (e.metaKey || e.ctrlKey) && ['z', 'y'].includes(e.key.toLowerCase()))
+  ) {
+    // Prevent background undo/redo from affecting the markdown editor
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }
+}
+useEventListener(window, 'beforeinput', preventMdeUndoRedo);
+useEventListener(window, 'keydown', preventMdeUndoRedo);
+
 
 defineExpose({
   open,
