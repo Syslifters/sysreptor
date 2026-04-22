@@ -356,6 +356,8 @@ def superuser_urls():
         ('pentestuser disable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-disable-admin-permissions'))),
 
         ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project_unauthorized.pk, 'pk': s.archived_project_unauthorized.key_parts.first().pk}))),
+        *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'id': s.user_other.notes.first().note_id} if detail else {}), list=True, retrieve=True),
+        *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk, 'note_id': s.user_other.notes.only_shared().first().note_id} | ({'pk': s.user_other.notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=True, retrieve=True),
 
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, write=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private_unauthorized, read=True, write=True),
@@ -378,6 +380,8 @@ def forbidden_urls():
         *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), create=True),
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), create=True, update=True, update_partial=True, destroy=True),
         ('userpublickey register begin', lambda s, c: c.post(reverse('userpublickey-register-begin', kwargs={'pentestuser_pk': s.user_other.pk}), data={'name': 'new', 'public_key': s.user_other.public_keys.first().public_key})),
+        *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'id': s.user_other.notes.first().note_id} if detail else {}), create=True, update=True, destroy=True),
+        *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk, 'note_id': s.user_other.notes.only_shared().first().note_id} | ({'pk': s.user_other.notes.only_shared().first().shareinfos.first().pk} if detail else {}), create=True, update=True, update_partial=True, destroy=True),
     ]
 
 
