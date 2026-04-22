@@ -16,11 +16,8 @@ export default defineConfig({
       ]
     }),
   ],
-  optimizeDeps: {
-    esbuildOptions: {
-      target: "es2022",
-      treeShaking: true,
-    },
+  build: {
+    target: 'es2022',
   },
 })
 

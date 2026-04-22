@@ -19,9 +19,9 @@
     "base64-arraybuffer": "^1.0.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^6.0.0",
     "vite-plugin-static-copy": "^4.0.0",
-    "vite": "^7.0.0",
+    "vite": "^8.0.0",
     "@types/lodash-es": "^4.17.0",
     "@types/react": "^19",
     "@types/react-dom": "^19"

@@ -3,6 +3,7 @@ import type { IncomingMessage, ServerResponse } from "http";
 import { createReadStream, existsSync, statSync } from 'fs';
 import { join, extname } from 'path';
 import type { Plugin } from 'vite';
+import type { Socket } from "net";
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -56,8 +57,8 @@ export default defineNuxtConfig({
         // Dependencies of @sysreptor/markdown
         '@codemirror/state', '@codemirror/view', '@codemirror/commands', '@codemirror/lint', '@codemirror/autocomplete', 
         '@codemirror/search', '@codemirror/merge', '@codemirror/language', '@codemirror/lang-vue', '@codemirror/lang-css', 
-        '@codemirror/lang-html', '@lezer/common', '@lezer/highlight', 'crelt', 'mermaid', 'micromark', 'unified', 
-        'remark-parse', 'remark-rehype', 'rehype-remark', 'remark-stringify', 'rehype-parse', 'rehype-raw', 'rehype-sanitize', 
+        '@codemirror/lang-html', '@codemirror/lang-yaml', '@lezer/common', '@lezer/highlight', 'crelt', 'mermaid', 'micromark', 'unified', 
+        'remark-frontmatter', 'remark-parse', 'remark-rehype', 'rehype-remark', 'remark-stringify', 'rehype-parse', 'rehype-raw', 'rehype-sanitize', 
         'hast-util-to-mdast', 'micromark-util-chunked', 'micromark-util-symbol', 'micromark-util-resolve-all', 'unist-util-visit', 
         'micromark-extension-gfm-strikethrough', 'mdast-util-gfm-strikethrough', 'micromark-extension-gfm-task-list-item', 
         'mdast-util-gfm-task-list-item', 'parse-entities', 'micromark-util-sanitize-uri', 'micromark-extension-gfm-table', 
@@ -138,9 +139,9 @@ export default defineNuxtConfig({
       const proxy = createProxyServer({ target: { host: "api", port: 8000 }, ws: true })
 
       server.removeAllListeners("upgrade")
-      server.on("upgrade", (req: IncomingMessage, socket: ServerResponse, head: any) => {
+      server.on("upgrade", (req, socket, head) => {
         if (req.url!.startsWith('/api')) {
-          proxy.ws(req, socket, head);
+          proxy.ws(req, socket as unknown as Socket, { changeOrigin: false }, head);
         }
       })
     },
