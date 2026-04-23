@@ -367,6 +367,7 @@ class AuthViewSet(viewsets.ViewSet):
                 'user_id': str(user.id),
                 'start': timezone.now().isoformat(),
             }
+            request.session.cycle_key()
 
             mfa_methods = list(user.mfa_methods.all().default_order())
             if not mfa_methods:
