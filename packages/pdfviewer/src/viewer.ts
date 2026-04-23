@@ -462,7 +462,7 @@ class PDFViewerApplicationClass {
     
     // Use the downloadManager to handle the download
     const data = await this.pdfDocument.getData()
-    this.downloadManager.download(data, null, 'document.pdf');
+    this.downloadManager.download(data, '', 'document.pdf');
   }
 
   /**

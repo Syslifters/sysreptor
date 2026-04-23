@@ -24,7 +24,7 @@
     "js-file-download": "^0.4.12",
     "lodash-es": "^4.17.21",
     "url-join": "^5.0.0",
-    "uuid": "^13",
+    "uuid": "^14",
     "zxcvbn": "^4.4.2",
     "date-fns": "^4.1.0"
   },

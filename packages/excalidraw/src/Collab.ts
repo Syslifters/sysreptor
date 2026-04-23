@@ -9,7 +9,7 @@ import {
   restoreElements, 
   CaptureUpdateAction,
 } from "@excalidraw/excalidraw";
-import { BinaryFiles, ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
+import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement, OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
 import { isSyncableElement } from "./utils";
@@ -58,7 +58,7 @@ export class WebsocketConnection {
 
   constructor(options: ConnectionOptions) {
     this.options = options;
-    const serverUrl = process.env.NODE_ENV === 'development' ?
+    const serverUrl = import.meta.env.DEV ?
       'ws://localhost:3000/' :
       `${window.location.protocol === 'http:' ? 'ws' : 'wss'}://${window.location.host}/`;
     this.websocketUrl = urlJoin(serverUrl, options.path);
@@ -145,7 +145,7 @@ export class HttpFallbackReadonlyConnection {
 
   constructor(options: ConnectionOptions) {
     this.options = options;
-    const serverUrl = process.env.NODE_ENV === 'development' ?
+    const serverUrl = import.meta.env.DEV ?
       'http://localhost:3000/' :
       `${window.location.protocol}//${window.location.host}/`;
     this.apiUrl = urlJoin(serverUrl, options.path);

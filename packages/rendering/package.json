@@ -13,17 +13,17 @@
   "dependencies": {
     "@sysreptor/markdown": "../markdown",
 
-    "vue": "3.5.31",
+    "vue": "3.5.33",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
-    "uuid": "^13",
+    "uuid": "^14",
     "lodash": "^4.17.21",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",
     "vite": "^8.0.0",
-    "vite-plugin-css-injected-by-js": "^4.0.0",
+    "vite-plugin-css-injected-by-js": "^5.0.0",
     "patch-package": "^8.0.0",
 
     "vue-tsc": "^3.0.0",

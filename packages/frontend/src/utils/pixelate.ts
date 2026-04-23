@@ -1,5 +1,5 @@
 import { clamp } from 'lodash-es';
-import { Canvas, Rect, Point, util as fabricUtil } from 'fabric';
+import { type Canvas, Rect, Point, util as fabricUtil } from 'fabric';
 
 type Pixel01 = { r: number; g: number; b: number };
 type ViewportRect = { left: number; top: number; width: number; height: number };
@@ -74,12 +74,6 @@ function fillClippedGrey(ctx: CanvasRenderingContext2D, w: number, h: number) {
   ctx.fillStyle = 'rgb(128,128,128)';
   ctx.fillRect(-w / 2, -h / 2, w, h);
   ctx.restore();
-}
-
-function clampInt(n: unknown, min: number, max: number) {
-  const v = typeof n === 'number' ? n : Number.NaN;
-  if (!Number.isFinite(v)) return null;
-  return clamp(Math.round(v), min, max);
 }
 
 function mulberry32(seed: number) {
@@ -247,7 +241,7 @@ function renderPixelation(args: {
           // additional noise
           n;
 
-        const clamped = Math.max(0, Math.min(1, c));
+        const clamped = clamp(c, 0, 1);
         rgb[i] = Math.round(255 * clamped);
       }
 

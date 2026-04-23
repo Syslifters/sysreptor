@@ -40,7 +40,7 @@ export class FileManager {
   }) {
     this.excalidrawAPI = options.excalidrawAPI;
 
-    const serverUrl = process.env.NODE_ENV === 'development' ?
+    const serverUrl = import.meta.env.DEV ?
       'http://localhost:3000/' : window.location.origin;
     this.imageApiBaseUrl = urlJoin(serverUrl, options.imageApiBaseUrl);
   }
