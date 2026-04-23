@@ -88,11 +88,12 @@ def compress_image(file, name=None):
             else:
                 out.seek(0)
                 return out, name
-    except Exception as ex:
-        if not isinstance(ex, UnidentifiedImageError):
-            log.exception('Image compression error')
+    except UnidentifiedImageError:
         file.seek(0)
         return file, name
+    except Exception:
+        log.exception('Image compression error')
+        raise
 
 
 def get_all_file_fields():
