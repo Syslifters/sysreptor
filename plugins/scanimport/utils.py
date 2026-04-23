@@ -14,7 +14,9 @@ def parse_xml(file):
     data = file.read().lstrip()
     tree = etree.fromstring(data, etree.XMLParser(
         resolve_entities=False,
-        recover=True,
+        load_dtd=False,
+        no_network=True,
+        recover=True,  # Required to parse partial XML without end tags (e.g. nmap)
     ))
 
     if tree is None:

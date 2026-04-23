@@ -15,7 +15,7 @@ def download_cwe_xml():
 
 def main():
     cwes = []
-    cwe_xml = etree.fromstring(download_cwe_xml(), etree.XMLParser(resolve_entities=False))  # noqa: S320
+    cwe_xml = etree.fromstring(download_cwe_xml(), etree.XMLParser(resolve_entities=False, load_dtd=False, no_network=True))  # noqa: S320
     weaknesses_xml = cwe_xml.findall('./Weaknesses/Weakness', namespaces=cwe_xml.nsmap)
     for w in weaknesses_xml:
         if w.attrib['Status'] == 'Deprecated':
