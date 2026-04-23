@@ -1,6 +1,7 @@
 
 import logging
 
+from django.db.models import F
 from django.dispatch import receiver
 from sysreptor.pentests.models import (
     PentestProject,
@@ -29,10 +30,11 @@ def on_project_saved(sender, instance: PentestProject, *args, **kwargs):
        p.all_report_fields_obj[field_id].type == FieldDataType.STRING and \
        instance.data.get(field_id) in [None, p.all_report_fields_obj[field_id].default]:
 
-        # Get counter and update it
-        counter, _ = ProjectNumber.objects.get_or_create(pk=1)
-        counter.current_id += 1
-        counter.save()
+        # Increment counter
+        counter, _ = ProjectNumber.objects.update_or_create(
+            pk=1,
+            defaults={'current_id': F('current_id') + 1},
+            create_defaults={'current_id': 1})
 
         # Fromat project number using the configured template from plugin settings
         projectnumber_str = format_project_number(
