@@ -73,7 +73,7 @@ class UserSubresourceViewSetMixin(views.APIView):
         if user_pk == 'self':
             return self.request.user
 
-        qs = PentestUser.objects.all()
+        qs = PentestUser.objects.only_permitted(self.request.user)
         return get_object_or_404(qs, pk=user_pk)
 
     def get_user(self):
