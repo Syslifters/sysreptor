@@ -76,12 +76,15 @@ class TestProjectNumberPlugin:
             assert section.data.get('project_number') == expected
             assert project.tags == ['existing_tag', expected]
 
+    @override_configuration(PLUGIN_PROJECTNUMBER_TEMPLATE='{{ project_number }}')
     def test_increment_counter(self):
         assert not ProjectNumber.objects.exists()
-        create_project(project_type=self.project_type)
+        p1 = create_project(project_type=self.project_type, tags=[])
         assert ProjectNumber.objects.get(pk=1).current_id == 1
-        create_project(project_type=self.project_type)
+        assert p1.tags == ['1']
+        p2 = create_project(project_type=self.project_type, tags=[])
         assert ProjectNumber.objects.get(pk=1).current_id == 2
+        assert p2.tags == ['2']
 
     def test_command_resetprojectnumber(self):
         # Reset project counter to a specific value
