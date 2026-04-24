@@ -114,7 +114,7 @@ def init_chat_model():
 
 def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **kwargs):
     """
-    Create a SysReptor agent. 
+    Create a SysReptor agent.
     Based on langchain deepagents library but without filesystem tools.
     """
     model = init_chat_model()

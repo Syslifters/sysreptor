@@ -11,7 +11,6 @@ from rest_framework.settings import api_settings
 from sysreptor.ai.agents import get_agent, get_chat_history
 from sysreptor.ai.models import ChatThread
 from sysreptor.ai.serializers import ChatThreadSerializer, LLMAgentSerializer
-from sysreptor.users.auth import forbidden_with_apitoken_auth
 from sysreptor.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from sysreptor.utils.configuration import configuration
 

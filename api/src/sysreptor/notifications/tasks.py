@@ -6,7 +6,6 @@ import httpx
 from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db import connection
 from django.utils import timezone
 
 from sysreptor.api_utils.models import BackupLog, BackupLogType
