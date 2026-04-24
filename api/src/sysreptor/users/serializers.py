@@ -215,7 +215,7 @@ class ForgotPasswordSendSerializer(serializers.Serializer):
                 template_context={
                     'user': user,
                     'confirmation_link': self.context['request'].build_absolute_uri(
-                        f'/login/set-password/?user={user.id}&token={default_token_generator.make_token(user)}'),
+                        f'/login/set-password/#user={user.id}&token={default_token_generator.make_token(user)}'),
                     'confirmation_link_valid_hours': settings.PASSWORD_RESET_TIMEOUT // 3600,
                 },
             )

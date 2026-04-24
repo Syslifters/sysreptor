@@ -2,7 +2,7 @@
   <centered-view>
     <s-card class="w-100">
       <v-toolbar title="Set Password" color="header" flat />
-      <v-form v-if="user" ref="form" @submit.prevent="performSetPassword">
+      <v-form v-if="user" @submit.prevent="performSetPassword">
         <v-card-text>
           <s-text-field
             v-model="user.username"
@@ -51,12 +51,16 @@ definePageMeta({
 });
 
 const route = useRoute();
+const resetPasswordParams = computed(() => ({
+  ...Object.fromEntries(new URLSearchParams(route.hash?.substring(1)).entries()),
+  ...route.query,
+}));
 
 const { data: user, error: checkTokenError } = useAsyncData(async () => {
   try {
     return await $fetch<UserShortInfo>('/api/v1/auth/forgot-password/check/', {
       method: 'POST',
-      body: route.query,
+      body: resetPasswordParams.value,
     });
   } catch (error: any) {
     if (error.data.detail) {
@@ -67,7 +71,6 @@ const { data: user, error: checkTokenError } = useAsyncData(async () => {
   }
 });
 
-const form = ref<InstanceType<typeof VForm>>();
 const formSetPassword = ref({ password: '' });
 const formError = ref<any|null>(null);
 async function performSetPassword() {
@@ -75,7 +78,7 @@ async function performSetPassword() {
     await $fetch('/api/v1/auth/forgot-password/reset/', {
       method: 'POST',
       body: {
-        ...route.query,
+        ...resetPasswordParams.value,
         ...formSetPassword.value,
       },
     });

@@ -360,7 +360,7 @@ class TestForgotPassword:
         res1 = self.client.post(reverse('auth-forgot-password-send'), data={'email': self.user.email})
         assert res1.status_code == 200
         assert len(mail.outbox) == 1
-        token_data = dict(parse_qsl(re.search(r'/login/set-password/\?(?P<params>.*)', mail.outbox[0].body).group('params')))
+        token_data = dict(parse_qsl(re.search(r'/login/set-password/#(?P<params>.*)', mail.outbox[0].body).group('params')))
 
         res2 = self.client.post(reverse('auth-forgot-password-check'), data=token_data)
         assert res2.status_code == 200
