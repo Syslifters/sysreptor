@@ -9,7 +9,7 @@ import {
 
 function createEditorState(textWithSelection: string, cursorMarker: string = '|') {
   const parts = textWithSelection.split(cursorMarker);
-  let selectionRange = null;
+  let selectionRange;
   if (parts.length === 2) {
     selectionRange = EditorSelection.cursor(parts[0]!.length)
   } else if (parts.length === 3) {
@@ -116,13 +116,20 @@ describe('toggleTaskList', () => {
 describe('toggleLink', () => {
   for (const [before, after] of Object.entries({
     "a | b": "a [|](https://) b",
-    "a |https://example.com/| b": "a [|https://example.com/|](https://example.com/) b",
     "a [|text|]() b": "a |text| b",
     "a [|text|](https://example.com/) b": "a |text| b",
     "a [te|xt]() b": "a te|xt b",
     "|a [text]() b|": "|a [text]() b|",
     "|a [text](https://example.com/) b|": "|a [text](https://example.com/) b|",
     "|a [te|xt]() b": "|a [te|xt]() b",
+    "a https://exa|mple.com b": "a <https://exa|mple.com> b",
+    "https://exa|mple.com": "<https://exa|mple.com>",
+    "a\nhttps://exa|mple.com\nb": "a\n<https://exa|mple.com>\nb",
+    "a |https://example.com/| b": "a <|https://example.com/|> b",
+    "a |https://example.com|b": "a <|https://example.com|>b",
+    "a <|https://example.com|> b": "a |https://example.com| b",
+    "a <https://exa|mple.com> b": "a https://exa|mple.com b",
+    "|a <https://example.com> b|": "|a https://example.com b|",
   })) {
     testCommand(toggleLink, before, after);
   }

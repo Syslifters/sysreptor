@@ -663,8 +663,38 @@ export function toggleTaskList({state, dispatch}: CommandArg) {
 
 export function toggleLink({state, dispatch}: CommandArg) {
   return toggleMarkdownAction({state, dispatch}, {
-    isInSelection: n => n.name === 'link',
+    isInSelection: n => n.name === 'link' || n.name === 'autolink',
     enable: (range) => {
+      if (/^https?:\/\/[^\s]+$/i.test(state.doc.sliceString(range.from, range.to))) {
+        // Autolink selected URLs
+        return {
+          range: EditorSelection.range(range.from + 1, range.to + 1),
+          changes: [
+            {from: range.from, insert: '<'},
+            {from: range.to, insert: '>'},
+          ]
+        };
+      } else if (range.from === range.to) {
+        // Autolink when cursor is inside a URL
+        const cursorPos = range.from;
+        const line = state.doc.lineAt(cursorPos);
+        let wordStartIndex = Array.from(line.text.slice(0, cursorPos - line.from)).findLastIndex(c => /\s/.test(c)) + 1 + line.from;
+        let wordEndIndex = Array.from(line.text.slice(cursorPos - line.from)).findIndex(c => /\s/.test(c));
+        if (wordEndIndex === -1 || wordEndIndex >= line.length) { wordEndIndex = line.length - (cursorPos - line.from); }
+        wordEndIndex += cursorPos;
+
+        const word = state.doc.sliceString(wordStartIndex, wordEndIndex);
+        if (/^https?:\/\/[^\s]+$/i.test(word)) {
+          return {
+            range: EditorSelection.range(range.from + 1, range.to + 1),
+            changes: [
+              {from: wordStartIndex, insert: '<'},
+              {from: wordEndIndex, insert: '>'},
+            ]
+          }
+        }
+      }
+      // Regular link syntax in all other cases
       return {
         range: EditorSelection.range(range.from + 1, range.to + 1),
         changes: [
@@ -676,6 +706,7 @@ export function toggleLink({state, dispatch}: CommandArg) {
     disable: (range, foundNodes) => {
       // Remove links only when a range is inside the link label
       const linksToRemove = foundNodes
+        .filter(n => n.name === 'link')
         .filter(n => 
           getChildren(n)
           .flatMap(c => getChildren(c))
@@ -683,6 +714,12 @@ export function toggleLink({state, dispatch}: CommandArg) {
           .length === 1)
         .flatMap(n => getChildren(n).flatMap(c => getChildren(c)))
         .filter(c => !(c.name === 'labelText' && c.parent!.name === 'label'));
+      linksToRemove.push(
+        ...foundNodes
+        .filter(n => n.name === 'autolink')
+        .flatMap(n => getChildren(n))
+        .filter(c => c.name !== 'autolinkProtocol')
+      );
       const changes: ChangeSpec[] = [];
       let newRange = range;
       for (const n of linksToRemove) {

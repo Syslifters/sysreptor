@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Markdown editor: syntax highlight autolinks
+
+
 ## v2026.27 - 2026-04-22
 * Security: Fix personal note sharing permissions (https://github.com/Syslifters/sysreptor/security/advisories/GHSA-pcpr-q2qj-3v43)
 * Image editor: add pixelation tool

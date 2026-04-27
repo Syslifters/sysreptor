@@ -13,7 +13,7 @@ Non-standard markdown syntax is described more detailed.
 
 Inline text styling: **bold**, _italic_, ~~strikethrough~~, `code`
 
-Links: [Example Link](https://example.com)
+Links: [Example Link](https://example.com) or <httpx://example.com>
 
 * list
 * items
