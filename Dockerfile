@@ -126,9 +126,8 @@ RUN apt-get update \
         unzip \
         wget \
         postgresql-client \
-    && echo 'Types: deb\nURIs: http://snapshot.debian.org/archive/debian/20250301T010101Z/\nSuites: testing\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg' > /etc/apt/sources.list.d/snapshot.sources \
+    && echo 'Types: deb\nURIs: https://snapshot.debian.org/archive/debian/20250301T010101Z/\nSuites: testing\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nCheck-Valid-Until: false' > /etc/apt/sources.list.d/snapshot.sources \
     && echo 'Package: ghostscript\nPin: version 10.04.0~dfsg-2\nPin-Priority: 1001' > /etc/apt/preferences.d/ghostscript \
-    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/10no-check-valid-until \
     && apt-get update \
     && apt-get install -y --no-install-recommends ghostscript \
     && rm -rf /var/lib/apt/lists/*
