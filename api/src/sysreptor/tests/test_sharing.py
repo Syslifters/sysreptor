@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from django.test import override_settings
 from django.urls import reverse
@@ -9,6 +11,7 @@ from sysreptor.tests.mock import (
     create_shareinfo,
     create_user,
     create_usernotebookpage,
+    mock_time,
     update,
 )
 
@@ -16,6 +19,7 @@ from sysreptor.tests.mock import (
 @pytest.mark.django_db()
 class TestSharedProjectNotePermissions:
     @pytest.fixture(autouse=True)
+    @mock_time(before=timedelta(days=1))
     def setUp(self):
         self.project = create_project(
             notes_kwargs=[],
@@ -121,6 +125,7 @@ class TestSharedProjectNotePermissions:
 @pytest.mark.django_db()
 class TestSharedUserNotePermissions:
     @pytest.fixture(autouse=True)
+    @mock_time(before=timedelta(days=1))
     def setUp(self):
         self.user = create_user(
             notes_kwargs=[],
