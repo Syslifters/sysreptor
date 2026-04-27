@@ -190,7 +190,7 @@ const activeActions = computedCached(() => ({
   taskList: isTaskListInSelection(editorState.value),
   code: isTypeInSelection(editorState.value, 'codeFenced'),
   table: isTypeInSelection(editorState.value, 'table'),
-  link: isTypeInSelection(editorState.value, 'link'),
+  link: isTypeInSelection(editorState.value, 'link') || isTypeInSelection(editorState.value, 'autolink'),
   blockquote: isTypeInSelection(editorState.value, 'blockQuote'),
 }));
 const canUndo = computed(() => editorState.value && undoDepth(editorState.value) > 0);

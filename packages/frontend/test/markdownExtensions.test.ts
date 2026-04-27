@@ -73,6 +73,9 @@ describe('Markdown extensions', () => {
     '[](#ref)': '<p><ref to="ref"></ref></p>',
     '[Reference](#ref)': '<p><ref to="ref">Reference</ref></p>',
     '[](#ref){.class}': '<p><ref class="class" to="ref"></ref></p>',
+    // Autolinks
+    '<https://example.com>': '<p><a href="https://example.com" target="_blank" rel="nofollow noopener noreferrer">https://example.com</a></p>',
+    '<user@example.com>': '<p><a href="mailto:user@example.com" target="_blank" rel="nofollow noopener noreferrer">user@example.com</a></p>',
     // Underline
     'text <u>underline</u> text': '<p>text <u>underline</u> text</p>',
     // Self-closing tags
