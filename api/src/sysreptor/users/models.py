@@ -18,7 +18,6 @@ from fido2.server import Fido2Server, _verify_origin_for_rp
 from fido2.webauthn import PublicKeyCredentialRpEntity
 
 from sysreptor.users import querysets
-from sysreptor.utils import license
 from sysreptor.utils.crypto.fields import EncryptedField
 from sysreptor.utils.models import BaseModel
 from sysreptor.utils.utils import get_random_color
@@ -83,8 +82,7 @@ class PentestUser(BaseModel, AbstractUser):
 
     @property
     def is_admin(self) -> bool:
-        return self.is_active and self.is_superuser and \
-            getattr(self, 'admin_permissions_enabled', False) if license.is_professional(skip_db_checks=True) else True
+        return self.is_active and self.is_superuser and getattr(self, 'admin_permissions_enabled', False)
 
     def is_file_referenced(self, f) -> bool:
         return any(map(lambda n: n.is_file_referenced(f), self.notes.all()))

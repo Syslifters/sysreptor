@@ -6,6 +6,8 @@ from django.conf import settings
 from django.middleware.csrf import CsrfViewMiddleware
 from django.utils import cache, deprecation, timezone
 
+from sysreptor.utils import license
+
 
 class CustomCsrfMiddleware(CsrfViewMiddleware):
     def process_view(self, request, *args, **kwargs):
@@ -42,8 +44,12 @@ class ExtendSessionMiddleware(deprecation.MiddlewareMixin):
 
 class AdminSessionMiddleware(deprecation.MiddlewareMixin):
     def process_request(self, request):
-        if request.user and request.session and request.session.get('admin_permissions_enabled'):
-            request.user.admin_permissions_enabled = True
+        if request.user and request.user.is_superuser:
+            if request.session and request.session.get('admin_permissions_enabled'):
+                request.user.admin_permissions_enabled = True
+            elif not license.is_professional():
+                # All users in community edition have admin permissions
+                request.user.admin_permissions_enabled = True
 
 
 class CacheControlMiddleware(deprecation.MiddlewareMixin):

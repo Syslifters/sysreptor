@@ -80,7 +80,7 @@ class TestCommunityLicenseRestrictions:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.password = get_random_string(length=32)
-        self.user = create_user(is_superuser=True, password=self.password)
+        self.user = create_user(is_superuser=True, password=self.password, admin_permissions_enabled=True)
         self.user_regular = create_user(password=self.password)
         self.user_system = create_user(is_system_user=True, password=self.password)
 
