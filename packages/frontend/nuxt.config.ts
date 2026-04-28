@@ -1,7 +1,6 @@
 import { createProxyServer } from "httpxy"
-import type { IncomingMessage, ServerResponse } from "http";
 import { createReadStream, existsSync, statSync } from 'fs';
-import { join, extname } from 'path';
+import { resolve, normalize, extname, sep } from 'path';
 import type { Plugin } from 'vite';
 import type { Socket } from "net";
 
@@ -110,11 +109,17 @@ export default defineNuxtConfig({
         name: 'raw-public-assets',
         enforce: 'pre',
         configureServer(server) {
+          if (!isDev) {
+            return;
+          }
+
+          const publicRoot = resolve(process.cwd(), 'src/public');
           server.middlewares.use((req, res, next) => {
             const rawPaths = ['/static/pdfviewer/', '/static/excalidraw/'];
-            if (rawPaths.some(path => req.url?.startsWith(path))) {
-              const filePath = join(process.cwd(), 'src/public', req.url!);
-              if (existsSync(filePath) && statSync(filePath).isFile()) {
+            const pathname = new URL(req.url ?? '', 'http://localhost').pathname;
+            if (rawPaths.some(path => pathname.startsWith(path))) {
+              const filePath = resolve(publicRoot, normalize(pathname.replace(/^\/+/, '')));
+              if (filePath.startsWith(publicRoot + sep) && existsSync(filePath) && statSync(filePath).isFile()) {
                 const ext = extname(filePath).toLowerCase();
                 const mimeTypes: Record<string, string> = {
                   '.js': 'application/javascript; charset=utf-8',
