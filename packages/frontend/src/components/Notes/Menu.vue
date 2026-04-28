@@ -52,7 +52,7 @@
                 :export-url="props.exportUrl"
                 :options="{ids: props.selectedNotes.map(n => n.id)}"
                 :name="props.exportName"
-                :disabled="props.readonly || props.selectedNotes.length === 0"
+                :disabled="props.selectedNotes.length === 0"
               />
               <btn-export
                 v-if="props.exportPdfUrl && props.selectedNotes"
@@ -61,7 +61,7 @@
                 extension=".pdf"
                 :export-url="props.exportPdfUrl"
                 :options="{notes: props.selectedNotes.map(n => n.id)}"
-                :disabled="props.readonly || props.selectedNotes.length === 0"
+                :disabled="props.selectedNotes.length === 0"
               />
               <btn-delete
                 v-if="props.performDelete && props.selectedNotes"
