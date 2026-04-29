@@ -9,6 +9,7 @@ from itertools import groupby
 from typing import Any
 
 from asgiref.sync import async_to_sync, sync_to_async
+from decouple import strtobool
 from django.db import close_old_connections, connections
 from django.utils import dateparse, timezone
 from django.utils.crypto import get_random_string
@@ -139,6 +140,15 @@ def datetime_from_date(val: date) -> datetime:
     if isinstance(val, date):
         return timezone.make_aware(datetime.combine(val, datetime.min.time()))
     raise ValueError(f'Expected date or datetime, got {type(val)}')
+
+
+def is_true(val: Any) -> bool:
+    if isinstance(val, str):
+        try:
+            return bool(strtobool(val))
+        except ValueError:
+            pass
+    return bool(val)
 
 
 def merge(*args):

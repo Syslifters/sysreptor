@@ -51,6 +51,7 @@ from sysreptor.users.serializers import (
 )
 from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
+from sysreptor.utils.utils import is_true
 
 
 class APIBadRequestError(exceptions.APIException):
@@ -450,23 +451,38 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/complete', methods=['get'], permission_classes=[license.ProfessionalLicenseRequired])
     def login_oidc_complete(self, request, oidc_provider, *args, **kwargs):
+        oauth = get_oauth()
+        if oidc_provider not in oauth._registry:
+            raise APIBadRequestError(f'OIDC provider "{oidc_provider}" not supported')
         if not request.session.get('login_state', {}).get('status') == 'oidc-callback-required':
             raise APIBadRequestError('No OIDC login in progress for session')
 
-        oauth = get_oauth()
         try:
             token = oauth.create_client(oidc_provider).authorize_access_token(request)
         except OAuthError as ex:
             raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error) from ex
 
-        email = token['userinfo'].get('email', token['userinfo'].get('preferred_username', 'unknown'))
+        oidc_identifier = None
+        if email := token['userinfo'].get('email'):
+            if (
+                oauth._registry[oidc_provider][1].get('require_email_verified', False) and
+                not is_true(token['userinfo'].get('email_verified'))
+            ):
+                raise APIBadRequestError(
+                    f'OIDC login failed: The identity provider returned email_verified=false for "{email}". '
+                    f'Configure a verified email at the provider or disable "require_email_verified" for provider "{oidc_provider}" if this is intended.',
+                )
+            oidc_identifier = email
+        elif preferred_username := token['userinfo'].get('preferred_username'):
+            oidc_identifier = preferred_username
+
         identity = AuthIdentity.objects \
             .select_related('user') \
             .filter(provider=oidc_provider) \
-            .filter(identifier=email) \
+            .filter(identifier=oidc_identifier) \
             .first()
         if not identity:
-            raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier "{email}" ')
+            raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier "{oidc_identifier}" ')
 
         can_reauth = False
         if not oauth._registry[oidc_provider][1].get('reauth_supported', False):
@@ -478,7 +494,7 @@ class AuthViewSet(viewsets.ViewSet):
             f'oidc_{oidc_provider}_login_hint':
                 token['userinfo'].get('preferred_username') or
                 token['userinfo'].get('login_hint') or
-                token['userinfo'].get('email'),
+                oidc_identifier,
         }
         return res
 
