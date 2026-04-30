@@ -38,10 +38,30 @@ You should now have the following values:
 The values from the previous steps need to be configured as [application settings](/setup/configuration/#single-sign-on-sso).
 
 ```env
-OIDC_AZURE_TENANT_ID=<entra tenant id>
-OIDC_AZURE_CLIENT_ID=<entra client id>
-OIDC_AZURE_CLIENT_SECRET=<entra client secret>
+OIDC_OAUTH_AUTHLIB_CLIENTS='{
+    "entra": {
+        "label": "Microsoft Entra ID",
+        "client_id": "<entra client id>",
+        "client_secret": "<entra client secret>",
+        "server_metadata_url": "https://login.microsoftonline.com/<entra tenant id>/v2.0/.well-known/openid-configuration",
+        "client_kwargs": {
+            "scope": "openid email profile",
+            "code_challenge_method": "S256"
+        },
+        "reauth_supported": True,
+        "require_email_verified": True
+    }
+}'
 ```
 
 The OIDC client needs to be able to establish a network connection to Microsoft Entra ID.
 Make sure to not block outgoing traffic.
+
+
+## Limitations
+### Verified Emails
+If `"require_email_verified": true`, SysReptor requires the OIDC `email_verified` claim to be present and `true` for login. In some configurations, Entra ID omits `email_verified` or returns `email_verified=false`.
+
+Setting `"require_email_verified": false` means SysReptor will not require proof of email ownership via the OIDC `email_verified` claim. This is fine for many IdPs because they only release verified email addresses. However, if the IdP can emit an unverified or user-controlled `email` claim, a user could set it to another person's email address and be logged in to SysReptor as that user (including any admin/superuser privileges).
+
+Only disable this check if you can guarantee Entra ID releases verified email claims and users cannot self-assert arbitrary values. If in doubt, keep `"require_email_verified": true`.

@@ -54,7 +54,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         if (apiSettings.isProfessionalLicense && Math.random() < 0.1 && 
             (!t || parseISO(t) < subDays(new Date(), 10) || !(apiSettings.licenseInfo as any).license_hash)
         ) {
-          await $fetch(new TextDecoder("utf-8").decode(base64decode('aHR0cHM6Ly9wb3J0YWwuc3lzcmVwdG9yLmNvbS9hcGkvdjEvbGljZW5zZXMvYWN0aXZhdGUv')), {
+          await $fetch(new TextDecoder("utf-8").decode(base64decode('aHR0cHM6Ly9zeXNyZXB0b3IuY29tL2FwaS92MS9saWNlbnNlcy9hY3RpdmF0ZS8=')), {
             method: 'POST',
             body: {
               user_email_domain: auth.user.value?.email?.split('@')[1],

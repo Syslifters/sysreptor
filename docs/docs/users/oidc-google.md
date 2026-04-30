@@ -71,8 +71,20 @@ You should now have the following values:
 The values from the previous steps need to be configured as [application settings](/setup/configuration/#single-sign-on-sso).
 
 ```env
-OIDC_GOOGLE_CLIENT_ID=<google client id>
-OIDC_GOOGLE_CLIENT_SECRET=<google client secret>
+OIDC_AUTHLIB_OAUTH_CLIENTS='{
+    "google": {
+        "label": "Google",
+        "client_id": "<client id>",
+        "client_secret": "<client secret>",
+        "server_metadata_url": "https://accounts.google.com/.well-known/openid-configuration",
+        "client_kwargs": {
+            "scope": "openid email profile",
+            "code_challenge_method": "S256"
+        },
+        "reauth_supported": False,
+        "require_email_verified": True
+    }
+}'
 ```
 
 The OIDC client needs to be able to establish a network connection to Google.
@@ -80,6 +92,7 @@ Make sure to not block outgoing traffic.
 
 
 ## Limitations
+### Reauthentication
 SysReptor reauthenticates users before critical actions. It therefore requires users to enter their authentication details (e.g. password and second factor, if configured).
 
 Google does not support enforced reauthentication. The reauthentication therefore redirects to Google. If the users are still authenticated at Google, they are redirected back and SysReptor regards the reauthentication as successful.

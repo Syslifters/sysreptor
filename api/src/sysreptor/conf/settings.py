@@ -879,31 +879,6 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         default=None,
         required=False,
         extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_AZURE_CLIENT_ID',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_AZURE_CLIENT_SECRET',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_AZURE_TENANT_ID',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_GOOGLE_CLIENT_ID',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_GOOGLE_CLIENT_SECRET',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
     JsonField(
         id='OIDC_AUTHLIB_OAUTH_CLIENTS',
         default=None,

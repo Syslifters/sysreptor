@@ -80,7 +80,8 @@ Create your OIDC configuration for SysReptor...
             "scope": "openid profile email",
             "code_challenge_method": "S256"
         },
-        "reauth_supported": false
+        "reauth_supported": false,
+        "require_email_verified": false
     }
 }
 

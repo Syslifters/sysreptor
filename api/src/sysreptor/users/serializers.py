@@ -24,38 +24,7 @@ from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 @functools.cache
 def get_oauth():
-    authlib_oauth_clients = {}
-    if configuration.OIDC_AZURE_CLIENT_ID and configuration.OIDC_AZURE_CLIENT_SECRET and configuration.OIDC_AZURE_TENANT_ID:
-        authlib_oauth_clients |= {
-            'azure': {
-                'label': 'Microsoft Entra ID',
-                'client_id': configuration.OIDC_AZURE_CLIENT_ID,
-                'client_secret': configuration.OIDC_AZURE_CLIENT_SECRET,
-                'server_metadata_url': f'https://login.microsoftonline.com/{configuration.OIDC_AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration',
-                'client_kwargs': {
-                    'scope': 'openid email profile',
-                    'code_challenge_method': 'S256',
-                },
-                'reauth_supported': True,
-            },
-        }
-
-    if configuration.OIDC_GOOGLE_CLIENT_ID and configuration.OIDC_GOOGLE_CLIENT_SECRET:
-        authlib_oauth_clients |= {
-            'google': {
-                'label': 'Google',
-                'client_id': configuration.OIDC_GOOGLE_CLIENT_ID,
-                'client_secret': configuration.OIDC_GOOGLE_CLIENT_SECRET,
-                'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration',
-                'client_kwargs': {
-                    'scope': 'openid email profile',
-                    'code_challenge_method': 'S256',
-                },
-                'reauth_supported': False,
-            },
-        }
-
-    authlib_oauth_clients |= json.loads(configuration.OIDC_AUTHLIB_OAUTH_CLIENTS or '{}')
+    authlib_oauth_clients = json.loads(configuration.OIDC_AUTHLIB_OAUTH_CLIENTS or '{}')
 
     oauth = OAuth()
     for name, config in authlib_oauth_clients.items():
