@@ -138,7 +138,7 @@
                 :key="issue.jira_key"
                 :title="getFindingTitle(issue.finding)"
                 :subtitle="issue.jira_key"
-                :href="issue.jira_url"
+                :href="sanitizeUrl(issue.jira_url)"
                 target="_blank"
                 prepend-icon="mdi-open-in-new"
               >
@@ -183,6 +183,7 @@ import {
   type ProjectType,
 } from '#imports';
 import { getFindingRiskLevel, sortFindings } from '@base/utils/project';
+import { sanitizeUrl } from '@base/utils/urls';
 import { findingToADF } from '@/utils/finding2adf';
 
 type JiraProject = {

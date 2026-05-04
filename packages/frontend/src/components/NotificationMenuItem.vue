@@ -71,7 +71,7 @@
               :value="group.notification.id"
               :title="group.notification.content.title"
               :subtitle="group.notification.content.text"
-              :href="group.notification.content.link_url || undefined"
+              :href="sanitizeUrl(group.notification.content.link_url)"
               target="_blank"
               @click="markAsRead(group.notification)"
               link
@@ -93,7 +93,7 @@
                 v-for="notification in group.notifications"
                 :key="notification.id"
                 :value="notification.id"
-                :href="notification.content.link_url || undefined"
+                :href="sanitizeUrl(notification.content.link_url)"
                 target="_blank"
                 @click="markAsRead(notification)"
                 link
@@ -115,6 +115,8 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeUrl } from '@base/utils/urls';
+
 const notificationStore = useNotificationStore();
 
 const closedGroups = ref<string[]>([]);
