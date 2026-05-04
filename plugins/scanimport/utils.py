@@ -1,6 +1,8 @@
 import contextlib
 import re
+from datetime import date, datetime, timedelta
 from unittest import mock
+from uuid import UUID
 
 from django.template import Context, Engine
 from django.template.base import Token, TokenType
@@ -136,18 +138,41 @@ def custom_django_tags():
         yield
 
 
+def sanitize_context(data: dict):
+    """
+    Sanitize context for django template engine to only allow simple types
+    """
+    if isinstance(data, str|int|float|bool|datetime|date|timedelta|UUID|None):
+        return data
+    elif isinstance(data, list|tuple|set):
+        return [sanitize_context(i) for i in data]
+    elif isinstance(data, dict):
+        return {k: sanitize_context(v) for k, v in data.items()}
+    else:
+        return None
+
+
 @custom_django_tags()
 def load_template_string(template_string: str):
     return Engine(
-        builtins=Engine.default_builtins + ['sysreptor_plugins.scanimport.templatetags'],
-        autoescape=False
+        builtins=[
+            'django.template.defaulttags',
+            'django.template.defaultfilters',
+            'sysreptor_plugins.scanimport.templatetags',
+        ],
+        libraries={},
+        loaders=[],
+        dirs=[],
+        context_processors=[],
+        autoescape=False,
+        debug=True,
     ).from_string(template_string)
 
 
 @custom_django_tags()
 def render_template_string(template_string: str, context: dict) -> str:
     return load_template_string(template_string) \
-        .render(context=Context(context, autoescape=False))
+        .render(context=Context(sanitize_context(context), autoescape=False))
 
 
 def cvss2_to_cvss31(cvss2_vector):

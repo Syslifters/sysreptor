@@ -191,6 +191,15 @@ class TestTemplateRendering:
         assert 'Template error' in str(exc_info.value)
         assert 'description' in str(exc_info.value)
 
+    def test_template_rejects_load_tag(self):
+        t = create_template(data={'description': 'x <!--{% load i18n %}--> y'})
+        with pytest.raises(serializers.ValidationError) as exc_info:
+            BaseImporter().generate_finding_from_template(
+                project=self.project, tr=t.main_translation, data={},
+            )
+        assert 'Template error' in str(exc_info.value)
+        assert 'not a registered tag library' in str(exc_info.value).lower()
+
     def test_template_data_field_priority(self):
         t = create_template(data={'title': 'template_value', 'field_string': 'template_value', 'field_int': 100})
         data = {'title': 'Parsed Title', 'field_string': 'parsed_value', 'field_int': 50, 'field_list': ['parsed_value']}
