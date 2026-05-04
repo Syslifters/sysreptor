@@ -62,7 +62,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
 
     def get_extra_kwargs(self):
         user = self.context['request'].user
-        read_only = not (getattr(user, 'is_user_manager', False) or getattr(user, 'is_admin', False))
+        read_only = not (getattr(user, 'is_admin', False) or (getattr(user, 'is_user_manager', False) and not getattr(self.instance, 'is_superuser', False)))
         return super().get_extra_kwargs() | {
             'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},
             'is_user_manager': {'read_only': read_only},

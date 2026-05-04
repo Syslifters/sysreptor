@@ -47,11 +47,10 @@ class UserViewSetPermissions(permissions.BasePermission):
             return True
         if obj.is_system_user and obj != request.user:
             return False
-        if view.action in ['reset_password', 'destroy']:
-            if obj.is_superuser and not request.user.is_admin:
-                # Prevent user_managers from resetting superuser password
-                # This would be a privilege escalation
-                return False
+        if obj.is_superuser and not request.user.is_admin:
+            # Prevent user_managers from updating superusers
+            # This would be a privilege escalation
+            return False
         if view.action == 'destroy' and request.user == obj:
             # Prevent deleting yourself
             return False

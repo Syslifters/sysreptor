@@ -226,7 +226,10 @@ const props = defineProps<{
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
-const canEdit = computed(() => (auth.permissions.value.user_manager && !user.value.is_system_user) || user.value.id === auth.user.value!.id);
+const canEdit = computed(() => 
+  (auth.permissions.value.user_manager && !user.value.is_superuser && !user.value.is_system_user) || 
+  (auth.permissions.value.admin && !user.value.is_system_user) || 
+  user.value.id === auth.user.value!.id);
 const canEditUsername = computed(() => canEdit.value && auth.permissions.value.user_manager);
 const canEditGeneralPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && apiSettings.settings!.features.permissions);
 const canEditSuperuserPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && auth.permissions.value.admin);
