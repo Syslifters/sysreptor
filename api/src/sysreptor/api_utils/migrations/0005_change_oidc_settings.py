@@ -44,7 +44,7 @@ def migrate_oidc_settings(apps, schema_editor):
                 'code_challenge_method': 'S256',
             },
             'reauth_supported': True,
-            'require_email_verified': False,
+            'user_identifier_claim': 'email',
         }
         config_changed = True
 
@@ -63,7 +63,7 @@ def migrate_oidc_settings(apps, schema_editor):
                 'code_challenge_method': 'S256',
             },
             'reauth_supported': False,
-            'require_email_verified': False,
+            'user_identifier_claim': 'email',
         }
         config_changed = True
 

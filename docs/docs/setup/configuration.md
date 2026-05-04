@@ -439,6 +439,7 @@ OIDC_AUTHLIB_OAUTH_CLIENTS='{
             "code_challenge_method": "S256"
         },
         "reauth_supported": false,
+        "user_identifier_claim": "email",
         "require_email_verified": true
     }
 }'

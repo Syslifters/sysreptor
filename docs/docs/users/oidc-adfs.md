@@ -81,17 +81,15 @@ Create your OIDC configuration for SysReptor...
             "code_challenge_method": "S256"
         },
         "reauth_supported": false,
+        "user_identifier_claim": "email",
         "require_email_verified": false
     }
 }
-
 ```
 
-...and add it to your [application settings](/setup/configuration/#single-sign-on-sso):
-
-```env
-OIDC_AUTHLIB_OAUTH_CLIENTS='{"adfs": {"label": "ADFS",...}}'
-```
+...and add it to your [application settings](/setup/configuration/#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
 
 The OIDC client needs to be able to establish a network connection to Microsoft ADFS.
 Make sure to not block outgoing traffic.
+
+Other JSON fields, `user_identifier_claim`, and general SSO limitations are covered in [Generic OIDC configuration](oidc-generic.md#sysreptor-configuration) and [Limitations](oidc-generic.md#limitations).

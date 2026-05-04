@@ -462,19 +462,13 @@ class AuthViewSet(viewsets.ViewSet):
         except OAuthError as ex:
             raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error) from ex
 
-        oidc_identifier = None
-        if email := token['userinfo'].get('email'):
-            if (
-                oauth._registry[oidc_provider][1].get('require_email_verified', False) and
-                not is_true(token['userinfo'].get('email_verified'))
-            ):
-                raise APIBadRequestError(
-                    f'OIDC login failed: The identity provider returned email_verified=false for "{email}". '
-                    f'Configure a verified email at the provider or disable "require_email_verified" for provider "{oidc_provider}" if this is intended.',
-                )
-            oidc_identifier = email
-        elif preferred_username := token['userinfo'].get('preferred_username'):
-            oidc_identifier = preferred_username
+        oidc_identifier_field = oauth._registry[oidc_provider][1].get('user_identifier_claim', 'email')
+        oidc_identifier = token['userinfo'].get(oidc_identifier_field)
+        if oidc_identifier_field == 'email' and oauth._registry[oidc_provider][1].get('require_email_verified', False) and not is_true(token['userinfo'].get('email_verified')):
+            raise APIBadRequestError(
+                f'OIDC login failed: The identity provider returned email_verified=false for email "{oidc_identifier}". '
+                f'Configure a verified email at the provider or disable "require_email_verified" for provider "{oidc_provider}" if this is intended.',
+            )
 
         identity = AuthIdentity.objects \
             .select_related('user') \
@@ -482,7 +476,7 @@ class AuthViewSet(viewsets.ViewSet):
             .filter(identifier=oidc_identifier) \
             .first()
         if not identity:
-            raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier "{oidc_identifier}" ')
+            raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier {oidc_identifier_field}="{oidc_identifier}"')
 
         can_reauth = False
         if not oauth._registry[oidc_provider][1].get('reauth_supported', False):

@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Security: implement multiple hardening measures and code quality improvements
+* SSO: make the user identifier claim configurable (https://docs.sysreptor.com/users/oidc-generic/)
 * SSO: add `require_email_verified` setting to OIDC config
 * SSO: migrate Entra ID and Google SSO settings to `OIDC_AUTHLIB_OAUTH_CLIENTS` setting
 * Warning about non-members in project user fields

@@ -894,6 +894,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                     'server_metadata_url': {'type': 'string', 'format': 'uri'},
                     'reauth_supported': {'type': 'boolean'},
                     'require_email_verified': {'type': 'boolean'},
+                    'user_identifier_claim': {'type': 'string'},
                 },
                 'required': ['label', 'client_id', 'client_secret'],
                 'additoinalProperties': True,
