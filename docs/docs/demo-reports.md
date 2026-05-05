@@ -30,6 +30,10 @@
     <a href="/assets/reports/ispsec-report-preview.pdf" target="_blank"><img alt="ISP Security: Internal" src="/assets/reports/ispsec-report-preview.png" style="border:1px solid;" /></a>
     <figcaption><a href="https://ispsecurity.co/" target="_blank">ISP Security LLC</a></figcaption>
 </figure>
+<figure>
+    <a href="/assets/reports/Schutzpunkt-Pentest-Webapplication-EN.pdf" target="_blank"><img alt="Schutzpunkt Report" src="/assets/reports/Schutzpunkt-Pentest-Webapplication-EN-Preview.png" style="border:1px solid;" /></a>
+    <figcaption><a href="https://www.schutzpunkt.com/" target="_blank">Schutzpunkt GmbH</a></figcaption>
+</figure>
 </div>
 
 ## Certifications
