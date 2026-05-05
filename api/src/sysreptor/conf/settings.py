@@ -14,7 +14,6 @@ import itertools
 import json
 import shlex
 import socket
-import warnings
 from datetime import timedelta
 from pathlib import Path
 
@@ -570,9 +569,6 @@ from sysreptor.utils.crypto import EncryptionKey  # noqa: E402
 ENCRYPTION_KEYS = config('ENCRYPTION_KEYS', cast=EncryptionKey.from_json_list, default='')
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
-
-for msg in EncryptionKey.check_config(locals()):
-    warnings.warn('[sysreptor settings] ' + msg, UserWarning, stacklevel=1)
 
 
 # Health checks
