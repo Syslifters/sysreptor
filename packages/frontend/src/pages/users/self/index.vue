@@ -4,8 +4,6 @@
 
     <user-info-form 
       v-model="user"
-      :can-permissions="canEdit"
-      :can-edit-username="canEdit"
       :errors="serverErrors"
     />
   </v-form>
@@ -16,7 +14,6 @@ import { VForm } from 'vuetify/components';
 
 const auth = useAuth();
 const user = await useFetchE<User>('/api/v1/pentestusers/self/', { method: 'GET', deep: true });
-const canEdit = computed(() => auth.permissions.value.user_manager);
 
 const form = useTemplateRef('form');
 const serverErrors = ref<any|null>(null);

@@ -18,3 +18,18 @@ export function uniqueName(baseName: string, existingNames: string[]) {
     i += 1;
   }
 }
+
+export function sanitizeUrl(url?: string | null): string|undefined {
+  if (!url) {
+    return undefined;
+  }
+  try {
+    const u = new URL(url, window.location.origin);
+    if (u.origin === window.location.origin || ['http:', 'https:'].includes(u.protocol)) {
+      return url;
+    }
+  } catch { 
+    // Invalid URL
+  }
+  return undefined;
+}

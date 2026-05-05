@@ -14,6 +14,7 @@ def check_sensitive_operation_timeout(request):
     """
     Check if the current session was fully authenticated (password + MFA) before a short period of time (settings.SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT).
     """
+    forbidden_with_apitoken_auth(request)
     try:
         reauth_time = datetime.fromisoformat(request.session.get('authentication_info', {}).get('reauth_time'))
         if reauth_time + settings.SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT >= timezone.now():
@@ -33,10 +34,8 @@ class UserViewSetPermissions(permissions.BasePermission):
             # Allow updating your own user
             return True
         elif view.action == 'change_password' and (configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional()):
-            forbidden_with_apitoken_auth(request)
             return check_sensitive_operation_timeout(request)
         elif view.action == 'enable_admin_permissions':
-            forbidden_with_apitoken_auth(request)
             return license.ProfessionalLicenseRequired().has_permission(request, view) and request.user.is_superuser and check_sensitive_operation_timeout(request)
         elif view.action == 'disable_admin_permissions':
             forbidden_with_apitoken_auth(request)
@@ -48,11 +47,10 @@ class UserViewSetPermissions(permissions.BasePermission):
             return True
         if obj.is_system_user and obj != request.user:
             return False
-        if view.action in ['reset_password', 'destroy']:
-            if obj.is_superuser and not request.user.is_admin:
-                # Prevent user_managers from resetting superuser password
-                # This would be a privilege escalation
-                return False
+        if obj.is_superuser and not request.user.is_admin:
+            # Prevent user_managers from updating superusers
+            # This would be a privilege escalation
+            return False
         if view.action == 'destroy' and request.user == obj:
             # Prevent deleting yourself
             return False

@@ -10,7 +10,7 @@
         />
       </edit-toolbar>
 
-      <user-info-form v-model="userForm" :errors="serverErrors" :can-edit-permissions="true" :can-edit-username="true">
+      <user-info-form v-model="userForm" :errors="serverErrors">
         <template #login-information>
           <div v-if="apiSettings.isLocalUserAuthEnabled">
             <s-password-field
@@ -94,7 +94,7 @@ const identityForm = ref({
 });
 const serverErrors = ref<any|null>();
 
-const form = templateRef('form');
+const form = useTemplateRef('form');
 async function performCreate() {
   if (!(await form.value!.validate()).valid) {
     return;

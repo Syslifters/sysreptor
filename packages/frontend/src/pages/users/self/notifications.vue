@@ -7,7 +7,7 @@
         :value="item.id"
         :title="item.content.title"
         :subtitle="item.content.text"
-        :href="item.content.link_url || undefined"
+        :href="sanitizeUrl(item.content.link_url)"
         target="_blank"
         @click="markAsRead(item, true)"
         link
@@ -32,6 +32,8 @@
 </template>
 
 <script setup lang="ts">
+import { sanitizeUrl } from '@base/utils/urls';
+
 definePageMeta({
   title: 'Notifications',
 })

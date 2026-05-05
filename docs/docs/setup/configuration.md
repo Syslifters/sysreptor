@@ -428,24 +428,19 @@ AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=730
 Configuration for SSO via OIDC. Find detailed instructions at https://docs.sysreptor.com/setup/oidc-setup/.
 
 ```shell title="OIDC example:"
-OIDC_AZURE_TENANT_ID="azure-tenant-id"
-OIDC_AZURE_CLIENT_ID="azure-client-id"
-OIDC_AZURE_CLIENT_SECRET="azure-client-secret"
-
-OIDC_GOOGLE_CLIENT_ID="google-client-id"
-OIDC_GOOGLE_CLIENT_SECRET="google-client-secret"
-
 OIDC_AUTHLIB_OAUTH_CLIENTS='{
     "keycloak": {
         "label": "Keycloak",
         "client_id": "<client-id>",
         "client_secret": "<client-secret>",
-        "server_metadata_url": "https://keycloak.example.com/auth/realms/dev/.well-known/openid-configuration",
+        "server_metadata_url": "https://keycloak.example.com/realms/dev/.well-known/openid-configuration",
         "client_kwargs": {
             "scope": "openid email",
             "code_challenge_method": "S256"
         },
-        "reauth_supported": false
+        "reauth_supported": false,
+        "user_identifier_claim": "email",
+        "require_email_verified": true
     }
 }'
 ```

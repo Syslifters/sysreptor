@@ -12,8 +12,8 @@
     a. Create user that should use SSO  
     b. Go to "Identities"  
     c. Add identity ("Add")  
-    d. Select Provider and enter the email address used at your IDP (note: the identifier is case sensitive and has to be the same case as in the SSO provider)
+    d. Select Provider and enter the SSO identifier provided by your IdP (default: `email`, configurable via `user_identifier_claim`). Matching is case-sensitive and must use the same spelling and casing as the IdP returns.
 
 ![Add SSO identity](../images/add_identity.png)
 
-The user can now login via his IDP.
+The user can now log in via their IdP.

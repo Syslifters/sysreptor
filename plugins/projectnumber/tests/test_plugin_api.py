@@ -34,6 +34,25 @@ class TestProjectNumberPlugin:
     def setUp(self):
         self.user = create_user()
         self.client = api_client(self.user)
+        self.project_type = create_project_type(
+            report_sections=[
+                {
+                    'id': 'project_number',
+                    'label': 'Project Counter',
+                    'fields': serialize_field_definition(
+                        FieldDefinition(
+                            fields=[
+                                StringField(
+                                    id='project_number',
+                                    label='Project Counter',
+                                    required=True,
+                                ),
+                            ],
+                        ),
+                    ),
+                },
+            ],
+        )
 
     @pytest.mark.parametrize(('template', 'expected'), [
         ("{{ project_number }}", "1"),
@@ -50,41 +69,22 @@ class TestProjectNumberPlugin:
             mock.patch('django.template.defaulttags.NowNode', new=MockNowNode), \
             mock.patch('random.randint', return_value=17):
 
-            # Initialize project counter
-            counter, _ = ProjectNumber.objects.get_or_create(pk=1)
-            assert counter.current_id == 0
-
-            # Create Project Type with custom template
-            project_type = create_project_type(
-                report_sections=[
-                    {
-                        'id': 'project_number',
-                        'label': 'Project Counter',
-                        'fields': serialize_field_definition(
-                            FieldDefinition(
-                                fields=[
-                                    StringField(
-                                        id='project_number',
-                                        label='Project Counter',
-                                        required=True,
-                                    ),
-                                ],
-                            ),
-                        ),
-                    },
-                ],
-            )
-
             # Create project
-            project = create_project(project_type=project_type, members=[self.user], tags=['existing_tag'])
+            project = create_project(project_type=self.project_type, members=[self.user], tags=['existing_tag'])
             section = project.sections.get(section_id='project_number')
 
             assert section.data.get('project_number') == expected
             assert project.tags == ['existing_tag', expected]
 
-            # Check project counter increment
-            counter.refresh_from_db()
-            assert counter.current_id == 1
+    @override_configuration(PLUGIN_PROJECTNUMBER_TEMPLATE='{{ project_number }}')
+    def test_increment_counter(self):
+        assert not ProjectNumber.objects.exists()
+        p1 = create_project(project_type=self.project_type, tags=[])
+        assert ProjectNumber.objects.get(pk=1).current_id == 1
+        assert p1.tags == ['1']
+        p2 = create_project(project_type=self.project_type, tags=[])
+        assert ProjectNumber.objects.get(pk=1).current_id == 2
+        assert p2.tags == ['2']
 
     def test_command_resetprojectnumber(self):
         # Reset project counter to a specific value

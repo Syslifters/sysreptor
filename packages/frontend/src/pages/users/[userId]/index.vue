@@ -9,7 +9,7 @@
       :delete-confirm-input="user.username || undefined"
     />
 
-    <user-info-form v-model="user" :errors="serverErrors" :can-edit-permissions="canEdit" :can-edit-username="canEdit">
+    <user-info-form v-model="user" :errors="serverErrors">
       <template #login-information>
         <div class="mt-4 mb-4">
           <s-btn-secondary
@@ -102,7 +102,10 @@ const apiUrl = `/api/v1/pentestusers/${route.params.userId}/`
 const user = await useAsyncDataE<User>(async () => await $fetch(apiUrl, { method: 'GET' }), { deep: true });
 
 const serverErrors = ref<any|null>(null);
-const canEdit = computed(() => auth.permissions.value.user_manager && !user.value.is_system_user);
+const canEdit = computed(() => !user.value.is_system_user && (
+  (auth.permissions.value.user_manager && !user.value.is_superuser) ||
+  auth.permissions.value.admin
+));
 const canLoginLocal = computed(() => user.value.can_login_local && apiSettings.isLocalUserAuthEnabled);
 
 const form = useTemplateRef('form');

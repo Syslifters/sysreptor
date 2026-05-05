@@ -129,7 +129,7 @@ export function rehypeTemplates() {
  */
 export function rehypeRawFixSelfClosingTags() {
   return tree => visit(tree, 'raw', (node) => {
-    node.value = node.value.replaceAll(/<(?<tag>[a-zA-Z0-9-]+)(?<attrs>[^>]*)\/>/g, "<$<tag>$<attrs>></$<tag>>");
+    node.value = node.value.replaceAll(/<(?<tag>[a-zA-Z0-9-]+)(?<attrs>(?:\s[^<>]*)?)\/>/g, "<$<tag>$<attrs>></$<tag>>");
   });
 }
 

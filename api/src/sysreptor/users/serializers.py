@@ -24,38 +24,7 @@ from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 @functools.cache
 def get_oauth():
-    authlib_oauth_clients = {}
-    if configuration.OIDC_AZURE_CLIENT_ID and configuration.OIDC_AZURE_CLIENT_SECRET and configuration.OIDC_AZURE_TENANT_ID:
-        authlib_oauth_clients |= {
-            'azure': {
-                'label': 'Microsoft Entra ID',
-                'client_id': configuration.OIDC_AZURE_CLIENT_ID,
-                'client_secret': configuration.OIDC_AZURE_CLIENT_SECRET,
-                'server_metadata_url': f'https://login.microsoftonline.com/{configuration.OIDC_AZURE_TENANT_ID}/v2.0/.well-known/openid-configuration',
-                'client_kwargs': {
-                    'scope': 'openid email profile',
-                    'code_challenge_method': 'S256',
-                },
-                'reauth_supported': True,
-            },
-        }
-
-    if configuration.OIDC_GOOGLE_CLIENT_ID and configuration.OIDC_GOOGLE_CLIENT_SECRET:
-        authlib_oauth_clients |= {
-            'google': {
-                'label': 'Google',
-                'client_id': configuration.OIDC_GOOGLE_CLIENT_ID,
-                'client_secret': configuration.OIDC_GOOGLE_CLIENT_SECRET,
-                'server_metadata_url': 'https://accounts.google.com/.well-known/openid-configuration',
-                'client_kwargs': {
-                    'scope': 'openid email profile',
-                    'code_challenge_method': 'S256',
-                },
-                'reauth_supported': False,
-            },
-        }
-
-    authlib_oauth_clients |= json.loads(configuration.OIDC_AUTHLIB_OAUTH_CLIENTS or '{}')
+    authlib_oauth_clients = json.loads(configuration.OIDC_AUTHLIB_OAUTH_CLIENTS or '{}')
 
     oauth = OAuth()
     for name, config in authlib_oauth_clients.items():
@@ -93,7 +62,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
 
     def get_extra_kwargs(self):
         user = self.context['request'].user
-        read_only = not (getattr(user, 'is_user_manager', False) or getattr(user, 'is_admin', False))
+        read_only = not (getattr(user, 'is_admin', False) or (getattr(user, 'is_user_manager', False) and not getattr(self.instance, 'is_superuser', False)))
         return super().get_extra_kwargs() | {
             'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},
             'is_user_manager': {'read_only': read_only},
@@ -215,7 +184,7 @@ class ForgotPasswordSendSerializer(serializers.Serializer):
                 template_context={
                     'user': user,
                     'confirmation_link': self.context['request'].build_absolute_uri(
-                        f'/login/set-password/?user={user.id}&token={default_token_generator.make_token(user)}'),
+                        f'/login/set-password/#user={user.id}&token={default_token_generator.make_token(user)}'),
                     'confirmation_link_valid_hours': settings.PASSWORD_RESET_TIMEOUT // 3600,
                 },
             )

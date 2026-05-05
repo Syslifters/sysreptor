@@ -10,6 +10,8 @@ from Cryptodome.Util.number import bytes_to_long, long_to_bytes
 from django.conf import settings
 from django.core.files.utils import FileProxyMixin
 
+from sysreptor.utils.utils import get_key_or_attr
+
 # Magic bytes to identify encrypted data
 # Invalid UTF-8, such that an error occurs when someone tries to load encrypted data as text
 MAGIC = b'\xC2YPT'
@@ -38,6 +40,28 @@ class EncryptionKey:
             'cipher': EncryptionCipher(e['cipher']),
             'key': base64.b64decode(e['key']),
         }))), json.loads(data)))
+
+    @classmethod
+    def check_config(cls, settings) -> list[str]:
+        encryption_keys = get_key_or_attr(settings, 'ENCRYPTION_KEYS')
+        default_encryption_key_id = get_key_or_attr(settings, 'DEFAULT_ENCRYPTION_KEY_ID')
+        encryption_plaintext_fallback = get_key_or_attr(settings, 'ENCRYPTION_PLAINTEXT_FALLBACK')
+
+        warnings_list = []
+        if not encryption_keys:
+            warnings_list.append('ENCRYPTION_KEYS is not configured. Data at rest will not be encrypted.')
+        else:
+            if not default_encryption_key_id:
+                warnings_list.append('DEFAULT_ENCRYPTION_KEY_ID is not configured. Writes may fall back to plaintext unless a key is explicitly provided.')
+            elif default_encryption_key_id not in encryption_keys:
+                warnings_list.append(f'DEFAULT_ENCRYPTION_KEY_ID={default_encryption_key_id!r} is not present in ENCRYPTION_KEYS. Writes may fall back to plaintext unless a key is explicitly provided.')
+            elif encryption_keys.get(default_encryption_key_id).revoked:
+                warnings_list.append(f'DEFAULT_ENCRYPTION_KEY_ID={default_encryption_key_id!r} refers to a revoked key. Writes cannot be encrypted with a revoked key and may fall back to plaintext.')
+
+            if encryption_plaintext_fallback:
+                warnings_list.append('ENCRYPTION_PLAINTEXT_FALLBACK=True allows storing and reading sensitive data in plaintext if encryption is not available.')
+
+        return warnings_list
 
 
 class ReadIntoAdapter(FileProxyMixin):

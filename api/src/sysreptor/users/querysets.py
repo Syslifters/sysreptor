@@ -92,7 +92,7 @@ class APITokenQuerySet(models.QuerySet):
 
     def only_active(self):
         return self \
-            .filter(models.Q(expire_date=None) | models.Q(expire_date__lte=timezone.now().date()))
+            .filter(models.Q(expire_date=None) | models.Q(expire_date__gte=timezone.now().date()))
 
 
 class APITokenManager(models.Manager.from_queryset(APITokenQuerySet)):

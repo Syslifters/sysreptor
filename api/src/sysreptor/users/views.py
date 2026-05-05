@@ -51,6 +51,7 @@ from sysreptor.users.serializers import (
 )
 from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
+from sysreptor.utils.utils import is_true
 
 
 class APIBadRequestError(exceptions.APIException):
@@ -73,7 +74,7 @@ class UserSubresourceViewSetMixin(views.APIView):
         if user_pk == 'self':
             return self.request.user
 
-        qs = PentestUser.objects.all()
+        qs = PentestUser.objects.only_permitted(self.request.user)
         return get_object_or_404(qs, pk=user_pk)
 
     def get_user(self):
@@ -367,6 +368,7 @@ class AuthViewSet(viewsets.ViewSet):
                 'user_id': str(user.id),
                 'start': timezone.now().isoformat(),
             }
+            request.session.cycle_key()
 
             mfa_methods = list(user.mfa_methods.all().default_order())
             if not mfa_methods:
@@ -449,23 +451,32 @@ class AuthViewSet(viewsets.ViewSet):
 
     @action(detail=False, url_path='login/oidc/(?P<oidc_provider>[a-zA-Z0-9]+)/complete', methods=['get'], permission_classes=[license.ProfessionalLicenseRequired])
     def login_oidc_complete(self, request, oidc_provider, *args, **kwargs):
+        oauth = get_oauth()
+        if oidc_provider not in oauth._registry:
+            raise APIBadRequestError(f'OIDC provider "{oidc_provider}" not supported')
         if not request.session.get('login_state', {}).get('status') == 'oidc-callback-required':
             raise APIBadRequestError('No OIDC login in progress for session')
 
-        oauth = get_oauth()
         try:
             token = oauth.create_client(oidc_provider).authorize_access_token(request)
         except OAuthError as ex:
             raise exceptions.AuthenticationFailed(detail=ex.description, code=ex.error) from ex
 
-        email = token['userinfo'].get('email', token['userinfo'].get('preferred_username', 'unknown'))
+        oidc_identifier_field = oauth._registry[oidc_provider][1].get('user_identifier_claim', 'email')
+        oidc_identifier = token['userinfo'].get(oidc_identifier_field)
+        if oidc_identifier_field == 'email' and oauth._registry[oidc_provider][1].get('require_email_verified', False) and not is_true(token['userinfo'].get('email_verified')):
+            raise APIBadRequestError(
+                f'OIDC login failed: The identity provider returned email_verified=false for email "{oidc_identifier}". '
+                f'Configure a verified email at the provider or disable "require_email_verified" for provider "{oidc_provider}" if this is intended.',
+            )
+
         identity = AuthIdentity.objects \
             .select_related('user') \
             .filter(provider=oidc_provider) \
-            .filter(identifier=email) \
+            .filter(identifier=oidc_identifier) \
             .first()
         if not identity:
-            raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier "{email}" ')
+            raise exceptions.AuthenticationFailed(detail=f'Auth identity not configured for any user: SSO provider "{oidc_provider}" identifier {oidc_identifier_field}="{oidc_identifier}"')
 
         can_reauth = False
         if not oauth._registry[oidc_provider][1].get('reauth_supported', False):
@@ -477,7 +488,7 @@ class AuthViewSet(viewsets.ViewSet):
             f'oidc_{oidc_provider}_login_hint':
                 token['userinfo'].get('preferred_username') or
                 token['userinfo'].get('login_hint') or
-                token['userinfo'].get('email'),
+                oidc_identifier,
         }
         return res
 

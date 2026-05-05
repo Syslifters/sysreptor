@@ -16,7 +16,7 @@ from rest_framework.settings import api_settings
 
 from sysreptor.api_utils import backup_utils
 from sysreptor.api_utils.healthchecks import run_healthchecks
-from sysreptor.api_utils.models import BackupLog, BackupLogType
+from sysreptor.api_utils.models import BackupLog
 from sysreptor.api_utils.permissions import IsAdmin, IsAdminOrSystem
 from sysreptor.api_utils.serializers import (
     BackupLogSerializer,

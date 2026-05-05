@@ -14,6 +14,7 @@ import itertools
 import json
 import shlex
 import socket
+import warnings
 from datetime import timedelta
 from pathlib import Path
 
@@ -570,6 +571,9 @@ ENCRYPTION_KEYS = config('ENCRYPTION_KEYS', cast=EncryptionKey.from_json_list, d
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
 ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=bool, default=True)
 
+for msg in EncryptionKey.check_config(locals()):
+    warnings.warn('[sysreptor settings] ' + msg, UserWarning, stacklevel=1)
+
 
 # Health checks
 HEALTH_CHECKS = {
@@ -875,31 +879,6 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         default=None,
         required=False,
         extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_AZURE_CLIENT_ID',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_AZURE_CLIENT_SECRET',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_AZURE_TENANT_ID',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_GOOGLE_CLIENT_ID',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
-    StringField(
-        id='OIDC_GOOGLE_CLIENT_SECRET',
-        default=None,
-        required=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
     JsonField(
         id='OIDC_AUTHLIB_OAUTH_CLIENTS',
         default=None,
@@ -913,6 +892,9 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                     'client_id': {'type': 'string'},
                     'client_secret': {'type': 'string'},
                     'server_metadata_url': {'type': 'string', 'format': 'uri'},
+                    'reauth_supported': {'type': 'boolean'},
+                    'require_email_verified': {'type': 'boolean'},
+                    'user_identifier_claim': {'type': 'string'},
                 },
                 'required': ['label', 'client_id', 'client_secret'],
                 'additoinalProperties': True,

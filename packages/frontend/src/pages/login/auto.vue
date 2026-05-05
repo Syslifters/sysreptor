@@ -44,7 +44,10 @@ const { error } = useAsyncData(async () => {
   try {
     const res = await $fetch<LoginResponse>(`/api/v1/auth/login/`, {
       method: 'POST',
-      body: route.query,
+      body: {
+        ...Object.fromEntries(new URLSearchParams(route.hash?.substring(1)).entries()),
+        ...route.query,
+      },
     });
     if (res.status === LoginResponseStatus.MFA_REQUIRED) {
       throw new Error('MFA required, but not supported for autologin');

@@ -9,7 +9,6 @@ import zipfile
 from pathlib import Path
 
 import boto3
-from django.utils import timezone
 import zipstream
 from django.apps import apps
 from django.conf import settings
@@ -23,6 +22,7 @@ from django.core.serializers.jsonl import Deserializer as JsonlDeserializer
 from django.db import connection, transaction
 from django.db.migrations.executor import MigrationExecutor
 from django.db.migrations.loader import MigrationLoader
+from django.utils import timezone
 
 from sysreptor.api_utils.models import BackupLog, BackupLogType
 from sysreptor.pentests.models.project import ProjectMemberRole
@@ -122,7 +122,7 @@ def backup_files(z, path, storage, backup_stats: dict=None):
                 yield from fp.chunks()
             if backup_stats is not None:
                 backup_stats['file_successes'] = backup_stats.get('file_successes', 0) + 1
-        except (FileNotFoundError, OSError) as ex:
+        except (FileNotFoundError, OSError):
             if backup_stats is not None:
                 backup_stats['file_errors'] = backup_stats.get('file_errors', 0) + 1
 
@@ -151,15 +151,15 @@ def create_backup(user=None):
             'started': backup_log_started.created.isoformat(),
             'finished': finished.isoformat(),
         }).encode()
- 
+
         if backup_stats.get('file_errors', 0) > 0:
             logging.warning(f'Could not backup {backup_stats.get("file_errors", 0)} / {backup_stats.get("file_errors", 0) + backup_stats.get("file_successes", 0)} files.')
-        
+
         BackupLog.objects.create(type=BackupLogType.BACKUP_FINISHED, user=user, created=finished)
         logging.info('Backup finished')
         gc.collect()
     z.add(arcname='stats.json', data=get_backup_stats())
-    
+
     return z
 
 

@@ -20,29 +20,25 @@ Create your OIDC configuration for SysReptor...
         "label": "Keycloak",
         "client_id": "<client-id>",
         "client_secret": "<client-secret>",
-        "server_metadata_url": "https://keycloak.example.com/auth/realms/dev/.well-known/openid-configuration",
+        "server_metadata_url": "https://keycloak.example.com/realms/dev/.well-known/openid-configuration",
         "client_kwargs": {
             "scope": "openid email",
             "code_challenge_method": "S256"
         },
-        "reauth_supported": false
+        "reauth_supported": false,
+        "user_identifier_claim": "email",
+        "require_email_verified": false
     }
 }
 ```
 
-...and add it to your [application settings](/setup/configuration/#single-sign-on-sso):
-
-```env
-OIDC_AUTHLIB_OAUTH_CLIENTS='{"keycloak": {"label": "Keycloak",...}}'
-```
+...and add it to your [application settings](/setup/configuration/#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
 
 The OIDC client needs to be able to establish a network connection to Keycloak.
 Make sure to not block outgoing traffic.
 
+Other JSON fields, `user_identifier_claim`, and SSO limitations are covered in [Generic OIDC configuration](oidc-generic.md#sysreptor-configuration) and [Limitations](oidc-generic.md#limitations).
 
-## Limitations
-SysReptor reauthenticates users before critical actions. It therefore requires users to enter their authentication details (e.g. password and second factor, if configured).
+### Keycloak: `email_verified`
 
-Your Keycloak installation might not support enforced reauthentication. Your can try to set `"reauth_supported": true`. If the "Enable Superuser Permissions" functionality does not work, set to this value to `false`.
-
-To enforce reauthentication, users can set a password for their local SysReptor user. This will enforce reauthentication with the local user's credentials.
+Keycloak sets `email_verified` from the per-user “Email Verified” flag. Users created via API, imported, or brokered from another IdP may stay `false` until Keycloak’s email verification (realm “Verify Email”), an admin sets the flag, or the upstream IdP uses **Trust Email** so Keycloak trusts the address. Prefer `"require_email_verified": true` once Keycloak reliably emits `email_verified=true` for your users.

@@ -1,5 +1,6 @@
 import json
 from datetime import timedelta
+from uuid import uuid4
 
 import pytest
 from django.test import override_settings
@@ -30,6 +31,7 @@ from sysreptor.utils.fielddefinition.types import (
     serialize_field_definition,
 )
 from sysreptor.utils.fielddefinition.utils import HandleUndefinedFieldsOptions, ensure_defined_structure
+from sysreptor.utils.utils import get_key_or_attr
 
 pytestmark = pytest.mark.django_db
 
@@ -337,6 +339,32 @@ def test_check_json_field(schema, value, message):
         assertContainsCheckResults(check_res, [msg])
     else:
         assertNotContainsCheckResults(check_res, [msg])
+
+
+@pytest.mark.parametrize(('username', 'expected'), [
+    (None, True),
+    ('', True),
+    ('member', True),
+    ('importedmember', True),
+    ('notmember', False),
+    ('nonexistent', False),
+])
+def test_check_user_field_member(username, expected):
+    users = {
+        'member': create_user(),
+        'notmember': create_user(),
+        'importedmember': {'id': str(uuid4()), 'name': 'Imported Member'},
+        'nonexistent': {'id': str(uuid4())},
+    }
+    p = create_project(members=[users['member']], imported_members=[users['importedmember']], findings_kwargs=[])
+    f = create_finding(project=p, data={'field_user': str(get_key_or_attr(users.get(username), 'id')) if username in users else username})
+    check_res = p.perform_checks()
+    msg = ErrorMessage(level=MessageLevel.WARNING, message='Invalid user ID', location=MessageLocationInfo(
+        type=MessageLocationType.FINDING, id=f.finding_id, path='field_user'))
+    if expected:
+        assertNotContainsCheckResults(check_res, [msg])
+    else:
+        assertContainsCheckResults(check_res, [msg])
 
 
 def test_comments():

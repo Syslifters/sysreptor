@@ -360,7 +360,7 @@ class TestForgotPassword:
         res1 = self.client.post(reverse('auth-forgot-password-send'), data={'email': self.user.email})
         assert res1.status_code == 200
         assert len(mail.outbox) == 1
-        token_data = dict(parse_qsl(re.search(r'/login/set-password/\?(?P<params>.*)', mail.outbox[0].body).group('params')))
+        token_data = dict(parse_qsl(re.search(r'/login/set-password/#(?P<params>.*)', mail.outbox[0].body).group('params')))
 
         res2 = self.client.post(reverse('auth-forgot-password-check'), data=token_data)
         assert res2.status_code == 200
@@ -442,15 +442,40 @@ class TestUserPermissionAssignment:
         create_user(username='superuser', is_user_manager=False, is_superuser=True)
         create_user(username='other')
 
+    @pytest.mark.parametrize(('username', 'data', 'expected'), [
+        ('regular', {}, False),
+        ('superuser', {}, True),
+        ('superuser', {'is_superuser': True, 'is_user_manager': True, 'email': 'newuser@example.com'}, True),
+        ('user_manager', {}, True),
+        ('user_manager', {'is_superuser': False, 'is_user_manager': True, 'is_designer': True, 'is_template_editor': True, 'is_global_archiver': True, 'is_project_admin': True, 'email': 'newuser@example.com'}, True),
+        ('user_manager', {'is_superuser': True}, False),
+    ])
+    def test_create_user(self, username, data, expected):
+        user_req = PentestUser.objects.get(username=username)
+        user_req.admin_permissions_enabled = True
+
+        res = api_client(user_req).post(reverse('pentestuser-list'), data={
+            'username': 'new',
+            'email': 'new@example.com',
+            'password': get_random_string(32),
+        } | data)
+        assert res.status_code in ([201] if expected else [201, 403])
+        user_new = PentestUser.objects.filter(username='new').first()
+        if user_new:
+            for k, v in data.items():
+                assert (res.data[k] == v) is expected
+                assert (getattr(user_new, k) == v) is expected
+
     @staticmethod
-    def get_test_params(username, usernames_target, fields, expected):
+    def get_test_update_params(username, usernames_target, fields, expected):
         return sorted(itertools.chain(*[[(username, username_target, f, expected) for f in fields] for username_target in usernames_target]))
 
     @pytest.mark.parametrize(('username', 'username_target', 'field', 'expected'), [
-        *get_test_params('regular', ['self', 'other'], protected_fields, False),
-        *get_test_params('user_manager', ['self', 'other'], protected_fields - {'is_superuser', 'is_system_user', 'is_active'}, True),
-        *get_test_params('user_manager', ['self', 'other'], ['is_superuser', 'is_system_user'], False),
-        *get_test_params('superuser', ['self', 'other'], protected_fields - {'is_active', 'is_system_user'}, True),
+        *get_test_update_params('regular', ['self', 'other'], protected_fields, False),
+        *get_test_update_params('user_manager', ['self', 'other'], protected_fields - {'is_superuser', 'is_system_user', 'is_active'}, True),
+        *get_test_update_params('user_manager', ['self', 'other', 'superuser'], ['is_superuser', 'is_system_user'], False),
+        *get_test_update_params('user_manager', ['superuser'], protected_fields, False),
+        *get_test_update_params('superuser', ['self', 'other', 'user_manager'], protected_fields - {'is_active', 'is_system_user'}, True),
     ])
     def test_update_field(self, username, username_target, field, expected):
         user_req = PentestUser.objects.get(username=username)
@@ -467,21 +492,13 @@ class TestUserPermissionAssignment:
             value = not v
         else:
             raise ValueError(f'Cannot automatically handle non-bool field {field}. Exclude field or add it to update_data above.')
-
-        self.assert_update_user(
-            user_req=user_req,
-            user_target=user_target,
-            data={field: value},
-            expected=expected,
-        )
-
-    def assert_update_user(self, user_req, user_target, data, expected):
-        client = api_client(user_req)
-
+        data = {field: value}
         original_data = {k: getattr(user_target, k) for k in data.keys()}
 
-        res = client.patch(reverse('pentestuser-detail', kwargs={'pk': 'self' if user_req == user_target else user_target.id}), data=data)
+        res = api_client(user_req).patch(reverse('pentestuser-detail', kwargs={'pk': 'self' if user_req == user_target else user_target.id}), data=data)
         assert res.status_code in ([200] if expected else [200, 403])
-
         user_target.refresh_from_db()
-        assert {k: getattr(user_target, k) for k in data.keys()} == data if expected else original_data
+        assert {k: getattr(user_target, k) for k in data.keys()} == (data if expected else original_data)
+
+
+# TODO: disable editing of superusers for user_managers in frontend
