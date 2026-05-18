@@ -26,7 +26,7 @@
             <v-list-subheader>
               <span v-if="isExpanded">Plugins</span>
             </v-list-subheader>
-            <template #append>
+            <template #append v-if="isExpanded">
               <s-btn-icon
                 @click="localSettings.pluginMenuExpanded = !localSettings.pluginMenuExpanded"
                 :icon="localSettings.pluginMenuExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
