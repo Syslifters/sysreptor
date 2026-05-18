@@ -7,7 +7,7 @@
         </v-list-item-title>
         <template #append>
           <s-btn-icon>
-            <v-icon icon="mdi-filter-variant" />
+            <v-icon icon="mdi-filter-outline" />
             <v-menu activator="parent">
               <v-list 
                 :selected="[statusFilter]" 
@@ -43,41 +43,58 @@
       <v-list-item-title v-if="statusFilter === CommentStatus.OPEN">No open comments</v-list-item-title>
       <v-list-item-title v-else>No comments found</v-list-item-title>
     </v-list-item>
-    <v-list-item v-else v-for="commentGroup, path in commentGroups" :key="path" class="pl-0 pr-0 pt-0">
-      <v-list-subheader class="pl-2 mt-1 mb-1">
-        <span>{{ prettyFieldLabel(path as string) }}</span>
-        <s-btn-icon
-          @click="onCommentEvent({ type: 'create', comment: { path } })"
-          :disabled="readonly"
-          size="small"
-          variant="flat"
-          color="secondary"
-          density="compact"
-          class="ml-2"
-        >
-          <v-icon icon="mdi-plus" />
-          <s-tooltip activator="parent" location="top">Add Comment</s-tooltip>
-        </s-btn-icon>
+    <v-list-item v-else v-for="locationGroup in commentDisplayGroups" :key="locationGroup.locationKey" class="pl-0 pr-0 pt-0">
+      <v-list-subheader
+        v-if="isProjectWide"
+        :tag="NuxtLink as any"
+        :to="locationGroup.url"
+        class="pl-2 mt-2 mb-1 text-title-medium location-subheader"
+      >
+        <span>{{ locationGroup.title }}</span>
       </v-list-subheader>
-      
-      <comment-detail
-        v-for="comment in commentGroup" :key="comment.id"
-        :comment="comment"
-        :project="props.project"
-        :selectable-users="props.selectableUsers"
-        @click="selectComment(comment, { focus: 'field' })"
-        :is-active="comment.id === selectedComment?.id"
-        :is-new="comment.id === commentNew?.id"
-      />
 
-      <v-divider class="mt-2" />
+      <template v-for="fieldGroup in locationGroup.fieldGroups" :key="fieldGroup.path">
+        <v-list-subheader class="pl-2 mt-1 mb-1">
+          <span>{{ prettyFieldLabel(fieldGroup.path) }}</span>
+          <s-btn-icon
+            @click.stop="onCommentEvent({ type: 'create', comment: { path: fieldGroup.path } })"
+            :disabled="readonly"
+            size="small"
+            variant="flat"
+            color="secondary"
+            density="compact"
+            class="ml-2"
+          >
+            <v-icon icon="mdi-plus" />
+            <s-tooltip activator="parent" location="top">Add Comment</s-tooltip>
+          </s-btn-icon>
+        </v-list-subheader>
+
+        <comment-detail
+          v-for="comment in fieldGroup.comments" :key="comment.id"
+          :comment="comment"
+          :project="props.project"
+          :selectable-users="props.selectableUsers"
+          @click="selectComment(comment, { focus: 'field' })"
+          :is-active="comment.id === selectedComment?.id"
+          :is-new="comment.id === commentNew?.id"
+        />
+        <v-divider class="mt-2" />
+      </template>
     </v-list-item>
   </div>
 </template>
 
 <script setup lang="ts">
-import { groupBy } from 'lodash-es';
+import { NuxtLink } from '#components';
 import { CollabEventType, CommentStatus, ReportingSidebarType, type Comment, type FieldDefinition } from '#imports';
+import {
+  commentFieldDefinitions,
+  commentLocationUrl,
+  groupCommentsByLocation,
+  isOnCommentLocationRoute,
+  parseCommentLocation,
+} from '~/utils/comments';
 
 const props = defineProps<{
   project: PentestProject;
@@ -88,6 +105,7 @@ const props = defineProps<{
   selectableUsers?: UserShortInfo[];
 }>();
 
+const router = useRouter();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
@@ -109,12 +127,21 @@ const commentsVisible = computed(() => {
   return out;
 });
 
-const commentGroups = computed(() => groupBy(commentsVisible.value, 'path'));
+const isProjectWide = computed(() => !props.findingId && !props.sectionId);
+const commentDisplayGroups = computed(() => groupCommentsByLocation(commentsVisible.value, {
+  projectId: props.project.id,
+  sections: projectStore.sections(props.project.id, { projectType: props.projectType }),
+  findings: projectStore.findings(props.project.id, { projectType: props.projectType }),
+}));
 const selectedComment = ref<Comment|null>(null);
 const readonly = computed(() => props.readonly || !apiSettings.isProfessionalLicense);
 
 function prettyFieldLabel(path: string) {
-  let definition: FieldDefinition[]|FieldDefinition|undefined = props.findingId ? props.projectType.finding_fields : props.sectionId ? props.projectType.report_sections.find(s => s.id === props.sectionId)?.fields : undefined;
+  const location = parseCommentLocation(path);
+  if (!location) {
+    return '';
+  }
+  let definition: FieldDefinition[]|FieldDefinition|undefined = commentFieldDefinitions(props.projectType, location);
   const pathParts = path.split('.').slice(3);
   const pathLabels = [];
   for (const pp of pathParts) {
@@ -137,6 +164,17 @@ function prettyFieldLabel(path: string) {
   return pathLabels.join(' / ');
 }
 
+async function waitForElement(getElement: () => HTMLElement|null, maxAttempts = 20): Promise<HTMLElement|null> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const el = getElement();
+    if (el) {
+      return el;
+    }
+    await nextTick();
+  }
+  return null;
+}
+
 async function selectComment(comment: Comment|null, options?: { focus?: string }) {
   if (selectedComment.value?.id === comment?.id) {
     return;
@@ -144,23 +182,29 @@ async function selectComment(comment: Comment|null, options?: { focus?: string }
   selectedComment.value = comment;
 
   if (comment) {
+    const targetUrl = commentLocationUrl(props.project.id, comment.path);
+    if (targetUrl) {
+      if (!isOnCommentLocationRoute(router.currentRoute.value.path, targetUrl)) {
+        await navigateTo(targetUrl);
+      }
+    }
     // Update DOM
     await nextTick();
 
     // Scroll to focussed element
     if (options?.focus === 'comment') {
-      const elComment = document.getElementById(`comment-${comment.id}`);
+      const elComment = await waitForElement(() => document.getElementById(`comment-${comment.id}`));
       elComment?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
       const elCommentInput = elComment?.querySelector('.comment-content *[contenteditable="true"]') as HTMLDivElement|undefined;
       elCommentInput?.focus({ preventScroll: true });
     } else if (options?.focus === 'field') {
-      const filedId = comment.path.split('.').slice(3).join('.').replaceAll('.[', '[');
-      const elField = document.getElementById(filedId);
+      const fieldId = comment.path.split('.').slice(3).join('.').replaceAll('.[', '[');
+      const elField = await waitForElement(() => document.getElementById(fieldId));
 
       const elFieldInput = (elField?.querySelector('*[contenteditable]') || elField?.querySelector('input')) as HTMLInputElement|undefined;
-      const elCommentTextRange = document.getElementById(`comment-textrange-${comment.id}`);
-      
+      const elCommentTextRange = await waitForElement(() => document.getElementById(`comment-textrange-${comment.id}`));
+
       (elCommentTextRange ?? elField)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       elFieldInput?.focus({ preventScroll: true });
 
@@ -172,7 +216,7 @@ async function selectComment(comment: Comment|null, options?: { focus?: string }
 
         const selection = document.getSelection();
         selection?.removeAllRanges();
-        selection?.addRange(range)
+        selection?.addRange(range);
       }
     }
   }
@@ -238,5 +282,13 @@ eventBusComment.on(onCommentEvent);
 
 .v-list-subheader {
   min-height: 0;
+}
+
+.location-subheader {
+  text-decoration: none;
+
+  &:hover {
+    color: rgb(var(--v-theme-primary));
+  }
 }
 </style>

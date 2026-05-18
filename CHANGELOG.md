@@ -1,5 +1,10 @@
 # Changelog
 
+## Upcoming
+* Display all comments when no finding/section is selected
+* Add information about superuser privileges when creating API tokens
+
+
 ## v2026.36 - 2026-05-20
 * Allow searching project contents in list view (https://docs.sysreptor.com/insights/project-search/)
 * Image editor: fix image URLs not updated for HTML syntax in markdown

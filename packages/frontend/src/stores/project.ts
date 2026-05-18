@@ -1,5 +1,6 @@
 import { orderBy, pick, set, isObject, isEqual, sortBy } from "lodash-es";
 import { groupNotes } from "@base/utils/notes";
+import { sortComments } from '~/utils/comments';
 import { useCollabSubpaths, collabSubpath, type CollabPropType, type Comment, type CommentAnswer, type CommentStatus, type PentestFinding, type PentestProject, type ProjectNote, type ProjectType, type ReportSection, type AiAgentStoreState, ReportingSidebarType } from "#imports";
 
 export function useFindingFieldValueSuggestions(findings: MaybeRefOrGetter<Record<string, PentestFinding>>, projectType: MaybeRefOrGetter<ProjectType>) {
@@ -103,35 +104,23 @@ export const useProjectStore = defineStore('project', {
     },
     comments() {
       return (projectId: string, options: {projectType: ProjectType, findingId?: string, sectionId?: string}) => {
-        // Filter and sort comments
         const collabState = this.data[projectId]?.reportingCollabState;
-        let commentData = Object.values(collabState?.data.comments || {}).map(c => ({ 
-          ...c, 
+        const commentData = Object.values(collabState?.data.comments || {}).map(c => ({
+          ...c,
           collabPath: collabState!.apiPath + c.path,
         } as Comment));
+
         if (options.findingId) {
-          const basePath = `findings.${options.findingId}.data.`;
-          commentData = orderBy(
-            commentData.filter(c => c.path.startsWith(basePath)), 
-            [(c) => {
-              const fieldId = c.path.slice(basePath.length).split('.')?.[0];
-              return options.projectType?.finding_fields.map(f => f.id).indexOf(fieldId!)
-            }, 'path', 'created']
-          );
+          return sortComments(commentData, { projectType: options.projectType, basePath: `findings.${options.findingId}.data.` });
         } else if (options.sectionId) {
-          const basePath = `sections.${options.sectionId}.data.`;
-          commentData = orderBy(
-            commentData.filter(c => c.path.startsWith(basePath)),
-            [(c) => {
-              const fieldId = c.path.slice(basePath.length).split('.')?.[0];
-              const sectionFields = options.projectType?.report_sections.find(s => s.id === options.sectionId)?.fields || [];
-              return sectionFields.map(f => f.id).indexOf(fieldId!)
-            }, 'path', 'created']
-          );
+          return sortComments(commentData, { projectType: options.projectType, basePath: `sections.${options.sectionId}.data.` });
         } else {
-          commentData = [];
+          return sortComments(commentData, {
+            projectType: options.projectType,
+            sections: this.sections(projectId, { projectType: options.projectType }),
+            findings: this.findings(projectId, { projectType: options.projectType }),
+          });
         }
-        return commentData;
       };
     },
   },

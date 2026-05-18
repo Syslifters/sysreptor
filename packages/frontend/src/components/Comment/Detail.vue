@@ -120,6 +120,7 @@ const textOriginalExpanded = ref(false);
   background-color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 5%, transparent);
   border-left: 5px solid color-mix(in srgb, rgb(var(--v-theme-on-surface)) 30%, transparent);
   padding-left: 0.2em;
+  margin: 0;
   margin-bottom: 0.4em;
 
   &-expanded {
