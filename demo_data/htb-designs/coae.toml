@@ -34,7 +34,7 @@ report_template = """
     <div id="page-cover-title">
         <h1 id="page-cover-report-title">{{ report.title }}</h1>
         <h2>Report of Findings</h2>
-        <h3>HTB Certified Offensive AI Export (HTB COAE) Exam Report</h3>
+        <h3>HTB Certified Offensive AI Expert (HTB COAE) Exam Report</h3>
         <h3>Candidate Name: {{ report.candidate.name }}</h3>
     </div>
 
