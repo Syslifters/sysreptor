@@ -13,6 +13,7 @@ nav:
       - Upgrade to PRO: setup/upgrade-to-professional.md
   - Writing Reports:
       - Markdown Syntax: reporting/markdown-features.md
+      - Notes: reporting/notes.md
       - Version History: reporting/version-history.md
       - Spell Check: reporting/spell-check.md
       - References: reporting/references.md

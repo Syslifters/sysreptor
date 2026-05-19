@@ -352,6 +352,19 @@ PDF_RENDERING_TIME_LIMIT=300
 ```
 
 
+### Sharing Settings
+
+Notes can be shared with people who do not have a SysReptor account via public links. See [Notes](../reporting/notes.md) for how to create and manage share links.
+
+These settings apply to the whole instance: you can turn off sharing completely, or require a password or read-only access on every shared link.
+
+```shell title="Example:"
+DISABLE_SHARING=false
+SHARING_PASSWORD_REQUIRED=false
+SHARING_READONLY_REQUIRED=false
+```
+
+
 ### Languages
 Configure which languages are available in the language selection.
 By default all languages are shown.
@@ -482,6 +495,8 @@ By enabling the `FORGOT_PASSWORD_ENABLED` option, users can reset their password
 
 
 ### Guest User Permissions
+<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+
 Restrict capabilities of guest users.
 
 ```shell title="Example:"
@@ -491,6 +506,7 @@ GUEST_USERS_CAN_EDIT_PROJECTS=True
 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
 GUEST_USERS_CAN_DELETE_PROJECTS=True
 GUEST_USERS_CAN_SEE_ALL_USERS=False
+GUEST_USERS_CAN_SHARE_NOTES=False
 ```
 
 
