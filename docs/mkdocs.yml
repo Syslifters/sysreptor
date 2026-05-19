@@ -14,6 +14,7 @@ nav:
   - Writing Reports:
       - Markdown Syntax: reporting/markdown-features.md
       - Notes: reporting/notes.md
+      - Comments and Review: reporting/comments-and-review.md
       - Version History: reporting/version-history.md
       - Spell Check: reporting/spell-check.md
       - References: reporting/references.md
