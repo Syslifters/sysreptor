@@ -39,3 +39,5 @@ SysReptor offers multiple methods for redaction:
 
     The pixelated region is generated without sampling any source pixels from inside the redacted area. Instead, synthetic pixels are derived from image content outside the selection (around redaction borders). As a result, the exported image contains no embedded data from the redacted area, and the original content cannot be recovered from the saved file.
 
+
+![Pixelate image](../images/image-editor-pixelate.gif)
