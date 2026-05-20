@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2026.36 - 2026-05-20
 * Allow searching project contents in list view (https://docs.sysreptor.com/insights/project-search/)
 * Image editor: fix image URLs not updated for HTML syntax in markdown
 * Image editor: view original image in preview dialog
