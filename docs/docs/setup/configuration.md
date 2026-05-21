@@ -206,7 +206,7 @@ DEEPSEEK_API_BASE="https://llm.example.com:4000/"
     ```shell title="ollama"
     AI_AGENT_MODEL="ollama:llama3.1"
     OLLAMA_API_KEY="..."
-    OLLAMA_API_URL="https://llm.example.com/"
+    OLLAMA_HOST="https://llm.example.com/"
     ```
 
     If your LLM provider is not listed above, you can use an LLM proxy like [LiteLLM](https://docs.litellm.ai/) or [OpenRouter](https://openrouter.ai/) that provides an OpenAI-compatible API. Configure the proxy to connect to your LLM provider, then use the `deepseek` provider (as shown in the example above) to connect SysReptor to the proxy. This approach works with any LLM that your proxy supports and enables reasoning output display when available.
