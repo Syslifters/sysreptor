@@ -68,33 +68,87 @@
 
       <v-list-subheader>
         <span>Findings</span>
-        <s-btn-icon
-          v-if="!isGrouped"
-          @click="emit('create:finding')"
-          :disabled="props.readonly"
-          size="small"
-          variant="flat"
-          color="secondary"
-          density="compact"
-          class="ml-2"
-        >
-          <v-icon icon="mdi-plus" />
-          <s-tooltip activator="parent" location="top">Add Finding (Ctrl+J)</s-tooltip>
-        </s-btn-icon>
-        <v-spacer />
-        <s-btn-icon
-          v-if="overrideFindingOrder !== undefined && projectType.finding_ordering.length > 0"
-          @click="overrideFindingOrder = !overrideFindingOrder"
-          :disabled="props.readonly"
-          size="small"
-          density="compact"
-        >
-          <v-icon :icon="overrideFindingOrder ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
-          <s-tooltip activator="parent" location="top">
-            <span v-if="overrideFindingOrder">Custom order</span>
-            <span v-else>Default order</span>
-          </s-tooltip>
-        </s-btn-icon>
+        <template v-if="selectedFindingIds.size === 0">
+          <s-btn-icon
+            v-if="!isGrouped"
+            @click="emit('create:finding')"
+            :disabled="props.readonly"
+            size="small"
+            variant="flat"
+            color="secondary"
+            density="compact"
+            class="ml-2"
+          >
+            <v-icon icon="mdi-plus" />
+            <s-tooltip activator="parent" location="top">Add Finding (Ctrl+J)</s-tooltip>
+          </s-btn-icon>
+          <v-spacer />
+          <s-btn-icon
+            v-if="overrideFindingOrder !== undefined && projectType.finding_ordering.length > 0"
+            @click="overrideFindingOrder = !overrideFindingOrder"
+            :disabled="props.readonly"
+            size="small"
+            density="compact"
+          >
+            <v-icon :icon="overrideFindingOrder ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
+            <s-tooltip activator="parent" location="top">
+              <span v-if="overrideFindingOrder">Custom order</span>
+              <span v-else>Default order</span>
+            </s-tooltip>
+          </s-btn-icon>
+        </template>
+        <template v-else>
+          <span class="text-caption ml-2">{{ selectedFindingIds.size }} selected</span>
+          <v-spacer />
+          <v-menu>
+            <template #activator="{ props }">
+              <s-btn-icon
+                v-bind="props"
+                :disabled="props.readonly"
+                size="small"
+                density="compact"
+                color="primary"
+                class="ml-1"
+              >
+                <v-icon icon="mdi-pencil" />
+                <s-tooltip activator="parent" location="top">Change status</s-tooltip>
+              </s-btn-icon>
+            </template>
+            <v-list density="compact">
+              <v-list-item
+                v-for="status in availableStatuses"
+                :key="status.id"
+                @click="updateSelectedFindingsStatus(status.id)"
+                density="compact"
+              >
+                <template #prepend>
+                  <v-icon :icon="status.icon || 'mdi-help'" :class="'status-' + status.id" />
+                </template>
+                <v-list-item-title>{{ status.label }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          <s-btn-icon
+            @click="clearSelection"
+            size="small"
+            density="compact"
+            class="ml-1"
+          >
+            <v-icon icon="mdi-close" />
+            <s-tooltip activator="parent" location="top">Clear selection</s-tooltip>
+          </s-btn-icon>
+          <s-btn-icon
+            @click="showDeleteConfirm = true"
+            :disabled="props.readonly"
+            size="small"
+            density="compact"
+            color="error"
+            class="ml-1"
+          >
+            <v-icon icon="mdi-delete" />
+            <s-tooltip activator="parent" location="top">Delete selected</s-tooltip>
+          </s-btn-icon>
+        </template>
       </v-list-subheader>
 
       <draggable
@@ -144,8 +198,11 @@
                   :class="[
                     `finding-level-${riskLevel(finding)}`,
                     `finding-retest-${findingRetestStatus(finding)?.value}`,
+                    { 'finding-selected': selectedFindingIds.has(finding.id) }
                   ]"
                   :data-testid="'finding-' + findingTitle(finding)"
+                  @click.ctrl="toggleFindingSelection(finding.id); $event.preventDefault()"
+                  @click.ctrl.exact="$event.preventDefault()"
                 >
                   <template #prepend v-if="sortManual">
                     <div class="draggable-handle-finding mr-2">
@@ -237,6 +294,34 @@
       </v-list-item>
     </div>
   </v-list>
+
+  <!-- Delete confirmation dialog -->
+  <v-dialog v-model="showDeleteConfirm" max-width="500">
+    <v-card>
+      <v-card-title>Delete {{ selectedFindingIds.size }} Finding{{ selectedFindingIds.size !== 1 ? 's' : '' }}?</v-card-title>
+      <v-card-text>
+        This action cannot be undone. The following findings will be deleted:
+        <ul class="mt-3">
+          <li v-for="finding in selectedFindings" :key="finding.id" class="text-body-small">
+            {{ findingTitle(finding) }}
+          </li>
+        </ul>
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer />
+        <s-btn
+          @click="showDeleteConfirm = false"
+          variant="text"
+          text="Cancel"
+        />
+        <s-btn-primary
+          @click="deleteSelectedFindings"
+          color="error"
+          text="Delete"
+        />
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup lang="ts">
@@ -262,6 +347,70 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
+const selectedFindingIds = ref<Set<string>>(new Set());
+const showDeleteConfirm = ref(false);
+const apiSettings = useApiSettings();
+
+const selectedFindings = computed(() => props.findings.filter(f => selectedFindingIds.value.has(f.id)));
+const availableStatuses = computed(() => apiSettings.settings?.statuses || []);
+
+function toggleFindingSelection(findingId: string) {
+  if (selectedFindingIds.value.has(findingId)) {
+    selectedFindingIds.value.delete(findingId);
+  } else {
+    selectedFindingIds.value.add(findingId);
+  }
+  selectedFindingIds.value = new Set(selectedFindingIds.value);
+}
+
+function clearSelection() {
+  selectedFindingIds.value.clear();
+  selectedFindingIds.value = new Set(selectedFindingIds.value);
+}
+
+function selectAllFindings() {
+  selectedFindingIds.value = new Set(props.findings.map(f => f.id));
+}
+
+async function deleteSelectedFindings() {
+  showDeleteConfirm.value = false;
+  const findingIds = Array.from(selectedFindingIds.value);
+  
+  try {
+    for (const findingId of findingIds) {
+      await $fetch(`/api/v1/pentestprojects/${props.findings.find(f => f.id === findingId)?.project}/findings/${findingId}/`, {
+        method: 'DELETE',
+      });
+    }
+    // Emit update to remove deleted findings
+    const remainingFindings = props.findings.filter(f => !selectedFindingIds.value.has(f.id));
+    emit('update:findings', remainingFindings);
+    clearSelection();
+  } catch (error) {
+    console.error('Failed to delete findings:', error);
+  }
+}
+
+async function updateSelectedFindingsStatus(newStatus: string) {
+  const findingIds = Array.from(selectedFindingIds.value);
+  
+  try {
+    for (const findingId of findingIds) {
+      const finding = props.findings.find(f => f.id === findingId);
+      if (!finding) continue;
+      
+      await $fetch(`/api/v1/pentestprojects/${finding.project}/findings/${findingId}/`, {
+        method: 'PATCH',
+        body: {
+          status: newStatus,
+        },
+      });
+    }
+    clearSelection();
+  } catch (error) {
+    console.error('Failed to update findings status:', error);
+  }
+}
 
 function sectionUrl(section: ReportSection, trailingSlash = true) {
   return props.toPrefix ? `${props.toPrefix}sections/${section.id}${trailingSlash ? '/' : ''}` : undefined;
@@ -399,6 +548,11 @@ function hideSearch() {
   search.value = null;
 }
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
+useKeyboardShortcut('ctrl+a', () => {
+  if (!isInSearchMode.value) {
+    selectAllFindings();
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -409,6 +563,17 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   .finding-level-#{$level} {
     border-left: 0.4em solid map.get(settings.$risk-color-levels, $level);
   }
+}
+
+.finding-selected {
+  background-color: rgba(var(--v-theme-primary), 0.08);
+}
+
+.status-finished {
+  color: settings.$status-color-finished;
+}
+.status-deprecated {
+  color: settings.$status-color-deprecated;
 }
 
 .finding-retest-resolved, .finding-retest-accepted, .finding-retest-partial {
