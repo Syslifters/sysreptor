@@ -40,6 +40,43 @@
           density="compact"
           class="ml-2"
         />
+        <v-menu>
+          <template #activator="{ props }">
+            <s-btn-icon
+              v-bind="props"
+              :disabled="props.readonly"
+              size="small"
+              density="compact"
+              class="ml-2"
+            >
+              <v-icon icon="mdi-dots-vertical" />
+            </s-btn-icon>
+          </template>
+          <v-list density="compact">
+            <v-list-item
+              v-for="status in availableStatuses"
+              :key="`status-${status.id}`"
+              @click="updateSelectedStatus(status.id)"
+              :disabled="(selectedFindingIds.size === 0 && selectedSectionIds.size === 0) || (selectedSectionIds.size > 0 && !allowedSectionStatusIds.has(status.id))"
+              density="compact"
+            >
+              <template #prepend>
+                <v-icon :icon="status.icon || 'mdi-help'" :class="'status-' + status.id" />
+              </template>
+              <v-list-item-title>{{ status.label }}</v-list-item-title>
+            </v-list-item>
+            <v-list-item
+              @click="showDeleteConfirm = true"
+              :disabled="props.readonly || selectedFindingIds.size === 0 || selectedSectionIds.size > 0"
+              density="compact"
+            >
+              <template #prepend>
+                <v-icon icon="mdi-delete" color="error" />
+              </template>
+              <v-list-item-title class="text-error">Delete</v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </v-list-subheader>
       <v-list-item
         v-for="section in sections"
@@ -48,6 +85,8 @@
         :to="sectionUrl(section)"
         :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(section, false)!) : undefined"
         density="compact"
+        :class="{ 'section-selected': selectedSectionIds.has(section.id) }"
+        @click="onSectionClick($event, section.id)"
       >
         <template #default>
           <v-list-item-title class="text-body-medium">{{ section.label }}</v-list-item-title>
@@ -68,87 +107,34 @@
 
       <v-list-subheader>
         <span>Findings</span>
-        <template v-if="selectedFindingIds.size === 0">
-          <s-btn-icon
-            v-if="!isGrouped"
-            @click="emit('create:finding')"
-            :disabled="props.readonly"
-            size="small"
-            variant="flat"
-            color="secondary"
-            density="compact"
-            class="ml-2"
-          >
-            <v-icon icon="mdi-plus" />
-            <s-tooltip activator="parent" location="top">Add Finding (Ctrl+J)</s-tooltip>
-          </s-btn-icon>
-          <v-spacer />
-          <s-btn-icon
-            v-if="overrideFindingOrder !== undefined && projectType.finding_ordering.length > 0"
-            @click="overrideFindingOrder = !overrideFindingOrder"
-            :disabled="props.readonly"
-            size="small"
-            density="compact"
-          >
-            <v-icon :icon="overrideFindingOrder ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
-            <s-tooltip activator="parent" location="top">
-              <span v-if="overrideFindingOrder">Custom order</span>
-              <span v-else>Default order</span>
-            </s-tooltip>
-          </s-btn-icon>
-        </template>
-        <template v-else>
-          <span class="text-caption ml-2">{{ selectedFindingIds.size }} selected</span>
-          <v-spacer />
-          <v-menu>
-            <template #activator="{ props }">
-              <s-btn-icon
-                v-bind="props"
-                :disabled="props.readonly"
-                size="small"
-                density="compact"
-                color="primary"
-                class="ml-1"
-              >
-                <v-icon icon="mdi-pencil" />
-                <s-tooltip activator="parent" location="top">Change status</s-tooltip>
-              </s-btn-icon>
-            </template>
-            <v-list density="compact">
-              <v-list-item
-                v-for="status in availableStatuses"
-                :key="status.id"
-                @click="updateSelectedFindingsStatus(status.id)"
-                density="compact"
-              >
-                <template #prepend>
-                  <v-icon :icon="status.icon || 'mdi-help'" :class="'status-' + status.id" />
-                </template>
-                <v-list-item-title>{{ status.label }}</v-list-item-title>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-          <s-btn-icon
-            @click="clearSelection"
-            size="small"
-            density="compact"
-            class="ml-1"
-          >
-            <v-icon icon="mdi-close" />
-            <s-tooltip activator="parent" location="top">Clear selection</s-tooltip>
-          </s-btn-icon>
-          <s-btn-icon
-            @click="showDeleteConfirm = true"
-            :disabled="props.readonly"
-            size="small"
-            density="compact"
-            color="error"
-            class="ml-1"
-          >
-            <v-icon icon="mdi-delete" />
-            <s-tooltip activator="parent" location="top">Delete selected</s-tooltip>
-          </s-btn-icon>
-        </template>
+        <v-spacer />
+        <s-btn-icon
+          v-if="!isGrouped && selectedFindingIds.size === 0"
+          @click="emit('create:finding')"
+          :disabled="props.readonly"
+          size="small"
+          variant="flat"
+          color="secondary"
+          density="compact"
+          class="ml-2"
+        >
+          <v-icon icon="mdi-plus" />
+          <s-tooltip activator="parent" location="top">Add Finding (Ctrl+J)</s-tooltip>
+        </s-btn-icon>
+        <s-btn-icon
+          v-if="overrideFindingOrder !== undefined && projectType.finding_ordering.length > 0 && selectedFindingIds.size === 0"
+          @click="overrideFindingOrder = !overrideFindingOrder"
+          :disabled="props.readonly"
+          size="small"
+          density="compact"
+          class="ml-2"
+        >
+          <v-icon :icon="overrideFindingOrder ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
+          <s-tooltip activator="parent" location="top">
+            <span v-if="overrideFindingOrder">Custom order</span>
+            <span v-else>Default order</span>
+          </s-tooltip>
+        </s-btn-icon>
       </v-list-subheader>
 
       <draggable
@@ -201,8 +187,7 @@
                     { 'finding-selected': selectedFindingIds.has(finding.id) }
                   ]"
                   :data-testid="'finding-' + findingTitle(finding)"
-                  @click.ctrl="toggleFindingSelection(finding.id); $event.preventDefault()"
-                  @click.ctrl.exact="$event.preventDefault()"
+                  @click="onFindingClick($event, finding.id)"
                 >
                   <template #prepend v-if="sortManual">
                     <div class="draggable-handle-finding mr-2">
@@ -348,11 +333,23 @@ const emit = defineEmits<{
 
 const router = useRouter();
 const selectedFindingIds = ref<Set<string>>(new Set());
+const selectedSectionIds = ref<Set<string>>(new Set());
+const lastSelectedFindingId = ref<string|null>(null);
+const lastSelectedSectionId = ref<string|null>(null);
 const showDeleteConfirm = ref(false);
 const apiSettings = useApiSettings();
 
 const selectedFindings = computed(() => props.findings.filter(f => selectedFindingIds.value.has(f.id)));
 const availableStatuses = computed(() => apiSettings.settings?.statuses || []);
+const allowedSectionStatusIds = computed(() => {
+  const allowed = new Set([
+    ReviewStatus.IN_PROGRESS,
+    ReviewStatus.READY_FOR_REVIEW,
+    ReviewStatus.NEEDS_IMPROVEMENT,
+    ReviewStatus.FINISHED,
+  ]);
+  return allowed;
+});
 
 function toggleFindingSelection(findingId: string) {
   if (selectedFindingIds.value.has(findingId)) {
@@ -361,11 +358,34 @@ function toggleFindingSelection(findingId: string) {
     selectedFindingIds.value.add(findingId);
   }
   selectedFindingIds.value = new Set(selectedFindingIds.value);
+  lastSelectedFindingId.value = findingId;
+}
+
+function toggleSectionSelection(sectionId: string) {
+  if (selectedSectionIds.value.has(sectionId)) {
+    selectedSectionIds.value.delete(sectionId);
+  } else {
+    selectedSectionIds.value.add(sectionId);
+  }
+  selectedSectionIds.value = new Set(selectedSectionIds.value);
+  lastSelectedSectionId.value = sectionId;
+}
+
+function clearFindingSelection() {
+  selectedFindingIds.value.clear();
+  selectedFindingIds.value = new Set(selectedFindingIds.value);
+  lastSelectedFindingId.value = null;
+}
+
+function clearSectionSelection() {
+  selectedSectionIds.value.clear();
+  selectedSectionIds.value = new Set(selectedSectionIds.value);
+  lastSelectedSectionId.value = null;
 }
 
 function clearSelection() {
-  selectedFindingIds.value.clear();
-  selectedFindingIds.value = new Set(selectedFindingIds.value);
+  clearFindingSelection();
+  clearSectionSelection();
 }
 
 function selectAllFindings() {
@@ -391,7 +411,7 @@ async function deleteSelectedFindings() {
   }
 }
 
-async function updateSelectedFindingsStatus(newStatus: string) {
+async function updateSelectedFindingsStatus(newStatus: string, clearAfter = true) {
   const findingIds = Array.from(selectedFindingIds.value);
   
   try {
@@ -406,10 +426,46 @@ async function updateSelectedFindingsStatus(newStatus: string) {
         },
       });
     }
-    clearSelection();
+    if (clearAfter) {
+      clearFindingSelection();
+    }
   } catch (error) {
     console.error('Failed to update findings status:', error);
   }
+}
+
+async function updateSelectedSectionsStatus(newStatus: string, clearAfter = true) {
+  if (!allowedSectionStatusIds.value.has(newStatus)) {
+    return;
+  }
+  const sectionIds = Array.from(selectedSectionIds.value);
+
+  try {
+    for (const sectionId of sectionIds) {
+      const section = props.sections.find(s => s.id === sectionId);
+      if (!section) continue;
+
+      await $fetch(`/api/v1/pentestprojects/${section.project}/sections/${sectionId}/`, {
+        method: 'PATCH',
+        body: {
+          status: newStatus,
+        },
+      });
+    }
+    if (clearAfter) {
+      clearSectionSelection();
+    }
+  } catch (error) {
+    console.error('Failed to update sections status:', error);
+  }
+}
+
+async function updateSelectedStatus(newStatus: string) {
+  await Promise.all([
+    selectedFindingIds.value.size > 0 ? updateSelectedFindingsStatus(newStatus, false) : Promise.resolve(),
+    selectedSectionIds.value.size > 0 ? updateSelectedSectionsStatus(newStatus, false) : Promise.resolve(),
+  ]);
+  clearSelection();
 }
 
 function sectionUrl(section: ReportSection, trailingSlash = true) {
@@ -464,6 +520,74 @@ function sortGroups(groups: FindingGroup[]) {
   const value = groups.flatMap(g => g.findings)
     .map((f, idx) => ({ ...f, order: idx + 1 }));
   emit('update:findings', value);
+}
+
+function selectFindingRange(targetId: string) {
+  const orderedIds = findingGroups.value.flatMap(group => group.findings.map(f => f.id));
+  if (!lastSelectedFindingId.value) {
+    toggleFindingSelection(targetId);
+    return;
+  }
+
+  const start = orderedIds.indexOf(lastSelectedFindingId.value);
+  const end = orderedIds.indexOf(targetId);
+  if (start === -1 || end === -1) {
+    toggleFindingSelection(targetId);
+    return;
+  }
+
+  const [from, to] = start <= end ? [start, end] : [end, start];
+  for (const id of orderedIds.slice(from, to + 1)) {
+    selectedFindingIds.value.add(id);
+  }
+  selectedFindingIds.value = new Set(selectedFindingIds.value);
+  lastSelectedFindingId.value = targetId;
+}
+
+function onFindingClick(event: MouseEvent, findingId: string) {
+  if (event.shiftKey && !event.ctrlKey) {
+    selectFindingRange(findingId);
+    event.preventDefault();
+    return;
+  }
+  if (event.ctrlKey) {
+    toggleFindingSelection(findingId);
+    event.preventDefault();
+  }
+}
+
+function selectSectionRange(targetId: string) {
+  const orderedIds = sections.value.map(s => s.id);
+  if (!lastSelectedSectionId.value) {
+    toggleSectionSelection(targetId);
+    return;
+  }
+
+  const start = orderedIds.indexOf(lastSelectedSectionId.value);
+  const end = orderedIds.indexOf(targetId);
+  if (start === -1 || end === -1) {
+    toggleSectionSelection(targetId);
+    return;
+  }
+
+  const [from, to] = start <= end ? [start, end] : [end, start];
+  for (const id of orderedIds.slice(from, to + 1)) {
+    selectedSectionIds.value.add(id);
+  }
+  selectedSectionIds.value = new Set(selectedSectionIds.value);
+  lastSelectedSectionId.value = targetId;
+}
+
+function onSectionClick(event: MouseEvent, sectionId: string) {
+  if (event.shiftKey && !event.ctrlKey) {
+    selectSectionRange(sectionId);
+    event.preventDefault();
+    return;
+  }
+  if (event.ctrlKey) {
+    toggleSectionSelection(sectionId);
+    event.preventDefault();
+  }
 }
 
 const pendingSortEvents = ref<any[]>([]);
@@ -548,11 +672,6 @@ function hideSearch() {
   search.value = null;
 }
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
-useKeyboardShortcut('ctrl+a', () => {
-  if (!isInSearchMode.value) {
-    selectAllFindings();
-  }
-});
 </script>
 
 <style lang="scss" scoped>
@@ -566,7 +685,11 @@ useKeyboardShortcut('ctrl+a', () => {
 }
 
 .finding-selected {
-  background-color: rgba(var(--v-theme-primary), 0.08);
+  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity)) * 100%), transparent);
+}
+
+.section-selected {
+  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity)) * 100%), transparent);
 }
 
 .status-finished {
