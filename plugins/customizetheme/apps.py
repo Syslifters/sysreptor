@@ -28,31 +28,40 @@ class CustomThemePluginConfig(PluginConfig):
                 # See Vuetify theme configuration
                 'all': {
                     'colors': {
-                        'primary': '#ff00ff',
-                        'logo': '#ff00ff',
+                        'primary': '#2563eb',
+                        'logo': '#475569',
 
-                        'risk-critical': '#8c00fc',
+                        'risk-critical': '#990000',
                         'risk-high': '#ed0003',
                         'risk-medium': '#f0d400',
                         'risk-low': '#009dff',
                         'risk-info': '#00bc00',
                     },
+                    'variables': {
+                        'header-logo-url': (
+                            'data:image/svg+xml;base64,'
+                            'PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+'
+                            'PHBhdGggZD0iTTE5LDE5TDEyLDExVjE5SDVMMTIsMTFWNUgxOU0xOSwzSDVBMiwyIDAgMCwwIDMsNVYxOUEyLDIgMCAwLDAg'
+                            'NSwyMUgxOUEyLDIgMCAwLDAgMjEsMTlWNUEyLDIgMCAwLDAgMTksM1oiIC8+PC9zdmc+'
+                        ),
+                        'header-logo-height': '32px',
+                    },
                 },
                 # settings for specific themes
                 'dark': {
                     'colors': {
-                        'on-background': '#74ee15',
-                        'on-surface': '#74ee15',
-                        'on-drawer': '#74ee15',
-                        'on-header': '#74ee15',
+                        'on-background': '#e2e8f0',
+                        'on-surface': '#e2e8f0',
+                        'on-drawer': '#e2e8f0',
+                        'on-header': '#e2e8f0',
                     },
                 },
                 'light': {
                     'colors': {
-                        'drawer': '#39ff14',
-                        'header': '#39ff14',
-                        'background': '#f3f9dc',
-                        'surface': '#f3f9dc',
+                        'drawer': '#f8fafc',
+                        'header': '#f8fafc',
+                        'background': '#f8fafc',
+                        'surface': '#f8fafc',
                     },
                 },
             }),

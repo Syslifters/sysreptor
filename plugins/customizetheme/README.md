@@ -43,7 +43,7 @@ You want to use the same colors for risk levels in the web UI as in the report P
       "header": "#ff00ff"
     },
     "variables": {
-      "header-logo-url": "data:image/svg+xml;base64,...",
+      "header-logo-url": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTE5LDE5TDEyLDExVjE5SDVMMTIsMTFWNUgxOU0xOSwzSDVBMiwyIDAgMCwwIDMsNVYxOUEyLDIgMCAwLDAgNSwyMUgxOUEyLDIgMCAwLDAgMjEsMTlWNUEyLDIgMCAwLDAgMTksM1oiIC8+PC9zdmc+",
       "header-logo-height": "32px"
     }
   }
