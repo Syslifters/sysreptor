@@ -553,6 +553,13 @@ function onFindingClick(event: MouseEvent, findingId: string) {
   if (event.ctrlKey) {
     toggleFindingSelection(findingId);
     event.preventDefault();
+    return;
+  }
+  if (!props.readonly) {
+    selectedFindingIds.value = new Set([findingId]);
+    selectedSectionIds.value.clear();
+    selectedSectionIds.value = new Set(selectedSectionIds.value);
+    lastSelectedFindingId.value = findingId;
   }
 }
 
@@ -587,6 +594,13 @@ function onSectionClick(event: MouseEvent, sectionId: string) {
   if (event.ctrlKey) {
     toggleSectionSelection(sectionId);
     event.preventDefault();
+    return;
+  }
+  if (!props.readonly) {
+    selectedSectionIds.value = new Set([sectionId]);
+    selectedFindingIds.value.clear();
+    selectedFindingIds.value = new Set(selectedFindingIds.value);
+    lastSelectedSectionId.value = sectionId;
   }
 }
 
