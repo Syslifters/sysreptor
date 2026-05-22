@@ -54,7 +54,7 @@
                   text="Add"
                 />
               </template>
-              <template #title>Setup API Token</template>
+              <template #title>Create API Token</template>
               <template #default>
                 <template v-if="setupWizard.step === SetupWizardStep.INFO">
                   <v-card-text>
@@ -75,6 +75,10 @@
                     >
                       <template #label><pro-info>Expire Date (optional)</pro-info></template>
                     </s-date-picker>
+
+                    <p v-if="auth.permissions.value.superuser">
+                      Your API token will receive your full superuser permissions.
+                    </p>
 
                     <v-alert v-if="setupWizard.errors?.detail" color="error" class="mt-4">
                       {{ setupWizard.errors.detail }}
