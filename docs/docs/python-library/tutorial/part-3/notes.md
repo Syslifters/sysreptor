@@ -2,7 +2,7 @@
 
 The `reptor` library also allows you to interact with your notes structures.
 
-Use the [Notes API](/python-library/api/notes.md) to get the your project's note structures.
+Use the [Notes API](/python-library/api/notes) to get the your project's note structures.
 
 ```python title="Get project notes"
 notes = reptor.api.notes.get_notes()
@@ -20,7 +20,7 @@ notes[0].icon_emoji
 # Out: '🧐'
 ```
 
-This method returns a list of [Notes](/python-library/dataclasses/note.md#reptor.models.Note.Note).
+This method returns a list of [Notes](/python-library/dataclasses/note#reptor.models.Note.Note).
 
 We can also create notes. Let's add a new item to our "Web Security Checklist".
 
@@ -82,7 +82,3 @@ reptor.api.notes.duplicate(id="dda820d2-57d7-4ff8-b4ac-99d102a5c8bf")
 # Out: Note(title="Authorizations (Done)", id="a1a1fd38-0c8e-4b42-b491-74cb61ed2d7f", parent="c052da53-0b2e-401e-973d-3c1c92255b77")
 reptor.api.notes.delete_note(id="a1a1fd38-0c8e-4b42-b491-74cb61ed2d7f")
 ```
-
-<div style="display: flex; justify-content: flex-start;">
-  <span><a href="../../part-2/findings">← Previous: Interacting with SysReptor findings</a></span>
-</div>

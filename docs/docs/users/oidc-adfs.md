@@ -2,7 +2,7 @@
 title: Microsoft ADFS OIDC Configuration
 ---
 # Microsoft ADFS OIDC Configuration
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+<BadgePro />
 
 ## Configuration in Microsoft ADFS
 1. Open the ADFS Management tool.
@@ -13,27 +13,27 @@ title: Microsoft ADFS OIDC Configuration
     - Select the Template "Server application accessing a web API" (4)
     - Click "Next"
 
-    ![Register application group](../images/oidc-adfs-add-application-group.png)
+    ![Register application group](/images/oidc-adfs-add-application-group.png)
 
 3. Register a server application:
     - Copy the client identifier for later (1)
     - Enter the redirect url of your application in the following format: https://your.url/login/oidc/adfs/callback (2)
     - Click "Next"
     
-    ![Register server application](../images/oidc-adfs-add-server-application.png)
+    ![Register server application](/images/oidc-adfs-add-server-application.png)
 
 4. Configure Application credentials:
     - Select "Generate a shared secret"
     - As mentioned, copy and save the secret for later.
     - Click "Next"
     
-    ![Register server application](../images/oidc-adfs-configure-application-credentials.png)
+    ![Register server application](/images/oidc-adfs-configure-application-credentials.png)
 
 5. Configure Web API:
     - Copy the client identifier from the point 3. in the `Identifier` field.
     - Click "Next"
     
-    ![Register server application](../images/oidc-adfs-configure-web-api.png)
+    ![Register server application](/images/oidc-adfs-configure-web-api.png)
 
 6. Configure Access Control Policy:
     - Here we will allow a specific group only and require MFA for users (1)
@@ -41,13 +41,13 @@ title: Microsoft ADFS OIDC Configuration
     - Add the AD Group you want to add (3 and 4)
     - Click "OK" and "Next"
     
-    ![Register server application](../images/oidc-adfs-configure-access-control-policy.png)
+    ![Register server application](/images/oidc-adfs-configure-access-control-policy.png)
 
 7. Configure Application Permissions:
     - In the permitted scope check `allatclaims`, `email`, `openid` and `profile`.
     - Click "Next"
     
-    ![Register server application](../images/oidc-adfs-configure-application-permissions.png)
+    ![Register server application](/images/oidc-adfs-configure-application-permissions.png)
 
 8. Configure Claim Rules:
     - After creating your application group successfully, right click on your application and click on `Properties`
@@ -56,9 +56,9 @@ title: Microsoft ADFS OIDC Configuration
     - Select the rule template "Send LDAP Attributes as Claims"
     - Finally, add a rule named "email" which maps the "E-Mail-Addresses" LDAP Attribute to the claim type "email".
     
-    ![Register server application](../images/oidc-adfs-claims-application-group-list.png)
-    ![Register server application](../images/oidc-adfs-claims-add-transform-rule.png)
-    ![Register server application](../images/oidc-adfs-claims-configure-transform-rule.png)
+    ![Register server application](/images/oidc-adfs-claims-application-group-list.png)
+    ![Register server application](/images/oidc-adfs-claims-add-transform-rule.png)
+    ![Register server application](/images/oidc-adfs-claims-configure-transform-rule.png)
 
 You should now have the following values:
 
@@ -87,9 +87,9 @@ Create your OIDC configuration for SysReptor...
 }
 ```
 
-...and add it to your [application settings](/setup/configuration/#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
+...and add it to your [application settings](/setup/configuration#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
 
 The OIDC client needs to be able to establish a network connection to Microsoft ADFS.
 Make sure to not block outgoing traffic.
 
-Other JSON fields, `user_identifier_claim`, and general SSO limitations are covered in [Generic OIDC configuration](oidc-generic.md#sysreptor-configuration) and [Limitations](oidc-generic.md#limitations).
+Other JSON fields, `user_identifier_claim`, and general SSO limitations are covered in [Generic OIDC configuration](/users/oidc-generic#sysreptor-configuration) and [Limitations](/users/oidc-generic#limitations).

@@ -9,13 +9,17 @@ Our free cloud service to write your Hack The Box CPTS, CWES, CDSA, CWEE, CAPE, 
 👌 Zero setup required.  
 
 <br>
-
-<br><div style="text-align:center">[:rocket: Sign Up (it's free)](https://htb.sysreptor.com/htb/signup/){ .md-button }</div>
-<br><div style="text-align:center">Already have an account? [Login here.](https://labs.sysre.pt){ target=_blank }</div>
 <br>
+<div style="text-align:center">
+
+[🚀 Sign Up (it's free)](https://htb.sysreptor.com/htb/signup/){ .md-button }
+
+Already have an account? [Login here.](https://labs.sysre.pt)
+
+</div>
 
 ## Prefer self-hosting?
-1. [Install](setup/installation.md){ target="_blank" } SysReptor
+1. [Install](/setup/installation) SysReptor
 2. Import all HTB Designs and Reports:
 
 ```shell
@@ -24,62 +28,62 @@ curl -s "https://docs.sysreptor.com/assets/htb-designs.tar.gz" | docker compose 
 curl -s "https://docs.sysreptor.com/assets/htb-demo-projects.tar.gz" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=project
 ```
 
-<br><br>
+<br>
 
 ## Hack The Box Reports
-<div style="display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-flow: row; gap: 1em;">
+<div class="grid-reports">
 <a href="/assets/reports/HTB-CPTS-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB CPTS Report Demo" src="/assets/reports/HTB-CPTS-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CPTS Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB CPTS Report Demo" src="/assets/reports/HTB-CPTS-Report-Preview.png" />
+    <figcaption>HTB CPTS Report Demo</figcaption>
+  </figure>
 </a>
 <a href="/assets/reports/HTB-CWES-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB CWES Report Demo" src="/assets/reports/HTB-CWES-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CWES Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB CWES Report Demo" src="/assets/reports/HTB-CWES-Report-Preview.png" />
+    <figcaption>HTB CWES Report Demo</figcaption>
+  </figure>
 </a>
 <a href="/assets/reports/HTB-CDSA-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB CDSA Report Demo" src="/assets/reports/HTB-CDSA-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CDSA Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB CDSA Report Demo" src="/assets/reports/HTB-CDSA-Report-Preview.png" />
+    <figcaption>HTB CDSA Report Demo</figcaption>
+  </figure>
 </a>
 <a href="/assets/reports/HTB-CWEE-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB CWEE Report Demo" src="/assets/reports/HTB-CWEE-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CWEE Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB CWEE Report Demo" src="/assets/reports/HTB-CWEE-Report-Preview.png" />
+    <figcaption>HTB CWEE Report Demo</figcaption>
+  </figure>
 </a>
 <a href="/assets/reports/HTB-CAPE-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB CAPE Report Demo" src="/assets/reports/HTB-CAPE-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CAPE Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB CAPE Report Demo" src="/assets/reports/HTB-CAPE-Report-Preview.png" />
+    <figcaption>HTB CAPE Report Demo</figcaption>
+  </figure>
 </a>
 <a href="/assets/reports/HTB-CJCA-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB CJCA Report Demo" src="/assets/reports/HTB-CJCA-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CJCA Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB CJCA Report Demo" src="/assets/reports/HTB-CJCA-Report-Preview.png" />
+    <figcaption>HTB CJCA Report Demo</figcaption>
+  </figure>
 </a>
 <a href="/assets/reports/HTB-CWPE-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB CWPE Report Demo" src="/assets/reports/HTB-CWPE-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB CWPE Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB CWPE Report Demo" src="/assets/reports/HTB-CWPE-Report-Preview.png" />
+    <figcaption>HTB CWPE Report Demo</figcaption>
+  </figure>
 </a>
 <a href="/assets/reports/HTB-COAE-Report.pdf" target="_blank">
-    <figure>
-        <img alt="HTB COAE Report Demo" src="/assets/reports/HTB-COAE-Report-Preview.png" style="border:1px solid;" />
-        <figcaption>HTB COAE Report Demo</figcaption>
-    </figure>
+  <figure>
+    <img alt="HTB COAE Report Demo" src="/assets/reports/HTB-COAE-Report-Preview.png" />
+    <figcaption>HTB COAE Report Demo</figcaption>
+  </figure>
 </a>
 </div>
 
 ## Creating HTB Report
-<figure markdown>
-  ![CPTS Reporting Procedure](images/cpts-reporting.gif)
+<figure>
+  <img src="/images/cpts-reporting.gif" alt="CPTS Reporting Procedure" loading="lazy" />
 </figure>
 

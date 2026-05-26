@@ -2,10 +2,10 @@
 title: Microsoft Entra ID OIDC Configuration
 ---
 # Microsoft Entra ID OIDC Configuration
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+<BadgePro />
 
 ## Configuration in Microsoft Entra ID
-1. Open [Microsoft Entra Admin Center](https://entra.microsoft.com){ target=_blank }
+1. Open [Microsoft Entra Admin Center](https://entra.microsoft.com)
 2. Select Applications -> App registrations -> New registration
 3. In following menu: 
 
@@ -14,12 +14,12 @@ title: Microsoft Entra ID OIDC Configuration
     - Enter the redirect url of your application in the following format: https://your.url/login/oidc/entra/callback (3)
     - Select type "Web" for redirect url (4)
 
-    ![Register application menu](../images/oidc_1_register.png)
+    ![Register application menu](/images/oidc_1_register.png)
 
 4. In the newly created "App registration", go to the Token configuration submenu and add the following *optional* claim:
     - TokenType: ID
     - Claims: auth_time, login_hint
-    ![Register application menu](../images/oidc_2_claims.png)
+    ![Register application menu](/images/oidc_2_claims.png)
 
 
 5. Next go to the "Certificates & Secrets" submenu and add a new client secret with 24 months validity (this is the maximum) and any description.
@@ -55,13 +55,13 @@ Create your OIDC configuration for SysReptor...
 }
 ```
 
-...and add it to your [application settings](/setup/configuration/#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
+...and add it to your [application settings](/setup/configuration#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
 
 The OIDC client needs to be able to establish a network connection to Microsoft Entra ID.
 Make sure to not block outgoing traffic.
 
-Other JSON fields, `user_identifier_claim`, and general SSO limitations are covered in [Generic OIDC configuration](oidc-generic.md#sysreptor-configuration) and [Limitations](oidc-generic.md#limitations).
+Other JSON fields, `user_identifier_claim`, and general SSO limitations are covered in [Generic OIDC configuration](/users/oidc-generic#sysreptor-configuration) and [Limitations](/users/oidc-generic#limitations).
 
 ### Entra ID: `email_verified`
 
-Some Entra ID configurations omit `email_verified` or return `email_verified=false`. See [Verified Emails](oidc-generic.md#verified-emails) and adjust `require_email_verified` only if you understand the trade-off.
+Some Entra ID configurations omit `email_verified` or return `email_verified=false`. See [Verified Emails](/users/oidc-generic#verified-emails) and adjust `require_email_verified` only if you understand the trade-off.

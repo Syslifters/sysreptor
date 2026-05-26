@@ -1,15 +1,15 @@
 # Plugins
-<span style="color:orange;">:octicons-alert-fill-24: Experimental. Expect breaking changes.</span>
+<BadgeExperimental />
 
 SysReptor provides a plugin system to extend the functionality of the application without modifying the SysReptor core code.
 Plugins can hook into the SysReptor core and provide additional features both in the API and the web UI.
 
-All plugins are disabled by default. To enable a plugin, add the [`ENABLED_PLUGINS`](./configuration.md#plugins) variable to your app.env (e.g., `ENABLED_PLUGINS=cyberchef,checkthehash`) and restart your container (`docker compose up -d` from the `deploy` directory).
+All plugins are disabled by default. To enable a plugin, add the [`ENABLED_PLUGINS`](/setup/configuration#plugins) variable to your app.env (e.g., `ENABLED_PLUGINS=cyberchef,checkthehash`) and restart your container (`docker compose up -d` from the `deploy` directory).
 
 
 ## Official Plugins
 
-:octicons-server-24: Self-Hosted :octicons-cloud-24: Cloud
+<BadgeSelfHosted /> <BadgeCloud />
 
 Official plugins are maintained by the SysReptor team and are shipped inside official docker images.
 
@@ -22,18 +22,18 @@ Official plugins are maintained by the SysReptor team and are shipped inside off
 | [demoplugin](https://github.com/Syslifters/sysreptor/tree/main/plugins/demoplugin) | A demo plugin that demonstrates the plugin system | |
 | [markdownexport](https://github.com/Syslifters/sysreptor/tree/main/plugins/markdownexport) | Export reports as Markdown documents in ZIP format | |
 | [projectnumber](https://github.com/Syslifters/sysreptor/tree/main/plugins/projectnumber) | Automatically adds an incremental project number to new projects | |
-| [webhooks](https://github.com/Syslifters/sysreptor/tree/main/plugins/webhooks) | Send webhooks on certain events | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
-| [renderfindings](https://github.com/Syslifters/sysreptor/tree/main/plugins/renderfindings) | Render selected findings to pdf | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
-| [rendersections](https://github.com/Syslifters/sysreptor/tree/main/plugins/rendersections) | Render single sections to PDF | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
-| [scanimport](https://github.com/Syslifters/sysreptor/tree/main/plugins/scanimport) | Import scan results from various tools | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
-| [jira](https://github.com/Syslifters/sysreptor/tree/main/plugins/jira) | Export findings to Jira issues | <span style="color:red;">:octicons-heart-fill-24: Pro only</span> |
+| [webhooks](https://github.com/Syslifters/sysreptor/tree/main/plugins/webhooks) | Send webhooks on certain events | <BadgePro /> |
+| [renderfindings](https://github.com/Syslifters/sysreptor/tree/main/plugins/renderfindings) | Render selected findings to pdf | <BadgePro /> |
+| [rendersections](https://github.com/Syslifters/sysreptor/tree/main/plugins/rendersections) | Render single sections to PDF | <BadgePro /> |
+| [scanimport](https://github.com/Syslifters/sysreptor/tree/main/plugins/scanimport) | Import scan results from various tools | <BadgePro /> |
+| [jira](https://github.com/Syslifters/sysreptor/tree/main/plugins/jira) | Export findings to Jira issues | <BadgePro /> |
 
 
 
 
 
 ## Developing Custom Plugins
-:octicons-server-24: Self-Hosted
+<BadgeSelfHosted />
 
 It is possible to develop and load custom plugins to extend the functionality of SysReptor.
 Custom plugins are only supported in self-hosted installations, but not in the cloud version.
@@ -79,11 +79,11 @@ We recommend to create a parent directory that contains all your custom plugins 
 Plugin directories should contain a valid SysReptor plugin structure that can be loaded by the SysReptor core.
 Use [demoplugin](https://github.com/Syslifters/sysreptor/tree/main/plugins/demoplugin) as a starting point.
 
-!!! note "Use a unique `plugin_id` and module name."
 
-    When copying an existing plugin, make sure to change the module (plugin directory) name 
-    and to change the `plugin_id` in `apps.py`.
-
+::: info Use a unique `plugin_id` and module name.
+When copying an existing plugin, make sure to change the module (plugin directory) name 
+and to change the `plugin_id` in `apps.py`.
+:::
 
 ### Plugin Loading
 Custom plugins need to be made available to the SysReptor docker container.
@@ -108,11 +108,11 @@ COPY --from=plugin-builder /custom_plugins /custom_plugins
 
 Use following code snippets to plug your extended docker image to the SysReptor docker-compose file:
 
-!!! note 
 
-    Directly modifying `sysreptor/deploy/sysreptor/docker-compose.yml` is not recommended, because changes might get overwritten during [updates](/setup/updates.md).
-    The presented way is compatible with the `update.sh` script.
-
+::: info
+Directly modifying `sysreptor/deploy/sysreptor/docker-compose.yml` is not recommended, because changes might get overwritten during [updates](/setup/updates).
+The presented way is compatible with the `update.sh` script.
+:::
 
 First, modify `sysreptor/deploy/docker-compose.yml` to add an include docker compose include file.
 
@@ -156,9 +156,8 @@ See the [Django documentation](https://docs.djangoproject.com/en/stable/ref/appl
 Each plugin needs at least an `__init__.py` and `apps.py` file with a minimal plugin configuration.
 Use the [demoplugin](https://github.com/Syslifters/sysreptor/tree/main/plugins/demoplugin) as a starting point.
 
-```python title="apps.py example"
---8<-- "../plugins/demoplugin/apps.py"
-```
+<<< @/../../plugins/demoplugin/apps.py
+
 
 Besides `apps.py`, you can add arbitrary Python files to the plugin directory to structure your plugin code.
 We recommend to stick to the Django app structure:
@@ -198,7 +197,7 @@ If you need to install additional dependencies, you need to extend the `Dockerfi
 If your plugin needs to store data in the database, you can define Django models in `models.py`.
 You also need to create database migrations for your models to create/update the database schema.
 SysReptor automatically applies plugin migrations on startup if the plugin is enabled
-and also includes plugin models in [backups and restores](/setup/backups.md).
+and also includes plugin models in [backups and restores](/setup/backups).
 
 Here are the basic steps to create a Django models:
 
@@ -216,22 +215,16 @@ See the Django documentation for more information:
 #### API Endpoints
 You can define API endpoints in your plugin by defining API views in `views.py` and registering them in URL patterns to `urls.py`.
 
-```python title="urls.py example"
---8<-- "../plugins/demoplugin/urls.py"
-```
+<<< @/../../plugins/demoplugin/urls.py
 
 API views can be implemented as Django views or [Django REST framework](https://www.django-rest-framework.org/) viewsets.
 
-```python title="views.py example"
---8<-- "../plugins/demoplugin/views.py"
-```
+<<< @/../../plugins/demoplugin/views.py
 
 Django REST framework uses serializers to serialize and deserialize data between Python objects and JSON.
 Define your serializers in `serializers.py`.
 
-```python title="serializers.py example"
---8<-- "../plugins/demoplugin/serializers.py"
-```
+<<< @/../../plugins/demoplugin/serializers.py
 
 
 #### Signals
@@ -247,9 +240,7 @@ class DemoPluginConfig(PluginConfig):
         from . import signals  # noqa
 ```
 
-```python title="signals.py example"
---8<-- "../plugins/demoplugin/signals.py"
-```
+<<< @/../../plugins/demoplugin/signals.py
 
 
 #### Testing
@@ -263,13 +254,11 @@ Unit tests ensure that
 Unit tests should be placed in the `tests/` directory of your plugin.
 [`pytest`](https://docs.pytest.org/en/stable/) and [`pytest-django`](https://pytest-django.readthedocs.io/en/latest/) are available in the SysReptor container and can be used to run your tests.
 
-```python title="test.py example"
---8<-- "../plugins/demoplugin/tests/test_api.py"
-```
+<<< @/../../plugins/demoplugin/tests/test_api.py
 
 Run unit tests:
 
-```bash
+```shell
 # Test a single plugin
 docker compose run --rm -e ENABLED_PLUGINS=demoplugin app pytest sysreptor_plugins/demoplugin
 # Run all tests (core + all plugins)
@@ -286,9 +275,7 @@ Frontend plugins are loaded from the `/static/` directory and need to provide pr
 The entrypoint for frontend plugins is `plugin.js` in the `static/` directory.
 `plugin.js` should perform setup actions for the frontend plugin, e.g. registering new menu entries and pages.
 
-```javascript title="plugin.js example"
---8<-- "../plugins/demoplugin/frontend/public/plugin.js"
-```
+<<< @/../../plugins/demoplugin/frontend/public/plugin.js
 
 Plugins can register new pages in the SysReptor web UI via `options.pluginHelpers.addRoute()`.
 Pages are loaded in `iframes` to provide the most flexibility for loaded content.
@@ -309,7 +296,7 @@ See https://github.com/Syslifters/sysreptor-plugin-example/tree/main/custom_plug
 
 To build the frontend assets, you need to run the following commands:
 
-```bash
+```shell
 cd demoplugin/frontend
 # Install JS dependencies
 npm install
@@ -335,15 +322,10 @@ Here are some notes to get you started:
   * composables, utilities, etc. (from nuxt-base-layer and local) can be imported via `import { ... } from '#imports'`
 
 
-<div class="grid cards" style="margin: 4em;" markdown>
+::: info <DocBadge icon="mdi:help-circle" class="lg middle" label="Further questions?" />
 
--   :material-help-circle:{ .lg .middle } __Still have questions?__
+Need help or have questions? Get support and connect with us and the SysReptor community.
 
-    ---
+[Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a)
 
-    Need help or have questions?  
-    Get support and connect with us and the SysReptor community.
-
-    [:octicons-arrow-right-24: Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a){ target="_blank"}
-
-</div>
+:::

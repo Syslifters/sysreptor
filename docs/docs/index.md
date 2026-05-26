@@ -14,94 +14,102 @@ title: Pentest Reporting Easy as Pie
       viewBox="0 0 200 200"
       height="200"
       width="130"
-      alt="It's a pie. Because Pentest reports are as easy as pie.">
-  </img>
+      alt="It's a pie. Because Pentest reports are as easy as pie." />
 </div>
 
-<div class="grid cards" style="text-align: center; margin-top: 0;" markdown>
+<div class="grid-cards" style="text-align: center; margin-top: 0;">
 
--   __Customize Reports__
+::: info Customize Reports
 
-    <img 
-        style="display: block; 
-              margin-left: auto;
-              margin-right: auto;"
-        src="/assets/emojis/wood.svg"
-        viewBox="0 0 50 50"
-        height="50"
-        width="50"
-        alt="A piece of wood. It's easy to fall off.">
-    </img>
+<img 
+    style="display: block; 
+          margin-left: auto;
+          margin-right: auto;"
+    src="/assets/emojis/wood.svg"
+    viewBox="0 0 50 50"
+    height="50"
+    width="50"
+    alt="A piece of wood. It's easy to fall off." />
 
-    Design in HTML.
+Design in HTML.
 
-    As easy as falling off a log.
+As easy as falling off a log.
 
+:::
 
--   __Write Reports__
+::: info Write Reports
 
-    <img 
-        style="display: block; 
-              margin-left: auto;
-              margin-right: auto;"
-        src="/assets/emojis/bicycle.svg"
-        viewBox="0 0 50 50"
-        height="50"
-        width="50"
-        alt="A bicycle. It gives you an easy ride.">
-    </img>
+<img 
+    style="display: block; 
+          margin-left: auto;
+          margin-right: auto;"
+    src="/assets/emojis/bicycle.svg"
+    viewBox="0 0 50 50"
+    height="50"
+    width="50"
+    alt="A bicycle. It gives you an easy ride." />
 
-    Write in Markdown.
+Write in Markdown.
 
-    It gives you an easy ride.
+It gives you an easy ride.
 
--   __Render and Download__
+:::
 
-    <img 
-        style="display: block; 
-              margin-left: auto;
-              margin-right: auto;"
-        src="/assets/emojis/flexed-biceps.svg"
-        viewBox="0 0 50 50"
-        height="50"
-        width="50"
-        alt="A flexed biceps. Render and download are so easy.">
-    </img>
+::: info Render and Download
+
+<img 
+    style="display: block; 
+          margin-left: auto;
+          margin-right: auto;"
+    src="/assets/emojis/flexed-biceps.svg"
+    viewBox="0 0 50 50"
+    height="50"
+    width="50"
+    alt="A flexed biceps. Render and download are so easy." />
  
-    Render to PDF.
+Render to PDF.
 
-    Easier done than said.
+Easier done than said.
 
--   __Operate Platform__
+:::
 
-    <img 
-        style="display: block; 
-              margin-left: auto;
-              margin-right: auto;"
-        src="/assets/emojis/lemon.svg"
-        viewBox="0 0 50 50"
-        height="50"
-        width="50"
-        alt="A lemon. It's as easy as squeezing a lemon.">
-    </img>
+::: info Operate Platform
 
-    Self-Hosted or Cloud.
+<img 
+    style="display: block; 
+          margin-left: auto;
+          margin-right: auto;"
+    src="/assets/emojis/lemon.svg"
+    viewBox="0 0 50 50"
+    height="50"
+    width="50"
+    alt="A lemon. It's as easy as squeezing a lemon." />
 
-    Easy peasy lemon squeezy.
+Self-Hosted or Cloud.
+
+Easy peasy lemon squeezy.
+
+:::
 
 </div>
 
-<br><div style="text-align:center">[:fire: Set up now](setup/installation.md){ .md-button target="_blank" }</div>
-<br><div style="text-align:center">[:sauropod: Book a Demo](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form
-){ .md-button target="_blank" }</div>
+<br><br>
+<div style="text-align:center">
+
+[🔥 Set up now](/setup/installation){ .md-button }<br>
+
+[🦕 Book a Demo](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form){ .md-button }
+
+</div>
+
 
 <br>
-<figure markdown>
-  ![Create finding from template](images/create_finding_from_template.gif)
+<figure>
+  <img src="/images/create_finding_from_template.gif" alt="Create finding from template" loading="lazy" />
   <figcaption>Create finding from template</figcaption>
 </figure>
 
-<figure markdown>
-  ![Export report as PDF](images/export_project.gif)
+<figure>
+  <img src="/images/export_project.gif" alt="Export report as PDF" loading="lazy" />
   <figcaption>Export report as PDF</figcaption>
 </figure>

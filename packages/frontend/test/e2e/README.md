@@ -6,7 +6,7 @@
 
 To run the tests locally, you can use the following command:
 
-```bash
+```shell
 docker compose --profile test up -d
 ```	
 

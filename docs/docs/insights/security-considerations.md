@@ -10,9 +10,9 @@ The template injection is sandboxed in a dedicated Chromium process.
 Chromium is running in offline mode. It has no possibility to connect to remote locations. 
 It requires an exploit in the Chromium browser to get access to the container.
 
-:octicons-cloud-24: Cloud · The Chromium process in our cloud is isolated in a dedicated Kubernetes pod. It receives rendering jobs via RabbitMQ, completes its rendering process and shuts down. An attacker breaking out of the Chromium process could prevent it from shutting down until a defined timeout. However, it would **not** be able to receive further rendering jobs.
+<BadgeCloud /> · The Chromium process in our cloud is isolated in a dedicated Kubernetes pod. It receives rendering jobs via RabbitMQ, completes its rendering process and shuts down. An attacker breaking out of the Chromium process could prevent it from shutting down until a defined timeout. However, it would **not** be able to receive further rendering jobs.
 
-:octicons-server-24: Self-Hosted · The Chromium process in self-hosted environments runs in an isolated process in the web application's docker container by default. An attacker breaking out of the Chromium process can also compromise the web application. However, it is possible to outsource the rendering process into a dedicated docker container. This requires two additional docker containers: Chromium and RabbitMQ. However, the Chromium process will be able to receive further rendering jobs (in contrast to the cloud setup).  
+<BadgeSelfHosted /> · The Chromium process in self-hosted environments runs in an isolated process in the web application's docker container by default. An attacker breaking out of the Chromium process can also compromise the web application. However, it is possible to outsource the rendering process into a dedicated docker container. This requires two additional docker containers: Chromium and RabbitMQ. However, the Chromium process will be able to receive further rendering jobs (in contrast to the cloud setup).  
 For resource reasons, we do not use this setup in the standard installation. 
 
 
@@ -39,16 +39,14 @@ This is ensured by two measures:
    It allows `data:`-URLs and access to files uploaded to SysReptor (designer assets, images) only.
    No HTTP requests are involved when including these resources (neither to localhost), 
    but a custom handler that returns the resources as data following the 
-   [WeasyPrint security recommendations](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#security){ target=_blank }.
+   [WeasyPrint security recommendations](https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#security).
 
 
-<div class="grid cards" style="margin: 4em;" markdown>
--   :material-shield-alert:{ .lg .middle } __Report a security issue__
+::: info <DocBadge icon="mdi:shield-alert" label="Report a security issue" />
 
-    ---
+Discovered a security vulnerability?  
+Report it responsibly through our vulnerability disclosure process.
 
-    Discovered a security vulnerability?  
-    Report it responsibly through our vulnerability disclosure process.
+[Disclose responsibly](https://github.com/Syslifters/sysreptor/security)
 
-    [:octicons-arrow-right-24: Disclose responsibly](https://github.com/Syslifters/sysreptor/security){ target="_blank"}
-</div>
+:::

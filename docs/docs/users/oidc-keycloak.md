@@ -3,11 +3,11 @@ title: Keycloak OIDC Configuration
 ---
 
 # Keycloak OIDC Configuration
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+<BadgePro />
 
 ## Configuration at your OIDC provider
 1. Create new Keycloak client for authentication and generate `client_id` and a `client_secret`
-2. Add the callback-url: https://`<your-installation>`/login/oidc/keycloak/callback
+2. Add the callback-url: `https://<your-installation>/login/oidc/keycloak/callback`
     * Add the hostname where your SysReptor installation can be accessed.
 
 ## SysReptor Configuration
@@ -32,12 +32,12 @@ Create your OIDC configuration for SysReptor...
 }
 ```
 
-...and add it to your [application settings](/setup/configuration/#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
+...and add it to your [application settings](/setup/configuration#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
 
 The OIDC client needs to be able to establish a network connection to Keycloak.
 Make sure to not block outgoing traffic.
 
-Other JSON fields, `user_identifier_claim`, and SSO limitations are covered in [Generic OIDC configuration](oidc-generic.md#sysreptor-configuration) and [Limitations](oidc-generic.md#limitations).
+Other JSON fields, `user_identifier_claim`, and SSO limitations are covered in [Generic OIDC configuration](/users/oidc-generic#sysreptor-configuration) and [Limitations](/users/oidc-generic#limitations).
 
 ### Keycloak: `email_verified`
 

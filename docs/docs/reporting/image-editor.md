@@ -4,7 +4,7 @@ The built-in image editor supports annotating and cropping images directly in th
 
 The editor can be opened from the markdown preview: click an image to open the image dialog, then select **Edit Image**.
 
-![Image editor](../images/image-editor.png)
+![Image editor](/images/image-editor.png)
 
 The image editor supports the following annotations and tools:
 
@@ -35,9 +35,12 @@ SysReptor offers multiple methods for redaction:
 * **Crop**: Suitable when the sensitive area can be removed entirely without losing important context.
 
 
-!!! info
 
-    The pixelated region is generated without sampling any source pixels from inside the redacted area. Instead, synthetic pixels are derived from image content outside the selection (around redaction borders). As a result, the exported image contains no embedded data from the redacted area, and the original content cannot be recovered from the saved file.
+::: info
 
 
-![Pixelate image](../images/image-editor-pixelate.gif)
+The pixelated region is generated without sampling any source pixels from inside the redacted area. Instead, synthetic pixels are derived from image content outside the selection (around redaction borders). As a result, the exported image contains no embedded data from the redacted area, and the original content cannot be recovered from the saved file.
+
+:::
+
+![Pixelate image](/images/image-editor-pixelate.gif)

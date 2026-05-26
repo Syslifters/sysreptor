@@ -1,3 +1,0 @@
----
-title: Show and Tell
----

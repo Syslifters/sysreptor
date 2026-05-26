@@ -4,7 +4,7 @@
 
 Findings are available in Vue templates via the `findings` variable.
 The `findings` list is an ordered list of all findings. 
-Each finding is represented as a JSON object containing finding fields (see [Field Types](/designer/field-types.md)).
+Each finding is represented as a JSON object containing finding fields (see [Field Types](/designer/field-types)).
 
 Iterate over the `findings` list via Vue `v-for` loops:
 ```html
@@ -38,7 +38,7 @@ The order of findings can be customized in projects by overriding the default so
 
 Findings can be grouped based on a specified field, which divides the list into virtual groups. 
 By default, findings are not grouped.
-It is recommended to group findings using a field of type `combobox` or `enum` (see [Field Types](/designer/field-types.md)).
+It is recommended to group findings using a field of type `combobox` or `enum` (see [Field Types](/designer/field-types)).
 `combobox` fields allow users to add custom groups when writing reports, while `enum` fields require all groups to be defined upfront in the design.
 
 ![Finding Grouping Definition](/images/finding-group-definition.png)

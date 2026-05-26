@@ -2,4 +2,11 @@
 site
 __pycache__
 .cache
+.DS_Store
 venv
+
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+docs/.vitepress/.temp/
+node_modules/
+
