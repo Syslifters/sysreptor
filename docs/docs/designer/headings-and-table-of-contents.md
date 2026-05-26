@@ -10,10 +10,13 @@ If you want to customize heading numberings or table of content (like margins, e
 
 ## Customization
 
-!!! tip "Use the following snippets as a guide how to override the base styles."
 
-    You do not need them, if you imported the base styles and don't need further customization.
+::: tip Use the following snippets as a guide how to override the base styles.
 
+
+You do not need them, if you imported the base styles and don't need further customization.
+
+:::
 
 CSS has counters to automatically number items such as headings, figures, etc. and also generate table of contents and list of figures with these numbers.
 
@@ -230,7 +233,7 @@ This example renders a table of contents with
 Headings can not only be referenced in the table of contents, but anywhere in the document.
 References can be added via an `<a>` tag that links to the `id` of an heading element. In HTML (and markdown), a `<ref>` helper component is used to generate the `a` tag with corresponding CSS classes for referencing.
 
-See [References](../reporting/references.md) for examples how to reference items.
+See [References](/reporting/references) for examples how to reference items.
 
 
 ```css

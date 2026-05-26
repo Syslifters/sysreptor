@@ -1,71 +1,76 @@
 ---
-hide:
-  - navigation
+sidebar: false
+aside: false
 ---
 
 # Tools for OSCP Reporting
 
-<div class="grid cards" markdown>
--   :octicons-browser-16:{ .lg .middle } __SysReptor's Online Reporting__
+<div class="grid-cards">
 
-    ---
-    Easy pentest reporting tailored to OSCP reports.
+::: info <DocBadge icon="octicon:browser-16" label="SysReptor's Online Reporting" />
 
-    __Pro tip:__ 🔥 Lowest reporting efforts online!
+Easy pentest reporting tailored to OSCP reports.
 
-    [:octicons-arrow-right-24: Sign up and start off](offsec-reporting-with-sysreptor.md)
+__Pro tip:__ 🔥 Lowest reporting efforts online!
 
--   :material-laptop:{ .lg .middle } __SysReptor Self-Hosted__
+[Sign up and start off](/offsec-reporting-with-sysreptor)
 
-    ---
-    Easy pentest reporting without cloud.
+:::
 
-    __Pro tip:__ 🔥 Run everything local.
+::: info <DocBadge icon="mdi:laptop" label="SysReptor Self-Hosted" />
 
-    [:octicons-arrow-right-24: Easy Peasy Lemon Squeezy.](offsec-reporting-with-sysreptor.md#prefer-self-hosting)
+Easy pentest reporting without cloud.
 
--   :material-file-word-box:{ .lg .middle } __Microsoft Word__
+__Pro tip:__ 🔥 Run everything local.
 
-    ---
+[Easy Peasy Lemon Squeezy.](/offsec-reporting-with-sysreptor#prefer-self-hosting)
 
-    Use the official templates from "OffSec".
+:::
 
-    __Pro tip:__ We all love Word. Don't we? :thinking:
+::: info <DocBadge icon="mdi:file-word-box" label="Microsoft Word" />
 
-    [:octicons-arrow-right-24: Get your Word-Foo ready](https://help.offsec.com/hc/en-us/articles/360046787731-PEN-200-Reporting-Requirements){ target=_blank }
+Use the official templates from "OffSec".
 
+__Pro tip:__ We all love Word. Don't we? 🤔
+
+[Get your Word-Foo ready](https://help.offsec.com/hc/en-us/articles/360046787731-PEN-200-Reporting-Requirements)
+
+:::
+
+::: info <DocBadge icon="mdi:markdown" label="Markdown to LaTeX" />
     
--   :simple-markdown:{ .lg .middle } __Markdown to LaTeX__
+Compile your markdown with pandoc and noraj's LaTeX-template.
 
-    ---
+__Pro tip:__ Upload template to [Overleaf](https://www.overleaf.com/) and compile online!
 
-    Compile your markdown with pandoc and noraj's LaTeX-template.
+[git clone your template](https://github.com/noraj/OSCP-Exam-Report-Template-Markdown)
 
-    __Pro tip:__ Upload template to [Overleaf](https://www.overleaf.com/){ target=_blank } and compile online!
+:::
 
-    [:octicons-arrow-right-24: git clone your template](https://github.com/noraj/OSCP-Exam-Report-Template-Markdown){ target=_blank }
+::: info <DocBadge icon="octicon:server-16" label="Dradis self-hosted" />
 
--   :octicons-server-16:{ .lg .middle } __Dradis self-hosted__
+Get the OSCP Exam Report Kit from Dradis.
 
-    ---
+__Pro tip:__ Most functionality included by Dradis Professional!
 
-    Get the OSCP Exam Report Kit from Dradis.
+[Connect to localhost](https://dradisframework.com/academy/industry/compliance/oscp/)
 
-    __Pro tip:__ Most functionality included by Dradis Professional!
-
-    [:octicons-arrow-right-24: Connect to localhost](https://dradisframework.com/academy/industry/compliance/oscp/){ target=_blank }
-
+:::
 
 </div>
 
 <br><br>
 ## Creating an OSCP Exam Report with SysReptor
-<figure markdown>
-  ![OSCP Reporting Procedure](images/oscp-reporting.gif)
-</figure>
 
+![OSCP Reporting Procedure](/images/oscp-reporting.gif)
 
-<br><div style="text-align:center">[:rocket: Sign Up to SysReptor](https://offsec.sysreptor.com/oscp/signup/){ .md-button }</div>
+<br>
+
+<div style="text-align:center">
+
+[🚀 Sign Up to SysReptor](https://offsec.sysreptor.com/oscp/signup/){.md-button}
+
+</div>
 
 <br>
 Make sure to test your tool of choice before the exam.

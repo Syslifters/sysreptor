@@ -1,6 +1,6 @@
 # Upgrade to PRO
 
-:octicons-server-24: Self-Hosted
+<BadgeSelfHosted />
 
 You can upgrade from SysReptor Community to SysReptor Professional anytime without reinstallation. All your data will be preserved.  
 Here's how:
@@ -18,16 +18,12 @@ Here's how:
 4. Enjoy
 
 
-<div class="grid cards" style="margin-top: 2em;" markdown>
 
--   :material-calendar:{ .lg .middle } __Book a demo__
+::: info <DocBadge icon="mdi:calendar" label="Book a demo" />
 
-    ---
+Interested in SysReptor Professional?  
+Book a Teams call with us and get you questions answered.
 
-    Interested in SysReptor Professional?  
-    Book a Teams call with us and get you questions answered.
+[Choose your time slot](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form)
 
-    [:octicons-arrow-right-24: Choose your time slot](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form
-){ target="_blank"}
-
-</div>
+:::

@@ -1,5 +1,5 @@
 # Comments and Review
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+<BadgePro />
 
 Before a report goes to the client, findings and sections usually pass through an internal review. **Statuses** and **assignees** show where each item stands and who owns it. On SysReptor Professional, **comments** let the team discuss specific report fields without leaving the editor.
 
@@ -8,13 +8,13 @@ Before a report goes to the client, findings and sections usually pass through a
 
 Comments are available on report sections and findings. You can attach them to **any report field** (markdown, string, CVSS, and so on) or to a **text selection** inside a markdown field. Selection comments are highlighted in the editor and quoted in the sidebar.
 
-![Comments on report fields](../images/show/comments.png)
+![Comments on report fields](/images/comments.png)
 
 The **Comments** sidebar groups threads by field. Each comment supports **replies**.
 
-`@username` mentions notify project members; assignees are notified when someone comments on their finding or section. See [Notifications](../users/notifications.md). 
+`@username` mentions notify project members; assignees are notified when someone comments on their finding or section. See [Notifications](/users/notifications). 
 
-Comments sync in real time with [collaborative editing](collaborative-editing.md) on the same item.
+Comments sync in real time with [collaborative editing](/reporting/collaborative-editing) on the same item.
 
 
 ## Statuses
@@ -32,4 +32,4 @@ Marking one finding *Finished* is not the same as finishing the project. When yo
 
 By default you can move between any status. Some teams want a fixed review flow — for example, *In progress* may only go to *Ready for review*, and only from there to *Finished* or *Needs improvement*.
 
-Instance administrators configure that with `STATUS_DEFINITIONS` and `allowed_next_statuses`. Examples and the full option list are in [Custom Statuses](../setup/configuration.md#custom-statuses). Superusers with admin permissions can override restricted transitions when they need to correct a status.
+Instance administrators configure that with `STATUS_DEFINITIONS` and `allowed_next_statuses`. Examples and the full option list are in [Custom Statuses](/setup/configuration#custom-statuses). Superusers with admin permissions can override restricted transitions when they need to correct a status.

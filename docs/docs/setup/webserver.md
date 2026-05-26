@@ -1,9 +1,9 @@
 # Setup Webserver
 
-:octicons-server-24: Self-Hosted
+<BadgeSelfHosted />
 
 The Django webserver is not recommended due to missing transport encryption, missing performance and security tests.  
-We recommend a webserver like Caddy, [nginx](webserver-nginx.md) or Apache and to enable https.
+We recommend a webserver like Caddy, [nginx](/setup/webserver-nginx) or Apache and to enable https.
 
 ## Easy setup with Caddy (recommended) {#caddy}
 

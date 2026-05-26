@@ -6,13 +6,16 @@ We provide many useful default styles in our `base.css`. You can import them to 
 ```
 
 If you want to customize the styles (like fonts, code blocks, etc.), have a look at the following chapters.
-You can find the content of `base.css` [here](https://github.com/Syslifters/sysreptor/blob/main/api/src/sysreptor/pentests/rendering/global_assets/base.css){ target="_blank" }.
+You can find the content of `base.css` [here](https://github.com/Syslifters/sysreptor/blob/main/api/src/sysreptor/pentests/rendering/global_assets/base.css).
 
 
-!!! tip "Use the following snippets as a guide how to override the base styles."
 
-    You do not need them, if you imported the base styles and don't need further customization.
+::: tip Use the following snippets as a guide how to override the base styles.
 
+
+You do not need them, if you imported the base styles and don't need further customization.
+
+:::
 
 ## Headings
 ```css
@@ -105,7 +108,7 @@ footnote a {
 
 Additional resources:
 
-* https://printcss.net/articles/footnotes { target=_blank }
+* https://printcss.net/articles/footnotes
 
 
 ## Fonts
@@ -128,26 +131,26 @@ code {
 
 We provide a range of fonts ready to use. Following fonts are available:
 
-* [Noto Sans](https://fonts.google.com/noto/specimen/Noto+Sans){target=_blank}
-* [Noto Serif](https://fonts.google.com/noto/specimen/Noto+Serif){target=_blank}
-* [Open Sans](https://fonts.google.com/specimen/Open+Sans){target=_blank} - similar to Arial
-* [Roboto Flex](https://fonts.google.com/specimen/Roboto+Flex){target=_blank}
-* [Roboto Serif](https://fonts.google.com/specimen/Roboto+Serif){target=_blank}
-* [STIX Two Text](https://fonts.google.com/specimen/STIX+Two+Text){target=_blank} - similar to Times New Roman
-* [Arimo](https://fonts.google.com/specimen/Arimo){target=_blank} - similar to Verdana
-* [Exo](https://fonts.google.com/specimen/Exo){target=_blank}
-* ~~[Lato](https://fonts.google.com/specimen/Lato){target=_blank}~~*
-* ~~[Roboto](https://fonts.google.com/specimen/Roboto){target=_blank}~~*
-* ~~[Tinos](https://fonts.google.com/specimen/Tinos){target=_blank}~~*
+* [Noto Sans](https://fonts.google.com/noto/specimen/Noto+Sans)
+* [Noto Serif](https://fonts.google.com/noto/specimen/Noto+Serif)
+* [Open Sans](https://fonts.google.com/specimen/Open+Sans) - similar to Arial
+* [Roboto Flex](https://fonts.google.com/specimen/Roboto+Flex)
+* [Roboto Serif](https://fonts.google.com/specimen/Roboto+Serif)
+* [STIX Two Text](https://fonts.google.com/specimen/STIX+Two+Text) - similar to Times New Roman
+* [Arimo](https://fonts.google.com/specimen/Arimo) - similar to Verdana
+* [Exo](https://fonts.google.com/specimen/Exo)
+* ~~[Lato](https://fonts.google.com/specimen/Lato)~~*
+* ~~[Roboto](https://fonts.google.com/specimen/Roboto)~~*
+* ~~[Tinos](https://fonts.google.com/specimen/Tinos)~~*
 
 
 Monospace fonts (for code blocks):
 
-* [Roboto Mono](https://fonts.google.com/specimen/Roboto+Mono){target=_blank}
-* [Noto Sans Mono](https://fonts.google.com/noto/specimen/Noto+Sans+Mono){target=_blank}
-* [Source Code Pro](https://fonts.google.com/specimen/Source+Sans+Pro){target=_blank}
-* [Red Hat Mono](https://fonts.google.com/specimen/Red+Hat+Mono){target=_blank}
-* ~~[Courier Prime](https://fonts.google.com/specimen/Courier+Prime){target=_blank}~~*
+* [Roboto Mono](https://fonts.google.com/specimen/Roboto+Mono)
+* [Noto Sans Mono](https://fonts.google.com/noto/specimen/Noto+Sans+Mono)
+* [Source Code Pro](https://fonts.google.com/specimen/Source+Sans+Pro)
+* [Red Hat Mono](https://fonts.google.com/specimen/Red+Hat+Mono)
+* ~~[Courier Prime](https://fonts.google.com/specimen/Courier+Prime)~~*
 
 *Deprecated, replaced by similar-looking fonts
 

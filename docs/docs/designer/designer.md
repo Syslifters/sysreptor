@@ -9,7 +9,7 @@ There are two main approaches to designing a report:
 
 1. Start from an existing design
     
-    Copy an existing report design (see [Demo Reports](/demo-reports.md)) and modify it to fit your requirements.
+    Copy an existing report design (see [Demo Reports](/demo-reports)) and modify it to fit your requirements.
 
 2. Start from scratch
 
@@ -29,14 +29,14 @@ A report design consists of the following key parts:
 
 1. Field Definitions
   
-    Field definitions determine what input fields are available in report sections and findings when writing reports (see [Field Types](/designer/field-types.md)).
+    Field definitions determine what input fields are available in report sections and findings when writing reports (see [Field Types](/designer/field-types)).
 
     * These fields appear as form inputs in the web interface for report creation.
     * Field values can be used within Vue templates as variables for dynamic content rendering.
 
 2. HTML + Vue.js Template
   
-    The report layout is defined using the [VueJS template language](https://vuejs.org/guide/essentials/template-syntax.html){target=_blank}, which is an extension of standard HTML and JavaScript.
+    The report layout is defined using the [VueJS template language](https://vuejs.org/guide/essentials/template-syntax.html), which is an extension of standard HTML and JavaScript.
   
     * HTML structure defines the layout of the report.
     * Vue.js enables dynamic content generation by using variables, loops, and conditions.

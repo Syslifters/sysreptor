@@ -2,7 +2,7 @@
 This is a short explanation of the SysReptor architecture in self-hosted environments.  
 
 ## Overview
-![SysReptor self-hosted architecture](../images/architecture.png)
+![SysReptor self-hosted architecture](/images/architecture.png)
 
 ## The Happy SysReptor User
 The happy SysReptor user accesses SysReptor with a browser. The user is so happy because pentest reporting is now more convenient.
@@ -21,10 +21,10 @@ It might be possible to use different Operating Systems or Distributions, which 
 The web server is responsible for handling web requests and for proxying the requests to the SysReptor App server.  
 We recommend setting up TLS for encrypted communication.
 
-Our [setup script](../setup/installation.md#easy-script-installation) offers the possibility to spin up a Caddy web server as reverse proxy, which also handles TLS certificates, incl. renewals. You can, however, also use reverse proxies that already exist in your infrastructure. They must be able to handle WebSocket communications.
+Our [setup script](/setup/installation#easy-script-installation) offers the possibility to spin up a Caddy web server as reverse proxy, which also handles TLS certificates, incl. renewals. You can, however, also use reverse proxies that already exist in your infrastructure. They must be able to handle WebSocket communications.
 
 ## The SysReptor App
-This is our core component that we actively develop and maintain. It is a Python/Django application and uses the Django Rest Framework (DRF) as server technology, and Vue.js with Vuetify as client/frontend technology. The SysReptor app handles the application logic, permissions, data handling, etc. In self-hosted installations, it also does the PDF rendering jobs that [render data to PDF](../insights/rendering-workflow.md). For this, it uses a headless Chromium browser for rendering the final HTML and [Weasyprint](https://weasyprint.org/){target=_blank} for converting the HTML to PDF.
+This is our core component that we actively develop and maintain. It is a Python/Django application and uses the Django Rest Framework (DRF) as server technology, and Vue.js with Vuetify as client/frontend technology. The SysReptor app handles the application logic, permissions, data handling, etc. In self-hosted installations, it also does the PDF rendering jobs that [render data to PDF](/insights/rendering-workflow). For this, it uses a headless Chromium browser for rendering the final HTML and [Weasyprint](https://weasyprint.org/) for converting the HTML to PDF.
 
 ## The Database
 SysReptor uses a PostgreSQL database for storing data persistently. The SysReptor app optionally holds a secret which is used to store sensitive data in encrypted form.  
@@ -35,7 +35,7 @@ SysReptor uses the in-memory database Redis for temporarily storing information.
 Data stored in Redis is mostly indexes and references and is not encypted.
 
 ## Languagetool
-SysReptor Professional users can use the integrated spell check. This requires the [languagetool](https://languagetool.org/){target=_blank} container which provides a web API to receive text and to suggest improvements. Data received by languagetool in unencrypted and stored in memory and/or local caches.
+SysReptor Professional users can use the integrated spell check. This requires the [languagetool](https://languagetool.org/) container which provides a web API to receive text and to suggest improvements. Data received by languagetool in unencrypted and stored in memory and/or local caches.
 
 ## The S3 Bucket
 Users can upload images to reports and any filetypes to notes. Those files are by default stored in the SysReptor app container.

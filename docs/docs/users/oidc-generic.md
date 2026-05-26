@@ -3,11 +3,11 @@ title: Generic OIDC Configuration
 ---
 
 # Generic OIDC Configuration
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+<BadgePro />
 
 ## Configuration at your OIDC provider
 1. Create a `client_id` and a `client_secret` in your OIDC provider
-2. Add the callback-url: `https://`<your-sysreptor-url>/login/oidc/<sso-provider-id>/callback`
+2. Add the callback-url: `https://<your-sysreptor-url>/login/oidc/<sso-provider-id>/callback`
     * Add the hostname where your SysReptor installation can be accessed.
     * Choose a custom **SSO provider id** (top-level key in `OIDC_AUTHLIB_OAUTH_CLIENTS`, e. g. `keycloak`).
 
@@ -34,7 +34,7 @@ title: Generic OIDC Configuration
 }
 ```
 
-...and add it to your [application settings](/setup/configuration/#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
+...and add it to your [application settings](/setup/configuration#single-sign-on-sso) (`OIDC_AUTHLIB_OAUTH_CLIENTS`).
 
 
 ### OIDC Config JSON {#oidc-authlib-json}

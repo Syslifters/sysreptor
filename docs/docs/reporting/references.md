@@ -33,7 +33,7 @@ As you see in <ref to="sqli" /> (e.g. rendered as "Figure 3")
 You need the finding ID of the finding you want to reference. 
 The markdown editor toolbar in projects provides a button to insert finding references.
 
-![Insert finding reference](../images/reference-finding.png)
+![Insert finding reference](/images/reference-finding.png)
 
 
 ```md title="Markdown"
@@ -45,7 +45,7 @@ See <ref to="#00000000-0000-0000-0000-000000000000" />... (e.g. rendered as "1.3
 ```
 
 ## Reference Headings
-You can reference headings if your [design supports it](../designer/headings-and-table-of-contents.md#referencing-sections-in-text-outside-of-toc).
+You can reference headings if your [design supports it](/designer/headings-and-table-of-contents#referencing-sections-in-text-outside-of-toc).
 
 
 ```md title="Markdown"

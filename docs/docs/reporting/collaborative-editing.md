@@ -1,13 +1,10 @@
 # Collaborative Editing
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+<BadgePro />
 
 Collaborative editing allows multiple pentesters to simultaneously work on the same finding, section or note.
 Changes are synchronized in real-time, so you can see what others are typing.
 
-<figure markdown>
-  ![Collaborative Editing](../images/collaborative-editing.png)
-  <figcaption>Collaborative Editing</figcaption>
-</figure>
+![Collaborative Editing](/images/collaborative-editing.png)
 
 
 

@@ -1,53 +1,59 @@
 # Updates
 
-:octicons-server-24: Self-Hosted
+<BadgeSelfHosted />
 
-We recommend to create a [backup](backups.md) of your installation before updating.
+We recommend to create a [backup](/setup/backups) of your installation before updating.
 
-=== "Update via Script (recommended)"
-    We deliver the shell script `update.sh` in the `sysreptor` directory.
 
-    If updates are available, the script downloads the release from GitHub. It replaces your Docker images by the newest release and restarts all containers.  
+::: tabs
+== Update via Script (recommended)
 
-    Your current SysReptor directory will be renamed for backup purposes. The script will download the newer version and place it into the directory where the old version was.
+We deliver the shell script `update.sh` in the `sysreptor` directory.
 
-    It will then copy your `app.env`, `.env`, `docker-compose.yml` and if present the `Caddyfile` to the correct locations of your newer version. The new SysReptor version launched and the docker images of your old verions are cleaned up.
+If updates are available, the script downloads the release from GitHub. It replaces your Docker images by the newest release and restarts all containers.  
 
-    ```shell title="Run update script:"
-    bash sysreptor/update.sh
-    ```
+Your current SysReptor directory will be renamed for backup purposes. The script will download the newer version and place it into the directory where the old version was.
 
-    <span style="color:red;">:octicons-heart-fill-24: Pro only</span>
-    
-    Using the `--backup` switch, a SysReptor backup will be created prior to the update. The update will fail if the backup fails.
+It will then copy your `app.env`, `.env`, `docker-compose.yml` and if present the `Caddyfile` to the correct locations of your newer version. The new SysReptor version launched and the docker images of your old verions are cleaned up.
 
-    ```shell title="Run update script:"
-    bash sysreptor/update.sh --backup
-    ```
+```shell title="Run update script:"
+bash sysreptor/update.sh
+```
 
-    Please make sure to monitor your disk space and clean up old backups, as automatic backups might increase disk usage significantly.
+<BadgePro />
 
-=== "Manual update"
-    Download and extract the latest SysReptor release:
-    ```shell
-    curl -s -L --output sysreptor.tar.gz https://github.com/syslifters/sysreptor/releases/latest/download/setup.tar.gz
-    tar xzf sysreptor.tar.gz
-    ```
+Using the `--backup` switch, a SysReptor backup will be created prior to the update. The update will fail if the backup fails.
 
-    Copy the following files from your old installation to the new installation.
-     * `deploy/app.env`
-     * `deploy/docker-compose.yml`
-     * `deploy/caddy/Caddyfile` (optional, if present)
+```shell title="Run update script:"
+bash sysreptor/update.sh --backup
+```
 
-    Copy the contents of your `deploy/.env` file to the new installation. Make sure to keep the new version number intact and don't replace it by the old version number.
+Please make sure to monitor your disk space and clean up old backups, as automatic backups might increase disk usage significantly.
 
-    `cd` to `sysreptor/deploy` and launch the containers:
+== Manual update
 
-    ```shell
-    docker compose up -d
-    ```
-    
-Find instructions how to [downgrade](downgrades.md) to previous versions.
+Download and extract the latest SysReptor release:
+```shell
+curl -s -L --output sysreptor.tar.gz https://github.com/syslifters/sysreptor/releases/latest/download/setup.tar.gz
+tar xzf sysreptor.tar.gz
+```
+
+Copy the following files from your old installation to the new installation.
+ * `deploy/app.env`
+ * `deploy/docker-compose.yml`
+ * `deploy/caddy/Caddyfile` (optional, if present)
+
+Copy the contents of your `deploy/.env` file to the new installation. Make sure to keep the new version number intact and don't replace it by the old version number.
+
+`cd` to `sysreptor/deploy` and launch the containers:
+
+```shell
+docker compose up -d
+```
+
+:::
+
+Find instructions how to [downgrade](/setup/downgrades) to previous versions.
 
 
 ## Recommended: Automatic updates

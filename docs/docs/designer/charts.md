@@ -1,9 +1,9 @@
 # Charts
 Charts can be embedded into reports with a `<chart>` component.
-The `<chart>` component uses [ChartJS](https://www.chartjs.org/docs/latest/){ target=_blank } for rendering charts.
+The `<chart>` component uses [ChartJS](https://www.chartjs.org/docs/latest/) for rendering charts.
 The resulting chart is embedded as an image in the PDF.
 
-How the chart looks like is specified by the `:config` argument. This argument accepts a [ChartJS config object](https://www.chartjs.org/docs/latest/configuration/){ target=_blank }.
+How the chart looks like is specified by the `:config` argument. This argument accepts a [ChartJS config object](https://www.chartjs.org/docs/latest/configuration/).
 You can configure different chart types (e.g. pie chart, bar chart, line chart, etc.), chart styling, labels.
 The `config` also takes the datasets to be rendered in the `data` property.
 
@@ -18,7 +18,7 @@ Other options:
 The following chart shows the number of vulnerabilities for each risk level (none, low, medium, high, critical) in a bar chart.
 Each risk level bar has a different color.
 
-![](../images/chart_finding_distribution.png)
+![](/images/chart_finding_distribution.png)
 
 ```html
 <figure>
@@ -57,7 +57,7 @@ Each risk level bar has a different color.
 The following chart shows the CVSS score criticality as a doughnut chart with the score inside as number.
 The higher the score, the more of the chart area is filled.
 
-![](../images/chart_cvss.png)
+![](/images/chart_cvss.png)
 
 ```html
 <div class="cvss-chart">
@@ -110,7 +110,7 @@ The higher the score, the more of the chart area is filled.
 ChartJS supports plugins to extend the functionality of charts.  
 We provide the following plugins:
 
-* [chartjs-plugin-datalabels](https://chartjs-plugin-datalabels.netlify.app/guide/getting-started.html#configuration){ target=_blank }: Show labels on top of bars, lines, etc.
+* [chartjs-plugin-datalabels](https://chartjs-plugin-datalabels.netlify.app/guide/getting-started.html#configuration): Show labels on top of bars, lines, etc.
 
 Plugins are disabled by default. You can enable them using the `plugins` option in the `config` object of charts.
 

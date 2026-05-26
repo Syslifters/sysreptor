@@ -1,5 +1,5 @@
 # User Permissions
-<span style="color:red;">:octicons-heart-fill-24: Pro only</span>
+<BadgePro />
 
 ## Users without dedicated Permissions
 Users without dedicated permissions have access to the frontend as regular pentesters. 
@@ -38,8 +38,8 @@ When all guest permissions are enabled, guest users are equivalent to regular us
 * delete projects (default: yes)
 * see all users (default: no) - see all users on the SysReptor instance or only users working in the same projects as guest users
 
-Configure your installation by adding the following settings to your [application settings](/setup/configuration/#guest-user-permissions):
-```env
+Configure your installation by adding the following settings to your [application settings](/setup/configuration#guest-user-permissions):
+```dotenv
 GUEST_USERS_CAN_CREATE_PROJECTS=True
 GUEST_USERS_CAN_IMPORT_PROJECTS=False
 GUEST_USERS_CAN_EDIT_PROJECTS=True
