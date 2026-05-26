@@ -6,7 +6,6 @@ status = "finished"
 tags = [
     "demo",
 ]
-default_notes = []
 report_template = """
 <div id="header" data-sysreptor-generated="page-header" data-sysreptor-rendersections="always">
   <div id="header-left">
@@ -858,6 +857,84 @@ order = "desc"
 [[finding_ordering]]
 field = "title"
 order = "asc"
+
+[[default_notes]]
+title = "Q&A"
+id = "db726a99-a517-4f52-9a0a-eab764db9f66"
+text = """
+Collect questions for the client arising during the pentest...
+
+"""
+type = "text"
+order = 2
+created = "2026-05-22T11:12:36.298Z"
+icon_emoji = "❓"
+
+[[default_notes]]
+title = "Cleanup"
+id = "d802f45d-539b-4113-a056-6f22e9f78fb8"
+text = """
+Document things to clean up at the end of the pentest...
+
+"""
+type = "text"
+order = 3
+created = "2026-05-22T11:12:36.298Z"
+icon_emoji = "🧹"
+
+[[default_notes]]
+title = "To Do's"
+id = "3b938551-6f06-406c-b073-0194bede363e"
+text = ""
+type = "text"
+order = 4
+created = "2026-05-22T11:12:36.299Z"
+icon_emoji = "✔️"
+
+[[default_notes]]
+title = "To Do X"
+id = "ba12128e-bad6-427c-8017-dd98b75aeb8c"
+text = ""
+type = "text"
+order = 1
+parent = "3b938551-6f06-406c-b073-0194bede363e"
+checked = false
+created = "2026-05-22T11:12:36.299Z"
+
+[[default_notes]]
+title = "Findings"
+id = "1f5694d6-48e6-4066-8db8-5315fdbd6ae7"
+text = ""
+type = "text"
+order = 5
+created = "2026-05-22T11:12:36.299Z"
+icon_emoji = "🔥"
+
+[[default_notes]]
+title = "Finding X"
+id = "2dfde206-ce7a-4b0c-a898-def03659d038"
+text = ""
+type = "text"
+order = 1
+parent = "1f5694d6-48e6-4066-8db8-5315fdbd6ae7"
+checked = false
+created = "2026-05-22T11:12:36.300Z"
+
+[[default_notes]]
+title = "Scoping"
+id = "15d66916-dac3-40c0-a978-9a6a6767d554"
+text = """
+# Meeting
+Add your meeting notes here...
+
+# Contact Persons
+Add the contact persons here...
+
+"""
+type = "text"
+order = 1
+created = "2026-05-22T11:12:36.298Z"
+icon_emoji = "🧐"
 
 [report_preview_data]
 [report_preview_data.report]
