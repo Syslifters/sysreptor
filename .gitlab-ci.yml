@@ -31,8 +31,9 @@ services:
     - git config --global user.email $GITHUB_USER_MAIL
     - git config --global user.name $GITHUB_USERNAME
     - shopt -u dotglob
-    - rm -rf *
+    - rm -rf * .well-known
     - cp -r ../docs/.vitepress/dist/* .
+    - touch .nojekyll
     - git add .
     - git commit -m "INIT"
     - git reset $(git commit-tree HEAD^{tree} -m "INIT")
@@ -298,9 +299,6 @@ release-docs:
   stage: release
   extends: .deploy_docs
   needs: [build-docs]
-  rules:
-    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      when: manual
 
 release-docs-on-prod-release:
   stage: release
