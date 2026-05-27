@@ -13,6 +13,7 @@
     <template #chip="{internalItem: { title }, item: user}">
       <v-list-item
         class="member-item elevation-2 mt-1 mb-1"
+        :class="{ 'member-item--inactive': !user.is_active }"
         lines="two"
         density="compact"
       >
@@ -107,6 +108,9 @@ function setRoles(user: ProjectMember, roles: string[]) {
       width: 100%;
       min-width: 64px;
       max-height: inherit;
+    }
+    .member-item--inactive {
+      opacity: var(--v-disabled-opacity);
     }
 
     .v-autocomplete__selection {

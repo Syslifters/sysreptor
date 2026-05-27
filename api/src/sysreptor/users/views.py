@@ -50,6 +50,7 @@ from sysreptor.users.serializers import (
     get_oauth,
 )
 from sysreptor.utils import license
+from sysreptor.utils.api import CursorMultiPagination
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.utils import is_true
 
@@ -92,8 +93,9 @@ class PentestUserViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']
     filterset_fields = ['username', 'email']
-    ordering_fields = ['created', 'updated', 'username']
+    ordering_fields = ['created', 'updated', 'username', 'is_active']
     ordering = ['-created']
+    pagination_class = CursorMultiPagination
 
     def get_queryset(self):
         return PentestUser.objects \

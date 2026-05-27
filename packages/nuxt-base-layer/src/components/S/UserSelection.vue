@@ -12,6 +12,10 @@
         <template #prepend v-if="isObject(user)">
           <user-avatar :user="user as UserShortInfo" />
         </template>
+        <template #title>
+          {{ itemProps.title }}
+          <v-chip v-if="!user.is_active" size="small" text="Inactive" />
+        </template>
       </v-list-item>
     </template>
     <template v-if="props.multiple" #chip="chipSlotData">
@@ -24,7 +28,6 @@
       <v-icon v-else-if="props.prependInnerIcon" :icon="props.prependInnerIcon" />
     </template>
     <template #append-inner v-if="$slots['append-inner']"><slot name="append-inner" /></template>
-    <template #append-item v-if="$slots['append-item']"><slot name="append-item" /></template>
   </s-autocomplete>
 </template>
 
@@ -60,7 +63,7 @@ const auth = useAuth();
 const items = useSearchableCursorPaginationFetcher<UserShortInfo>({
   baseURL: '/api/v1/pentestusers/',
   query: {
-    ordering: 'username',
+    ordering: '-is_active,username',
   }
 });
 const rules = {
@@ -92,9 +95,16 @@ useLazyAsyncData(async () => {
 
 const allItems = computed(() => {
   if (props.selectableUsers) {
-    return sortBy(props.selectableUsers, [u => u.username || u.name]);
+    return sortBy(props.selectableUsers, [
+      u => !u.is_active,
+      u => u.username || u.name,
+    ]);
   }
-  return uniqBy(initialUsers.value.concat(items.data.value), 'id');
+  const merged = uniqBy(initialUsers.value.concat(items.data.value), 'id');
+  return sortBy(merged, [
+    u => !u.is_active,
+    u => u.username || u.name,
+  ]);
 })
 const modelValueObject = computed(() => {
   if (!props.modelValue || props.multiple) {
@@ -119,6 +129,7 @@ const autocompleteAttrs = computed(() =>
     itemProps: (u: UserShortInfo) => {
       const preventUnselect = props.preventUnselectingSelf && u.id === auth.user.value!.id && (Array.isArray(props.modelValue) && props.modelValue.some(v => v.id === u.id));
       return {
+        class: {'user--inactive': !u.is_active},
         disabled: preventUnselect,
         closable: !preventUnselect,
       };
@@ -139,3 +150,9 @@ const autocompleteAttrs = computed(() =>
 );
 
 </script>
+
+<style scoped>
+.user--inactive {
+  opacity: var(--v-disabled-opacity);
+}
+</style>
