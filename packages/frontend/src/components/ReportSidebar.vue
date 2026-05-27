@@ -1,7 +1,5 @@
 <template>
   <v-list 
-    :selected="selected ? [selected] : []"
-    @update:selected="selected = $event.length > 0 ? $event[0] : null"
     select-strategy="single-leaf"
     density="compact" 
     class="pb-0 pt-0 h-100 d-flex flex-column"
@@ -40,53 +38,66 @@
           density="compact"
           class="ml-2"
         />
-        <v-menu>
-          <template #activator="{ props }">
-            <s-btn-icon
-              v-bind="props"
-              :disabled="props.readonly"
-              size="small"
-              density="compact"
-              class="ml-2"
-            >
-              <v-icon icon="mdi-dots-vertical" />
-            </s-btn-icon>
-          </template>
-          <v-list density="compact">
-            <v-list-item
-              v-for="status in availableStatuses"
-              :key="`status-${status.id}`"
-              @click="updateSelectedStatus(status.id)"
-              :disabled="(selectedFindingIds.size === 0 && selectedSectionIds.size === 0) || (selectedSectionIds.size > 0 && !allowedSectionStatusIds.has(status.id))"
-              density="compact"
-            >
-              <template #prepend>
-                <v-icon :icon="status.icon || 'mdi-help'" :class="'status-' + status.id" />
-              </template>
-              <v-list-item-title>{{ status.label }}</v-list-item-title>
-            </v-list-item>
-            <v-list-item
-              @click="showDeleteConfirm = true"
-              :disabled="props.readonly || selectedFindingIds.size === 0 || selectedSectionIds.size > 0"
-              density="compact"
-            >
-              <template #prepend>
-                <v-icon icon="mdi-delete" color="error" />
-              </template>
-              <v-list-item-title class="text-error">Delete</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
+        <s-btn-icon
+          :disabled="props.readonly"
+          size="small"
+          density="compact"
+          class="ml-2"
+        >
+          <v-icon icon="mdi-dots-vertical" />
+          <v-menu activator="parent" eager :close-on-content-click="false" location="bottom right">
+            <v-list>
+              <v-list-item
+                v-if="props.collab"
+                title="Set status"
+                prepend-icon="mdi-pencil"
+                :disabled="props.readonly || (selectedFindings.length === 0 || selectedSections.length === 0)"
+              >
+                <v-menu activator="parent" submenu>
+                  <v-list>
+                    <v-list-item
+                      v-for="status in statusItems"
+                      :key="`status-${status.id}`"
+                      @click="setStatusOfSelectedItems(status.id)"
+                      :disabled="props.readonly || (selectedFindings.length === 0 || selectedSections.length === 0) || status.props?.disabled"
+                    >
+                      <template #prepend>
+                        <v-icon :icon="status.icon || 'mdi-help'" :class="'status-' + status.id" />
+                      </template>
+                      <v-list-item-title>{{ status.label }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </v-list-item>
+              <btn-delete
+                :delete="deleteSelectedFindings"
+                :disabled="props.readonly || selectedFindings.length === 0"
+                button-variant="list-item"
+              >
+                <template #dialog-text>
+                  <p class="mt-0">
+                      Do you really want to delete {{ selectedFindings.length }} findings?
+                  </p>
+                  <ul class="mt-0">
+                    <li v-for="f in selectedFindings" :key="f.id">
+                      {{ f.data.title }}
+                    </li>
+                  </ul>
+                </template>
+              </btn-delete>
+            </v-list>
+          </v-menu>
+        </s-btn-icon>
       </v-list-subheader>
       <v-list-item
         v-for="section in sections"
         :key="section.id"
         :value="section.id"
         :to="sectionUrl(section)"
-        :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(section, false)!) : undefined"
+        :active="section.id === currentPageId"
         density="compact"
-        :class="{ 'section-selected': selectedSectionIds.has(section.id) }"
-        @click="onSectionClick($event, section.id)"
+        :class="{ 'list-item--selected': selectedIds.has(section.id) }"
+        @click="onClickListItem($event, section)"
       >
         <template #default>
           <v-list-item-title class="text-body-medium">{{ section.label }}</v-list-item-title>
@@ -107,9 +118,8 @@
 
       <v-list-subheader>
         <span>Findings</span>
-        <v-spacer />
         <s-btn-icon
-          v-if="!isGrouped && selectedFindingIds.size === 0"
+          v-if="!isGrouped"
           @click="emit('create:finding')"
           :disabled="props.readonly"
           size="small"
@@ -121,13 +131,13 @@
           <v-icon icon="mdi-plus" />
           <s-tooltip activator="parent" location="top">Add Finding (Ctrl+J)</s-tooltip>
         </s-btn-icon>
+        <v-spacer />
         <s-btn-icon
-          v-if="overrideFindingOrder !== undefined && projectType.finding_ordering.length > 0 && selectedFindingIds.size === 0"
+          v-if="overrideFindingOrder !== undefined && projectType.finding_ordering.length > 0"
           @click="overrideFindingOrder = !overrideFindingOrder"
           :disabled="props.readonly"
           size="small"
           density="compact"
-          class="ml-2"
         >
           <v-icon :icon="overrideFindingOrder ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
           <s-tooltip activator="parent" location="top">
@@ -178,16 +188,16 @@
                 <v-list-item
                   :to="findingUrl(finding)"
                   :value="finding.id"
-                  :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(finding, false)!) : undefined"
+                  :active="finding.id === currentPageId"
                   :ripple="false"
                   density="compact"
                   :class="[
                     `finding-level-${riskLevel(finding)}`,
                     `finding-retest-${findingRetestStatus(finding)?.value}`,
-                    { 'finding-selected': selectedFindingIds.has(finding.id) }
+                    { 'list-item--selected': selectedIds.has(finding.id) }
                   ]"
                   :data-testid="'finding-' + findingTitle(finding)"
-                  @click="onFindingClick($event, finding.id)"
+                  @click="onClickListItem($event, finding)"
                 >
                   <template #prepend v-if="sortManual">
                     <div class="draggable-handle-finding mr-2">
@@ -225,7 +235,7 @@
         <div v-for="result in searchResultsSections" :key="result.item.id">
           <v-list-item
             :to="sectionUrl(result.item)"
-            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(result.item, false)!) : undefined"
+            :active="result.item.id === currentPageId"
             density="compact"
           >
             <template #default>
@@ -245,7 +255,7 @@
         <div v-for="result in searchResultsFindings" :key="result.item.id">
           <v-list-item
             :to="findingUrl(result.item)"
-            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(result.item, false)!) : undefined"
+            :active="result.item.id === currentPageId"
             :class="'finding-level-' + riskLevel(result.item)"
             density="compact"
           >
@@ -279,38 +289,10 @@
       </v-list-item>
     </div>
   </v-list>
-
-  <!-- Delete confirmation dialog -->
-  <v-dialog v-model="showDeleteConfirm" max-width="500">
-    <v-card>
-      <v-card-title>Delete {{ selectedFindingIds.size }} Finding{{ selectedFindingIds.size !== 1 ? 's' : '' }}?</v-card-title>
-      <v-card-text>
-        This action cannot be undone. The following findings will be deleted:
-        <ul class="mt-3">
-          <li v-for="finding in selectedFindings" :key="finding.id" class="text-body-small">
-            {{ findingTitle(finding) }}
-          </li>
-        </ul>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <s-btn
-          @click="showDeleteConfirm = false"
-          variant="text"
-          text="Cancel"
-        />
-        <s-btn-primary
-          @click="deleteSelectedFindings"
-          color="error"
-          text="Delete"
-        />
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { orderBy, pick } from 'lodash-es';
+import { orderBy, pick, uniq } from 'lodash-es';
 import Draggable from 'vuedraggable';
 import { groupFindings, type FindingGroup } from '@base/utils/project';
 
@@ -328,145 +310,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:findings': [value: PentestFinding[]];
   'create:finding': [value?: Partial<PentestFinding>|null];
+  'delete:findings': [value: PentestFinding[]];
   'collab': [value: any];
 }>();
 
 const router = useRouter();
-const selectedFindingIds = ref<Set<string>>(new Set());
-const selectedSectionIds = ref<Set<string>>(new Set());
-const lastSelectedFindingId = ref<string|null>(null);
-const lastSelectedSectionId = ref<string|null>(null);
-const showDeleteConfirm = ref(false);
+const auth = useAuth();
 const apiSettings = useApiSettings();
-
-const selectedFindings = computed(() => props.findings.filter(f => selectedFindingIds.value.has(f.id)));
-const availableStatuses = computed(() => apiSettings.settings?.statuses || []);
-const allowedSectionStatusIds = computed(() => {
-  const allowed = new Set([
-    ReviewStatus.IN_PROGRESS,
-    ReviewStatus.READY_FOR_REVIEW,
-    ReviewStatus.NEEDS_IMPROVEMENT,
-    ReviewStatus.FINISHED,
-  ]);
-  return allowed;
-});
-
-function toggleFindingSelection(findingId: string) {
-  if (selectedFindingIds.value.has(findingId)) {
-    selectedFindingIds.value.delete(findingId);
-  } else {
-    selectedFindingIds.value.add(findingId);
-  }
-  selectedFindingIds.value = new Set(selectedFindingIds.value);
-  lastSelectedFindingId.value = findingId;
-}
-
-function toggleSectionSelection(sectionId: string) {
-  if (selectedSectionIds.value.has(sectionId)) {
-    selectedSectionIds.value.delete(sectionId);
-  } else {
-    selectedSectionIds.value.add(sectionId);
-  }
-  selectedSectionIds.value = new Set(selectedSectionIds.value);
-  lastSelectedSectionId.value = sectionId;
-}
-
-function clearFindingSelection() {
-  selectedFindingIds.value.clear();
-  selectedFindingIds.value = new Set(selectedFindingIds.value);
-  lastSelectedFindingId.value = null;
-}
-
-function clearSectionSelection() {
-  selectedSectionIds.value.clear();
-  selectedSectionIds.value = new Set(selectedSectionIds.value);
-  lastSelectedSectionId.value = null;
-}
-
-function clearSelection() {
-  clearFindingSelection();
-  clearSectionSelection();
-}
-
-function selectAllFindings() {
-  selectedFindingIds.value = new Set(props.findings.map(f => f.id));
-}
-
-async function deleteSelectedFindings() {
-  showDeleteConfirm.value = false;
-  const findingIds = Array.from(selectedFindingIds.value);
-  
-  try {
-    for (const findingId of findingIds) {
-      await $fetch(`/api/v1/pentestprojects/${props.findings.find(f => f.id === findingId)?.project}/findings/${findingId}/`, {
-        method: 'DELETE',
-      });
-    }
-    // Emit update to remove deleted findings
-    const remainingFindings = props.findings.filter(f => !selectedFindingIds.value.has(f.id));
-    emit('update:findings', remainingFindings);
-    clearSelection();
-  } catch (error) {
-    console.error('Failed to delete findings:', error);
-  }
-}
-
-async function updateSelectedFindingsStatus(newStatus: string, clearAfter = true) {
-  const findingIds = Array.from(selectedFindingIds.value);
-  
-  try {
-    for (const findingId of findingIds) {
-      const finding = props.findings.find(f => f.id === findingId);
-      if (!finding) continue;
-      
-      await $fetch(`/api/v1/pentestprojects/${finding.project}/findings/${findingId}/`, {
-        method: 'PATCH',
-        body: {
-          status: newStatus,
-        },
-      });
-    }
-    if (clearAfter) {
-      clearFindingSelection();
-    }
-  } catch (error) {
-    console.error('Failed to update findings status:', error);
-  }
-}
-
-async function updateSelectedSectionsStatus(newStatus: string, clearAfter = true) {
-  if (!allowedSectionStatusIds.value.has(newStatus)) {
-    return;
-  }
-  const sectionIds = Array.from(selectedSectionIds.value);
-
-  try {
-    for (const sectionId of sectionIds) {
-      const section = props.sections.find(s => s.id === sectionId);
-      if (!section) continue;
-
-      await $fetch(`/api/v1/pentestprojects/${section.project}/sections/${sectionId}/`, {
-        method: 'PATCH',
-        body: {
-          status: newStatus,
-        },
-      });
-    }
-    if (clearAfter) {
-      clearSectionSelection();
-    }
-  } catch (error) {
-    console.error('Failed to update sections status:', error);
-  }
-}
-
-async function updateSelectedStatus(newStatus: string) {
-  await Promise.all([
-    selectedFindingIds.value.size > 0 ? updateSelectedFindingsStatus(newStatus, false) : Promise.resolve(),
-    selectedSectionIds.value.size > 0 ? updateSelectedSectionsStatus(newStatus, false) : Promise.resolve(),
-  ]);
-  clearSelection();
-}
 
 function sectionUrl(section: ReportSection, trailingSlash = true) {
   return props.toPrefix ? `${props.toPrefix}sections/${section.id}${trailingSlash ? '/' : ''}` : undefined;
@@ -520,88 +370,6 @@ function sortGroups(groups: FindingGroup[]) {
   const value = groups.flatMap(g => g.findings)
     .map((f, idx) => ({ ...f, order: idx + 1 }));
   emit('update:findings', value);
-}
-
-function selectFindingRange(targetId: string) {
-  const orderedIds = findingGroups.value.flatMap(group => group.findings.map(f => f.id));
-  if (!lastSelectedFindingId.value) {
-    toggleFindingSelection(targetId);
-    return;
-  }
-
-  const start = orderedIds.indexOf(lastSelectedFindingId.value);
-  const end = orderedIds.indexOf(targetId);
-  if (start === -1 || end === -1) {
-    toggleFindingSelection(targetId);
-    return;
-  }
-
-  const [from, to] = start <= end ? [start, end] : [end, start];
-  for (const id of orderedIds.slice(from, to + 1)) {
-    selectedFindingIds.value.add(id);
-  }
-  selectedFindingIds.value = new Set(selectedFindingIds.value);
-  lastSelectedFindingId.value = targetId;
-}
-
-function onFindingClick(event: MouseEvent, findingId: string) {
-  if (event.shiftKey && !event.ctrlKey) {
-    selectFindingRange(findingId);
-    event.preventDefault();
-    return;
-  }
-  if (event.ctrlKey) {
-    toggleFindingSelection(findingId);
-    event.preventDefault();
-    return;
-  }
-  if (!props.readonly) {
-    selectedFindingIds.value = new Set([findingId]);
-    selectedSectionIds.value.clear();
-    selectedSectionIds.value = new Set(selectedSectionIds.value);
-    lastSelectedFindingId.value = findingId;
-  }
-}
-
-function selectSectionRange(targetId: string) {
-  const orderedIds = sections.value.map(s => s.id);
-  if (!lastSelectedSectionId.value) {
-    toggleSectionSelection(targetId);
-    return;
-  }
-
-  const start = orderedIds.indexOf(lastSelectedSectionId.value);
-  const end = orderedIds.indexOf(targetId);
-  if (start === -1 || end === -1) {
-    toggleSectionSelection(targetId);
-    return;
-  }
-
-  const [from, to] = start <= end ? [start, end] : [end, start];
-  for (const id of orderedIds.slice(from, to + 1)) {
-    selectedSectionIds.value.add(id);
-  }
-  selectedSectionIds.value = new Set(selectedSectionIds.value);
-  lastSelectedSectionId.value = targetId;
-}
-
-function onSectionClick(event: MouseEvent, sectionId: string) {
-  if (event.shiftKey && !event.ctrlKey) {
-    selectSectionRange(sectionId);
-    event.preventDefault();
-    return;
-  }
-  if (event.ctrlKey) {
-    toggleSectionSelection(sectionId);
-    event.preventDefault();
-    return;
-  }
-  if (!props.readonly) {
-    selectedSectionIds.value = new Set([sectionId]);
-    selectedFindingIds.value.clear();
-    selectedFindingIds.value = new Set(selectedFindingIds.value);
-    lastSelectedSectionId.value = sectionId;
-  }
 }
 
 const pendingSortEvents = ref<any[]>([]);
@@ -686,6 +454,100 @@ function hideSearch() {
   search.value = null;
 }
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
+
+
+// Selection
+const currentPageId = computed(() => 
+  selected.value ?? 
+  router.currentRoute.value.params.sectionId as string|undefined ?? 
+  router.currentRoute.value.params.findingId as string|undefined ?? 
+  null);
+const selectedIds = ref<Set<string>>(new Set());
+const selectedSections = computed(() => sections.value.filter(s => selectedIds.value.has(s.id)));
+const selectedFindings = computed(() => props.findings.filter(f => selectedIds.value.has(f.id)));
+
+const lastSelectedId = ref<string|null>(null);
+watch(currentPageId, () => {
+  // On navigate: reset selection
+  selectedIds.value.clear();
+  if (currentPageId.value) {
+    selectedIds.value.add(currentPageId.value);
+  }
+  lastSelectedId.value = currentPageId.value;
+}, { immediate: true });
+
+function selectItem(item: ReportSection|PentestFinding, value: boolean = true) {
+  const itemId = item.id;
+  if (value) {
+    selectedIds.value.add(itemId);
+  } else {
+    selectedIds.value.delete(itemId);
+  }
+}
+function onClickListItem(event: MouseEvent|KeyboardEvent, item: ReportSection|PentestFinding) {
+  if (event.shiftKey) {
+    // Select all items between the last selected item and the current one.
+    const itemsFlat = sections.value.concat(findingGroups.value.flatMap(g => g.findings));
+    const idxSelectionStart = itemsFlat.findIndex(i => i.id === lastSelectedId.value);
+    const idxSelectionEnd = itemsFlat.findIndex(i => i.id === item.id);
+    if (idxSelectionStart === -1 || idxSelectionEnd === -1) {
+      selectItem(item, true);
+    } else {
+      itemsFlat.slice(Math.min(idxSelectionStart, idxSelectionEnd), Math.max(idxSelectionStart, idxSelectionEnd) + 1).forEach(i => {
+        selectItem(i, true);
+      });
+    }
+    event.preventDefault();
+  } else if (event.ctrlKey) {
+    selectItem(item, !selectedIds.value.has(item.id) || currentPageId.value === item.id);
+    lastSelectedId.value = item.id;
+    event.preventDefault();
+  } else if (selected.value !== undefined) {
+    selected.value = item.id;
+  }
+}
+
+const statusItems = computed(() => {
+  const currentStatuses = uniq(selectedFindings.value.map(f => f.status).concat(selectedSections.value.map(s => s.status)))
+    .map(s => apiSettings.getStatusDefinition(s));
+  return (apiSettings.settings?.statuses || []).map(s => ({
+    ...s,
+    props: {
+      // Disable status when the status transition is not allowed for any selected item
+      disabled: !currentStatuses.every(cs => 
+        (cs.allowed_next_statuses?.length || 0) === 0 || 
+        cs.allowed_next_statuses?.includes(s.id) || 
+        auth.permissions.value.admin),
+    },
+  }));
+});
+function setStatusOfSelectedItems(status: string) {
+  if (props.readonly || !props.collab) {
+    return;
+  }
+  for (const s of selectedSections.value) {
+    emit('collab', {
+      type: CollabEventType.UPDATE_KEY,
+      path: collabSubpath(props.collab, `sections.${s.id}.status`).path,
+      value: status,
+      updateAwareness: false,
+    });
+  }
+  for (const f of selectedFindings.value) {
+    emit('collab', {
+      type: CollabEventType.UPDATE_KEY,
+      path: collabSubpath(props.collab, `findings.${f.id}.status`).path,
+      value: status,
+      updateAwareness: false,
+    });
+  }
+}
+function deleteSelectedFindings() {
+  if (props.readonly || selectedFindings.value.length === 0) {
+    return;
+  }
+  emit('delete:findings', selectedFindings.value);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -696,14 +558,6 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   .finding-level-#{$level} {
     border-left: 0.4em solid map.get(settings.$risk-color-levels, $level);
   }
-}
-
-.finding-selected {
-  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity)) * 100%), transparent);
-}
-
-.section-selected {
-  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity)) * 100%), transparent);
 }
 
 .status-finished {
@@ -769,5 +623,9 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   &:deep(.v-icon) {
     cursor: inherit;
   }
+}
+
+.list-item--selected {
+  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity)) * 100%), transparent);
 }
 </style>
