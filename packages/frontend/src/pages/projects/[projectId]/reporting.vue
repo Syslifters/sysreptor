@@ -11,6 +11,7 @@
         :findings="findings"
         @update:findings="sortFindings"
         @create:finding="createFindingDialogRef?.open"
+        @delete:findings="deleteFindings"
         v-model:search="reportingCollab.search.value"
         :override-finding-order="project.override_finding_order"
         @update:override-finding-order="toggleOverrideFindingOrder"
@@ -105,6 +106,9 @@ watch(sortFindingsManual, () => {
 }, { immediate: true });
 async function sortFindings(findings: PentestFinding[]) {
   await projectStore.sortFindings(project.value, findings);
+}
+async function deleteFindings(findingsToDelete: PentestFinding[]) {
+  await bulkAction(findingsToDelete, f => projectStore.deleteFinding(project.value, f), f => `Failed to delete finding "${f.data.title}"`);
 }
 async function toggleOverrideFindingOrder() {
   if (!wasOverrideFindingOrder.value) {

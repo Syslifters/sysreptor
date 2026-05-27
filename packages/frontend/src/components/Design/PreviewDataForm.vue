@@ -7,18 +7,11 @@
         :project-type="props.projectType"
         :readonly="props.readonly"
         @create:finding="createFinding"
+        @delete:findings="deleteFindings"
         v-model:selected="currentItemId"
       >
         <template #section-item-append><span /></template>
-        <template #finding-item-append="{ finding }">
-          <btn-delete
-            :delete="() => deleteFinding(finding)"
-            :disabled="props.readonly"
-            button-variant="icon"
-            size="small"
-            density="comfortable"
-          />
-        </template>
+        <template #finding-item-append><span /></template>
       </report-sidebar>
     </template>
 
@@ -190,12 +183,13 @@ function createFinding(data?: any) {
   });
   currentItemId.value = newFinding.id;
 }
-function deleteFinding(finding: any) {
+function deleteFindings(findingsToDelete: any[]) {
+  const findingIds = new Set((findingsToDelete || []).map(f => f.id));
   emit('update:modelValue', {
     ...props.modelValue,
-    findings: props.modelValue.findings.filter((f: any) => f.id !== finding.id)
+    findings: props.modelValue.findings.filter((f: any) => !findingIds.has(f.id))
   });
-  if (finding.id === currentItem.value?.id) {
+  if (currentItem.value?.id && findingIds.has(currentItem.value.id)) {
     currentItemId.value = null;
   }
 }

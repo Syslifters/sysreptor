@@ -1,7 +1,5 @@
 <template>
   <v-list 
-    :selected="selected ? [selected] : []"
-    @update:selected="selected = $event.length > 0 ? $event[0] : null"
     select-strategy="single-leaf"
     density="compact" 
     class="pb-0 pt-0 h-100 d-flex flex-column"
@@ -40,14 +38,66 @@
           density="compact"
           class="ml-2"
         />
+        <s-btn-icon
+          :disabled="props.readonly"
+          size="small"
+          density="compact"
+          class="ml-2"
+        >
+          <v-icon icon="mdi-dots-vertical" />
+          <v-menu activator="parent" eager :close-on-content-click="false" location="bottom right">
+            <v-list>
+              <v-list-item
+                v-if="props.collab"
+                title="Set status"
+                prepend-icon="mdi-pencil"
+                :disabled="props.readonly || (selectedFindings.length === 0 || selectedSections.length === 0)"
+              >
+                <v-menu activator="parent" submenu>
+                  <v-list>
+                    <v-list-item
+                      v-for="status in statusItems"
+                      :key="`status-${status.id}`"
+                      @click="setStatusOfSelectedItems(status.id)"
+                      :disabled="props.readonly || (selectedFindings.length === 0 || selectedSections.length === 0) || status.props?.disabled"
+                    >
+                      <template #prepend>
+                        <v-icon :icon="status.icon || 'mdi-help'" :class="'status-' + status.id" />
+                      </template>
+                      <v-list-item-title>{{ status.label }}</v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </v-list-item>
+              <btn-delete
+                :delete="deleteSelectedFindings"
+                :disabled="props.readonly || selectedFindings.length === 0"
+                button-variant="list-item"
+              >
+                <template #dialog-text>
+                  <p class="mt-0">
+                      Do you really want to delete {{ selectedFindings.length }} findings?
+                  </p>
+                  <ul class="mt-0">
+                    <li v-for="f in selectedFindings" :key="f.id">
+                      {{ f.data.title }}
+                    </li>
+                  </ul>
+                </template>
+              </btn-delete>
+            </v-list>
+          </v-menu>
+        </s-btn-icon>
       </v-list-subheader>
       <v-list-item
         v-for="section in sections"
         :key="section.id"
         :value="section.id"
         :to="sectionUrl(section)"
-        :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(section, false)!) : undefined"
+        :active="section.id === currentPageId"
         density="compact"
+        :class="{ 'list-item--selected': selectedIds.has(section.id) }"
+        @click="onClickListItem($event, section)"
       >
         <template #default>
           <v-list-item-title class="text-body-medium">{{ section.label }}</v-list-item-title>
@@ -138,14 +188,16 @@
                 <v-list-item
                   :to="findingUrl(finding)"
                   :value="finding.id"
-                  :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(finding, false)!) : undefined"
+                  :active="finding.id === currentPageId"
                   :ripple="false"
                   density="compact"
                   :class="[
                     `finding-level-${riskLevel(finding)}`,
                     `finding-retest-${findingRetestStatus(finding)?.value}`,
+                    { 'list-item--selected': selectedIds.has(finding.id) }
                   ]"
                   :data-testid="'finding-' + findingTitle(finding)"
+                  @click="onClickListItem($event, finding)"
                 >
                   <template #prepend v-if="sortManual">
                     <div class="draggable-handle-finding mr-2">
@@ -183,7 +235,7 @@
         <div v-for="result in searchResultsSections" :key="result.item.id">
           <v-list-item
             :to="sectionUrl(result.item)"
-            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(sectionUrl(result.item, false)!) : undefined"
+            :active="result.item.id === currentPageId"
             density="compact"
           >
             <template #default>
@@ -203,7 +255,7 @@
         <div v-for="result in searchResultsFindings" :key="result.item.id">
           <v-list-item
             :to="findingUrl(result.item)"
-            :active="props.toPrefix ? router.currentRoute.value.path.startsWith(findingUrl(result.item, false)!) : undefined"
+            :active="result.item.id === currentPageId"
             :class="'finding-level-' + riskLevel(result.item)"
             density="compact"
           >
@@ -240,7 +292,7 @@
 </template>
 
 <script setup lang="ts">
-import { orderBy, pick } from 'lodash-es';
+import { orderBy, pick, uniq } from 'lodash-es';
 import Draggable from 'vuedraggable';
 import { groupFindings, type FindingGroup } from '@base/utils/project';
 
@@ -258,10 +310,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:findings': [value: PentestFinding[]];
   'create:finding': [value?: Partial<PentestFinding>|null];
+  'delete:findings': [value: PentestFinding[]];
   'collab': [value: any];
 }>();
 
 const router = useRouter();
+const auth = useAuth();
+const apiSettings = useApiSettings();
 
 function sectionUrl(section: ReportSection, trailingSlash = true) {
   return props.toPrefix ? `${props.toPrefix}sections/${section.id}${trailingSlash ? '/' : ''}` : undefined;
@@ -399,6 +454,100 @@ function hideSearch() {
   search.value = null;
 }
 useKeyboardShortcut('ctrl+shift+f', () => showSearch());
+
+
+// Selection
+const currentPageId = computed(() => 
+  selected.value ?? 
+  router.currentRoute.value.params.sectionId as string|undefined ?? 
+  router.currentRoute.value.params.findingId as string|undefined ?? 
+  null);
+const selectedIds = ref<Set<string>>(new Set());
+const selectedSections = computed(() => sections.value.filter(s => selectedIds.value.has(s.id)));
+const selectedFindings = computed(() => props.findings.filter(f => selectedIds.value.has(f.id)));
+
+const lastSelectedId = ref<string|null>(null);
+watch(currentPageId, () => {
+  // On navigate: reset selection
+  selectedIds.value.clear();
+  if (currentPageId.value) {
+    selectedIds.value.add(currentPageId.value);
+  }
+  lastSelectedId.value = currentPageId.value;
+}, { immediate: true });
+
+function selectItem(item: ReportSection|PentestFinding, value: boolean = true) {
+  const itemId = item.id;
+  if (value) {
+    selectedIds.value.add(itemId);
+  } else {
+    selectedIds.value.delete(itemId);
+  }
+}
+function onClickListItem(event: MouseEvent|KeyboardEvent, item: ReportSection|PentestFinding) {
+  if (event.shiftKey) {
+    // Select all items between the last selected item and the current one.
+    const itemsFlat = sections.value.concat(findingGroups.value.flatMap(g => g.findings));
+    const idxSelectionStart = itemsFlat.findIndex(i => i.id === lastSelectedId.value);
+    const idxSelectionEnd = itemsFlat.findIndex(i => i.id === item.id);
+    if (idxSelectionStart === -1 || idxSelectionEnd === -1) {
+      selectItem(item, true);
+    } else {
+      itemsFlat.slice(Math.min(idxSelectionStart, idxSelectionEnd), Math.max(idxSelectionStart, idxSelectionEnd) + 1).forEach(i => {
+        selectItem(i, true);
+      });
+    }
+    event.preventDefault();
+  } else if (event.ctrlKey) {
+    selectItem(item, !selectedIds.value.has(item.id) || currentPageId.value === item.id);
+    lastSelectedId.value = item.id;
+    event.preventDefault();
+  } else if (selected.value !== undefined) {
+    selected.value = item.id;
+  }
+}
+
+const statusItems = computed(() => {
+  const currentStatuses = uniq(selectedFindings.value.map(f => f.status).concat(selectedSections.value.map(s => s.status)))
+    .map(s => apiSettings.getStatusDefinition(s));
+  return (apiSettings.settings?.statuses || []).map(s => ({
+    ...s,
+    props: {
+      // Disable status when the status transition is not allowed for any selected item
+      disabled: !currentStatuses.every(cs => 
+        (cs.allowed_next_statuses?.length || 0) === 0 || 
+        cs.allowed_next_statuses?.includes(s.id) || 
+        auth.permissions.value.admin),
+    },
+  }));
+});
+function setStatusOfSelectedItems(status: string) {
+  if (props.readonly || !props.collab) {
+    return;
+  }
+  for (const s of selectedSections.value) {
+    emit('collab', {
+      type: CollabEventType.UPDATE_KEY,
+      path: collabSubpath(props.collab, `sections.${s.id}.status`).path,
+      value: status,
+      updateAwareness: false,
+    });
+  }
+  for (const f of selectedFindings.value) {
+    emit('collab', {
+      type: CollabEventType.UPDATE_KEY,
+      path: collabSubpath(props.collab, `findings.${f.id}.status`).path,
+      value: status,
+      updateAwareness: false,
+    });
+  }
+}
+function deleteSelectedFindings() {
+  if (props.readonly || selectedFindings.value.length === 0) {
+    return;
+  }
+  emit('delete:findings', selectedFindings.value);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -409,6 +558,13 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   .finding-level-#{$level} {
     border-left: 0.4em solid map.get(settings.$risk-color-levels, $level);
   }
+}
+
+.status-finished {
+  color: settings.$status-color-finished;
+}
+.status-deprecated {
+  color: settings.$status-color-deprecated;
 }
 
 .finding-retest-resolved, .finding-retest-accepted, .finding-retest-partial {
@@ -467,5 +623,9 @@ useKeyboardShortcut('ctrl+shift+f', () => showSearch());
   &:deep(.v-icon) {
     cursor: inherit;
   }
+}
+
+.list-item--selected {
+  background: color-mix(in srgb, rgb(var(--v-theme-on-surface)) calc((var(--v-activated-opacity)) * 100%), transparent);
 }
 </style>
