@@ -6,6 +6,7 @@
 * Migrate documentation from mkdocs to vitepress
 * Support multi select and bulk actions in report sidebar
 * Highlight inactive users in project member selection
+* Improve handling of short search terms in project search
 
 
 ## v2026.36 - 2026-05-20
