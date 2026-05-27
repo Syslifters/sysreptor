@@ -32,7 +32,7 @@ export default defineConfig({
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/syslifters/sysreptor' },
-      { icon: 'linkedin', link: 'https://at.linkedin.com/showcase/sysreptor' },
+      { icon: 'linkedin', link: 'https://www.linkedin.com/showcase/sysreptor' },
     ],
 
     search: {
