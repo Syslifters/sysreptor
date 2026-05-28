@@ -6,30 +6,41 @@
         <v-row density="compact">
           <v-col cols="12" lg="9">
             <s-combobox
-              :model-value="searchInput"
-              @update:model-value="updateSearchInput"
+              ref="comboboxRef"
+              :model-value="selectedTemplates"
+              @update:model-value="selectedTemplates = ($event || []).filter((v: any) => v && typeof v === 'object' && 'id' in v)"
               @update:search="(v: string|null) => templates.search.value = v || ''"
               label="Template (optional)"
               :items="templates.data.value"
               item-value="id"
               :item-title="(t: FindingTemplate|string|null) => typeof t === 'string' ? t : ''"
               :hide-no-data="false"
+              :clear-on-select="false"
               :menu-props="{ width: '50%' }"
               no-filter
-              clearable
+              multiple
               return-object
               autofocus
               spellcheck="false"
               class="template-select"
-              :class="{'hide-input': !!currentTemplate}"
-              @keydown="onKeydown"
+              :class="{'hide-input': selectedTemplates.length > 0}"
             >
-              <template v-if="currentTemplate" #selection="{ item: template }">
-                <template-select-item v-if="template?.id" :template="template" :language="displayLanguage" />
-                <template v-else>{{ searchInput }}</template>
+              <template #selection="{ item: template }">
+                <div class="d-flex flex-row w-100">
+                  <template-select-item :template="template as any" :language="displayLanguage" />
+                  <s-btn-icon
+                    icon="$delete"
+                    @click.stop="removeSelectedTemplate(template as any)"
+                    @mousedown.stop
+                    v-tooltip.top="'Remove'"
+                  />
+                </div>
               </template>
               <template #item="{item: template, props: itemProps}">
                 <v-list-item v-bind="itemProps" title="">
+                  <template #prepend="{ isSelected }">
+                    <v-checkbox-btn :model-value="isSelected" />
+                  </template>
                   <template-select-item :template="template" :language="displayLanguage" />
                 </v-list-item>
               </template>
@@ -46,7 +57,7 @@
             <s-language-selection
               v-model="templateLanguage"
               :items="templateLanguageChoices"
-              :disabled="!currentTemplate"
+              :disabled="selectedTemplates.length === 0 || templateLanguageChoices.length === 0"
             />
           </v-col>
         </v-row>
@@ -59,11 +70,14 @@
           text="Cancel"
         />
         <s-btn-primary
-          v-if="currentTemplate?.id"
-          @click="createFindingFromTemplate"
+          v-if="selectedTemplates.length > 0"
+          @click="createFindingsFromTemplates"
           :loading="actionInProgress"
-          text="Create from Template"
-        />
+          :text="`Create from Templates (${selectedTemplates.length})`"
+        >
+          <span v-if="selectedTemplates.length === 1">Create from Template</span>
+          <span v-else>Create from Templates ({{ selectedTemplates.length }})</span>
+        </s-btn-primary>
         <s-btn-primary
           v-else @click="createEmptyFinding"
           :loading="actionInProgress"
@@ -75,6 +89,8 @@
 </template>
 
 <script setup lang="ts">
+import { uniq } from 'lodash-es';
+
 const props = defineProps<{
   project: PentestProject;
 }>();
@@ -85,6 +101,7 @@ const projectStore = useProjectStore();
 const dialogVisible = ref(false);
 const actionInProgress = ref(false);
 
+const comboboxRef = useTemplateRef('comboboxRef');
 const templates = useSearchableCursorPaginationFetcher({
   baseURL: '/api/v1/findingtemplates/',
   query: {
@@ -92,35 +109,55 @@ const templates = useSearchableCursorPaginationFetcher({
     preferred_language: props.project.language
   }
 });
-const searchInput = ref<FindingTemplate|string|null>(null);
-const currentTemplate = computed<FindingTemplate|null>(() => typeof searchInput.value === "string" ? null : searchInput.value);
+const selectedTemplates = ref<FindingTemplate[]>([]);
 const findingData = ref<Partial<PentestFinding>|null>();
 watch(dialogVisible, () => {
   // Reset dialog
   templates.applyFilters({ search: '' }, { fetchInitialPage: false });
-  searchInput.value = null;
+  if (comboboxRef.value) {
+    comboboxRef.value.search = '';
+  }
+  selectedTemplates.value = [];
   findingData.value = null;
 }, { flush: 'sync' });
 
 const templateLanguage = ref<string|null>(null);
-const templateLanguageChoices = computed(() => currentTemplate.value?.translations?.map(tr => apiSettings.settings!.languages.find(l => l.code === tr.language)!) || []);
+const templateLanguageChoices = computed(() => 
+  uniq(selectedTemplates.value.flatMap(t => t.translations.map(tr => tr.language)))
+  .map(code => apiSettings.settings!.languages.find(l => l.code === code)!)
+  .filter(Boolean)
+);
 const displayLanguage = computed(() => templateLanguage.value || props.project.language);
-watch(currentTemplate, () => {
-  if (!currentTemplate.value) {
+
+watch(selectedTemplates, (newTemplates, oldTemplates) => {
+  // Clear search when selecting/deselecting templates
+  if (comboboxRef.value && (newTemplates.length > 0 || oldTemplates.length !== newTemplates.length)) {
+    comboboxRef.value.search = '';
+    templates.search.value = '';
+  }
+  
+  // Prefill language selection
+  if (templateLanguageChoices.value.length === 0) {
     templateLanguage.value = null;
-  } else if (currentTemplate.value.translations.some(tr => tr.language === templateLanguage.value)) {
+  } else if (templateLanguageChoices.value.some(l => l.code === templateLanguage.value)) {
     // Keep current templateLanguage
-  } else if (currentTemplate.value.translations.some(tr => tr.language === props.project.language)) {
+  } else if (templateLanguageChoices.value.some(l => l.code === props.project.language)) {
+    // Use project language
     templateLanguage.value = props.project.language;
   } else {
-    templateLanguage.value = currentTemplate.value.translations.find(tr => tr.is_main)!.language;
+    // Use first template language
+    templateLanguage.value = selectedTemplates.value[0]?.translations.find(tr => tr.is_main)?.language || templateLanguageChoices.value[0]?.code || null;
   }
-});
+}, { deep: 1 });
+
+function removeSelectedTemplate(template: FindingTemplate) {
+  selectedTemplates.value = selectedTemplates.value.filter(t => t.id !== template.id);
+}
 
 async function createEmptyFinding() {
   try {
     actionInProgress.value = true;
-    const title = ((typeof searchInput.value === "string") ? searchInput.value : null);
+    const title = comboboxRef.value?.search?.trim() || null;
     const finding = await projectStore.createFinding(props.project, {
       ...(findingData.value || {}),
       data: {
@@ -136,34 +173,31 @@ async function createEmptyFinding() {
     actionInProgress.value = false;
   }
 }
-async function createFindingFromTemplate() {
+async function createFindingsFromTemplates() {
   try {
     actionInProgress.value = true;
-    const finding = await projectStore.createFindingFromTemplate(props.project, {
+    let created = await bulkAction(selectedTemplates.value, t => projectStore.createFindingFromTemplate(props.project, {
       ...(findingData.value || {}),
-      template: currentTemplate.value!.id,
-      template_language: templateLanguage.value!,
-    });
-    await navigateTo(`/projects/${finding.project}/reporting/findings/${finding.id}/`)
-    dialogVisible.value = false;
+      template: t.id,
+      template_language: 
+        t.translations.find(tr => tr.language === templateLanguage.value)?.language || 
+        t.translations.find(tr => tr.language === props.project.language)?.language || 
+        t.translations.find(tr => tr.is_main)?.language || 
+        '',
+    }), t => `Failed to create finding from template "${t.translations.find(tr => tr.is_main)?.data.title || t.id}"`)
+    
+    created = created.filter(Boolean);
+    if (created.length > 0) {
+      if (created.length > 1) {
+        successToast(`Created ${created.length} finding${created.length === 1 ? '' : 's'}`);
+      }
+      await navigateTo(`/projects/${created[0]!.project}/reporting/findings/${created[0]!.id}/`)
+      dialogVisible.value = false;
+    }
   } catch (error) {
     requestErrorToast({ error });
   } finally {
     actionInProgress.value = false;
-  }
-}
-
-function updateSearchInput(value: string|FindingTemplate|null) {
-  if (typeof value === 'string' && currentTemplate.value) {
-    searchInput.value = value.replaceAll('[object Object]', '').trim();
-  } else {
-    searchInput.value = value;
-  }
-}
-
-function onKeydown(event: KeyboardEvent) {
-  if (['Backspace', 'Delete'].includes(event.key) && currentTemplate.value) {
-    searchInput.value = null;
   }
 }
 
@@ -189,6 +223,11 @@ defineExpose({
     .v-chip__content {
       overflow: visible;
     }
+
+    .v-field__input {
+      max-height: 15em;
+      overflow-y: auto;
+    }
   }
 
   &.hide-input:deep() {
@@ -199,6 +238,7 @@ defineExpose({
     .v-combobox__selection {
       opacity: 1;
       height: auto;
+      width: 100%;
     }
   }
   &:not(.hide-input):deep() {
