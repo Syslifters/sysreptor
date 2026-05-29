@@ -30,10 +30,12 @@
       @scroll="onScrollMessages()"
     >
       <chat-message
-        v-for="msg in agent.messageHistory.value" :key="msg.id"
+        v-for="(msg, idx) in agent.messageHistory.value"
+        :key="msg.id"
         :msg="msg"
         :project="props.project"
         :is-streaming="msg.id === currentStreamingMessageId"
+        :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory.value, idx)"
       />
     </div>
     <div class="pa-2">

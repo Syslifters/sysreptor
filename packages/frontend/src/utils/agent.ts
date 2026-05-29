@@ -42,6 +42,18 @@ export type ToolCall = {
   subagentMessages?: ChatHistoryEntry[];
 }
 
+export function isLastAssistantMessageInTurn(
+  messages: readonly ChatHistoryEntry[],
+  index: number,
+): boolean {
+  const msg = messages[index];
+  if (msg?.role !== MessageRole.ASSISTANT) {
+    return false;
+  }
+  const next = messages[index + 1];
+  return !next || next.role === MessageRole.USER;
+}
+
 export enum StreamEventType {
   METADATA = 'metadata',
   TEXT = 'text',

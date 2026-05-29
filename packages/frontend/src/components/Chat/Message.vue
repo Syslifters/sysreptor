@@ -1,5 +1,5 @@
 <template>
-  <template v-if="props.msg.role === MessageRole.ASSISTANT">
+  <div v-if="props.msg.role === MessageRole.ASSISTANT" class="assistant-message">
     <chat-reasoning-panel
       v-if="props.msg.reasoning"
       title="Reasoning..."
@@ -11,14 +11,30 @@
         </div>
       </template>
     </chat-reasoning-panel>
-    <markdown-preview 
+    <markdown-preview
       v-if="props.msg.text"
       :value="props.msg.text"
       :throttle-ms="100"
       :readonly="true"
       class="message-text"
     />
-  </template>
+    <div
+      v-if="props.isLastMessage && !props.isStreaming && props.msg.text"
+      class="assistant-message-footer"
+    >
+      <v-divider class="w-100" />
+      <div class="assistant-message-footer-actions">
+        <s-btn-icon
+          @click="copyToClipboard(props.msg.text || '')"
+          icon="mdi-content-copy"
+          class="assistant-message-copy-btn text-disabled"
+          size="x-small"
+          density="compact"
+          v-tooltip.top="'Copy to clipboard'"
+        />
+      </div>
+    </div>
+  </div>
   <chat-tool-call
     v-else-if="props.msg.role === MessageRole.TOOL && props.msg.tool_call"
     :value="props.msg.tool_call"
@@ -49,6 +65,7 @@ const props = defineProps<{
   msg: ChatHistoryEntry;
   project?: PentestProject;
   isStreaming?: boolean;
+  isLastMessage?: boolean;
 }>();
 </script>
 
@@ -60,6 +77,22 @@ const props = defineProps<{
 
 .message-text {
   font-size: 0.875rem;
+}
+
+.assistant-message {
+  .assistant-message-footer {
+    margin-top: 0.1rem;
+    margin-bottom: 0.2rem;
+  }
+  .assistant-message-footer-actions {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  &:hover .assistant-message-footer-actions {
+    opacity: 1;
+  }
 }
 
 .user-message {
