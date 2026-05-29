@@ -23,4 +23,3 @@ export {
 export { setRemoteClients, remoteSelection } from './awareness';
 export { setComments, commentsExtension } from './comments';
 export { setSearchGlobalQuery, searchGlobalExtensions, CustomizedSearchPanel } from './search';
-import 'highlight.js/styles/default.css';

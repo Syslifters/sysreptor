@@ -168,7 +168,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
     if gp_profile.system_prompt is not None:
         subagent_prompt = gp_profile.system_prompt
         if profile.system_prompt_suffix is not None:
-            subagent_prompt + '\n\n' + profile.system_prompt_suffix
+            subagent_prompt += '\n\n' + profile.system_prompt_suffix
     else:
         subagent_prompt = _apply_profile_prompt(profile, GENERAL_PURPOSE_SUBAGENT['system_prompt'])
     subagents = [
