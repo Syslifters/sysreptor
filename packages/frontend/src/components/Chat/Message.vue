@@ -25,7 +25,19 @@
     :project="props.project"
     :is-streaming="props.isStreaming"
   />
-  <s-card v-else-if="props.msg.role === MessageRole.USER" variant="tonal">
+  <s-card
+    v-else-if="props.msg.role === MessageRole.USER"
+    variant="tonal"
+    class="user-message"
+  >
+    <s-btn-icon
+      @click="copyToClipboard(props.msg.text || '')"
+      icon="mdi-content-copy"
+      class="user-message-copy-btn"
+      size="small"
+      density="compact"
+      v-tooltip.top="'Copy to clipboard'"
+    />
     <v-card-text class="message-text">
       {{ props.msg.text }}
     </v-card-text>
@@ -48,5 +60,25 @@ const props = defineProps<{
 
 .message-text {
   font-size: 0.875rem;
+}
+
+.user-message {
+  position: relative;
+
+  .user-message-copy-btn {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+
+    border-radius: 4px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  &:hover .user-message-copy-btn {
+    opacity: 1;
+  }
 }
 </style>
