@@ -1,6 +1,10 @@
 <template>
   <div class="text-body-medium text-disabled mt-2">
-    <template v-if="props.value.name === 'get_finding_data' && props.project">
+    <template v-if="props.value.name === 'get_project_info'">
+      <chat-tool-call-status :status="props.value.status" />
+      Read project info
+    </template>
+    <template v-else-if="props.value.name === 'get_finding_data' && props.project">
       <chat-tool-call-status :status="props.value.status" />
       Read finding
       <nuxt-link :to="`/projects/${props.project.id}/reporting/findings/${props.value.args.finding_id}/`">
