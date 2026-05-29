@@ -42,6 +42,10 @@ export default defineConfig({
       },
     },
 
+    outline: {
+      level: 'deep',
+    },
+
     sidebar: [
       {
         text: 'Setup',

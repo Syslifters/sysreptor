@@ -79,7 +79,7 @@ build-docs:
     # Pack demo data archives
     - for archive_dir in ../demo_data/*; do reptor packarchive "$archive_dir" -o "docs/public/assets/${archive_dir##*/}.tar.gz"; done
     # Fetch remote docs from reptor CLI
-    - mkdir -p docs/cli && cd docs/cli
+    - rm -rf docs/cli && mkdir -p docs/cli && cd docs/cli
     - git init && git remote add -f origin https://github.com/Syslifters/reptor.git
     - git config core.sparseCheckout true
     - echo "docs" >> .git/info/sparse-checkout
