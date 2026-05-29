@@ -24,7 +24,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from langchain import chat_models
 from langchain.agents import create_agent
-from langchain.agents.middleware import TodoListMiddleware
+from langchain.agents.middleware import AgentMiddleware, AgentState, TodoListMiddleware
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langgraph.config import get_config
@@ -74,7 +74,6 @@ def agent_tool(metadata=None, **kwargs):
                 content='',
                 status='error',
                 tool_call_id=runtime.tool_call_id,
-                additional_kwargs={'timestamp': timezone.now().isoformat()},
             )
 
             try:
@@ -94,6 +93,7 @@ def agent_tool(metadata=None, **kwargs):
             except Exception as ex:
                 logging.exception(ex)
                 out.content = 'Error: Unexpected error'
+            stamp_message_timestamp(out)
             return Command(update={
                 'messages': [out],
             })
@@ -118,6 +118,35 @@ def init_chat_model():
     return chat_models.init_chat_model(settings.AI_AGENT_MODEL)
 
 
+def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage) -> None:
+    if message.additional_kwargs.get('timestamp'):
+        return
+    message.additional_kwargs = {
+        **(message.additional_kwargs or {}),
+        'timestamp': timezone.now().isoformat(),
+    }
+
+
+class MessageTimestampMiddleware(AgentMiddleware[AgentState]):
+    """
+    Stamp completion timestamps on user and assistant messages for the chat UI.
+    """
+
+    async def abefore_agent(self, state, runtime):
+        for m in reversed(state['messages']):
+            if isinstance(m, HumanMessage):
+                if not m.additional_kwargs.get('injected_context'):
+                    stamp_message_timestamp(m)
+                break
+
+    async def aafter_model(self, state, runtime):
+        for m in reversed(state['messages']):
+            if isinstance(m, AIMessage):
+                stamp_message_timestamp(m)
+            else:
+                break
+
+
 def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **kwargs):
     """
     Create a SysReptor agent.
@@ -132,6 +161,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         TodoListMiddleware(),
         PatchToolCallsMiddleware(),
         create_summarization_middleware(model=model, backend=backend),
+        MessageTimestampMiddleware(),
     ] + profile.materialize_extra_middleware() + middleware
 
     gp_profile = profile.general_purpose_subagent or GeneralPurposeSubagentProfile()
@@ -179,6 +209,7 @@ def format_message(m: AnyMessage) -> dict|None:
             return {
                 'id': m.id,
                 'role': 'assistant' if isinstance(m, AIMessage) else 'user',
+                'timestamp': m.additional_kwargs.get('timestamp'),
                 **({'text': content} if content else {}),
                 **({'reasoning': reasoning_content} if reasoning_content else {}),
             }
@@ -186,6 +217,7 @@ def format_message(m: AnyMessage) -> dict|None:
         return {
             'id': m.tool_call_id,
             'role': 'tool',
+            'timestamp': m.additional_kwargs.get('timestamp'),
             'tool_call': {
                 'id': m.tool_call_id,
                 'name': m.name,
@@ -236,14 +268,27 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                         }
                 elif stream_mode == 'updates' and isinstance(chunk, dict) and \
                     (messages := (chunk.get('model') or {}).get('messages')) and len(messages) >= 1 and isinstance(messages[0], AIMessage):
-                    for c in messages[0].tool_calls:
+                    ai_message = messages[0]
+                    stamp_message_timestamp(ai_message)
+                    if any(filter(lambda b: b.get('type') in ['text', 'reasoning'], ai_message.content_blocks)):
+                        yield {
+                            'type': 'text',
+                            'content': {
+                                'id': ai_message.id,
+                                'role': 'assistant',
+                                'timestamp': ai_message.additional_kwargs.get('timestamp') or timezone.now().isoformat(),
+                            },
+                            **meta,
+                        }
+
+                    for c in ai_message.tool_calls:
                         if c.get('name') == 'task' and c.get('id') and isinstance(c.get('args'), dict):
                             pending_tool_call_ids.append(c['id'])
                         yield {
                             'type': 'tool_call',
                             'content': {
                                 'status': 'pending',
-                                'timestamp': timezone.now().isoformat(),
+                                'timestamp': ai_message.additional_kwargs.get('timestamp') or timezone.now().isoformat(),
                                 'output': None,
                                 **copy_keys(c, ['id', 'name', 'args']),
                             },
@@ -252,6 +297,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                 elif stream_mode == 'updates' and isinstance(chunk, dict) and (messages := (chunk.get('tools') or {}).get('messages')):
                     for c in messages:
                         if isinstance(c, ToolMessage):
+                            stamp_message_timestamp(c)
                             yield {
                                 'type': 'tool_call_status',
                                 'content': {

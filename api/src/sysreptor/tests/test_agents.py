@@ -111,6 +111,7 @@ def to_message_chunks(event):
     for chunk in to_tokens(event['content'].get('text', '')):
         if chunk:
             out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'text': chunk}})
+    out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'id': mock.ANY, 'timestamp': mock.ANY}})
     return out
 
 
@@ -182,7 +183,7 @@ class TestProjectAgent:
         assert res.status_code == 200
         assert str(res.data['id']) == thread_id
         assert len(res.data['messages']) == 6
-        assert [omit_keys(m, ['id', 'tool_call.timestamp', 'tool_call.content']) for m in res.data['messages']] == [
+        assert [omit_keys(m, ['id', 'timestamp', 'tool_call.timestamp', 'tool_call.content']) for m in res.data['messages']] == [
             {'role': 'user', 'text': user_messages[0]},
             {'role': 'assistant', 'text': llm_messages[0].content},
             {'role': 'user', 'text': user_messages[1]},

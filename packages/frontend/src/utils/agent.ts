@@ -13,6 +13,7 @@ export type SSEMessageEvent = {
 export type AssistantMessage = {
   id: string;
   role: MessageRole.ASSISTANT;
+  timestamp?: string;
   text?: string;
   reasoning?: string;
 }
@@ -20,6 +21,7 @@ export type AssistantMessage = {
 export type ChatHistoryEntry = {
   id: string;
   role: MessageRole;
+  timestamp?: string;
   text?: string;
   reasoning?: string;
   tool_call?: ToolCall;
@@ -274,6 +276,9 @@ export async function submitMessageStreamed(options: {
         if (currentMessage) {
           currentMessage.text = (currentMessage.text || '') + (data.content.text || '');
           currentMessage.reasoning = (currentMessage.reasoning || '') + (data.content.reasoning || '');
+          if (data.content.timestamp && !currentMessage.timestamp) {
+            currentMessage.timestamp = data.content.timestamp;
+          }
         } else {
           const newMessage = reactive(data.content);
           messageList.push(newMessage);
@@ -286,6 +291,7 @@ export async function submitMessageStreamed(options: {
         messageList.push(reactive({
           id: data.content.id,
           role: MessageRole.TOOL,
+          timestamp: data.content.timestamp,
           tool_call: {
             ...data.content,
             subagentMessages: [],

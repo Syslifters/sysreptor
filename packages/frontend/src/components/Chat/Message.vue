@@ -23,15 +23,24 @@
       class="assistant-message-footer"
     >
       <v-divider class="w-100" />
-      <div class="assistant-message-footer-actions">
-        <s-btn-icon
-          @click="copyToClipboard(props.msg.text || '')"
-          icon="mdi-content-copy"
-          class="assistant-message-copy-btn text-disabled"
-          size="x-small"
-          density="compact"
-          v-tooltip.top="'Copy to clipboard'"
-        />
+      <div class="assistant-message-footer-content">
+        <div class="assistant-message-footer-actions">
+          <s-btn-icon
+            @click="copyToClipboard(props.msg.text || '')"
+            icon="mdi-content-copy"
+            class="assistant-message-copy-btn text-disabled"
+            size="x-small"
+            density="compact"
+            v-tooltip.top="'Copy to clipboard'"
+          />
+        </div>
+        <v-spacer />
+        <span
+          v-if="formattedTimestamp"
+          class="assistant-message-timestamp text-disabled text-body-small"
+        >
+          {{ formattedTimestamp }}
+        </span>
       </div>
     </div>
   </div>
@@ -61,12 +70,26 @@
 </template>
 
 <script setup lang="ts">
+import { format, isToday, parseISO } from 'date-fns';
+
 const props = defineProps<{
   msg: ChatHistoryEntry;
   project?: PentestProject;
   isStreaming?: boolean;
   isLastMessage?: boolean;
 }>();
+
+const formattedTimestamp = computed(() => {
+  if (!props.msg.timestamp) {
+    return null;
+  }
+  try {
+    const date = parseISO(props.msg.timestamp);
+    return format(date, isToday(date) ? 'HH:mm' : 'yyyy-MM-dd HH:mm');
+  } catch {
+    return null;
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -83,12 +106,20 @@ const props = defineProps<{
   .assistant-message-footer {
     margin-top: 0.1rem;
     margin-bottom: 0.2rem;
-  }
-  .assistant-message-footer-actions {
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
-    opacity: 0;
-    transition: opacity 0.15s ease;
+
+    &-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.25rem;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+      margin-top: 0.1rem;
+    }
+    &-actions {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
   }
   &:hover .assistant-message-footer-actions {
     opacity: 1;
