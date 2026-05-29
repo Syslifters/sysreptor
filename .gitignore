@@ -9,3 +9,5 @@ dev/.env
 .vscode/*
 !.vscode/sysreptor.code-workspace
 !.vscode/launch.json
+
+.cursor

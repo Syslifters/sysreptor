@@ -1,5 +1,5 @@
 <template>
-  <template v-if="props.msg.role === MessageRole.ASSISTANT">
+  <div v-if="props.msg.role === MessageRole.ASSISTANT" class="assistant-message">
     <chat-reasoning-panel
       v-if="props.msg.reasoning"
       title="Reasoning..."
@@ -11,21 +11,58 @@
         </div>
       </template>
     </chat-reasoning-panel>
-    <markdown-preview 
+    <markdown-preview
       v-if="props.msg.text"
       :value="props.msg.text"
       :throttle-ms="100"
       :readonly="true"
       class="message-text"
     />
-  </template>
+    <div
+      v-if="props.isLastMessage && !props.isStreaming && props.msg.text"
+      class="assistant-message-footer"
+    >
+      <v-divider class="w-100" />
+      <div class="assistant-message-footer-content">
+        <div class="assistant-message-footer-actions">
+          <s-btn-icon
+            @click="copyToClipboard(props.msg.text || '')"
+            icon="mdi-content-copy"
+            class="assistant-message-copy-btn text-disabled"
+            size="x-small"
+            density="compact"
+            v-tooltip.top="'Copy to clipboard'"
+          />
+        </div>
+        <v-spacer />
+        <span
+          v-if="formattedTimestamp"
+          class="assistant-message-timestamp text-disabled text-body-small"
+        >
+          {{ formattedTimestamp }}
+        </span>
+      </div>
+    </div>
+  </div>
   <chat-tool-call
     v-else-if="props.msg.role === MessageRole.TOOL && props.msg.tool_call"
     :value="props.msg.tool_call"
     :project="props.project"
     :is-streaming="props.isStreaming"
   />
-  <s-card v-else-if="props.msg.role === MessageRole.USER" variant="tonal">
+  <s-card
+    v-else-if="props.msg.role === MessageRole.USER"
+    variant="tonal"
+    class="user-message"
+  >
+    <s-btn-icon
+      @click="copyToClipboard(props.msg.text || '')"
+      icon="mdi-content-copy"
+      class="user-message-copy-btn"
+      size="small"
+      density="compact"
+      v-tooltip.top="'Copy to clipboard'"
+    />
     <v-card-text class="message-text">
       {{ props.msg.text }}
     </v-card-text>
@@ -33,11 +70,26 @@
 </template>
 
 <script setup lang="ts">
+import { format, isToday, parseISO } from 'date-fns';
+
 const props = defineProps<{
   msg: ChatHistoryEntry;
   project?: PentestProject;
   isStreaming?: boolean;
+  isLastMessage?: boolean;
 }>();
+
+const formattedTimestamp = computed(() => {
+  if (!props.msg.timestamp) {
+    return null;
+  }
+  try {
+    const date = parseISO(props.msg.timestamp);
+    return format(date, isToday(date) ? 'HH:mm' : 'yyyy-MM-dd HH:mm');
+  } catch {
+    return null;
+  }
+});
 </script>
 
 <style lang="scss" scoped>
@@ -48,5 +100,49 @@ const props = defineProps<{
 
 .message-text {
   font-size: 0.875rem;
+}
+
+.assistant-message {
+  .assistant-message-footer {
+    margin-top: 0.1rem;
+    margin-bottom: 0.2rem;
+
+    &-content {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.25rem;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+      margin-top: 0.1rem;
+    }
+    &-actions {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+    }
+  }
+  &:hover .assistant-message-footer-actions {
+    opacity: 1;
+  }
+}
+
+.user-message {
+  position: relative;
+
+  .user-message-copy-btn {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 2rem;
+    height: 2rem;
+
+    border-radius: 4px;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  &:hover .user-message-copy-btn {
+    opacity: 1;
+  }
 }
 </style>
