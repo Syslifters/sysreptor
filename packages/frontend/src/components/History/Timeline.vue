@@ -93,7 +93,7 @@ watch(() => props.url, () => {
   z-index: 2000;
 }
 .history-sidebar.v-navigation-drawer--active {
-  width: 25em;
+  width: 25em !important;
 }
 
 .history-timeline-header {
