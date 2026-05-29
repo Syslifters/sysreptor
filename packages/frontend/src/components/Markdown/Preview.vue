@@ -2,7 +2,7 @@
   <div>
     <!-- Rendered markdown gets sanitized in renderMarkdownToHtml -->
     <!-- eslint-disable-next-line vue/no-v-html -->
-    <div v-if="isRendered" ref="previewRef" v-html="renderedMarkdown" @click.stop class="preview" />
+    <div v-if="isRendered" ref="previewRef" v-html="renderedMarkdown" @click.stop class="preview" :class="[theme.current.value.dark ? 'preview-dark' : 'preview-light']" />
     <div v-else class="preview preview-placeholder">
       <!-- Placeholder of raw text while markdown is initially rendered -->
       <p>{{ props.value }}</p>
@@ -15,7 +15,6 @@ import { mermaid } from '@sysreptor/markdown';
 import type { ChangeSpec } from '@sysreptor/markdown/editor';
 import { uuidv4 } from "@base/utils/helpers";
 import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
-import 'highlight.js/styles/default.css';
 import 'katex/dist/katex.min.css';
 
 mermaid.initialize({
@@ -40,6 +39,8 @@ const emit = defineEmits<{
   'open-image-dialog': [value: { selected: PreviewImage; images: PreviewImage[]; editMode?: boolean }];
   'change': [value: ChangeSpec];
 }>();
+
+const theme = useTheme();
 
 const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);
@@ -250,7 +251,16 @@ defineExpose({
   margin-top: 0;
 }
 
-.preview :deep() {
+@layer highlight {
+  .preview-light:deep() {
+    @include meta.load-css("highlight.js/styles/github.css");
+  }
+  .preview-dark:deep() {
+    @include meta.load-css("highlight.js/styles/github-dark.css");
+  }
+}
+
+.preview:deep() {
   @include meta.load-css("@/assets/rendering/base-text.css");
 
   .footnotes {

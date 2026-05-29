@@ -9,6 +9,7 @@
 * Highlight inactive users in project member selection
 * Improve handling of short search terms in project search
 * Add copy button for AI prompts and responses
+* Markdown editor: improve code block highlighting in dark mode
 
 
 ## v2026.36 - 2026-05-20
