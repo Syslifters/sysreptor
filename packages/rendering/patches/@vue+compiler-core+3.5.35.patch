@@ -1,5 +1,5 @@
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
-index b13ed96..9792780 100644
+index b491bd9..5779f78 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
 @@ -663,6 +663,10 @@ export interface ParserOptions extends ErrorHandlingOptions, CompilerCompatOptio
@@ -14,7 +14,7 @@ index b13ed96..9792780 100644
       * Elements that should ignore the first newline token per parinsg spec
       * e.g. `<textarea>` and `<pre>`
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-index 4bfcbf1..e82aef8 100644
+index 634eb6a..4be8499 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
 @@ -1962,6 +1962,7 @@ const defaultParserOptions = {

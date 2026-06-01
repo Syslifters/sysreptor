@@ -38,6 +38,6 @@
     "@codemirror/lang-yaml": "~6.1",
 
     "mermaid": "^11.1.0",
-    "katex": "^0.16.27"
+    "katex": "^0.17"
   }
 }
