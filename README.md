@@ -1,6 +1,6 @@
 <h1 align="center">
     <br>
-    <a href="https://docs.sysreptor.com/"><img src="/docs/docs/assets/dino/banner.svg" width="100%" alt="SysReptor"></a>
+    <a href="https://docs.sysreptor.com/"><img src="/docs/docs/public/assets/dino/banner.svg" width="100%" alt="SysReptor"></a>
 </h1>
 
 <h4 align="center">An easy and customizable pentest reporting platform designed to simplify pentest report creation for security professionals.</h4>
@@ -39,7 +39,7 @@ SysReptor is a fully customizable pentest reporting platform designed for penetr
 ☁️ Self-hosted or Cloud.<br>
 
 <h3 align="center">
-    <a href="https://sysreptor.com/demo"><img src="/docs/docs/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>
+    <a href="https://sysreptor.com/demo"><img src="/docs/docs/public/assets/dino/sign_demo.svg" width="15%" alt="Demo"></a>
 </h3>
 <h3 align="center">🦖 Try the <a class="md-button" href="https://sysreptor.com/demo/">Playground</a></h3>
 
