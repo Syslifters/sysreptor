@@ -2,9 +2,11 @@
     <div class="pagebreak" />
 </template>
 
-<style scoped>
-.pagebreak {
+<style lang="scss">
+@layer base {
+  .pagebreak {
     break-after: page;
     display: block;
+  }
 }
 </style>

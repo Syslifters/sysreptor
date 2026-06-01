@@ -1,5 +1,11 @@
 # Changelog
 
+## Upcoming
+* Use CSS layers for design base styles
+* Fix bulk set status action disabled in UI
+* UI: Improve template multi select in create finding dialog
+
+
 ## v2026.42 - 2026-06-03
 * Display all comments when no finding/section is selected
 * Add information about superuser privileges when creating API tokens

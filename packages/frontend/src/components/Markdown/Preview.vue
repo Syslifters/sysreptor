@@ -15,7 +15,6 @@ import { mermaid } from '@sysreptor/markdown';
 import type { ChangeSpec } from '@sysreptor/markdown/editor';
 import { uuidv4 } from "@base/utils/helpers";
 import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
-import 'katex/dist/katex.min.css';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -238,6 +237,25 @@ defineExpose({
 @use "sass:meta";
 @use "@base/assets/vuetify.scss" as vuetify;
 
+@layer highlight, base;
+@layer highlight {
+  @include meta.load-css("katex/dist/katex.min.css");
+
+  .preview-light:deep() {
+    @include meta.load-css("highlight.js/styles/github.css");
+  }
+  .preview-dark:deep() {
+    @include meta.load-css("highlight.js/styles/github-dark.css");
+  }
+}
+
+@layer base {
+  .preview:deep() {
+    @include meta.load-css("@/assets/rendering/base-text.css");
+  }
+}
+
+
 .preview {
   overflow: auto;
   word-wrap: break-word;
@@ -252,18 +270,7 @@ defineExpose({
   margin-top: 0;
 }
 
-@layer highlight {
-  .preview-light:deep() {
-    @include meta.load-css("highlight.js/styles/github.css");
-  }
-  .preview-dark:deep() {
-    @include meta.load-css("highlight.js/styles/github-dark.css");
-  }
-}
-
 .preview:deep() {
-  @include meta.load-css("@/assets/rendering/base-text.css");
-
   .footnotes {
     border-top: 1px solid currentColor;
     margin-top: 2em;

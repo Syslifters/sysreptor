@@ -16,7 +16,6 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRenderTask } from '@/utils';
 import { katex } from '@sysreptor/markdown';
-import 'katex/dist/katex.min.css';
 
 const props = withDefaults(defineProps<{
   text?: string | null;
@@ -62,3 +61,10 @@ onMounted(useRenderTask(async () => {
 }));
 </script>
 
+<style lang="scss">
+@use "sass:meta";
+
+@layer highlight {
+  @include meta.load-css("katex/dist/katex.min.css");
+}
+</style>
