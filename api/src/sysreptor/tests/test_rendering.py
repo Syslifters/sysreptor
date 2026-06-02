@@ -368,7 +368,7 @@ class TestHtmlRendering:
         html = self.render_html("""
         <mermaid-diagram>
             graph TD
-                A --> B;
+                A --> B[html<br>label];
         </mermaid-diagram>
         """)
         assert re.fullmatch(r'^\s*<div class="mermaid-diagram">\s*<img src="data:image/png;base64,[a-zA-Z0-9+/=]+" alt="mermaid diagram">\s*</div>\s*$', html)

@@ -21,6 +21,7 @@ mermaid.initialize({
   startOnLoad: false,
   theme: 'neutral',
   securityLevel: 'strict',
+  htmlLabels: false,
 });
 </script>
 

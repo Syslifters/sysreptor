@@ -20,6 +20,7 @@ mermaid.initialize({
   startOnLoad: false,
   theme: 'neutral',
   securityLevel: 'strict',
+  htmlLabels: false,
 });
 </script>
 
@@ -41,7 +42,10 @@ const canvasRef = ref<HTMLCanvasElement>();
 const id = useId();
 
 function unescapeCode(code: string) {
-  return code.replaceAll('&#x7B;', '{').replaceAll('&#x7D;', '}');
+  return code
+    .replaceAll('&#x7B;', '{')
+    .replaceAll('&#x7D;', '}')
+    .replaceAll('&#x3C;', '<');
 }
 
 onMounted(useRenderTask(async () => { 
@@ -60,7 +64,7 @@ onMounted(useRenderTask(async () => {
   } catch (e: any) {
     console.warn('mermaid error', { message: 'Mermaid error', details: e.message });
     // Show mermaid error image in PDF
-    svg = codeContainer.querySelector('svg')!.outerHTML;
+    svg = codeContainer.querySelector('svg')?.outerHTML ?? '<svg></svg>';
   }
 
   // Convert SVG to PNG, because weasyprint does not support all required SVG features.
