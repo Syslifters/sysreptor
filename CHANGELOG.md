@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2026.42 - 2026-06-03
 * Display all comments when no finding/section is selected
 * Add information about superuser privileges when creating API tokens
 * Migrate documentation from mkdocs to vitepress
