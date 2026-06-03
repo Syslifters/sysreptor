@@ -87,7 +87,7 @@ OLD_SYSREPTOR_VERSION=$SYSREPTOR_VERSION
 echo "Your current version is $OLD_SYSREPTOR_VERSION"
 
 echo "Checking if update is available..."
-version=$(curl -s https://docs.sysreptor.com/latest.version)
+version=$(curl -s https://docs.sysreptor.com/latest.version || echo "error")
 if ! [[ $version =~ ^[0-9]{4}\.[0-9]+$ ]]
 then
     echo "Checking for new version failed."
