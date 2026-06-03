@@ -10,6 +10,7 @@
               :model-value="selectedTemplates"
               @update:model-value="selectedTemplates = ($event || []).filter((v: any) => v && typeof v === 'object' && 'id' in v)"
               @update:search="(v: string|null) => templates.search.value = v || ''"
+              @update:menu="onMenuClosed"
               label="Template (optional)"
               :items="templates.data.value"
               item-value="id"
@@ -23,7 +24,6 @@
               autofocus
               spellcheck="false"
               class="template-select"
-              :class="{'hide-input': selectedTemplates.length > 0}"
             >
               <template #selection="{ item: template }">
                 <div class="d-flex flex-row w-100">
@@ -129,13 +129,7 @@ const templateLanguageChoices = computed(() =>
 );
 const displayLanguage = computed(() => templateLanguage.value || props.project.language);
 
-watch(selectedTemplates, (newTemplates, oldTemplates) => {
-  // Clear search when selecting/deselecting templates
-  if (comboboxRef.value && (newTemplates.length > 0 || oldTemplates.length !== newTemplates.length)) {
-    comboboxRef.value.search = '';
-    templates.search.value = '';
-  }
-  
+watch(selectedTemplates, () => {
   // Prefill language selection
   if (templateLanguageChoices.value.length === 0) {
     templateLanguage.value = null;
@@ -149,6 +143,14 @@ watch(selectedTemplates, (newTemplates, oldTemplates) => {
     templateLanguage.value = selectedTemplates.value[0]?.translations.find(tr => tr.is_main)?.language || templateLanguageChoices.value[0]?.code || null;
   }
 }, { deep: 1 });
+
+function onMenuClosed(menuVisible: boolean) {
+  if (!menuVisible && comboboxRef.value && selectedTemplates.value.length > 0) {
+    // Clear search when dropdown is closed and templates are selected
+    comboboxRef.value.search = '';
+    templates.search.value = '';
+  }
+}
 
 function removeSelectedTemplate(template: FindingTemplate) {
   selectedTemplates.value = selectedTemplates.value.filter(t => t.id !== template.id);
@@ -228,22 +230,10 @@ defineExpose({
       max-height: 15em;
       overflow-y: auto;
     }
-  }
 
-  &.hide-input:deep() {
-    input {
-      height: 0;
-      width: 0;
-    }
     .v-combobox__selection {
-      opacity: 1;
       height: auto;
       width: 100%;
-    }
-  }
-  &:not(.hide-input):deep() {
-    input {
-      opacity: 1;
     }
   }
 }
