@@ -3,7 +3,7 @@ import type { RedirectsMap } from './redirectRules'
 declare module 'vitepress' {
   interface UserConfig {
     /**
-     * URL redirects for dev/preview servers.
+     * URL redirects for dev/preview servers and client-side fallback on 404.
      *
      * @example
      * redirects: {

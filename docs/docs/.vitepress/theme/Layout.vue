@@ -26,7 +26,28 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, watch } from 'vue'
+import { useData, withBase } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
+import { matchRedirect } from '../redirects/redirectRules'
+import rules from 'virtual:vitepress-redirects'
+
+const { page } = useData()
+
+function maybeRedirectNotFound() {
+  if (!page.value.isNotFound) return
+  const { pathname, search, hash } = window.location
+  const target = matchRedirect(pathname, rules)
+  if (!target) return
+  const next = target.startsWith('http://') || target.startsWith('https://')
+    ? target
+    : withBase(target) + search + hash
+  if (next === window.location.href) return
+  window.location.replace(next)
+}
+
+onMounted(maybeRedirectNotFound)
+watch(() => page.value.relativePath, maybeRedirectNotFound)
 </script>
 
 <style scoped>
