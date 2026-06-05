@@ -1,7 +1,6 @@
 # Changelog
 
 ## Upcoming
-* Use CSS layers for design base styles
 * Fix bulk set status action disabled in UI
 * UI: Improve template multi select in create finding dialog
 

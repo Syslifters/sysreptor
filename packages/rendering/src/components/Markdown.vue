@@ -43,12 +43,15 @@ export default {
   @include meta.load-css("highlight.js/styles/github.css");
 }
 
-@layer base {
-  .code-block {
-    white-space: pre-wrap;
-  }
-  .code-block code {
-    display: block;
-  }
+.code-block {
+  white-space: pre-wrap;
+}
+.code-block code {
+  display: block;
+}
+
+.markdown-inline, .markdown-inline > *:first-child {
+  display: inline;
+  margin-top: 0;
 }
 </style>
