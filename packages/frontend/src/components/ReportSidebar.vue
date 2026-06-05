@@ -51,7 +51,7 @@
                 v-if="props.collab"
                 title="Set status"
                 prepend-icon="mdi-pencil"
-                :disabled="props.readonly || (selectedFindings.length === 0 || selectedSections.length === 0)"
+                :disabled="props.readonly || (selectedFindings.length === 0 && selectedSections.length === 0)"
               >
                 <v-menu activator="parent" submenu>
                   <v-list>
@@ -59,7 +59,7 @@
                       v-for="status in statusItems"
                       :key="`status-${status.id}`"
                       @click="setStatusOfSelectedItems(status.id)"
-                      :disabled="props.readonly || (selectedFindings.length === 0 || selectedSections.length === 0) || status.props?.disabled"
+                      :disabled="props.readonly || (selectedFindings.length === 0 && selectedSections.length === 0) || status.props?.disabled"
                     >
                       <template #prepend>
                         <v-icon :icon="status.icon || 'mdi-help'" :class="'status-' + status.id" />
