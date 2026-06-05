@@ -1,7 +1,6 @@
 <script lang="ts">
 import { defineComponent, h } from 'vue';
 import { renderMarkdownToHtml } from '@sysreptor/markdown';
-import 'highlight.js/styles/github.css';
 
 export default {
   name: 'markdown',
@@ -42,7 +41,9 @@ export default {
 
 @layer highlight {
   @include meta.load-css("highlight.js/styles/github.css");
+}
 
+@layer base {
   .code-block {
     white-space: pre-wrap;
   }
