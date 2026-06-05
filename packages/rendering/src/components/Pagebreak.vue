@@ -3,10 +3,8 @@
 </template>
 
 <style lang="scss">
-@layer base {
-  .pagebreak {
-    break-after: page;
-    display: block;
-  }
+.pagebreak {
+  break-after: page;
+  display: block;
 }
 </style>

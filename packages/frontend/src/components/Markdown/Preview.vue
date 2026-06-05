@@ -237,7 +237,6 @@ defineExpose({
 @use "sass:meta";
 @use "@base/assets/vuetify.scss" as vuetify;
 
-@layer highlight, base;
 @layer highlight {
   @include meta.load-css("katex/dist/katex.min.css");
 
@@ -249,10 +248,8 @@ defineExpose({
   }
 }
 
-@layer base {
-  .preview:deep() {
-    @include meta.load-css("@/assets/rendering/base-text.css");
-  }
+.preview:deep() {
+  @include meta.load-css("@/assets/rendering/base-text.css");
 }
 
 
