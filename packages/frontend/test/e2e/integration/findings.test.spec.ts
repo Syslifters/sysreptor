@@ -10,6 +10,7 @@ test('A User can Create a Finding and Export a Report', async ({ page }) => {
   const createFindingDialog = page.getByTestId('create-finding-dialog');
   await createFindingDialog.getByLabel('Template (optional)').locator('nth=0').fill('SQL Injection (SQLi)');
   await page.locator('.v-combobox__content').getByText('SQL Injection (SQLi)').locator('nth=0').click();
+  await page.keyboard.press('Escape');
   await createFindingDialog.getByText('Create From Template').click();
   await page.getByRole('textbox').getByText('SQL Injection (SQLi)').fill('My SQL Injection');
   await page.getByText('Publish').click();
@@ -111,6 +112,7 @@ test('A User create a Template from a Finding', async ({ page }) => {
   await page.getByLabel('Template (optional)').locator('nth=0').fill('My Template');
   await page.getByTestId('page-loader').waitFor({ state: 'hidden' });
   await page.getByTestId('select-item-My Template').first().click();
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Create from Template' }).click();
   await page.getByRole('button', { name: 'Create from Template' }).waitFor({ state: 'hidden' });
   await page.getByTestId('create-finding-dialog').waitFor({ state: 'hidden' });
