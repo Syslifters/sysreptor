@@ -73,6 +73,7 @@ export default defineConfig({
           { text: 'Collaborative Editing', link: '/reporting/collaborative-editing' },
           { text: 'Image Editor', link: '/reporting/image-editor' },
           { text: 'AI Agent', link: '/reporting/ai-agent' },
+          { text: 'Shortcuts', link: '/reporting/shortcuts' },
         ],
       },
       {
