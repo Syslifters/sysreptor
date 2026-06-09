@@ -21,9 +21,9 @@
             <v-icon v-if="item.key_parts.some(p => !p.user.is_active) && item.key_parts.filter(p => p.user.is_active).length < item.threshold * 2" size="small" start color="warning" icon="mdi-alert" />
             {{ item.threshold }} / {{ item.key_parts.length }}
 
-            <s-tooltip activator="parent">
+            <v-tooltip activator="parent">
               {{ item.threshold }} of {{ item.key_parts.length }} users are required to restore this project
-            </s-tooltip>
+            </v-tooltip>
           </v-chip>
 
           <v-chip
@@ -34,10 +34,10 @@
             <v-icon v-else size="small" start color="red" icon="mdi-lock" />
             {{ keypart.user.username }}
 
-            <s-tooltip activator="parent">
+            <v-tooltip activator="parent">
               <span v-if="keypart.is_decrypted">{{ keypart.user.username }} already restored their part</span>
               <span v-else>{{ keypart.user.username }}'s part is still encrypted</span>
-            </s-tooltip>
+            </v-tooltip>
           </v-chip>
 
           <chip-tag

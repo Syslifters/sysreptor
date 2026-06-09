@@ -42,10 +42,10 @@
         density="compact"
       >
         <v-icon icon="mdi-chevron-left" />
-        <s-tooltip activator="parent" location="top">
+        <v-tooltip activator="parent" location="top">
           <v-icon v-if="prevItem.icon" start :icon="prevItem.icon" />
           <span>{{ prevItem.title }}</span>
-        </s-tooltip>
+        </v-tooltip>
       </s-btn-icon>
     </template>
     <template #append-inner v-if="nextItem">
@@ -54,10 +54,10 @@
         density="compact"
       >
         <v-icon icon="mdi-chevron-right" />
-        <s-tooltip activator="parent" location="top">
+        <v-tooltip activator="parent" location="top">
           <v-icon v-if="nextItem.icon" start :icon="nextItem.icon" />
           <span>{{ nextItem.title }}</span>
-        </s-tooltip>
+        </v-tooltip>
       </s-btn-icon>
     </template>
   </s-select>

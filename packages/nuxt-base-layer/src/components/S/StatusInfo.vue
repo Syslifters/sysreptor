@@ -1,7 +1,7 @@
 <template>
   <div v-if="statusInfo && statusInfo.id !== ReviewStatus.IN_PROGRESS" class="status-icon">
     <v-icon size="small" :class="'status-' + statusInfo.id" :icon="statusInfo.icon || 'mdi-help'" />
-    <s-tooltip activator="parent" :text="statusInfo.label" />
+    <v-tooltip activator="parent" :text="statusInfo.label" />
   </div>
 </template>
 

@@ -332,21 +332,19 @@
               />
               <s-btn-icon 
                 @click="updateObject('move', fIdx, fIdx - 1)"
+                icon="mdi-arrow-up-drop-circle-outline"
+                v-tooltip="'Move up in list'"
                 :disabled="props.readonly || fIdx === 0"
                 density="comfortable"
-              >
-                <v-icon icon="mdi-arrow-up-drop-circle-outline" />
-                <s-tooltip activator="parent" text="Move up in list" />
-              </s-btn-icon>
+              />
 
               <s-btn-icon
                 @click="updateObject('move', fIdx, fIdx + 1)"
+                icon="mdi-arrow-down-drop-circle-outline"
+                v-tooltip="'Move down in list'"
                 :disabled="props.readonly || fIdx === props.modelValue.properties!.length - 1"
                 density="comfortable"
-              >
-                <v-icon icon="mdi-arrow-down-drop-circle-outline" />
-                <s-tooltip activator="parent" text="Move down in list" />
-              </s-btn-icon>
+              />
             </div>
           </template>
         </v-list-item>

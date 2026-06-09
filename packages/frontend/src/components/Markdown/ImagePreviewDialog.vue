@@ -24,7 +24,7 @@
           size="small"
           density="compact"
         />
-          {{ modelValue.markdown }}
+        {{ modelValue.markdown }}
       </v-code>
       <span v-else>{{ modelValue.caption || '' }}</span>
     </template>

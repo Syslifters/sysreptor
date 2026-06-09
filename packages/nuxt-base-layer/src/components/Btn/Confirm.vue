@@ -1,7 +1,7 @@
 <template>
   <s-dialog v-model="confirmDialogVisible" :disabled="props.disabled || !props.confirm" max-width="500">
     <template #activator="{ props: dialogProps }">
-      <s-tooltip :disabled="!props.tooltipText" :text="props.tooltipText">
+      <v-tooltip :disabled="!props.tooltipText" :text="props.tooltipText">
         <template #activator="{ props: tooltipProps }">
           <v-list-item
             v-if="props.buttonVariant === 'list-item'"
@@ -46,7 +46,7 @@
             </template>
           </s-btn>
         </template>
-      </s-tooltip>
+      </v-tooltip>
     </template>
 
     <template #title>{{ props.dialogTitle }}</template>
@@ -61,14 +61,13 @@
             Enter the following text to confirm: <br>
             <strong>{{ props.confirmInput }}</strong>
             <s-btn-icon 
-              @click="copyToClipboard(props.confirmInput)" 
+              @click="copyToClipboard(props.confirmInput)"
+              icon="mdi-content-copy"
+              v-tooltip="'Copy to clipboard'"
               size="small" 
               density="compact"
               class="ml-1"
-            >
-              <v-icon icon="mdi-content-copy" />
-              <s-tooltip activator="parent" text="Copy to clipboard" />
-            </s-btn-icon>
+            />
           </div>
 
           <s-text-field

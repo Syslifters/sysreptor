@@ -6,7 +6,7 @@
           <pro-info>Comments</pro-info>
         </v-list-item-title>
         <template #append>
-          <s-btn-icon>
+          <s-btn-icon density="compact">
             <v-icon icon="mdi-filter-outline" />
             <v-menu activator="parent">
               <v-list 
@@ -26,9 +26,9 @@
             </v-menu>
           </s-btn-icon>
 
-          <v-btn icon variant="text" @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
+          <s-btn-icon @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
             <v-icon size="x-large" icon="mdi-close" />
-          </v-btn>
+          </s-btn-icon>
         </template>
       </v-list-item>
       <v-divider />
@@ -59,15 +59,14 @@
           <s-btn-icon
             @click.stop="onCommentEvent({ type: 'create', comment: { path: fieldGroup.path } })"
             :disabled="readonly"
+            icon="mdi-plus"
+            v-tooltip.top="'Add Comment'"
             size="small"
             variant="flat"
             color="secondary"
             density="compact"
             class="ml-2"
-          >
-            <v-icon icon="mdi-plus" />
-            <s-tooltip activator="parent" location="top">Add Comment</s-tooltip>
-          </s-btn-icon>
+          />
         </v-list-subheader>
 
         <comment-detail

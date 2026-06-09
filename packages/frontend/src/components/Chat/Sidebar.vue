@@ -10,15 +10,15 @@
         <template #append>
           <s-btn-icon
             @click="newChat"
+            icon="mdi-plus-circle"
+            v-tooltip.top="'New chat (Ctrl+L)'"
             density="compact"
-          >
-            <v-icon icon="mdi-plus-circle" />
-            <s-tooltip activator="parent" text="New chat (Ctrl+L)" />
-          </s-btn-icon>
+          />
 
-          <v-btn icon variant="text" @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
+          <s-btn-icon @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
             <v-icon size="x-large" icon="mdi-close" />
-          </v-btn>
+          </s-btn-icon>
+          />
         </template>
       </v-list-item>
       <v-divider />
@@ -66,10 +66,8 @@
               icon="mdi-send"
               size="small"
               density="compact"
-            >
-              <v-icon icon="mdi-send" />
-              <s-tooltip activator="parent" text="Send message (Enter)" />
-            </s-btn-icon>
+              v-tooltip="'Send message (Enter)'"
+            />
             <div v-else class="btn-stop" style="position: relative; display: inline-flex;">
               <v-progress-circular
                 indeterminate
@@ -82,7 +80,7 @@
                 size="small"
                 density="compact"
               />
-              <s-tooltip activator="parent" text="Cancel" />
+              <v-tooltip activator="parent" text="Cancel" />
             </div>
           </template>
           <template #details>
@@ -128,7 +126,7 @@
       </s-card>
       <div v-if="apiSettings.settings!.ai_agent_disclaimer" class="w-100 text-center text-body-medium text-disabled text-truncate">
         <i>{{ apiSettings.settings!.ai_agent_disclaimer }}</i>
-        <s-tooltip activator="parent" :text="apiSettings.settings!.ai_agent_disclaimer" />
+        <v-tooltip activator="parent" :text="apiSettings.settings!.ai_agent_disclaimer" />
       </div>
     </div>
   </div>

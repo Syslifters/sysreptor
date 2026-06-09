@@ -18,10 +18,10 @@
       class="ml-1 filter-icon"
     />
 
-    <s-tooltip activator="parent" :disabled="!props.value.name">
+    <v-tooltip activator="parent" :disabled="!props.value.name">
       <span v-if="imported">{{ props.value.name }} (imported)</span>
       <span v-else>{{ props.value.name }}</span>
-    </s-tooltip>
+    </v-tooltip>
   </v-chip>
 </template>
 

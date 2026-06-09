@@ -5,21 +5,20 @@
       {{ translation.data.title }}
       <br />
       <chip-status v-if="translation.status !== 'finished'" :value="translation.status" />
-      <s-tooltip v-for="tr in props.template.translations" :key="tr.id" :text="tr.data.title">
-        <template #activator="{props: tooltipProps}">
-          <chip-language :value="tr.language" v-bind="tooltipProps" />
-        </template>
-      </s-tooltip>
+      <chip-language
+        v-for="tr in props.template.translations" :key="tr.id"
+        :value="tr.language"
+        v-tooltip="{text: tr.data.title}"
+      />
       <chip-tag v-for="tag in props.template.tags" :key="tag" :value="tag" />
     </div>
     <v-spacer />
     <s-btn-icon
       :to="{path: `/templates/${props.template.id}/`, query: { language: props.language }}"
       target="_blank"
-    >
-      <v-icon icon="mdi-chevron-right-circle" />
-      <s-tooltip activator="parent" text="Show template" />
-    </s-btn-icon>
+      icon="mdi-chevron-right-circle"
+      v-tooltip="'Show template'"
+    />
   </v-list-item-title>
 </template>
 

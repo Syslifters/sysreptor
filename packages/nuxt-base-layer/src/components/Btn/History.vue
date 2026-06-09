@@ -1,19 +1,12 @@
 <template>
   <s-btn-icon
-    @click="emit('update:modelValue', !props.modelValue)"
+    @click="modelValue = !modelValue"
+    icon="mdi-history"
+    v-tooltip.bottom="'Version History'"
     data-testid="history-button"
-  >
-    <v-icon icon="mdi-history" />
-
-    <s-tooltip activator="parent" location="bottom" text="Version History" />
-  </s-btn-icon>
+  />
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  modelValue: boolean;
-}>();
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean];
-}>();
+const modelValue = defineModel<boolean>('modelValue');
 </script>

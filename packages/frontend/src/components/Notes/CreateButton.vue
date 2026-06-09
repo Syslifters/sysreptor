@@ -5,16 +5,15 @@
   >
     <s-btn-secondary
       @click="performCreate()"
+      text="Add"
+      v-tooltip.top="'Add Note (Ctrl+J)'"
       :disabled="props.disabled"
       :loading="actionInProgress"
       prepend-icon="mdi-plus"
       class="flex-grow-width"
       size="small"
       data-testid="create-note-button"
-    >
-      Add
-      <s-tooltip activator="parent" location="top" text="Add Note (Ctrl+J)" />
-    </s-btn-secondary>
+    />
     
     <s-btn-secondary
       :disabled="props.disabled"

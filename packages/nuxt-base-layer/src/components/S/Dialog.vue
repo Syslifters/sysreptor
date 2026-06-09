@@ -13,10 +13,10 @@
             <v-toolbar-title><slot name="title" /></v-toolbar-title>
             <slot name="toolbar" />
 
-            <v-btn @click="emit('update:modelValue', false)" icon>
-              <v-icon icon="mdi-close" size="x-large" />
-              <v-tooltip text="Cancel" activator="parent" />
-            </v-btn>
+            <s-btn-icon @click="emit('update:modelValue', false)">
+              <v-icon size="x-large" icon="mdi-close" />
+              <v-tooltip activator="parent" text="Cancel" />
+            </s-btn-icon>
           </v-toolbar>
         </v-card-title>
 

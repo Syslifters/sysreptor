@@ -45,11 +45,11 @@
                     density="comfortable"
                     class="select-all-checkbox"
                   />
-                  <s-tooltip activator="parent" location="top">
+                  <v-tooltip activator="parent" location="top">
                     <span v-if="allSelectedCount === 0">Select all</span>
                     <span v-else-if="allSelectedCount === visibleSelectedCount">{{ allSelectedCount }} selected</span>
                     <span v-else>{{ allSelectedCount }} selected ({{ visibleSelectedCount }} visible)</span>
-                  </s-tooltip>
+                  </v-tooltip>
                 </v-badge>
               </div>
 

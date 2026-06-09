@@ -4,13 +4,12 @@
       <s-btn-icon
         @click="showDialog"
         v-bind="dialogProps"
+        icon="mdi-pencil"
+        v-tooltip="'Edit'"
         size="small"
         density="comfortable"
         class="ml-1 mr-1"
-      >
-        <v-icon icon="mdi-pencil" />
-        <s-tooltip activator="parent" text="Edit" />
-      </s-btn-icon>
+      />
     </template>
     <template #title>Edit</template>
     <template #default>

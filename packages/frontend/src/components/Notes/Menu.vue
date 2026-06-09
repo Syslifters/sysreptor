@@ -10,14 +10,13 @@
         <s-btn-icon
           @click="createNoteBtnRef?.click()"
           :disabled="!canCreate"
+          icon="mdi-plus"
+          v-tooltip.top="'Add Note (Ctrl+J)'"
           size="small"
           variant="flat"
           color="secondary"
           density="compact"
-        >
-          <v-icon icon="mdi-plus" />
-          <s-tooltip activator="parent" location="top">Add Note (Ctrl+J)</s-tooltip>
-        </s-btn-icon>
+        />
         <v-spacer />
         <s-btn-icon
           v-if="search !== undefined"

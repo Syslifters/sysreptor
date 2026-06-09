@@ -58,17 +58,14 @@
       icon="mdi-numeric-1-circle"
       :active="activeTool === ImageEditorTool.MARKER"
     />
-    <s-tooltip v-if="activeTool === ImageEditorTool.MARKER" text="Marker number (auto-increments after placing)" location="top">
-      <template #activator="{ props: tooltipProps }">
-        <s-number-input
-          v-model="markerNumber"
-          :min="1"
-          v-bind="tooltipProps"
-          density="compact"
-          class="marker-number-input"
-        />
-      </template>
-    </s-tooltip>
+    <s-number-input
+      v-if="activeTool === ImageEditorTool.MARKER"
+      v-model="markerNumber"
+      v-tooltip.top="'Marker number (auto-increments after placing)'"
+      :min="1"
+      density="compact"
+      class="marker-number-input"
+    />
     
     <span class="separator" />
     
@@ -106,6 +103,7 @@
           v-bind="colorPickerProps"
           size="small"
           density="comfortable"
+          v-tooltip.top="'Color'"
         >
           <v-badge
             :color="localSettings.imageEditorSettings.color"
@@ -115,25 +113,20 @@
           >
             <v-icon size="small" icon="mdi-palette" />
           </v-badge>
-          <s-tooltip activator="parent" location="top" text="Color" />
         </s-btn-icon>
       </template>
     </s-color-picker>
     
-    <s-tooltip text="Stroke width" location="top">
-      <template #activator="{ props: tooltipProps }">
-        <s-number-input
-          v-model="localSettings.imageEditorSettings.strokeWidth"
-          :min="1"
-          @wheel="onWheel"
-          v-bind="tooltipProps"
-        >
-          <template #prepend>
-            <v-icon size="small" icon="mdi-format-vertical-align-center" />
-          </template>
-        </s-number-input>
+    <s-number-input
+      v-model="localSettings.imageEditorSettings.strokeWidth"
+      :min="1"
+      @wheel="onWheel"
+      v-tooltip.top="'Stroke width'"
+    >
+      <template #prepend>
+        <v-icon size="small" icon="mdi-format-vertical-align-center" />
       </template>
-    </s-tooltip>
+    </s-number-input>
   </v-toolbar>
 </template>
 

@@ -32,10 +32,11 @@
           </div>
         </template>
         <template #default>
-          <s-btn-icon @click="shareDialogVisible = true">
-            <v-icon icon="mdi-share-variant" />
-            <s-tooltip activator="parent" text="Share" />
-          </s-btn-icon>
+          <s-btn-icon 
+            @click="shareDialogVisible = true"
+            icon="mdi-share-variant"
+            v-tooltip.top="'Share'"
+          />
         </template>
 
         <template #context-menu>

@@ -39,20 +39,31 @@
           <v-card-title>{{ asset.name }}</v-card-title>
           <v-card-text class="text--small pb-0">
             {{ assetUrl(asset) }}
-            <s-btn-icon @click="copyToClipboard(assetUrl(asset))" size="small" density="compact">
-              <v-icon size="small" icon="mdi-content-copy" />
-              <s-tooltip activator="parent" text="Copy path to clipboard" />
-            </s-btn-icon>
+            <s-btn-icon
+              @click="copyToClipboard(assetUrl(asset))"
+              icon="mdi-content-copy"
+              v-tooltip="'Copy path to clipboard'"
+              size="small"
+              density="compact"
+            />
           </v-card-text>
           <v-card-actions>
-            <s-btn-icon :href="absoluteAssetUrl(asset)" download density="comfortable">
-              <v-icon icon="mdi-download" />
-              <s-tooltip activator="parent" text="Download asset" />
-            </s-btn-icon>
-            <s-btn-icon :href="absoluteAssetUrl(asset)" target="_blank" density="comfortable">
-              <v-icon icon="mdi-open-in-new" />
-              <s-tooltip activator="parent" text="Show image in new tab" />
-            </s-btn-icon>
+            <s-btn-icon 
+              icon="mdi-download"
+              :href="absoluteAssetUrl(asset)"
+              download
+              density="comfortable"
+              variant="text"
+              v-tooltip="'Download asset'"
+            />
+            <s-btn-icon
+              icon="mdi-open-in-new"
+              :href="absoluteAssetUrl(asset)"
+              target="_blank"
+              density="comfortable"
+              variant="text"
+              v-tooltip="'Show image in new tab'"
+            />
             <v-spacer />
             <btn-delete
               :delete="() => performDelete(asset)"

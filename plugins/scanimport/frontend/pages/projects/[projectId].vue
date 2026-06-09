@@ -11,6 +11,7 @@
             <v-file-upload 
               v-model="uploadForm.files"
               :multiple="true"
+              clearable
               density="compact"
               class="flex-grow-1"
             />

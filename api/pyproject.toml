@@ -8,7 +8,7 @@ requires-python = ">=3.12,<4.0"
 dependencies = [
   "django[argon2] (>=6.0,<6.1)",
   "djangorestframework (>=3.17,<3.18)",
-  "weasyprint (==68.1)",
+  "weasyprint (==69.0)",
 
   "django-storages[s3] (~=1.13)",
   "drf-nested-routers (~=0.95)",
@@ -19,7 +19,7 @@ dependencies = [
 
   "psycopg[binary,pool] (~=3.1)",
   "gunicorn (~=26.0)",
-  "uvicorn[standard] (~=0.48)",
+  "uvicorn[standard] (~=0.49)",
   "uvicorn-worker (~=0.4)",
   "whitenoise (~=6.4)",
   "channels[daphne] (~=4.2)",

@@ -21,19 +21,13 @@
         :filterable="true"
         @filter="emit('filter', $event)"
       />
-      <s-tooltip v-for="tr in props.template.translations" :key="tr.id">
-        <template #activator="{ props: tooltipProps }">
-          <chip-language
-            :value="tr.language"
-            v-bind="tooltipProps"
-            :filterable="true"
-            @filter="emit('filter', $event)"
-          />
-        </template>
-        <template #default>
-          {{ tr.data.title }}
-        </template>
-      </s-tooltip>
+      <chip-language
+        v-for="tr in props.template.translations" :key="tr.id"
+        :value="tr.language"
+        v-tooltip="{text: tr.data.title}"
+        :filterable="true"
+        @filter="emit('filter', $event)"
+      />
       <chip-tag
         v-for="tag in props.template.tags"
         :key="tag"

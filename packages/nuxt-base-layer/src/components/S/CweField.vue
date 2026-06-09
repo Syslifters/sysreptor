@@ -19,7 +19,7 @@
           <v-icon v-else :icon="undefined" />
         </template>
         <template #default>
-          <s-tooltip 
+          <v-tooltip 
             activator="parent" 
             location="top" 
             open-delay="1000"

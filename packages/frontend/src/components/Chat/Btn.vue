@@ -2,10 +2,9 @@
   <s-btn-icon
     v-if="apiSettings.settings!.features?.ai_agent"
     @click="toggleChatSidebar"
-  >
-    <v-icon icon="mdi-creation" />
-    <s-tooltip activator="parent" location="bottom" text="AI Chat" />
-  </s-btn-icon>
+    icon="mdi-creation"
+    v-tooltip.bottom="'AI Chat'"
+  />
 </template>
 
 <script setup lang="ts">

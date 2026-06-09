@@ -122,29 +122,24 @@
           v-if="!isGrouped"
           @click="emit('create:finding')"
           :disabled="props.readonly"
+          icon="mdi-plus"
+          v-tooltip.top="'Add Finding (Ctrl+J)'"
           size="small"
           variant="flat"
           color="secondary"
           density="compact"
           class="ml-2"
-        >
-          <v-icon icon="mdi-plus" />
-          <s-tooltip activator="parent" location="top">Add Finding (Ctrl+J)</s-tooltip>
-        </s-btn-icon>
+        />
         <v-spacer />
         <s-btn-icon
           v-if="overrideFindingOrder !== undefined && projectType.finding_ordering.length > 0"
           @click="overrideFindingOrder = !overrideFindingOrder"
           :disabled="props.readonly"
+          :icon="overrideFindingOrder ? 'mdi-sort-variant-off' : 'mdi-sort-variant'"
+          v-tooltip.top="overrideFindingOrder ? 'Custom order' : 'Default order'"
           size="small"
           density="compact"
-        >
-          <v-icon :icon="overrideFindingOrder ? 'mdi-sort-variant-off' : 'mdi-sort-variant'" />
-          <s-tooltip activator="parent" location="top">
-            <span v-if="overrideFindingOrder">Custom order</span>
-            <span v-else>Default order</span>
-          </s-tooltip>
-        </s-btn-icon>
+        />
       </v-list-subheader>
 
       <draggable
@@ -207,9 +202,9 @@
                   <template #default>
                     <v-list-item-title class="text-body-medium">{{ findingTitle(finding) }}</v-list-item-title>
                     <v-list-item-subtitle v-if="finding.assignee">@{{ finding.assignee.username }}</v-list-item-subtitle>
-                    <s-tooltip v-if="['resolved', 'accepted', 'partial'].includes(findingRetestStatus(finding)?.value || '')" activator="parent">
+                    <v-tooltip v-if="['resolved', 'accepted', 'partial'].includes(findingRetestStatus(finding)?.value || '')" activator="parent">
                       Retest status: {{ findingRetestStatus(finding)?.label }}
-                    </s-tooltip>
+                    </v-tooltip>
                   </template>
                   <template #append>
                     <slot name="finding-item-append" :finding="finding" >

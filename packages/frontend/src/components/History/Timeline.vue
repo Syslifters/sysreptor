@@ -14,9 +14,9 @@
           <pro-info>Version History</pro-info>
         </v-list-item-title>
         <template #append>
-          <v-btn icon variant="text" @click="modelValue = false">
+          <s-btn-icon @click="modelValue = false">
             <v-icon size="x-large" icon="mdi-close" />
-          </v-btn>
+          </s-btn-icon>
         </template>
       </v-list-item>
       <v-divider />

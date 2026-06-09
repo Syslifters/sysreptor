@@ -7,23 +7,23 @@
       :color="c.client_color"
       class="avatar-group-item"
     >
-      <s-tooltip activator="parent">
+      <v-tooltip activator="parent">
         <user-avatar :user="c.user" :color="c.client_color" />
         {{ userFullName(c) }}
-      </s-tooltip>
+      </v-tooltip>
     </user-avatar>
     <user-avatar
       v-if="clientsHidden.length > 0"
       :text="`+${clientsHidden.length}`"
       class="avatar-group-item"
     >
-      <s-tooltip activator="parent">
+      <v-tooltip activator="parent">
         <span v-for="c in clientsHidden" :key="c.client_id">
           <user-avatar :user="c.user" :color="c.client_color" />
           {{ userFullName(c) }}
           <br />
         </span>
-      </s-tooltip>
+      </v-tooltip>
     </user-avatar>
   </div>
 </template>
