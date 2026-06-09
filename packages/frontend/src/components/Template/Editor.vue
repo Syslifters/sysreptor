@@ -21,9 +21,9 @@
           <s-btn-icon
             v-if="unusedLanguageInfos.length > 0"
             :disabled="props.readonly"
+            v-tooltip="'Add translation'"
           >
             <v-icon icon="mdi-plus" />
-            <s-tooltip activator="parent" text="Add translation" />
             <v-menu activator="parent" location="bottom" class="menu-max-height">
               <v-list>
                 <v-list-item v-for="lang in unusedLanguageInfos" :key="lang.code" link @click="createTranslation(lang.code)">
@@ -111,10 +111,10 @@
                 size="small"
               >
                 <v-icon size="small" icon="mdi-pencil-off" />
-                <s-tooltip activator="parent">
+                <v-tooltip activator="parent">
                   Reset field to inherit text from the main language {{ mainLanguageInfo.name }}.
                   Currently it is overridden for the {{ currentLanguageInfo.name }} translation.<br>
-                </s-tooltip>
+                </v-tooltip>
               </s-btn-secondary>
               <s-btn-secondary
                 v-else
@@ -124,10 +124,10 @@
                 size="small"
               >
                 <v-icon size="small" icon="mdi-pencil" />
-                <s-tooltip activator="parent">
+                <v-tooltip activator="parent">
                   Override field in {{ currentLanguageInfo.name }} translation.<br>
                   Currently it is inherited from the main language {{ mainLanguageInfo.name }}.
-                </s-tooltip>
+                </v-tooltip>
               </s-btn-secondary>
             </div>
           </div>

@@ -6,14 +6,13 @@
     <p class="mt-2">
       <s-code>{{ gpgCommand }}</s-code>
       <s-btn-icon 
-        @click="copyToClipboard(gpgCommand)" 
+        @click="copyToClipboard(gpgCommand)"
+        icon="mdi-content-copy"
+        v-tooltip.top="'Copy to clipboard'"
         size="small" 
         density="compact"
         class="ml-1"
-      >
-        <v-icon icon="mdi-content-copy" />
-        <s-tooltip activator="parent" text="Copy to clipboard" />
-      </s-btn-icon>
+      />
     </p>
     <s-codeblock-field
       :model-value="props.encryptedData"
@@ -21,22 +20,20 @@
     >
       <template #append-inner>
         <s-btn-icon 
-          @click="copyToClipboard(props.encryptedData)" 
+          @click="copyToClipboard(props.encryptedData)"
+          icon="mdi-content-copy"
+          v-tooltip.top="'Copy to clipboard'"
           size="small"
           density="compact"
-        >
-          <v-icon icon="mdi-content-copy" />
-          <s-tooltip activator="parent" text="Copy to clipboard" />
-        </s-btn-icon>
+        />
         <s-btn-icon 
           @click="fileDownload(props.encryptedData, filename, 'text/plain')"
+          icon="mdi-download"
+          v-tooltip.top="`Download ${filename}`"
           size="small"
           density="compact"
           class="mt-2"
-        >
-          <v-icon icon="mdi-download" />
-          <s-tooltip activator="parent" :text="`Download ${filename}`" />
-        </s-btn-icon>
+        />
       </template>
     </s-codeblock-field>
 

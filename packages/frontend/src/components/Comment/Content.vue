@@ -4,7 +4,7 @@
       <div v-if="!props.initialEdit">
         <span v-if="modelValue.user" class="text-title-small text-medium-emphasis">
           @{{ modelValue.user.username }}
-          <s-tooltip activator="parent" :text="modelValue.user.name" />
+          <v-tooltip activator="parent" :text="modelValue.user.name!" />
         </span>
         <chip-date :value="modelValue.created" size="small" />
       </div>
@@ -61,13 +61,12 @@
           />
           <s-btn-other 
             @click="performUpdate"
+            text="Save"
+            v-tooltip="'Save comment (Enter)'"
             :disabled="!editText.trim()"
             :loading="updateInProgress" 
-            size="small" 
-          >
-            Save
-            <s-tooltip activator="parent" text="Save comment (Enter)" />
-          </s-btn-other>
+            size="small"
+          />
         </div>
       </div>
       <span v-else class="comment-text">{{ modelValue.text }}</span>

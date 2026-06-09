@@ -199,15 +199,10 @@
                 <s-btn-icon
                   v-if="definition.items!.type === FieldDataType.STRING"
                   @click="bulkEditList = !bulkEditList"
+                  :icon="bulkEditList ? 'mdi-format-list-bulleted' : 'mdi-playlist-edit'"
+                  v-tooltip.top="bulkEditList ? 'Edit as list' : 'Bulk edit list items'"
                   density="comfortable"
-                >
-                  <v-icon v-if="bulkEditList" icon="mdi-format-list-bulleted" />
-                  <v-icon v-else icon="mdi-playlist-edit" />
-                  <s-tooltip activator="parent">
-                    <span v-if="bulkEditList">Edit as list</span>
-                    <span v-else>Bulk edit list items</span>
-                  </s-tooltip>
-                </s-btn-icon>
+                />
               </template>
             </v-card-item>
 
@@ -262,20 +257,18 @@
 
                           <s-btn-icon 
                             @click="emitInputList('move', entryIdx, entryIdx - 1)"
+                            icon="mdi-arrow-up-drop-circle-outline"
+                            v-tooltip.top="'Move up in list'"
                             :disabled="props.disabled || props.readonly || entryIdx === 0"
                             density="compact"
-                          >
-                            <v-icon icon="mdi-arrow-up-drop-circle-outline" />
-                            <s-tooltip activator="parent" text="Move up in list" />
-                          </s-btn-icon>
+                          />
                           <s-btn-icon
                             @click="emitInputList('move', entryIdx, entryIdx + 1)"
+                            icon="mdi-arrow-down-drop-circle-outline"
+                            v-tooltip.top="'Move down in list'"
                             :disabled="props.disabled || props.readonly || entryIdx === formValue.length - 1"
                             density="compact"
-                          >
-                            <v-icon icon="mdi-arrow-down-drop-circle-outline" />
-                            <s-tooltip activator="parent" text="Move down in list" />
-                          </s-btn-icon>
+                          />
                         </div>
                         <div v-else>
                           <v-icon

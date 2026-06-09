@@ -23,13 +23,11 @@
       <template #append v-if="props.generate">
         <s-btn 
           @click="generateNewPassword"
-          icon 
+          icon="mdi-lock-reset"
+          v-tooltip="'Generate random password'"
           density="compact"
           :disabled="props.disabled"
-        >
-          <v-icon icon="mdi-lock-reset" />
-          <s-tooltip activator="parent" text="Generate random password" />
-        </s-btn>
+        />
       </template>
     </s-text-field>
     <s-text-field

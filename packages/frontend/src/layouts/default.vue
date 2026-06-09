@@ -23,18 +23,16 @@
         v-if="auth.loggedIn.value"
         to="/notes/personal/"
         :active="false"
-      >
-        <v-icon icon="mdi-notebook" />
-        <s-tooltip activator="parent" location="bottom" text="Personal Notes" />
-      </s-btn-icon>
-      <notification-menu-item v-if="auth.loggedIn.value" />
-      <s-btn-icon href="https://docs.sysreptor.com/" target="_blank">
-        <v-icon icon="mdi-help-circle" />
-        <s-tooltip activator="parent" location="bottom" text="Documentation" />
-      </s-btn-icon>
-      <user-info-menu-item 
-      data-testid="profile-button"
+        icon="mdi-notebook"
+        v-tooltip.bottom="'Personal Notes'"
       />
+      <notification-menu-item v-if="auth.loggedIn.value" />
+      <s-btn-icon
+        href="https://docs.sysreptor.com/" target="_blank"
+        icon="mdi-help-circle"
+        v-tooltip.bottom="'Documentation'"
+      />
+      <user-info-menu-item data-testid="profile-button" />
     </v-app-bar>
 
     <v-navigation-drawer v-if="auth.loggedIn.value" v-bind="naviagtionDrawerProps" color="drawer" class="menu-drawer">
@@ -78,20 +76,18 @@
               v-if="auth.permissions.value.admin"
               :to="{path: '/users/self/admin/disable/', query: { next: route.fullPath }}"
               density="comfortable"
-            >
-              <v-icon size="small" color="primary" icon="mdi-account-arrow-down" />
-              <s-tooltip activator="parent" text="Disable Superuser Permissions" />
-            </s-btn-icon>
+              icon="mdi-account-arrow-down"
+              v-tooltip.bottom="'Disable Superuser Permissions'"
+            />
             <s-btn-icon
               v-else
               :to="{path: '/users/self/admin/enable/', query: { next: route.fullPath }}"
-              :disabled="!auth.user.value!.is_superuser" 
-              density="comfortable" 
+              :disabled="!auth.user.value!.is_superuser"
+              density="comfortable"
+              icon="mdi-account-arrow-up"
+              v-tooltip.bottom="'Enable Superuser Permissions'"
               data-testid="enable-superuser"
-            >
-              <v-icon size="small" icon="mdi-account-arrow-up" />
-              <s-tooltip activator="parent" text="Enable Superuser Permissions" />
-            </s-btn-icon>
+            />
           </template>
         </v-list-item>
 

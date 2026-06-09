@@ -68,7 +68,7 @@
           data-testid="cvss-apply"
         >
           <v-icon size="x-large" icon="mdi-check-bold" />
-          <s-tooltip activator="parent" :disabled="props.disabled || props.readonly" text="Apply" />
+          <v-tooltip activator="parent" :disabled="props.disabled || props.readonly" text="Apply" />
         </s-btn-icon>
       </template>
 

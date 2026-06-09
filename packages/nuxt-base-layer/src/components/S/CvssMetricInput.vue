@@ -2,7 +2,7 @@
   <div class="ma-1" :class="{'metric-inline': props.singleLine, 'metric-twoline': !props.singleLine}">
     <v-label class="metric-label">
       <div class="metric-label-text">{{ metric.name }}</div>
-      <s-tooltip activator="parent" :text="metric.description" v-bind="tooltipAttrs" />
+      <v-tooltip activator="parent" :text="metric.description" location="bottom" :open-delay="1000" />
     </v-label>
     <div>
       <v-btn-toggle
@@ -23,7 +23,7 @@
           class="metric-btn"
         >
           {{ c.name }} ({{ c.id }})
-          <s-tooltip activator="parent" :text="c.description" v-bind="tooltipAttrs" />
+          <v-tooltip activator="parent" :text="c.description" location="bottom" :open-delay="1000" />
         </v-btn>
       </v-btn-toggle>
     </div>
@@ -42,11 +42,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void;
 }>();
-
-const tooltipAttrs = {
-  openDelay: 1000,
-  location: 'bottom',
-}
 </script>
 
 <style lang="scss" scoped>

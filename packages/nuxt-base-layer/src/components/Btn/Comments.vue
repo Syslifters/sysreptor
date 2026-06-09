@@ -14,7 +14,7 @@
     </v-badge>
     <v-icon v-else icon="mdi-comment-text-outline" />
 
-    <s-tooltip activator="parent" location="bottom" text="Comments" />
+    <v-tooltip activator="parent" location="bottom" text="Comments" />
   </s-btn-icon>
 </template>
 

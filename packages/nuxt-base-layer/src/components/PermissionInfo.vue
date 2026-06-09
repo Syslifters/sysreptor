@@ -1,7 +1,7 @@
 <template>
   <span v-if="!props.value" class="permission-info" @click.prevent>
     <slot />
-    <s-tooltip activator="parent" :text="text" />
+    <v-tooltip activator="parent" :text="text" />
   </span>
   <span v-else><slot /></span>
 </template>

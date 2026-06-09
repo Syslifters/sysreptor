@@ -19,11 +19,10 @@
         v-if="finding.template"
         :to="`/templates/${finding.template}/`"
         target="_blank"
+        icon="mdi-view-compact"
+        v-tooltip="'This finding was created from a template: show template'"
         class="ml-1 mr-1"
-      >
-        <v-icon icon="mdi-view-compact" />
-        <s-tooltip activator="parent" text="This finding was created from a template: show template" />
-      </s-btn-icon>
+      />
       <div class="status-container ml-1 mr-1">
         <s-status-selection 
           :model-value="finding.status"

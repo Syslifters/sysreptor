@@ -4,7 +4,7 @@
     <span v-if="props.label">{{ props.label }}:&nbsp;</span>
     {{ formattedDate }}
 
-    <s-tooltip activator="parent" :text="(props.tooltipPrefixText || (props.label ? props.label + ': ' : '')) + isoDate" />
+    <v-tooltip activator="parent" :text="(props.tooltipPrefixText || (props.label ? props.label + ': ' : '')) + isoDate" />
   </v-chip>
 </template>
 

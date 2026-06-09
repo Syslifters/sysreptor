@@ -116,12 +116,12 @@ export default defineVuetifyConfiguration({
     },
   },
   defaults: {
-    SCode: {
-      tag: 'code',
-    },
-    STooltip: {
+    VTooltip: {
       transition: 'fade-transition',
       openDelay: 200,
+    },
+    SCode: {
+      tag: 'code',
     },
     SCard: {
       variant: 'outlined',
@@ -209,7 +209,6 @@ export default defineVuetifyConfiguration({
     },
   },
   aliases: {
-    STooltip: 'VTooltip',
     SCard: 'VCard',
     SBtn: 'VBtn',
     SBtnPrimary: 'VBtn',

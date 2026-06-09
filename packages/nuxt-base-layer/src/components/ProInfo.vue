@@ -7,7 +7,7 @@
   >
     <slot />
     <span class="pro-badge">/PRO</span>
-    <s-tooltip activator="parent" text="Available in SysReptor Professional" />
+    <v-tooltip activator="parent" text="Available in SysReptor Professional" />
   </a>
   <span v-else><slot /></span>
 </template>

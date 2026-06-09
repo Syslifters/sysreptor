@@ -24,7 +24,7 @@
           </v-badge>
         </template>
 
-        <s-tooltip
+        <v-tooltip
           activator="parent"
           location="bottom"
           data-testid="save-tooltip"

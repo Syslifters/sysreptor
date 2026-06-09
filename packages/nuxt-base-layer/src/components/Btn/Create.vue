@@ -1,11 +1,10 @@
 <template>
   <s-btn-icon
+    icon="mdi-plus"
+    v-tooltip.bottom="'Create new'"
     color="secondary"
     variant="flat"
     density="comfortable"
     data-testid="create-button"
-  >
-    <v-icon icon="mdi-plus" />
-    <s-tooltip activator="parent" location="bottom" text="Create new" />
-  </s-btn-icon>
+  />
 </template>

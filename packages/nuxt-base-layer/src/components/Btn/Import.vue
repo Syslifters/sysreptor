@@ -19,7 +19,7 @@
       :disabled="disabled || props.loading || importInProgress"
     />
 
-    <s-tooltip activator="parent" location="bottom" text="Import from file" />
+    <v-tooltip activator="parent" location="bottom" text="Import from file" />
   </s-btn-icon>
   <v-list-item
     v-else

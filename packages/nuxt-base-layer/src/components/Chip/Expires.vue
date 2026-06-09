@@ -3,7 +3,7 @@
     <span v-if="!isExpired">Expires: {{ formattedDate }}</span>
     <span v-else>expired</span>
 
-    <s-tooltip activator="parent" :text="`Expires: ${isoDate}`" />
+    <v-tooltip activator="parent" :text="`Expires: ${isoDate}`" />
   </v-chip>
 </template>
 

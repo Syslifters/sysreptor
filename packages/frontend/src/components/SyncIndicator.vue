@@ -1,5 +1,5 @@
 <template>
-  <s-tooltip v-if="modelValue">
+  <v-tooltip v-if="modelValue">
     <template #activator="{ props: tooltipProps }">
       <v-badge 
         :color="modelValue === SyncState.SAVED ? 'success' : modelValue === SyncState.DISCONNECTED ? 'error' : undefined"
@@ -22,7 +22,7 @@
       <span v-else-if="modelValue === SyncState.DISCONNECTED">Disconnected</span>
       <span v-else>Syncing changes</span>
     </template>
-  </s-tooltip>
+  </v-tooltip>
 </template>
 
 <script setup lang="ts">

@@ -8,7 +8,7 @@
       <v-icon :icon="notificationStore.enabled ? 'mdi-bell' : 'mdi-bell-off'" />
     </v-badge>
 
-    <s-tooltip activator="parent" location="bottom" text="Notifications" />
+    <v-tooltip activator="parent" location="bottom" text="Notifications" />
 
     <v-menu 
       @update:model-value="onOpenMenu"

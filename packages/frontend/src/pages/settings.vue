@@ -30,7 +30,7 @@
                 v-bind="fieldAttrs"
               >
                 <template #label>
-                  <s-tooltip :disabled="!field.set_in_env">
+                  <v-tooltip :disabled="!field.set_in_env">
                     <template #activator="{props: tooltipProps}">
                       <span v-bind="tooltipProps" :class="{'info-env': field.set_in_env}">
                         <pro-info v-if="field.professional_only">{{ field.id }}</pro-info>
@@ -44,7 +44,7 @@
                       Update the value of the environment variable <v-code>{{ field.id }}</v-code> in <v-code>app.env</v-code><br>
                       or remove it from <v-code>app.env</v-code> to be able to change it here.
                     </template>
-                  </s-tooltip>
+                  </v-tooltip>
                 </template>
               </dynamic-input-field>
             </div>
@@ -70,7 +70,7 @@
               disabled
             >
               <template #label>
-                <s-tooltip>
+                <v-tooltip>
                   <template #activator="{props: tooltipProps}">
                     <span class="info-env" v-bind="tooltipProps">
                       Is plugin enabled?
@@ -81,7 +81,7 @@
                     Plugins can be enabled by configuring the environment variable `ENABLED_PLUGINS` in <v-code>app.env</v-code>.<br>
                     Add the plugin name to the environment variable: e.g. <v-code>ENABLED_PLUGINS="{{ plugin.name }},other-plugin,..."</v-code>
                   </template>
-                </s-tooltip>
+                </v-tooltip>
               </template>
             </s-checkbox>
             <div v-for="field in plugin.fields" :key="field.id">
@@ -93,7 +93,7 @@
                 v-bind="fieldAttrs"
               >
                 <template #label>
-                  <s-tooltip :disabled="!field.set_in_env">
+                  <v-tooltip :disabled="!field.set_in_env">
                     <template #activator="{props: tooltipProps}">
                       <span v-bind="tooltipProps" :class="{'info-env': field.set_in_env}">
                         <pro-info v-if="plugin.professional_only || field.professional_only">{{ field.id }}</pro-info>
@@ -107,7 +107,7 @@
                       Update the value of the environment variable <v-code>{{ field.id }}</v-code> in <v-code>app.env</v-code><br>
                       or remove it from <v-code>app.env</v-code> to be able to change it here.
                     </template>
-                  </s-tooltip>
+                  </v-tooltip>
                 </template>
               </dynamic-input-field>
             </div>

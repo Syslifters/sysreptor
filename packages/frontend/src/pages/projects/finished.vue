@@ -20,13 +20,12 @@
       <template v-if="selectedItems.length > 0">
         <v-divider vertical />
         <s-btn-icon 
-          icon="mdi-download"
           color="secondary"
           variant="flat"
           density="comfortable"
+          v-tooltip.bottom="'Export selected'"
         >
           <v-icon icon="mdi-download" />
-          <s-tooltip activator="parent" location="bottom" text="Export selected" />
           <v-menu activator="parent" location="bottom">
             <v-list>
               <btn-export
