@@ -12,7 +12,7 @@
     "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
 
     "nuxt": "~4.4",
-    "vuetify": "~4.0",
+    "vuetify": "~4.1",
     "pinia": "^3.0"
   },
   "overrides": {

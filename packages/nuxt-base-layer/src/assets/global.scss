@@ -30,6 +30,7 @@ body {
   --v-field-border-opacity: var(--v-high-emphasis-opacity);
 }
 .v-btn.v-btn--icon:not(.text-error, .v-btn--variant-flat, .toast-snackbar-btn):hover .v-icon, 
+.v-icon-btn:not(.text-error, .v-icon-btn--variant-flat, .toast-snackbar-btn):hover .v-icon,
 .v-breadcrumbs-item--link:hover {
   color: rgb(var(--v-theme-primary));
 }
