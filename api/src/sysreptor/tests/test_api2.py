@@ -10,6 +10,7 @@ from django.utils import timezone
 from sysreptor.pentests.cvss import CVSSLevel
 from sysreptor.pentests.import_export import export_project_types
 from sysreptor.pentests.models import (
+    DELETE_DATE_NEVER,
     FindingTemplate,
     FindingTemplateTranslation,
     Language,
@@ -95,6 +96,22 @@ class TestProjectApi:
         # ProjectType.usage_count incremented
         self.project_type.refresh_from_db()
         assert self.project_type.usage_count == 1
+
+    def test_update_metadata_readonly_project(self):
+        project = create_project(members=[self.user], readonly=True)
+        pt = create_project_type()
+        res = self.client.patch(reverse('pentestproject-detail', kwargs={'pk': project.id}), data={
+            'tags': ['updated_tag'],
+            'delete_date': 'never',
+            'project_type': pt.id,
+            'language': Language.SPANISH.value,
+        })
+        assert res.status_code == 200
+        project.refresh_from_db()
+        assert project.project_type != pt
+        assert project.language != Language.SPANISH
+        assert project.tags == ['updated_tag']
+        assert project.delete_date == DELETE_DATE_NEVER
 
     def test_change_imported_members(self):
         project = create_project(members=[self.user], imported_members=[{

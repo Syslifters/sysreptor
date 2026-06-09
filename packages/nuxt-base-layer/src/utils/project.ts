@@ -1,4 +1,5 @@
 import { groupBy, orderBy } from "lodash-es";
+import { addDays, isAfter, parseISO, startOfDay } from 'date-fns';
 import { scoreFromVector, levelNumberFromLevelName, levelNumberFromScore, levelNameFromScore } from "./cvss";
 
 export type SortFindingsOptions<T extends PentestFinding> = {
@@ -128,5 +129,19 @@ export function getFindingRiskLevel(options: { finding: PentestFinding, projectT
     return levelNumberFromScore(scoreFromVector(findingData.cvss));
   } else {
     return 'unknown';
+  }
+}
+
+
+export function isDeleteDateSoon(value?: null|string, days: number = 7): boolean {
+  if (!value || value === 'never') {
+    return false;
+  }
+  try {
+    const date = startOfDay(parseISO(value));
+    const deadline = addDays(startOfDay(new Date()), days);
+    return !isAfter(date, deadline);
+  } catch {
+    return false;
   }
 }

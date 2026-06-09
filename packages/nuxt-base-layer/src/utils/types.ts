@@ -318,6 +318,7 @@ export type PentestProject = BaseModel & {
   override_finding_order: boolean;
   members: ProjectMember[];
   imported_members: ProjectMember[];
+  delete_date: string|'never'|null;
 }
 
 export type ReportSection = BaseModel & {
@@ -376,13 +377,13 @@ export type ArchivedProjectKeyPart = BaseModel & {
 }
 
 export type ArchivedProject = BaseModel & {
-  readonly auto_delete_date: string|null;
   readonly reencrypt_key_parts_after_inactivity_date: string|null;
   name: string;
   size: string;
   tags: string[];
   threshold: number;
   key_parts: ArchivedProjectKeyPart[];
+  delete_date: string|'never'|null;
 };
 
 export type ArchivedProjectPublicKeyEncryptedKeyPart = BaseModel & {

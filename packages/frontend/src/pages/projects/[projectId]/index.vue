@@ -10,6 +10,7 @@
               :set-readonly="setReadonly" 
               :disabled="!auth.permissions.value.update_project_settings"
               :show-toast="true"
+              :project="project"
               class="ml-1 mr-1" 
             />
           </permission-info>
@@ -84,7 +85,7 @@
         @update:model-value="projectType = ($event as ProjectType|null)"
         :query-filters="{scope: [ProjectTypeScope.GLOBAL, ProjectTypeScope.PRIVATE, ProjectTypeScope.PROJECT], linked_project: project.id}"
         :error-messages="serverErrors?.project_type || []"
-        :readonly="readonly"
+        :readonly="readonly || project.readonly"
         :append-link="true"
         :required="true"
         return-object
@@ -121,7 +122,7 @@
       <s-language-selection
         v-model="project.language"
         :error-messages="serverErrors?.language || []"
-        :readonly="readonly"
+        :readonly="readonly || project.readonly"
         class="mt-4"
       />
       <s-tags
@@ -150,12 +151,29 @@
         hint="These users do not exist on this instance, they were imported from somewhere else. They do not have access, but can be included in reports."
         class="mt-4"
       />
+      <s-date-picker
+        v-if="project.readonly || project.delete_date || wasDeleteDateSet"
+        v-model="project.delete_date"
+        :allow-never="project.readonly ? 'null-to-never' : true"
+        :min-date="formatISO9075(new Date(), { representation: 'date' })"
+        hint="Date when this project will be automatically deleted. Select Never to disable automatic deletion, or clear the field to unset."
+        :error-messages="serverErrors?.delete_date || []"
+        :readonly="readonly || !apiSettings.isProfessionalLicense"
+        class="mt-4"
+      >
+        <template #label><pro-info>Delete Date</pro-info></template>
+      </s-date-picker>
+      <v-alert v-if="deleteDateWarning" type="warning" class="mt-2">
+        {{ deleteDateWarning }}
+      </v-alert>
     </v-form>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
+import { formatDistanceToNowStrict, formatISO9075, isSameDay, parseISO } from 'date-fns';
+import { isDeleteDateSoon } from '@base/utils/project';
 import { ProjectTypeScope } from '#imports';
 
 const route = useRoute();
@@ -178,24 +196,16 @@ const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
   data: project,
   form: formRef,
   hasEditPermissions: computed(() => {
-    if (project.value?.readonly) {
-      return false;
-    } else if (!auth.permissions.value.update_project_settings) {
+    if (!auth.permissions.value.update_project_settings) {
       return false;
     }
     return true;
   }),
   canDelete: computed(() => auth.permissions.value.delete_projects),
-  errorMessage: computed(() => {
-    if (project.value?.readonly) {
-      return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
-    }
-    return null;
-  }),
   performSave: async () => {
     try {
       project.value = await projectStore.partialUpdateProject(project.value,
-        ['name', 'project_type', 'force_change_project_type', 'language', 'tags', 'members', 'imported_members']);
+        ['name', 'project_type', 'force_change_project_type', 'language', 'tags', 'members', 'imported_members', 'delete_date']);
       serverErrors.value = null;
       projectType.value = await projectTypeStore.getById(project.value.project_type);
     } catch (error: any) {
@@ -210,6 +220,24 @@ const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
     await navigateTo('/projects/');
   },
   deleteConfirmInput: computed(() => project.value.name),
+});
+
+const wasDeleteDateSet = ref(false);
+whenever(() => project.value.delete_date, () => { wasDeleteDateSet.value = true }, { immediate: true });
+const deleteDateWarning = computed(() => {
+  if (
+    !project.value.readonly || 
+    !apiSettings.isProfessionalLicense || 
+    !isDeleteDateSoon(project.value.delete_date)
+  ) {
+    return null;
+  }
+  const date = parseISO(project.value.delete_date!);
+  let formattedDate = formatDistanceToNowStrict(date, { unit: 'day' });
+  if (isSameDay(date, new Date()) || date <= new Date()) {
+    formattedDate = 'today';
+  }
+  return `This project will be automatically deleted in ${formattedDate}.`;
 });
 
 watch(projectType, (val: ProjectType|null) => {

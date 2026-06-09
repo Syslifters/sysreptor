@@ -14,7 +14,6 @@
 
         <v-list-item-subtitle>
           <chip-created :value="item.created" />
-          <chip-auto-delete :value="item.auto_delete_date" />
           <chip-storage-size :value="item.size" />
 
           <v-chip size="small" class="ma-1">
@@ -48,6 +47,7 @@
             :filterable="true"
             @filter="listViewRef?.addFilter($event)"
           />
+          <chip-auto-delete :value="item.delete_date" />
         </v-list-item-subtitle>
       </v-list-item>
     </template>

@@ -76,6 +76,7 @@
 </template>
 
 <script setup lang="ts">
+import { isDeleteDateSoon } from '@base/utils/project';
 import { sortBy } from "lodash-es";
 
 const auth = useAuth();
@@ -101,6 +102,12 @@ const warnings = computed(() => {
     out.push({
       level: MessageLevel.WARNING,
       message: 'All archivers are required to restore the archive. If one user loses their key, the archive is lost forever. Consider adding more users before archiving.',
+    });
+  }
+  if (isDeleteDateSoon(project.value.delete_date) && apiSettings.isProfessionalLicense) {
+    out.push({
+      level: MessageLevel.WARNING,
+      message: 'The project will be deleted in the next 7 days. Consider archiving it earlier.',
     });
   }
   return out;

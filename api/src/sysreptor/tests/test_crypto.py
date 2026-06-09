@@ -4,6 +4,7 @@ import json
 import random
 import tempfile
 from contextlib import contextmanager
+from datetime import timedelta
 from unittest import mock
 from uuid import UUID
 
@@ -15,6 +16,7 @@ from django.db import connection
 from django.db.models.fields.files import FieldFile
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from sysreptor.management.commands import encryptdata
 from sysreptor.pentests.models import (
@@ -498,3 +500,36 @@ class TestProjectArchivingEncryption:
             'data': base64.b64encode(random.randbytes(32)).decode(),  # noqa: S311
         })
         assert res.status_code == 400
+
+    @override_configuration(ARCHIVING_THRESHOLD=1, AUTOMATICALLY_DELETE_PROJECTS_AFTER=30)
+    def test_archive_delete_date(self):
+        user = self.create_user_with_private_key()
+        p_original = create_project(members=[user], delete_date=None, tags=['project_tag'])
+        update(p_original, readonly=True)
+
+        # Finish project: delete date is set on project
+        p_original.refresh_from_db()
+        assert p_original.delete_date == (timezone.now() + timedelta(days=30)).date()
+
+        # Create archive: delete date from project is set on archive
+        a = ArchivedProject.objects.create_from_project(p_original)
+        assert a.delete_date == p_original.delete_date
+        assert a.tags == p_original.tags
+
+        # Restore archive: delete date from archive is set on project
+        archive_delete_date = (timezone.now() + timedelta(days=10)).date()
+        archive_tags = ['archive_tag']
+        update(a, delete_date=archive_delete_date, tags=archive_tags)
+        keypart = a.key_parts.get(user=user)
+        res = api_client(user).post(reverse('archivedprojectkeypart-decrypt', kwargs={'archivedproject_pk': a.id, 'pk': keypart.id}), data={
+            'data': self.gpg.decrypt(keypart.public_key_encrypted_parts.first().encrypted_data).data.decode().split('\n')[1],
+        })
+        p_restored = PentestProject.objects.get(id=res.data['project_id'])
+        assert p_restored.delete_date == archive_delete_date
+        assert p_restored.tags == archive_tags
+
+        # Re-archive project: delete date from project is preserved on archive
+        update(p_restored, readonly=True)
+        a2 = ArchivedProject.objects.create_from_project(p_restored)
+        assert a2.delete_date == archive_delete_date
+        assert a2.tags == archive_tags

@@ -3,6 +3,9 @@
 ## Upcoming
 * Fix bulk set status action disabled in UI
 * UI: Improve template multi select in create finding dialog
+* Rename configuration `AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER` to `AUTOMATICALLY_DELETE_PROJECTS_AFTER`
+* Configure auto delete for finished and archived projects via `AUTOMATICALLY_DELETE_PROJECTS_AFTER`
+* Allow customizing delete date per project
 
 
 ## v2026.42 - 2026-06-03
