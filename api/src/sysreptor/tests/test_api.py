@@ -158,7 +158,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         ])
     if update:
         out.extend([
-            ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': get_obj(s).pk}), data={'project_type': get_obj(s).project_type.id})),
+            ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': get_obj(s).pk}), data={'readonly': not get_obj(s).readonly})),
         ])
     if create:
         out.extend([
@@ -298,9 +298,8 @@ def regular_user_urls():
 
         *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destroy=True, share=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True),
-        ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project.pk}), data={'readonly': True})),
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, destroy=True, share=True),
-        ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': s.project_readonly.pk}), data={'readonly': False})),
+        ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': s.project.pk}), data={'project_type': s.project.project_type.id})),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, update=True, destroy=True, share=True),
 
         ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
         ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly.pk}))),
@@ -372,7 +371,8 @@ def superuser_urls():
 
 def forbidden_urls():
     return [
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True, destroy=False),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True, update=False, destroy=False),
+        ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': s.project_readonly.pk}), data={'project_type': s.project_readonly.project_type.id})),
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod fido2 backup', lambda s, c: c.post(reverse('mfamethod-register-fido2-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),

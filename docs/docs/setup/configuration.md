@@ -431,13 +431,15 @@ This means that encryption happens with fewer encryption keys and it will be mor
 PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=false
 ```
 
-The process of archiving finished projects and deleting old archives can be automated by following settings. The values are time spans in days.
+The process of archiving finished projects and deleting old projects can be automated by following settings. The values are time spans in days.
+* `AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER`: Finished projects are automatically archived X days after the project was finished (if possible). Re-activating the project resets the timer.
+* `AUTOMATICALLY_DELETE_PROJECTS_AFTER`: Finished (and archived) projects are automatically assigned a delete date X days after the project was finished. The delete date can be customized per project or set to never delete. Re-activating or restoring preserved the delete date. Active projects are never deleted.
 
 ```dotenv title="Example:"
 # Automatically archive finished projects after 3 months
 AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=90
-# Automatically delete archived projects after 2 years
-AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=730
+# Automatically delete finished (and archived) projects after 2 years
+AUTOMATICALLY_DELETE_PROJECTS_AFTER=730
 ```
 
 

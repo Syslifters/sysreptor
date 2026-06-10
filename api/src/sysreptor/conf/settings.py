@@ -825,12 +825,12 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         extra_info={'group': 'archiving', 'professional_only': True},
         help_text='Automatically archive finished projects after X days'),
     NumberField(
-        id='AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER',
+        id='AUTOMATICALLY_DELETE_PROJECTS_AFTER',
         default=None,
         minimum=1,
         required=False,
         extra_info={'group': 'archiving', 'professional_only': True},
-        help_text='Automatically delete archived projects after X days'),
+        help_text='Automatically delete finished (and archived) projects after X days'),
 
 
     BooleanField(

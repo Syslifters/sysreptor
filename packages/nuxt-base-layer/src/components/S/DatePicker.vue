@@ -1,7 +1,7 @@
 <template>
   <s-text-field
-    :model-value="props.modelValue"
-    @update:model-value="emit('update:modelValue', $event || null)"
+    :model-value="displayValue"
+    @update:model-value="updateInputValue"
     :disabled="props.disabled"
     :readonly="props.readonly"
     :rules="rules"
@@ -33,7 +33,14 @@
       >
         <template #append>
           <v-btn
-            v-if="isTodayAllowed"
+            v-if="props.allowNever"
+            @click="setNever"
+            text="Never"
+            prepend-icon="mdi-infinity"
+            variant="text"
+          />
+          <v-btn
+            v-else-if="isTodayAllowed"
             @click="setToday"
             text="Today"
             prepend-icon="mdi-calendar-today"
@@ -47,30 +54,53 @@
 <script setup lang="ts">
 import { formatISO, isAfter, isValid, parseISO, startOfDay } from "date-fns";
 
+export type DatePickerValue = string|'never'|null;
+
 const props = withDefaults(defineProps<{
-  modelValue?: string|null;
+  modelValue?: DatePickerValue;
   disabled?: boolean;
   readonly?: boolean;
   locale?: string;
   minDate?: string;
+  allowNever?: boolean|'null-to-never';
 }>(), {
   modelValue: null,
   disabled: false,
   readonly: false,
   locale: 'en',
   minDate: undefined,
+  allowNever: false,
 });
 const emit = defineEmits<{
-  'update:modelValue': [value: string|null];
+  'update:modelValue': [value: DatePickerValue];
   'focus': [e: FocusEvent];
   'blur': [e: FocusEvent];
 }>();
 
 const datePickerVisible = ref(false);
 
+const displayValue = computed(() => {
+  if (props.modelValue === 'never' || (props.allowNever === 'null-to-never' && !props.modelValue)) {
+    return 'Never';
+  }
+  return props.modelValue;
+});
+
+function updateInputValue(val: string|null) {
+  if (props.allowNever && (val?.toLowerCase() === 'never' || (!val && props.allowNever === 'null-to-never'))) {
+    emit('update:modelValue', 'never');
+    return;
+  }
+  if (!val) {
+    emit('update:modelValue', null);
+    return;
+  }
+  emit('update:modelValue', val);
+}
+
 const dateValue = computed({
   get: () => {
-    if (!props.modelValue) {
+    if (!props.modelValue || props.modelValue === 'never') {
       return null;
     }
     const date = parseISO(props.modelValue);
@@ -90,6 +120,11 @@ function setToday() {
   dateValue.value = startOfDay(new Date());
 }
 
+function setNever() {
+  datePickerVisible.value = false;
+  emit('update:modelValue', 'never');
+}
+
 const isTodayAllowed = computed(() => {
   if (!props.minDate) {
     return true;
@@ -104,6 +139,9 @@ const isTodayAllowed = computed(() => {
 const rules = [
   (d: string|null) => {
     if (!d) {
+      return true;
+    }
+    if (props.allowNever && d.toLowerCase() === 'never') {
       return true;
     }
     if (!isValid(parseISO(d))) {

@@ -499,6 +499,3 @@ class TestUserPermissionAssignment:
         assert res.status_code in ([200] if expected else [200, 403])
         user_target.refresh_from_db()
         assert {k: getattr(user_target, k) for k in data.keys()} == (data if expected else original_data)
-
-
-# TODO: disable editing of superusers for user_managers in frontend

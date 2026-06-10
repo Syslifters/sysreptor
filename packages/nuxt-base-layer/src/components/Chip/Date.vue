@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<{
   relative: 'past'
 });
 
-const date = computed(() => props.value ? parseISO(props.value) : null);
+const date = computed(() => props.value && props.value !== 'never' ? parseISO(props.value) : null);
 const isoDate = computed(() => date.value ? formatISO9075(date.value) : 'never');
 const formattedDate = computed(() => {
   if (!date.value) {

@@ -62,8 +62,8 @@
 
     <div class="mb-4">
       <chip-created :value="archive.created" />
-      <chip-auto-delete :value="archive.auto_delete_date" />
       <chip-tag v-for="tag in archive.tags" :key="tag" :value="tag" />
+      <chip-auto-delete :value="archive.delete_date" />
     </div>
 
     <p class="mt-4">

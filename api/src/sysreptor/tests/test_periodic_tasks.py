@@ -11,6 +11,7 @@ from django.utils import timezone
 from pytest_django.asserts import assertNumQueries
 
 from sysreptor.pentests.models import (
+    DELETE_DATE_NEVER,
     ArchivedProject,
     BlindTrigramToken,
     CollabEvent,
@@ -20,7 +21,7 @@ from sysreptor.pentests.models import (
 )
 from sysreptor.pentests.tasks import (
     automatically_archive_projects,
-    automatically_delete_archived_projects,
+    automatically_delete_projects,
     cleanup_collab_events,
     cleanup_project_files,
     cleanup_template_files,
@@ -508,7 +509,7 @@ class TestAutoProjectArchiving:
         project_active = create_project(readonly=False, members=[self.user])
 
         with mock_time(after=timedelta(days=40)):
-            async_to_sync(automatically_archive_projects)(None)
+            automatically_archive_projects(None)
             assert ArchivedProject.objects.filter(name=self.project.name).exists()
             assert not PentestProject.objects.filter(id=self.project.id).exists()
             assert PentestProject.objects.filter(id=project_active.id).exists()
@@ -516,12 +517,12 @@ class TestAutoProjectArchiving:
     @override_configuration(AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER=None)
     def test_auto_archiving_disabled(self):
         with mock_time(after=timedelta(days=60)):
-            async_to_sync(automatically_archive_projects)(None)
+            automatically_archive_projects(None)
             assert PentestProject.objects.filter(id=self.project.id).exists()
 
     def test_project_below_auto_archive_time(self):
         with mock_time(after=timedelta(days=10)):
-            async_to_sync(automatically_archive_projects)(None)
+            automatically_archive_projects(None)
             assert PentestProject.objects.filter(id=self.project.id).exists()
 
     def test_counter_reset_on_unfinished(self):
@@ -530,38 +531,33 @@ class TestAutoProjectArchiving:
         with mock_time(after=timedelta(days=21)):
             update(self.project, readonly=True)
         with mock_time(after=timedelta(days=40)):
-            async_to_sync(automatically_archive_projects)(None)
+            automatically_archive_projects(None)
             assert PentestProject.objects.filter(id=self.project.id).exists()
         with mock_time(after=timedelta(days=60)):
-            async_to_sync(automatically_archive_projects)(None)
+            automatically_archive_projects(None)
             assert ArchivedProject.objects.filter(name=self.project.name).exists()
             assert not PentestProject.objects.filter(id=self.project.id).exists()
 
 
 @pytest.mark.django_db()
 class TestAutoArchiveDeletion:
-    @pytest.fixture(autouse=True)
-    def setUp(self):
-        self.archive = create_archived_project()
-
-        with override_configuration(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=30):
-            yield
-
-    def test_delete(self):
-        with mock_time(after=timedelta(days=60)):
-            async_to_sync(automatically_delete_archived_projects)(None)
-            assert not ArchivedProject.objects.filter(id=self.archive.id).exists()
-
-    def test_archive_blow_time(self):
-        with mock_time(after=timedelta(days=20)):
-            async_to_sync(automatically_delete_archived_projects)(None)
-            assert ArchivedProject.objects.filter(id=self.archive.id).exists()
-
-    @override_configuration(AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER=None)
-    def test_auto_archive_disabled(self):
-        with mock_time(after=timedelta(days=60)):
-            async_to_sync(automatically_delete_archived_projects)(None)
-            assert ArchivedProject.objects.filter(id=self.archive.id).exists()
+    @pytest.mark.parametrize(('delete_date', 'expected'), [
+        (None, False),
+        (DELETE_DATE_NEVER, False),
+        ((timezone.now() + timedelta(days=1)).date(), False),
+        (timezone.now().date(), True),
+        ((timezone.now() - timedelta(days=1)).date(), True),
+    ])
+    def test_archive_delete_date(self, delete_date, expected):
+        user = create_user(public_key=True)
+        archive = create_archived_project(project=create_project(readonly=True, members=[user]))
+        update(archive, delete_date=delete_date)
+        project_finished = create_project(readonly=True, delete_date=delete_date, members=[user])
+        project_active = create_project(readonly=False, delete_date=delete_date, members=[user])
+        automatically_delete_projects(None)
+        assert (not ArchivedProject.objects.filter(id=archive.id).exists()) == expected
+        assert (not PentestProject.objects.filter(id=project_finished.id).exists()) == expected
+        assert PentestProject.objects.filter(id=project_active.id).exists() is True
 
 
 @pytest.mark.django_db()
