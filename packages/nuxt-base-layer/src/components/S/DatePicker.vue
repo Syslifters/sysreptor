@@ -80,22 +80,22 @@ const emit = defineEmits<{
 const datePickerVisible = ref(false);
 
 const displayValue = computed(() => {
-  if (props.modelValue === 'never' || (props.allowNever === 'null-to-never' && !props.modelValue)) {
+  if (props.modelValue === 'never') {
     return 'Never';
   }
   return props.modelValue;
 });
 
 function updateInputValue(val: string|null) {
-  if (props.allowNever && (val?.toLowerCase() === 'never' || (!val && props.allowNever === 'null-to-never'))) {
+  if (props.allowNever && (val?.toLowerCase() === 'never')) {
     emit('update:modelValue', 'never');
     return;
-  }
-  if (!val) {
+  } else if (!val) {
     emit('update:modelValue', null);
     return;
+  } else {
+    emit('update:modelValue', val);
   }
-  emit('update:modelValue', val);
 }
 
 const dateValue = computed({
