@@ -35,6 +35,12 @@ class TestConfiguration:
             StringField(id='FIELD_STRING', default='default value', required=True),
             JsonField(id='FIELD_JSON', default=json.dumps({'value': 'default'}), required=False),
             ListField(id='FIELD_LIST', items=StringField(), required=True),
+            JsonField(
+                id='FIELD_SECRET',
+                default='{"key": "default"}',
+                required=False,
+                extra_info={'secret': True},
+            ),
             StringField(id='FIELD_INTERNAL', default='default', extra_info={'internal': True}),
         ])), mock.patch('sysreptor.conf.plugins.available_plugins', new=[]):
             configuration.clear_cache()
@@ -106,6 +112,7 @@ class TestConfiguration:
             'FIELD_STRING': 'default value',
             'FIELD_JSON': '{"value": "default"}',
             'FIELD_LIST': None,
+            'FIELD_SECRET': '{"key": "default"}',
         }
 
     @pytest.mark.parametrize(('expected', 'data'), [
@@ -139,6 +146,18 @@ class TestConfiguration:
         assert res.data['FIELD_STRING'] == 'env'
         assert configuration.FIELD_STRING == 'env'
         assert not DbConfigurationEntry.objects.filter(name='FIELD_STRING').exists()
+
+    @override_settings(LOAD_CONFIGURATIONS_FROM_ENV=True, LOAD_CONFIGURATIONS_FROM_DB=True)
+    @mock.patch.dict(os.environ, {'FIELD_SECRET': '{"key": "env-secret"}'})
+    def test_secret_env_value_redacted(self):
+        res = self.client.get(reverse('configuration-list'))
+        assert res.data['FIELD_SECRET'] == '*** REDACTED ***'  # noqa: S105
+
+    @override_settings(LOAD_CONFIGURATIONS_FROM_ENV=True, LOAD_CONFIGURATIONS_FROM_DB=True)
+    def test_secret_db_value_visible(self):
+        configuration.update({'FIELD_SECRET': '{"key": "db-secret"}'})
+        res = self.client.get(reverse('configuration-list'))
+        assert res.data['FIELD_SECRET'] == '{"key": "db-secret"}'  # noqa: S105
 
     @override_settings(LOAD_CONFIGURATIONS_FROM_ENV=True, LOAD_CONFIGURATIONS_FROM_DB=True)
     @mock.patch.dict(os.environ, {'FIELD_STRING': 'env'})

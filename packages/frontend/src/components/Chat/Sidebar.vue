@@ -18,7 +18,6 @@
           <s-btn-icon @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
             <v-icon size="x-large" icon="mdi-close" />
           </s-btn-icon>
-          />
         </template>
       </v-list-item>
       <v-divider />
@@ -84,7 +83,7 @@
             </div>
           </template>
           <template #details>
-            <div>
+            <div class="d-flex align-center flex-wrap ga-2">
               <v-select
                 v-model="localSettings.reportingChatAgent"
                 :items="[
@@ -118,6 +117,23 @@
                       <span v-else>{{ item.title }}</span>
                     </template>
                   </v-list-item>
+                </template>
+              </v-select>
+              <v-divider vertical class="select-divider" />
+              <v-select
+                v-model="aiAgentModel"
+                :items="apiSettings.settings?.ai_agent_models || []"
+                item-value="id"
+                item-title="label"
+                density="compact"
+                variant="plain"
+                hide-details="auto"
+                class="select-model"
+              >
+                <template #selection="{ item }">
+                  <div class="d-flex align-center">
+                    <span class="text-body-medium">{{ item.label }}</span>
+                  </div>
                 </template>
               </v-select>
             </div>
@@ -158,7 +174,10 @@ const currentStreamingMessageId = computed(() => {
 const messagesContainerRef = useTemplateRef('messagesContainerRef');
 const isScrolledToBottom = ref(true);
 
-
+const aiAgentModel = computed({
+  get: () => apiSettings.settings?.ai_agent_models?.find(m => m.id === localSettings.reportingChatModel)?.id ?? apiSettings.settings?.ai_agent_models?.[0]?.id ?? null,
+  set: (value: string | null) => { localSettings.reportingChatModel = value; }
+});
 const form = ref({
   message: '',
 });
@@ -170,6 +189,7 @@ async function sendMessage() {
     message: form.value.message, 
     context: props.context,
     agent: localSettings.reportingChatAgent,
+    model: aiAgentModel.value,
   });
 
   // Always scroll to bottom when sending a new message (after adding message to UI)
@@ -257,10 +277,14 @@ const onScrollMessages = throttle(() => {
   }
 }
 
-.select-agent:deep() {
+.select-agent:deep(), .select-model:deep() {
   .v-field {
     --v-input-control-height: 24px;
     --v-input-padding-top: 0;
   }
+}
+.select-divider {
+  margin-top: 0.2rem;
+  margin-bottom: 0.2rem;
 }
 </style>

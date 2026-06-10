@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
 
+from sysreptor.ai.agents.base import get_model_configs
 from sysreptor.api_utils import backup_utils
 from sysreptor.api_utils.healthchecks import run_healthchecks
 from sysreptor.api_utils.models import BackupLog
@@ -190,11 +191,16 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
         if not request.user.is_authenticated:
             return Response(public_settings)
 
+        ai_agent_models = [
+            {'id': m.get('id'), 'label': m.get('label', m.get('id'))}
+            for m in get_model_configs()
+        ]
         return Response(public_settings | {
             'statuses': ReviewStatus.get_definitions(),
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'archiving_threshold': int(configuration.ARCHIVING_THRESHOLD),
             'ai_agent_disclaimer': configuration.AI_AGENT_DISCLAIMER,
+            'ai_agent_models': ai_agent_models,
             'features': public_settings['features'] | {
                 'private_designs': configuration.ENABLE_PRIVATE_DESIGNS,
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
@@ -202,7 +208,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'sharing': not configuration.DISABLE_SHARING,
-                'ai_agent': bool(configuration.AI_AGENT_ENABLED and settings.AI_AGENT_MODEL),
+                'ai_agent': bool(configuration.AI_AGENT_ENABLED and ai_agent_models),
             },
             'permissions': public_settings['permissions'] | {
                 'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,

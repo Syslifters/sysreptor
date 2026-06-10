@@ -7,6 +7,7 @@ from typing import Any
 
 import yaml
 from asgiref.sync import sync_to_async
+from decouple import config
 from deepagents._tools import _apply_tool_description_overrides
 from deepagents.backends import StateBackend
 from deepagents.graph import BASE_AGENT_PROMPT
@@ -18,7 +19,6 @@ from deepagents.profiles.harness.harness_profiles import (
     _apply_profile_prompt,
     _harness_profile_for_model,
 )
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
@@ -32,9 +32,11 @@ from langgraph.types import Command
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
+from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
 from sysreptor.ai.models import ChatThread, LangchainCheckpoint
+from sysreptor.utils.configuration import configuration
 from sysreptor.utils.history import history_context
-from sysreptor.utils.utils import copy_keys
+from sysreptor.utils.utils import copy_keys, omit_keys
 
 
 def to_yaml(data: Any) -> str:
@@ -112,10 +114,43 @@ def is_in_subagent() -> bool:
         return False
 
 
-def init_chat_model():
-    if not settings.AI_AGENT_MODEL:
-        raise ValueError('AI_AGENT_MODEL must be set to use the AI agent')
-    return chat_models.init_chat_model(settings.AI_AGENT_MODEL)
+def get_model_configs() -> list:
+    try:
+        out = [json.loads(c) for c in configuration.AI_AGENT_MODELS or []]
+    except Exception:
+        out = []
+
+    if not out and (legacy_ai_model := config('AI_AGENT_MODEL')):
+        # TODO: test fallback handling for all docs
+        provider, model_name = legacy_ai_model.split(':', 1)
+        env_prefix = {'mistralai': 'mistral'}.get(provider, provider).upper()
+        out = [{
+            'id': model_name,
+            'model': model_name,
+            'provider': provider,
+            'api_key': config(f'{env_prefix}_API_KEY', default=None),
+            'base_url': config(f'{env_prefix}_BASE_URL', config(f'{env_prefix}_API_BASE', config(f'{env_prefix}_HOST', default=None))),
+        }]
+
+    return out
+
+
+def get_default_model_id() -> str:
+    default_model = next(iter(get_model_configs()), None)
+    if not default_model:
+        raise ValueError('No LLM model configured')
+    return default_model.get('id')
+
+
+def init_chat_model(model: str):
+    config = next(filter(lambda c: c.get('id') == model, get_model_configs()), None)
+    if not config:
+        raise ValueError(f'Unknown model: {model}')
+    return chat_models.init_chat_model(
+        model=config.get('model'),
+        model_provider=config.get('provider', 'deepseek'),
+        **omit_keys(config, ['id', 'label', 'provider', 'model']),
+    )
 
 
 def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage) -> None:
@@ -152,15 +187,16 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
     Create a SysReptor agent.
     Based on langchain deepagents library but without filesystem tools.
     """
-    model = init_chat_model()
-    profile = _harness_profile_for_model(model, settings.AI_AGENT_MODEL)
+    default_model = init_chat_model(get_default_model_id())
+    profile = _harness_profile_for_model(default_model, spec=None)
     tools = _apply_tool_description_overrides(tools, profile.tool_description_overrides)
 
     backend = StateBackend()
     middleware = [
+        SelectConfiguredModelMiddleware(),
         TodoListMiddleware(),
         PatchToolCallsMiddleware(),
-        create_summarization_middleware(model=model, backend=backend),
+        create_summarization_middleware(model=default_model, backend=backend),
         MessageTimestampMiddleware(),
     ] + profile.materialize_extra_middleware() + middleware
 
@@ -175,13 +211,13 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         GENERAL_PURPOSE_SUBAGENT | {
             'description': gp_profile.description or GENERAL_PURPOSE_SUBAGENT['description'],
             'system_prompt': subagent_prompt,
-            'model': model,
+            'model': default_model,
             'tools': tools,
             'middleware': middleware,
         },
     ]
     agent = create_agent(
-        model=model,
+        model=default_model,
         system_prompt=system_prompt + '\n\n' + _apply_profile_prompt(profile, BASE_AGENT_PROMPT),
         tools=tools,
         middleware=middleware + [
@@ -229,7 +265,7 @@ def format_message(m: AnyMessage) -> dict|None:
     return None
 
 
-async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None = None, **kwargs):
+async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None = None, model: str | None = None, **kwargs):
     try:
         with history_context(history_user=thread.user, set_history_date=False):
             yield {'type': 'metadata', 'content': {'thread_id': str(thread.id)}}
@@ -243,7 +279,11 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                         'thread_id': str(thread.id),
                     },
                 },
-                context=agent.context_schema(**(context or {}) | {'user_id': thread.user_id, 'project_id': thread.project_id}),
+                context=agent.context_schema(**(context or {}) | {
+                    'user_id': thread.user_id,
+                    'project_id': thread.project_id,
+                    'model': model or get_default_model_id(),
+                }),
                 durability='exit',
                 subgraphs=True,
                 **kwargs,

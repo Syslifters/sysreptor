@@ -36,6 +36,7 @@ from sysreptor.utils.fielddefinition.types import (
     StringField,
 )
 from sysreptor.utils.language import Language
+from sysreptor.utils.utils import is_unique
 
 
 def remove_empty_items(lst=None):
@@ -593,12 +594,6 @@ ENABLED_PLUGINS = config('ENABLED_PLUGINS', cast=Csv(post_process=remove_empty_i
 INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
 
 
-# LLM
-AI_AGENT_MODEL = config('AI_AGENT_MODEL', default=None)
-# API keys, URLs and other settings are directly loaded by langchain from environment variables
-# e.g. OPENAI_API_KEY, OPENAI_API_BASE, ANTHROPIC_API_KEY, etc.
-
-
 # Elastic APM
 ELASTIC_APM_ENABLED = config('ELASTIC_APM_ENABLED', cast=bool, default=False)
 ELASTIC_APM = {
@@ -924,20 +919,48 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
     BooleanField(
         id='AI_AGENT_ENABLED',
         default=False,
-        extra_info={'group': 'ai_agent'},
+        extra_info={'group': 'ai_agent', 'professional_only': False},
         help_text='Enable/disable the AI Agent feature globally.'
                   'This feature requires an LLM model and API key to be configured.'),
+    ListField(
+        id='AI_AGENT_MODELS',
+        required=False,
+        items=JsonField(
+            required=True,
+            schema={
+                'type': 'object',
+                'required': ['id', 'model', 'api_key'],
+                'properties': {
+                    'id': {'type': 'string', 'minLength': 1},
+                    'label': {'type': 'string'},
+                    'provider': {'type': 'string', 'minLength': 1},
+                    'model': {'type': 'string', 'minLength': 1},
+                    'api_key': {'type': 'string'},
+                    'base_url': {'type': 'string'},
+                },
+                'additionalProperties': True,
+            },
+            label='LLM model config',
+            help_text='Example: {"id": "gpt-oss-120b", "label": "GPT OSS 120B", "model": "gpt-oss-120b", "api_key": "...", "base_url": "https://llm.example.com/"}'),
+        extra_info={
+            'group': 'ai_agent',
+            'professional_only': False,
+            'secret': True,
+            'validate': lambda l: is_unique([json.loads(m)['id'] for m in l]),
+        },
+        help_text='List of LLM model configurations. Supports OpenAI-compatible LLM providers, anthropic and mistrail. '
+            'See https://docs.sysreptor.com/configuration/#llm-provider for details.'),
     StringField(
         id='AI_AGENT_DISCLAIMER',
         default='AI can make mistakes. Do not use without manual review.',
         required=False,
-        extra_info={'group': 'ai_agent'},
+        extra_info={'group': 'ai_agent', 'professional_only': False},
         help_text='Disclaimer text shown when using the AI Agent feature.'),
     MarkdownField(
         id='AI_AGENT_SYSTEM_PROMPT',
         default='',
         required=False,
-        extra_info={'group': 'ai_agent'},
+        extra_info={'group': 'ai_agent', 'professional_only': False},
         help_text='System prompt used to prime the AI Agent.'),
 
 
@@ -949,3 +972,4 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
 ])
 LOAD_CONFIGURATIONS_FROM_ENV = True
 LOAD_CONFIGURATIONS_FROM_DB = config('LOAD_CONFIGURATIONS_FROM_DB', cast=bool, default=True)
+
