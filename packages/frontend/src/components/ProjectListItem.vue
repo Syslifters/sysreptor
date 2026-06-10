@@ -72,7 +72,7 @@
         @filter="emit('filter', $event)"
       />
       <chip-auto-delete
-        v-if="props.item.delete_date || props.item.readonly"
+        v-if="props.item.delete_date"
         :value="props.item.delete_date"
       />
     </template>

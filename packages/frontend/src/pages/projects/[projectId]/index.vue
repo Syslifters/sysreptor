@@ -154,7 +154,7 @@
       <s-date-picker
         v-if="project.readonly || project.delete_date || wasDeleteDateSet"
         v-model="project.delete_date"
-        :allow-never="project.readonly ? 'null-to-never' : true"
+        :allow-never="true"
         :min-date="formatISO9075(new Date(), { representation: 'date' })"
         hint="Date when this project will be automatically deleted. Select Never to disable automatic deletion, or clear the field to unset."
         :error-messages="serverErrors?.delete_date || []"
