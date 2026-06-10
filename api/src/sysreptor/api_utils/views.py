@@ -257,7 +257,19 @@ class ConfigurationViewSet(viewsets.ViewSet):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdmin]
 
     def get_serializer(self, **kwargs):
-        instance = kwargs.pop('instance', {d.id: configuration.get(d.id) for d in configuration.definition.fields if not d.extra_info.get('internal')})
+        instance = kwargs.pop('instance', None)
+        if not instance:
+            instance = {}
+            for d in configuration.definition.fields:
+                if d.extra_info.get('internal'):
+                    continue
+                value = configuration.get(d.id)
+                if d.extra_info.get('secret') and d.extra_info.get('set_in_env'):
+                    if isinstance(value, str):
+                        value = '*** REDACTED ***'
+                    else:
+                        value = None
+                instance[d.id] = value
         return DynamicObjectSerializer(
             fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields if not f.extra_info.get('internal')},
             instance=instance,

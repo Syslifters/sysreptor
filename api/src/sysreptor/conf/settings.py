@@ -897,7 +897,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                 'additoinalProperties': True,
             }},
         },
-        extra_info={'group': 'auth', 'professional_only': True}),
+        extra_info={'group': 'auth', 'professional_only': True, 'secret': True}),
     BooleanField(
         id='REMOTE_USER_AUTH_ENABLED',
         default=False,
