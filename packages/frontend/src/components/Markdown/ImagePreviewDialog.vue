@@ -6,9 +6,9 @@
     @update:model-value="onClose"
     :persistent="editMode"
     width="90vw"
-    max-width="90vw"
+    max-width="90%"
     height="90vh"
-    max-height="90vh"
+    max-height="90%"
     density="compact"
     :card-props="{ class: 'img-preview-dialog-card' }"
     @keydown.arrow-left="!editMode && windowRef?.group.prev()"
@@ -125,9 +125,9 @@
     v-if="modelValue"
     v-model="originalDialogOpen"
     width="80vw"
-    max-width="80vw"
+    max-width="80%"
     height="80vh"
-    max-height="80vh"
+    max-height="80%"
     density="compact"
   >
     <template #title>
