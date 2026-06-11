@@ -6,6 +6,7 @@
 * Rename configuration `AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER` to `AUTOMATICALLY_DELETE_PROJECTS_AFTER`
 * Configure auto delete for finished and archived projects via `AUTOMATICALLY_DELETE_PROJECTS_AFTER`
 * Allow customizing delete date per project
+* Show note title in window title
 
 
 ## v2026.42 - 2026-06-03
