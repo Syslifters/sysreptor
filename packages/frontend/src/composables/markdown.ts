@@ -377,8 +377,9 @@ export function useMarkdownEditorBase(options: {
               if (types.includes('text/html') && !inCodeBlock && (
                 types.length === 1 ||  // HTML only
                 (types.indexOf('text/html') === 0 && !types.includes('Files')) ||  // HTML content
-                (types.indexOf('text/html') < types.indexOf('text/plain') && types.length === 2) || // Microsoft Excel, Word
-                types.includes('text/rtf')  // LibreOffice
+                isEqual(types, ['text/html', 'text/plain']) ||  // Microsoft Excel, Word
+                isEqual(types, ['text/plain', 'text/html', 'Files']) ||  // OnlyOffice
+                types.includes('text/rtf') // LibreOffice
               )) {
                 event.stopPropagation();
                 event.preventDefault();
