@@ -273,6 +273,8 @@ class ConfigurationViewSet(viewsets.ViewSet):
                 if d.extra_info.get('secret') and d.extra_info.get('set_in_env'):
                     if isinstance(value, str):
                         value = '*** REDACTED ***'
+                    elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], str):
+                        value = ['*** REDACTED ***'] * len(value)
                     else:
                         value = None
                 instance[d.id] = value

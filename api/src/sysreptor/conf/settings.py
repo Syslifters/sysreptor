@@ -946,6 +946,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
             'group': 'ai_agent',
             'professional_only': False,
             'secret': True,
+            'load_from_env': lambda e: [json.dumps(c) if isinstance(c, dict) else c for c in json.loads(e)],
             'validate': lambda l: is_unique([json.loads(m)['id'] for m in l]),
         },
         help_text='List of LLM model configurations. Supports OpenAI-compatible LLM providers, anthropic and mistrail. '

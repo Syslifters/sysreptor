@@ -670,13 +670,6 @@ class TestAiCleanupTask:
 
 @pytest.mark.django_db()
 class TestLLMConfig:
-    @pytest.fixture(autouse=True)
-    def setUp(self):
-        with override_configuration(AI_AGENT_MODELS=[
-            json.dumps({'id': 'test:fake-model', 'provider': 'test', 'model': 'fake-model'}),
-        ]):
-            yield
-
     @override_configuration(AI_AGENT_MODELS=[])
     @mock.patch.dict('os.environ', {'AI_AGENT_MODEL': ''})
     def test_no_models_configured(self):

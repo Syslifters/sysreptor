@@ -121,7 +121,6 @@ def get_model_configs() -> list:
         out = []
 
     if not out and (legacy_ai_model := config('AI_AGENT_MODEL')):
-        # TODO: test fallback handling for all docs
         provider, model_name = legacy_ai_model.split(':', 1)
         env_prefix = {'mistralai': 'mistral'}.get(provider, provider).upper()
         out = [{
