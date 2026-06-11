@@ -46,8 +46,8 @@ const router = useRouter();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 
-definePageMeta({
-  title: 'Notes',
+useHeadExtended({
+  titleTemplate: title => projectNoteTitleTemplate(project.value, title, route),
 });
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));

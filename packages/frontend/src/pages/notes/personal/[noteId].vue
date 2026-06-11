@@ -159,6 +159,10 @@ const shareDialogVisible = ref(false);
 
 // Autofocus input
 useAutofocus(note, 'text');
+
+useHeadExtended({
+  title: computed(() => note.value?.title || null),
+});
 </script>
 
 <style lang="scss" scoped>

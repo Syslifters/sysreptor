@@ -177,6 +177,10 @@ useAutofocus(note, 'text', (id?: string) => {
   }
 });
 
+useHeadExtended({
+  title: computed(() => note.value?.title || null),
+});
+
 </script>
 
 <style lang="scss" scoped>

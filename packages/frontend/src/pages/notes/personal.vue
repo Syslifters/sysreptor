@@ -53,7 +53,7 @@ const noteSearchResults = computed(() => searchNotes(userNotesStore.notes, notes
 const noteTreeRef = useTemplateRef('noteTreeRef');
 
 useHeadExtended({
-  titleTemplate: (title?: string|null) => userNotesTitleTemplate(title, route),
+  titleTemplate: title => userNotesTitleTemplate(title, route),
   breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
   syncState: notesCollab.syncState,
 });

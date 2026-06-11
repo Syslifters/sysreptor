@@ -39,6 +39,11 @@ export function userNotesTitleTemplate(title?: string|null, route?: RouteType) {
   return rootTitleTemplate((title ? title + ' | ' : '') + 'Notes');
 }
 
+export function projectNoteTitleTemplate(project?: PentestProject, title?: string|null, route?: RouteType) {
+  title = getTitle(title, route);
+  return projectTitleTemplate(project, (title ? `${title} | ` : '') + 'Notes');
+}
+
 export function projectListBreadcrumbs(): Breadcrumbs {
   return [
     { title: 'Projects', to: '/projects/' },
