@@ -1,12 +1,14 @@
 # Changelog
 
 ## Upcoming
-* Fix bulk set status action disabled in UI
-* UI: Improve template multi select in create finding dialog
-* Rename configuration `AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER` to `AUTOMATICALLY_DELETE_PROJECTS_AFTER`
+* Move LLM configuration `AI_AGENT_MODELS` to web UI instead of env variables (https://docs.sysreptor.com/setup/configuration#llm-models)
+* Support multiple LLM models and model selection in UI
+* Rename configuration `AUTOMATICALLY_DELETE_ARCHIVED_PROJECTS_AFTER` to `AUTOMATICALLY_DELETE_PROJECTS_AFTER` (https://docs.sysreptor.com/setup/configuration#archiving)
 * Configure auto delete for finished and archived projects via `AUTOMATICALLY_DELETE_PROJECTS_AFTER`
 * Allow customizing delete date per project
-* Show note title in window title
+* Fix bulk set status action disabled in UI
+* UI: Improve template multi select in create finding dialog
+* UI: Show note title in window title
 
 
 ## v2026.42 - 2026-06-03
