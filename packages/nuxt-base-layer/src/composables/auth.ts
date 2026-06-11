@@ -82,9 +82,9 @@ export function useAuth() {
     return await navigateTo(redirect, { external });
   }
 
-  async function redirectToReAuth(options?: NavigateToOptions) {
+  async function redirectToReAuth(options?: NavigateToOptions & { authRedirect?: LocationQueryValue }) {
     const route = useRoute();
-    store.setAuthRedirect(route.fullPath);
+    store.setAuthRedirect(options?.authRedirect ?? route.fullPath);
     return await navigateTo('/login/reauth/', options);
   }
 
