@@ -43,7 +43,7 @@ const mfaMethods = await useAsyncDataE(async () => {
     return await $fetch<MfaMethod[]>(`/api/v1/pentestusers/${route.params.userId}/mfa/`, { method: 'GET' });
   } catch (error: any) {
     if (error?.data?.code === 'reauth-required') {
-      auth.redirectToReAuth({ replace: true });
+      auth.redirectToReAuth({ authRedirect: route.fullPath, replace: true });
       return [];
     } else {
       throw error;
