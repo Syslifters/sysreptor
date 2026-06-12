@@ -232,28 +232,29 @@ class TestProjectAgent:
             self.send_message(user_messages[1], context={'section_id': 'executive_summary'}, thread_id=thread_id)
             self.send_message(user_messages[2], context={'finding_id': finding.finding_id}, thread_id=thread_id)
 
-        # Context messages injected before the last human message
+        # Injected context is merged with user messages before the LLM call
         assert len(model.message_log) == 4
 
-        assert [m.type for m in model.message_log[0]['messages']] == ['system', 'human', 'human']
+        assert [m.type for m in model.message_log[0]['messages']] == ['system', 'human']
         assert '<navigation target="sections.executive_summary">' in model.message_log[0]['messages'][1].content
         assert_injected_message(model.message_log[0]['messages'][1])
-        assert model.message_log[0]['messages'][2].content == user_messages[0]
+        assert user_messages[0] in model.message_log[0]['messages'][1].content
 
-        assert [m.type for m in model.message_log[1]['messages']] == ['system', 'human', 'human', 'ai', 'tool']
+        assert [m.type for m in model.message_log[1]['messages']] == ['system', 'human', 'ai', 'tool']
         assert_injected_message(model.message_log[1]['messages'][1])
-        assert model.message_log[1]['messages'][2].content == user_messages[0]
+        assert user_messages[0] in model.message_log[1]['messages'][1].content
 
-        assert [m.type for m in model.message_log[2]['messages']] == ['system', 'human', 'human', 'ai', 'tool', 'ai', 'human']
+        assert [m.type for m in model.message_log[2]['messages']] == ['system', 'human', 'ai', 'tool', 'ai', 'human']
         assert_injected_message(model.message_log[2]['messages'][1])
-        assert model.message_log[2]['messages'][6].content == user_messages[1]
+        assert user_messages[1] in model.message_log[2]['messages'][5].content
 
         # Page switched to finding
-        assert [m.type for m in model.message_log[3]['messages']] == ['system', 'human', 'human', 'ai', 'tool', 'ai', 'human', 'ai', 'human', 'human']
-        assert f'<navigation target="findings.{finding.finding_id}">' in model.message_log[3]['messages'][8].content
-        assert finding.title in model.message_log[3]['messages'][8].content
-        assert yaml_indent(finding.data['description']) in model.message_log[3]['messages'][8].content
-        assert model.message_log[3]['messages'][9].content == user_messages[2]
+        assert [m.type for m in model.message_log[3]['messages']] == ['system', 'human', 'ai', 'tool', 'ai', 'human', 'ai', 'human']
+        finding_message = model.message_log[3]['messages'][7]
+        assert f'<navigation target="findings.{finding.finding_id}">' in finding_message.content
+        assert finding.title in finding_message.content
+        assert yaml_indent(finding.data['description']) in finding_message.content
+        assert user_messages[2] in finding_message.content
 
         # Context messages not returned in chat history
         res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
