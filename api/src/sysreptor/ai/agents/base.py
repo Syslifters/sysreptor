@@ -120,7 +120,7 @@ def get_model_configs() -> list:
     except Exception:
         out = []
 
-    if not out and (legacy_ai_model := config('AI_AGENT_MODEL')):
+    if not out and (legacy_ai_model := config('AI_AGENT_MODEL', default=None)):
         provider, model_name = legacy_ai_model.split(':', 1)
         env_prefix = {'mistralai': 'mistral'}.get(provider, provider).upper()
         out = [{
@@ -128,7 +128,7 @@ def get_model_configs() -> list:
             'model': model_name,
             'provider': provider,
             'api_key': config(f'{env_prefix}_API_KEY', default=None),
-            'base_url': config(f'{env_prefix}_BASE_URL', config(f'{env_prefix}_API_BASE', config(f'{env_prefix}_HOST', default=None))),
+            'base_url': config(f'{env_prefix}_BASE_URL', default=config(f'{env_prefix}_API_BASE', default=config(f'{env_prefix}_HOST', default=None))),
         }]
 
     return out
