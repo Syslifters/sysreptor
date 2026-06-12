@@ -32,7 +32,7 @@ from langgraph.types import Command
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
-from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
+from sysreptor.ai.agents.middleware import MergeConsecutiveMessagesMiddleware, SelectConfiguredModelMiddleware
 from sysreptor.ai.models import ChatThread, LangchainCheckpoint
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.history import history_context
@@ -197,7 +197,9 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         PatchToolCallsMiddleware(),
         create_summarization_middleware(model=default_model, backend=backend),
         MessageTimestampMiddleware(),
-    ] + profile.materialize_extra_middleware() + middleware
+    ] + profile.materialize_extra_middleware() + middleware + [
+        MergeConsecutiveMessagesMiddleware(),
+    ]
 
     gp_profile = profile.general_purpose_subagent or GeneralPurposeSubagentProfile()
     if gp_profile.system_prompt is not None:
