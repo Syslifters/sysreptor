@@ -14,6 +14,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
 
+from sysreptor.ai.agents.base import get_model_configs
 from sysreptor.api_utils import backup_utils
 from sysreptor.api_utils.healthchecks import run_healthchecks
 from sysreptor.api_utils.models import BackupLog
@@ -190,11 +191,16 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
         if not request.user.is_authenticated:
             return Response(public_settings)
 
+        ai_agent_models = [
+            {'id': m.get('id'), 'label': m.get('label', m.get('id'))}
+            for m in get_model_configs()
+        ]
         return Response(public_settings | {
             'statuses': ReviewStatus.get_definitions(),
             'project_member_roles': [{'role': r.role, 'default': r.default} for r in ProjectMemberRole.predefined_roles],
             'archiving_threshold': int(configuration.ARCHIVING_THRESHOLD),
             'ai_agent_disclaimer': configuration.AI_AGENT_DISCLAIMER,
+            'ai_agent_models': ai_agent_models,
             'features': public_settings['features'] | {
                 'private_designs': configuration.ENABLE_PRIVATE_DESIGNS,
                 'spellcheck': bool(settings.SPELLCHECK_URL and license.is_professional()),
@@ -202,7 +208,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'sharing': not configuration.DISABLE_SHARING,
-                'ai_agent': bool(configuration.AI_AGENT_ENABLED and settings.AI_AGENT_MODEL),
+                'ai_agent': bool(configuration.AI_AGENT_ENABLED and ai_agent_models),
             },
             'permissions': public_settings['permissions'] | {
                 'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
@@ -257,7 +263,21 @@ class ConfigurationViewSet(viewsets.ViewSet):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdmin]
 
     def get_serializer(self, **kwargs):
-        instance = kwargs.pop('instance', {d.id: configuration.get(d.id) for d in configuration.definition.fields if not d.extra_info.get('internal')})
+        instance = kwargs.pop('instance', None)
+        if not instance:
+            instance = {}
+            for d in configuration.definition.fields:
+                if d.extra_info.get('internal'):
+                    continue
+                value = configuration.get(d.id)
+                if d.extra_info.get('secret') and d.extra_info.get('set_in_env'):
+                    if isinstance(value, str):
+                        value = '*** REDACTED ***'
+                    elif isinstance(value, list) and len(value) > 0 and isinstance(value[0], str):
+                        value = ['*** REDACTED ***'] * len(value)
+                    else:
+                        value = None
+                instance[d.id] = value
         return DynamicObjectSerializer(
             fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields if not f.extra_info.get('internal')},
             instance=instance,

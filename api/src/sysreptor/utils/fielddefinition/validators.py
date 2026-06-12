@@ -188,4 +188,4 @@ class BooleanValidatorWrapper:
         except ValidationError:
             raise
         except Exception as ex:
-            raise ValidationError() from ex
+            raise ValidationError(f'Invalid value: {ex}') from ex

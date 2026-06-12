@@ -27,7 +27,7 @@
                 :definition="field"
                 :disabled="field.set_in_env || (field.professional_only && !apiSettings.isProfessionalLicense)"
                 :error-message="errorMessages?.[field.id]"
-                v-bind="fieldAttrs"
+                v-bind="{...fieldAttrs, ...(field.set_in_env ? { rules: [] } : {}) }"
               >
                 <template #label>
                   <v-tooltip :disabled="!field.set_in_env">
@@ -89,8 +89,9 @@
                 v-model="configurationValues[field.id]"
                 :definition="field"
                 :disabled="field.set_in_env || ((plugin.professional_only || field.professional_only) && !apiSettings.isProfessionalLicense)"
+                :rules="field.set_in_env ? [] : undefined"
                 :error-messages="errorMessages?.[field.id]"
-                v-bind="fieldAttrs"
+                v-bind="{...fieldAttrs, ...(field.set_in_env ? { rules: [] } : {}) }"
               >
                 <template #label>
                   <v-tooltip :disabled="!field.set_in_env">

@@ -1,3 +1,5 @@
+import json
+
 from sysreptor.conf.settings import *  # noqa: F403
 from sysreptor.conf.settings import (
     CONFIGURATION_DEFINITION_CORE,
@@ -60,6 +62,13 @@ CONFIGURATION_DEFINITION_CORE['ARCHIVING_THRESHOLD'].default = 1
 CONFIGURATION_DEFINITION_CORE['FORGOT_PASSWORD_ENABLED'].default = True
 CONFIGURATION_DEFINITION_CORE['AI_AGENT_ENABLED'].default = True
 CONFIGURATION_DEFINITION_CORE['INSTALLATION_ID'].default = 'dummy-installation-id-used-in-unit-test'
+CONFIGURATION_DEFINITION_CORE['AI_AGENT_MODELS'].default = [json.dumps({
+    'id': 'test:fake-model',
+    'provider': 'test',
+    'model': 'fake-model',
+    'api_key': 'fake-api-key',
+    'base_url': 'https://llm.example.com/',
+})]
 
 
 # Disable LLM model calls
@@ -67,7 +76,6 @@ from langchain import chat_models  # noqa: E402
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel  # noqa: E402
 
 chat_models.init_chat_model = lambda *args, **kwargs: GenericFakeChatModel(messages=iter([]))
-AI_AGENT_MODEL = 'test:fake-model'
 
 
 # Disable license check

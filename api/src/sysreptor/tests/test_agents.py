@@ -15,6 +15,8 @@ from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.outputs.chat_generation import ChatGenerationChunk
 
 from sysreptor.ai.agents import get_agent
+from sysreptor.ai.agents.base import get_default_model_id, get_model_configs, init_chat_model
+from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
 from sysreptor.ai.agents.project import (
     ProjectContext,
     create_finding,
@@ -79,6 +81,7 @@ def mock_llm_response(messages: list|None = None, model = None):
             return (model or FakeChatModel)(messages=iter(messages))
 
     get_agent.cache_clear()
+    SelectConfiguredModelMiddleware._model_cache.clear()
     with mock.patch("langchain.chat_models.init_chat_model", new=init_chat_model):
         yield
 
@@ -664,3 +667,108 @@ class TestAiCleanupTask:
         assert not self.checkpoint_exists(old_checkpoint)
         assert self.checkpoint_exists(current_checkpoint)
 
+
+@pytest.mark.django_db()
+class TestLLMConfig:
+    @override_configuration(AI_AGENT_MODELS=[])
+    @mock.patch.dict('os.environ', {'AI_AGENT_MODEL': ''})
+    def test_no_models_configured(self):
+        assert get_model_configs() == []
+        with pytest.raises(ValueError, match='No LLM model configured'):
+            get_default_model_id()
+        with pytest.raises(ValueError, match='Unknown model: test:fake-model'):
+            init_chat_model('test:fake-model')
+
+    @override_configuration(AI_AGENT_MODELS=[])
+    @mock.patch.dict('os.environ', {'AI_AGENT_MODEL': 'deepseek:gpt-oss-120b', 'DEEPSEEK_API_KEY': 'dummy-key', 'DEEPSEEK_API_BASE': 'https://llm.example.com/'})
+    def test_env_fallback(self):
+        models = get_model_configs()
+        assert models == [{
+            'id': 'gpt-oss-120b',
+            'model': 'gpt-oss-120b',
+            'provider': 'deepseek',
+            'api_key': 'dummy-key',
+            'base_url': 'https://llm.example.com/',
+        }]
+        assert get_default_model_id() == 'gpt-oss-120b'
+
+    @override_configuration(AI_AGENT_MODELS=[
+        json.dumps({
+            'id': 'model-a',
+            'label': 'Model A',
+            'provider': 'deepseek',
+            'model': 'gpt-oss-120b',
+            'api_key': 'dummy-key',
+            'base_url': 'https://llm.example.com/',
+            'temperature': 0.5,
+        }),
+        json.dumps({
+            'id': 'model-b',
+            'provider': 'anthropic',
+            'model': 'claude-opus-4-8',
+            'api_key': 'dummy-key',
+        }),
+    ])
+    def test_db_models(self):
+        models = get_model_configs()
+        assert len(models) == 2
+        assert get_default_model_id() == 'model-a'
+        assert api_client(create_user()).get(reverse('publicutils-settings')).data['ai_agent_models'] == [
+            {'id': 'model-a', 'label': 'Model A'},
+            {'id': 'model-b', 'label': 'model-b'},
+        ]
+
+
+@pytest.mark.django_db()
+class TestLLMModelSelection:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.project = create_project(members=[self.user])
+        self.client = api_client(user=self.user)
+
+    def send_message(self, message: str, model: str = None, thread_id: str = None):
+        data = {
+            'agent': 'project_ask',
+            'project': self.project.id,
+            'messages': [message],
+            'context': {},
+        }
+        if model is not None:
+            data['model'] = model
+        if thread_id is not None:
+            data['id'] = thread_id
+        return self.client.post(reverse('chatthread-list'), data=data)
+
+    @pytest.mark.parametrize(('model', 'expected'), [
+        ('model-a', True),
+        (None, True), # Use default model
+        ('unknown', False),
+    ])
+    @override_configuration(AI_AGENT_MODELS=[
+        json.dumps({'id': 'model-a', 'provider': 'test', 'model': 'model-a', 'api_key': 'fake-key'}),
+        json.dumps({'id': 'model-b', 'provider': 'test', 'model': 'model-b', 'api_key': 'fake-key'}),
+    ])
+    def test_model_selection(self, model, expected):
+        with mock_llm_response(messages=[AIMessage(content='Hello')]):
+            res = self.send_message('Hi', model=model)
+            if expected:
+                assert res.status_code == 200
+                events = parse_sse_events(res)
+                assert events[0]['content']['thread_id']
+            else:
+                assert res.status_code == 400
+
+    @override_configuration(AI_AGENT_MODELS=[
+        json.dumps({'id': 'model-a', 'provider': 'test', 'model': 'model-a', 'api_key': 'fake-key'}),
+        json.dumps({'id': 'model-b', 'provider': 'test', 'model': 'model-a', 'api_key': 'fake-key'}),
+    ])
+    def test_switch_model_on_existing_thread(self):
+        with mock_llm_response(messages=[AIMessage(content='Hello')]):
+            res = self.send_message('Hi', model='model-a')
+            assert res.status_code == 200
+            thread_id = parse_sse_events(res)[0]['content']['thread_id']
+
+        with mock_llm_response(messages=[AIMessage(content='Hello again')]):
+            res = self.send_message('Follow up', model='model-b', thread_id=thread_id)
+            assert res.status_code == 200

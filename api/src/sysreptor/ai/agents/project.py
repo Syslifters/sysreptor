@@ -53,6 +53,7 @@ class ProjectContext:
     user_id: str|UUID
     section_id: str|UUID|None = None
     finding_id: str|UUID|None = None
+    model: str|None = None
 
 
 @dataclasses.dataclass

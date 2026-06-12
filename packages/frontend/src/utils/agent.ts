@@ -249,6 +249,7 @@ export async function submitMessageStreamed(options: {
     agent: string;
     id?: string|null;
     messages?: string[];
+    model?: string;
     context?: Record<string, string|null|undefined>;
     [key: string]: any;
   },
@@ -359,7 +360,7 @@ export function useAiAgentChat(options: {
     }
   }
   
-  async function submitMessage(opts: { message: string, context?: Record<string, string|null|undefined>, agent?: string }) {
+  async function submitMessage(opts: { message: string, context?: Record<string, string|null|undefined>, agent?: string, model?: string|null }) {
     const message = opts.message.trim();
     if (inProgress.value || !message) {
       return;
@@ -380,6 +381,7 @@ export function useAiAgentChat(options: {
           messages: [message], 
           context: opts.context,
           agent: opts.agent || options.body.agent,
+          model: opts.model || options.body.model,
         },
         messageHistory: options.storeState.messageHistory,
         signal: abortController.signal,

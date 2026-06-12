@@ -3,6 +3,7 @@ from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 
 from sysreptor.ai.agents import agent_stream, get_agent
+from sysreptor.ai.agents.base import get_model_configs
 from sysreptor.ai.models import ChatThread
 from sysreptor.pentests.models import PentestProject, ProjectNotebookPage
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
@@ -28,6 +29,7 @@ class ChatThreadSerializer(serializers.ModelSerializer):
 
 class LLMAgentSerializer(serializers.Serializer):
     agent = serializers.ChoiceField(choices=['project_ask', 'project_agent'])
+    model = serializers.CharField(required=False, allow_null=True)
     id = serializers.UUIDField(required=False, allow_null=True)
     messages = serializers.ListField(child=serializers.CharField(), required=False, allow_null=True)
     context = serializers.DictField(child=serializers.CharField(), required=False, allow_null=True)
@@ -41,6 +43,11 @@ class LLMAgentSerializer(serializers.Serializer):
             raise serializers.ValidationError('messages are required')
         if thread_id and not messages:
             raise serializers.ValidationError('id requires messages')
+
+        # Resolve model
+        model = attrs.get('model', None)
+        if model and not any(m['id'] == model for m in get_model_configs()):
+            raise serializers.ValidationError('Invalid model')
 
         # Set agent parameters
         attrs['input'] = {'messages': messages}
@@ -83,6 +90,7 @@ class LLMAgentSerializer(serializers.Serializer):
             agent=self.validated_data['agent'],
             input=self.validated_data['input'],
             context=self.validated_data.get('context', {}),
+            model=self.validated_data.get('model'),
             thread=thread,
         )
 

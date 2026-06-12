@@ -1,6 +1,5 @@
 import json
 
-from django.conf import settings
 from rest_framework import renderers, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
@@ -9,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
 from sysreptor.ai.agents import get_agent, get_chat_history
+from sysreptor.ai.agents.base import get_model_configs
 from sysreptor.ai.models import ChatThread
 from sysreptor.ai.serializers import ChatThreadSerializer, LLMAgentSerializer
 from sysreptor.utils.api import StreamingHttpResponseAsync, ViewSetAsync
@@ -32,8 +32,8 @@ class ChatThreadPermissions(BasePermission):
     def has_permission(self, request, view):
         if not configuration.AI_AGENT_ENABLED:
             raise PermissionDenied('AI agent chat is disabled in settings')
-        if not settings.AI_AGENT_MODEL:
-            raise PermissionDenied('No LLM model configured')
+        if not get_model_configs():
+            raise PermissionDenied('No LLM models configured in settings')
         return True
 
 

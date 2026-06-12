@@ -165,64 +165,6 @@ To test your email settings, you can run the following command:
 docker compose run --rm --no-TTY app python3 manage.py sendtestemail <your-email@example.com>
 ```
 
-### LLM Provider
-Configure LLM models for AI-assisted report writing and analysis. Enable the [AI Agent feature](#ai-agent) in application settings to use LLM models.
-
-SysReptor uses [LangChain](https://docs.langchain.com/) to interface with different LLM providers.
-It is possible to use cloud-based LLM providers (e.g. OpenAI, Anthropic) as well as self-hosted LLMs (e.g. via VLLM).
-The quality of the output strongly depends on the chosen LLM model. Smaller (e.g. self-hosted) models might perform worse than larger (cloud-based) models.
-
-Specify which LLM to use for agents. Expected format: `<provider>:<model-name>`
-
-Many LLM providers offer OpenAI-compatible APIs, which can be configured using the example below.  
-You can use the `openai` or `deepseek` provider to connect to OpenAI-compatible APIs by setting the appropriate API base URL. The provider name refers to API format capability, not the specific LLM vendor. LangChain's `deepseek` provider supports OpenAI-compatible APIs and parses reasoning outputs (chain-of-thought from models like QwQ, DeepSeek-R1, or o1). This enables displaying reasoning steps in the web interface. The standard `openai` also provider works but omits reasoning content. The `deepseek` provider has nothing to do with the Deepseek LLM.
-
-```dotenv title="OpenAI-compatible APIs with reasoning (e.g. LiteLLM, VLLM, OpenRouter, TogetherAI, DeepSeek, etc.)"
-AI_AGENT_MODEL="deepseek:gpt-oss-120b"
-DEEPSEEK_API_KEY="..."
-DEEPSEEK_API_BASE="https://llm.example.com:4000/"
-```
-
-
-
-::: details Other LLM providers
-
-
-If your LLM provider does not support OpenAI-compatible APIs, refer to the examples below for configuring dedicated provider settings.
-
-```dotenv title="OpenAI"
-AI_AGENT_MODEL="openai:gpt-5"
-OPENAI_API_KEY="..."
-```
-
-```dotenv title="Anthropic"
-AI_AGENT_MODEL="anthropic:claude-haiku-4-5-20251001"
-ANTHROPIC_API_KEY="..."
-```
-
-```dotenv title="Mistral AI"
-AI_AGENT_MODEL="mistralai:mistral-large-2512"
-MISTRAL_API_KEY="..."
-```
-
-```dotenv title="ollama"
-AI_AGENT_MODEL="ollama:llama3.1"
-OLLAMA_API_KEY="..."
-OLLAMA_HOST="https://llm.example.com/"
-```
-
-If your LLM provider is not listed above, you can use an LLM proxy like [LiteLLM](https://docs.litellm.ai/) or [OpenRouter](https://openrouter.ai/) that provides an OpenAI-compatible API. Configure the proxy to connect to your LLM provider, then use the `deepseek` provider (as shown in the example above) to connect SysReptor to the proxy. This approach works with any LLM that your proxy supports and enables reasoning output display when available.
-
-:::
-
-To test your LLM settings, you can run the following command:
-
-```shell title="Send test email"
-docker compose run --rm app python3 manage.py aichat --agent=project_ask --user=<username> --project=<project-id>
-```
-
-
-
 ### Backup Key
 <BadgePro />
 
@@ -519,9 +461,10 @@ GUEST_USERS_CAN_SHARE_NOTES=False
 
 
 ### AI Agent
-Enable the AI Agent feature to assist with report writing and analysis. This feature requires an LLM model and API key to be configured (see [LLM Provider](#llm-provider) for server settings).
+Enable the AI Agent feature to assist with report writing and analysis.
 
 The AI Agent can be enabled or disabled globally. When disabled, the AI Agent feature is not available to any users.
+LLM models must be configured via `AI_AGENT_MODELS` before the feature can be used (see [LLM models](#llm-provider) below).
 
 ```dotenv title="Example:"
 AI_AGENT_ENABLED=true
@@ -536,6 +479,121 @@ Provide a custom system prompt to prime the AI Agent with specific instructions 
 
 ```dotenv title="Example:"
 AI_AGENT_SYSTEM_PROMPT='Customized system prompt.'
+```
+
+
+#### LLM models {#llm-models}
+Configure LLM models for AI-assisted report writing and analysis.
+
+SysReptor uses [LangChain](https://docs.langchain.com/) to interface with different LLM providers.
+It is possible to use cloud-based LLM providers (e.g. OpenAI, Anthropic) as well as self-hosted LLMs (e.g. via VLLM).
+The quality of the output strongly depends on the chosen LLM model. Smaller (e.g. self-hosted) models might perform worse than larger (cloud-based) models.
+
+```json
+AI_AGENT_MODELS='[
+  {
+    "id": "gpt-oss-120b",
+    "model": "gpt-oss-120b",
+    "api_key": "...",
+    "base_url": "https://llm.example.com/"
+  }
+]'
+```
+
+Each entry describes one model. The first entry is the default model.
+When multiple models are configured, users can select the model in the AI chat.
+Model IDs and labels are exposed to all authenticated users; API keys and other secrets are not.
+
+| Field | Description |
+| --- | --- |
+| `id` | Unique identifier used for model selection in SysReptor |
+| `model` | Model name passed to LangChain (e.g. `gpt-5`, `claude-opus-4-8`) |
+| `provider` | LangChain provider (e.g. `openai`, `anthropic`, `deepseek`, `mistralai`, `ollama`). Defaults to OpenAI-compatible provider (`deepseek`) |
+| `api_key` | API key for the provider |
+| `base_url` | API base URL (for OpenAI-compatible or custom endpoints) |
+| `label` | Display name in the UI (defaults to `id`) |
+| *other* | Additional model-specific LangChain parameters (e.g. `temperature`, `reasoning_effort`, etc.) |
+
+
+Many LLM providers offer OpenAI-compatible APIs.
+You can use the `openai` or `deepseek` provider to connect to OpenAI-compatible APIs by setting `base_url`.
+The provider name refers to API format capability, not the specific LLM vendor.
+LangChain's `deepseek` provider supports OpenAI-compatible APIs and parses reasoning outputs.
+This enables displaying reasoning steps in the web interface.
+The standard `openai` provider also works but omits reasoning content.
+The `deepseek` provider has nothing to do with the Deepseek LLM vendor.
+
+::: details LLM provider examples
+
+**OpenAI-compatible** APIs with reasoning (e.g. LiteLLM, VLLM, OpenRouter, TogetherAI, DeepSeek, etc.)
+```json 
+{
+  "id": "gpt-oss-120b",
+  "label": "GPT OSS 120B",
+  "provider": "deepseek",
+  "model": "gpt-oss-120b",
+  "api_key": "...",
+  "base_url": "https://llm.example.com:4000/"
+}
+```
+
+**OpenAI**
+```json
+{
+  "id": "gpt-5",
+  "label": "GPT 5",
+  "provider": "openai",
+  "model": "gpt-5",
+  "api_key": "..."
+}
+```
+
+**Anthropic**
+```json title="Anthropic"
+{
+  "id": "claude-opus-4-8",
+  "label": "Claude Opus 4.8",
+  "provider": "anthropic",
+  "model": "claude-opus-4-8",
+  "api_key": "..."
+}
+```
+
+**Mistral AI**
+```json
+{
+  "id": "mistral-large",
+  "label": "Mistral Large",
+  "provider": "mistralai",
+  "model": "mistral-large-2512",
+  "api_key": "..."
+}
+```
+
+**Ollama**
+```json
+{
+  "id": "llama3.1",
+  "label": "Llama 3.1",
+  "provider": "ollama",
+  "model": "llama3.1",
+  "api_key": "...",
+  "base_url": "https://llm.example.com/"
+}
+```
+
+
+If your LLM provider is not listed above, you can use an LLM proxy like [LiteLLM](https://docs.litellm.ai/) or [OpenRouter](https://openrouter.ai/) that provides an OpenAI-compatible API.
+Configure the proxy to connect to your LLM provider, then use the `deepseek` provider (as shown above) to connect SysReptor to the proxy.
+This approach works with any LLM that your proxy supports and enables reasoning output display when available.
+
+:::
+
+
+To test your LLM settings, run:
+
+```shell
+docker compose run --rm app python3 manage.py aichat --agent=project_ask --user=<username> --project=<project-id>
 ```
 
 

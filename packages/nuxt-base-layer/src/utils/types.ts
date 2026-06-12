@@ -143,6 +143,7 @@ export type ApiSettings = {
   }[];
   readonly archiving_threshold?: number;
   readonly ai_agent_disclaimer?: string;
+  readonly ai_agent_models?: { id: string; label: string }[];
   readonly features: {
     readonly websockets: boolean;
     readonly forgot_password: boolean;

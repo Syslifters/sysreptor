@@ -1,3 +1,4 @@
+import json
 import logging
 
 from django.apps import apps
@@ -26,7 +27,7 @@ def check_configuration(sender, **kwargs):
 
     # Validate DB-stored configuration
     try:
-        for oidc_config in configuration.OIDC_AUTHLIB_OAUTH_CLIENTS.values():
+        for oidc_config in json.loads(configuration.OIDC_AUTHLIB_OAUTH_CLIENTS or '{}').values():
             if oidc_config.get('require_email_verified') is None:
                 logging.warning('OIDC_AUTHLIB_OAUTH_CLIENTS: require_email_verified is not set. Defaulting to accepting unverified emails.')
     except Exception:
