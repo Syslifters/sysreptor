@@ -134,7 +134,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatISO9075 } from 'date-fns';
+import { addMonths, formatISO9075 } from 'date-fns';
 
 const route = useRoute();
 const auth = useAuth();
@@ -177,7 +177,7 @@ function openSetupWizard() {
     step: SetupWizardStep.INFO,
     form: {
       name: 'API Token',
-      expire_date: null,
+      expire_date: apiSettings.isProfessionalLicense ? formatISO9075(addMonths(new Date(), 3), { representation: 'date' })  : null,
     },
     errors: null,
     actionInProgress: false,
