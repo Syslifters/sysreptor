@@ -13,7 +13,7 @@
   "dependencies": {
     "@sysreptor/markdown": "../markdown",
 
-    "vue": "3.5.35",
+    "vue": "3.5.38",
     "chart.js": "^4",
     "chartjs-plugin-datalabels": "^2",
     "uuid": "^14",
