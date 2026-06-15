@@ -52,6 +52,10 @@
     <a href="/assets/reports/Altered-Security-Report.pdf" target="_blank"><img alt="Offsec OSCP Report" src="/assets/reports/Altered-Security-Report-Preview.png" /></a>
     <figcaption><a href="/assets/reports/Altered-Security-Report-Design.tar.gz">Download AS Design</a></figcaption>
 </figure>
+<figure>
+    <a href="/assets/reports/DCPT-Report.pdf" target="_blank"><img alt="Desec DCPT Report" src="/assets/reports/DCPT-Report-Preview.png" /></a>
+    <figcaption><a href="/assets/reports/DCPT-Report-Design.tar.gz">Download DCPT Design</a></figcaption>
+</figure>
 </div>
 
 ## Demo Reports
