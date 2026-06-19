@@ -2,6 +2,7 @@ from django.db import models
 
 
 class Language(models.TextChoices):
+    # Languages with good spellcheck support in LanguageTool
     ENGLISH_US = 'en-US', True, 'English (en-US)'
     ENGLISH_GB = 'en-GB', True, 'English (en-GB)'
     ENGLISH_AU = 'en-AU', True, 'English (en-AU)'
@@ -18,8 +19,10 @@ class Language(models.TextChoices):
     FRENCH_CH = 'fr-CH', True, 'French (fr-CH)'
     PORTUGUESE_PT = 'pt-PT', True, 'Portuguese (pt-PT)'
     PORTUGUESE_BR = 'pt-BR', True, 'Portuguese (pt-BR)'
-    ITALIAN = 'it-IT', True, 'Italian (it-IT)'
     DUTCH = 'nl-NL', True, 'Dutch (nl-NL)'
+
+    # Languages with basic spellcheck support in LanguageTool
+    ITALIAN = 'it-IT', True, 'Italian (it-IT)'
     DANISH = 'da-DK', True, 'Danish (da-DK)'
     POLISH = 'pl-PL', True, 'Polish (pl-PL)'
     UKRAINIAN = 'uk-UA', True, 'Ukrainian (uk-UA)'
@@ -30,23 +33,26 @@ class Language(models.TextChoices):
     GREEK = 'el-GR', True, 'Greek (el-GR)'
     SWEDISH = 'sv-SE', True, 'Swedish (sv-SE)'
 
-    # Languages without LanguageTool support
-    ALBANIAN = 'sq-AL', False, 'Albanian (sq-AL)'
-    BULGARIAN = 'bg-BG', False, 'Bulgarian (bg-BG)'
-    CROATIAN = 'hr-HR', False, 'Croatian (hr-HR)'
-    CZECH = 'cs-CZ', False, 'Czech (cs-CZ)'
-    ESTONIAN = 'et-EE', False, 'Estonian (et-EE)'
+    # Languages without official LanguageTool support, but supported via hunspell dictionaries
+    ALBANIAN = 'sq-AL', 'sq', 'Albanian (sq-AL)'
+    BULGARIAN = 'bg-BG', 'bg', 'Bulgarian (bg-BG)'
+    CROATIAN = 'hr-HR', 'hr', 'Croatian (hr-HR)'
+    CZECH = 'cs-CZ', 'cs', 'Czech (cs-CZ)'
+    ESTONIAN = 'et-EE', 'et', 'Estonian (et-EE)'
+    HUNGARIAN = 'hu-HU', 'hu', 'Hungarian (hu-HU)'
+    LATVIAN = 'lv-LV', 'lv', 'Latvian (lv-LV)'
+    LITHUANIAN = 'lt-LT', 'lt', 'Lithuanian (lt-LT)'
+    NORWEGIAN = 'nb-NO', 'nb', 'Norwegian (nb-NO)'
+    SERBIAN = 'sr-SP', 'sr', 'Serbian (sr-SP)'
+    TURKISH = 'tr-TR', 'tr', 'Turkish (tr-TR)'
+
+    # Languages without spellcheck support
     FINNISH = 'fi-FI', False, 'Finnish (fi-FI)'
-    HUNGARIAN = 'hu-HU', False, 'Hungarian (hu-HU)'
-    LATVIAN = 'lv-LV', False, 'Latvian (lv-LV)'
-    LITHUANIAN = 'lt-LT', False, 'Lithuanian (lt-LT)'
     MALTESE = 'mt-MT', False, 'Maltese (mt-MT)'
-    NORWEGIAN = 'nb-NO', False, 'Norwegian (nb-NO)'
-    SERBIAN = 'sr-SP', False, 'Serbian (sr-SP)'
-    TURKISH = 'tr-TR', False, 'Turkish (tr-TR)'
 
     def __new__(cls, value, spellcheck):
         obj = str.__new__(cls, value)
         obj._value_ = value
-        obj.spellcheck = spellcheck
+        obj.spellcheck = bool(spellcheck)
+        obj.spellcheck_code = value if spellcheck is True else None if spellcheck is False else spellcheck
         return obj

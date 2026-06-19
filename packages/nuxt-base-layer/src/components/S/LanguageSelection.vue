@@ -6,6 +6,7 @@
     item-value="code"
     item-title="name"
     label="Language"
+    spellcheck="false"
   >
     <template #prepend-inner>
       <v-icon size="small" start icon="mdi-translate" />
