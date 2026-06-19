@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Fix excalidraw note content not copied
+* Enable (basic) spellcheck for additional languages
 
 
 ## v2026.50 - 2026-06-17

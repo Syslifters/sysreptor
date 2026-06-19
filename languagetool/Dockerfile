@@ -21,6 +21,18 @@ RUN sed -i '/^\s*<\/dataSource>/i<property name="driver.prepareThreshold" value=
     && unzip /languagetool/languagetool-standalone/target/LanguageTool-${LANGUAGETOOL_VERSION}.zip -d /dist \
     && mv /dist/LanguageTool-${LANGUAGETOOL_VERSION} /dist/LanguageTool
 
+# Additional hunspell dictionaries
+ARG HUNSPELL_LANGUAGE_DIRS="sq_AL bg_BG cs_CZ et_EE hr_HR hu_HU lt_LT lv_LV no sr tr_TR"
+RUN git clone https://github.com/LibreOffice/dictionaries.git -b libreoffice-26.2.4.2 --depth 1 --no-checkout --filter=tree:0 /hunspell-dictionaries \
+    && cd /hunspell-dictionaries \
+    && git sparse-checkout set --no-cone ${HUNSPELL_LANGUAGE_DIRS} \
+    && git checkout \
+    && for lang in ${HUNSPELL_LANGUAGE_DIRS}; do \
+        mkdir -p /dist/LanguageTool/org/languagetool/resource/${lang}/hunspell \
+        && cp -r ${lang}/. /dist/LanguageTool/org/languagetool/resource/${lang}/hunspell/ \
+        && touch /dist/LanguageTool/org/languagetool/resource/${lang}/hunspell/common_words.txt; \
+    done
+
 # Add scripts and custom wordlists
 WORKDIR /dist/LanguageTool
 COPY scripts/* .

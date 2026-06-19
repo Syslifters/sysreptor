@@ -68,9 +68,11 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
         return [l for l in Language if l.spellcheck]
 
     def validate_language(self, value):
-        if value not in self.spellcheck_languages and value != 'auto':
+        if value == 'auto':
+            return value
+        if value not in self.spellcheck_languages:
             raise serializers.ValidationError('Spellchecking is not supported for this language')
-        return value
+        return Language(value).spellcheck_code
 
     async def spellcheck(self):
         data = self.validated_data
@@ -79,7 +81,7 @@ class LanguageToolSerializer(LanguageToolSerializerBase):
             'data': json.dumps(data['data'], ensure_ascii=False),
             'level': 'picky' if (await configuration.aget('SPELLCHECK_MODE_PICKY')) else 'default',
             **({
-                'preferredVariants': ','.join(self.spellcheck_languages),
+                'preferredVariants': ','.join(l.value for l in self.spellcheck_languages),
             } if data['language'] == 'auto' else {}),
         })
 
