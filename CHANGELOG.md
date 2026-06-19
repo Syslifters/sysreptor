@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Fix excalidraw note content not copied
+
+
 ## v2026.50 - 2026-06-17
 * Move LLM configuration `AI_AGENT_MODELS` to web UI instead of env variables (https://docs.sysreptor.com/setup/configuration#llm-models)
 * Support multiple LLM models and model selection in UI
