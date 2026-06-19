@@ -700,7 +700,7 @@ class TestCopyModel:
     def test_copy_notes(self):
         p = create_project(notes_kwargs=[])
         n1 = create_projectnotebookpage(project=p, parent=None, order=1)
-        n1_1 = create_projectnotebookpage(project=p, parent=n1, order=1, type=NoteType.EXCALIDRAW)
+        n1_1 = create_projectnotebookpage(project=p, parent=n1, order=1, type=NoteType.EXCALIDRAW, excalidraw_data={'elements': [{'id': 'element1'}]})
         n2 = create_projectnotebookpage(project=p, parent=None, order=2)
         n2_1 = create_projectnotebookpage(project=p, parent=n2, order=1)
 
