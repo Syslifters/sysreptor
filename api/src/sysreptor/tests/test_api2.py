@@ -160,6 +160,9 @@ class TestProjectApi:
         ({'language': Language.ENGLISH_US.value}, ['p1']),
         ({'not_language': Language.ENGLISH_US.value}, ['p2']),
         ({'language': 'invalid'}, []),
+        # Name
+        ({'name': 'p1'}, ['p1']),
+        ({'not_name': 'p1'}, ['p2']),
         # Created
         ({'timerange': f'|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p1']),
         ({'timerange': f'null|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['p1']),
@@ -309,6 +312,9 @@ class TestProjectTypeApi:
         # Created (timerange)
         ({'timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['pt1']),
         ({'not_timerange': f'{(timezone.now() - timedelta(days=30)).date().isoformat()}|{(timezone.now() - timedelta(days=2)).date().isoformat()}'}, ['pt2']),
+        # Name
+        ({'name': 'pt1'}, ['pt1']),
+        ({'not_name': 'pt1'}, ['pt2']),
     ])
     def test_filters(self, filters, results):
         with mock_time(before=timedelta(days=10)):
@@ -574,6 +580,9 @@ class TestTemplateApi:
         ({'timerange': ''}, ['t1', 't2']),
         ({'timerange': 'null|null'}, ['t1', 't2']),
         ({'timerange': 'invalid'}, ['t1', 't2']),
+        # Title
+        ({'title': 't1'}, ['t1']),
+        ({'not_title': 't1'}, ['t2']),
         # Combine filters
         ({'status': ReviewStatus.FINISHED, 'tag': 'tag1'}, ['t1']),  # Different filters: AND
         ({'tag': 'tag:all', 'not_tag': 'tag2'}, ['t1']),  # Not filters: AND

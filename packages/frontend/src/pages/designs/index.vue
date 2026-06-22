@@ -95,6 +95,7 @@ const filterProperties = computed((): FilterProperties[] => [
   { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: suggestedTags.getTags, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Created', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
   { id: 'language', name: 'Language', icon: 'mdi-translate', type: 'select', options: apiSettings.settings!.languages.map(l => l.code), allow_exclude: true, default: '', multiple: true },
+  { id: 'name', name: 'Name', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
 ]);
 
 async function performDeleteSelected(projectTypes: ProjectType[]) {
