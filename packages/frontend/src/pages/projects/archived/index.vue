@@ -68,5 +68,6 @@ const suggestedTags = useArchivedProjectTags();
 const filterProperties = computed((): FilterProperties[] => [
   { id: 'tag', name: 'Tag', icon: 'mdi-tag', type: 'combobox', options: suggestedTags.getTags, allow_exclude: true, allow_regex: false, default: '', multiple: true },
   { id: 'timerange', name: 'Time Archived', icon: 'mdi-calendar', type: 'daterange', options: [], allow_exclude: true, default: '', multiple: true },
+  { id: 'name', name: 'Name', type: 'text', options: [], allow_exclude: true, allow_regex: false, default: '', multiple: true },
 ]);
 </script>
