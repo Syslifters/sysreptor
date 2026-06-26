@@ -88,11 +88,13 @@
         :disabled="props.readonly || saveInProgress"
         button-variant="icon"
         button-text="Save"
-        tooltip-text="Save Changes"
+        :tooltip-text="hasUnsavedChanges ? 'Save Changes' : 'Everything saved'"
         class="dialog-toolbar-btn"
       >
         <template #icon>
-          <v-icon size="x-large" icon="mdi-content-save" />
+          <v-badge dot :color="hasUnsavedChanges ? 'error' : 'success'">
+            <v-icon size="x-large" icon="mdi-content-save" />
+          </v-badge>
         </template>
       </btn-confirm>
     </template>
@@ -192,6 +194,8 @@ const currentImageInfo = ref<UploadedFileInfo|null>(null);
 const originalImageInfo = ref<UploadedFileInfo|null>(null);
 const saveInProgress = ref(false);
 const originalDialogOpen = ref(false);
+
+const hasUnsavedChanges = computed((): boolean => !!imageEditorRef.value?.hasChanges);
 
 watch(modelValue, async () => {
   editMode.value = false;
@@ -347,7 +351,7 @@ async function performSave() {
     return;
   }
 
-  if (!imageEditorRef.value?.hasChanges) {
+  if (!hasUnsavedChanges.value) {
     exitEditMode();
     return;
   }
