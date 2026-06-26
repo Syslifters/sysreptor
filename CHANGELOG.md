@@ -6,8 +6,9 @@
 * Fix excalidraw note content not copied
 * Enable (basic) spellcheck for additional languages
 * Add filters from project/design/template name in list views
-* Markdown editor: Add save indicator to image editor
+* Pass finding status to PDF rendering data
 * Remove deprecated unload event handlers
+* Markdown editor: Add save indicator to image editor
 * UI: Add buttons to copy and download PDF password
 * UI: Allow copying global designs to private design
 * AI agent: Add virtual filesystem for project data

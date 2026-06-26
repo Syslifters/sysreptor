@@ -9,6 +9,7 @@ from django.test import override_settings
 from pytest_django.asserts import assertHTMLEqual
 
 from sysreptor.pentests import cvss
+from sysreptor.pentests.models import ReviewStatus
 from sysreptor.pentests.rendering.entry import render_pdf, render_project_markdown_fields_to_html
 from sysreptor.pentests.rendering.render import render_pdf_impl
 from sysreptor.tests.mock import (
@@ -46,7 +47,7 @@ class TestHtmlRendering:
             images_kwargs=[{'name': 'image.png'}],
             files_kwargs=[{'name': 'file.pdf'}],
             report_data={'field_user': str(self.user.id)})
-        self.finding = create_finding(project=self.project)
+        self.finding = create_finding(project=self.project, status=ReviewStatus.FINISHED)
 
         with override_settings(CELERY_TASK_ALWAYS_EAGER=True), \
              override_configuration(GENERATE_ACCESSIBLE_PDFS=True):
@@ -84,6 +85,7 @@ class TestHtmlRendering:
         ('{{ findings[0].cvss.vector }}', lambda self: self.finding.data['cvss']),
         ('{{ findings[0].cvss.score }}', lambda self: str(cvss.calculate_score(self.finding.data['cvss']))),
         ('{{ findings[0].created }}', lambda self: self.finding.created.isoformat()),
+        ('{{ findings[0].status }}', lambda self: self.finding.status.value),
         ('{{ report.field_cwe.value }} {{ report.field_cwe.id }} {{ report.field_cwe.name }}<template v-for="cwe in report.field_cwe.parents"> parent:{{ cwe.value }}</template>', "CWE-89 89 Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') parent:CWE-943 parent:CWE-74 parent:CWE-707"),
         ('{{ data.pentesters[0].name }}', lambda self: self.project.imported_members[0]['name']),
         ('<template v-for="r in data.pentesters[0].roles">{{ r }}</template>', lambda self: ''.join(self.project.imported_members[0]['roles'])),
