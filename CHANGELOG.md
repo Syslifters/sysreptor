@@ -4,6 +4,7 @@
 * Fix excalidraw note content not copied
 * Enable (basic) spellcheck for additional languages
 * Add filters from project/design/template name in list views
+* Markdown editor: Add save indicator to image editor
 
 
 ## v2026.50 - 2026-06-17
