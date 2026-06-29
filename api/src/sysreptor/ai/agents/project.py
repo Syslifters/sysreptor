@@ -2,6 +2,7 @@ import dataclasses
 import itertools
 import re
 import textwrap
+from collections.abc import Callable
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
@@ -538,6 +539,31 @@ def update_markdown_field(runtime: ToolRuntime[ProjectContext], file_path: str, 
     return 'Updated successfully'
 
 
+class LazyFileData(dict):
+    """FileData-compatible dict that loads content only when accessed."""
+
+    def __init__(self, loader: Callable[[], str], *, modified_at: str, encoding: str = 'utf-8'):
+        super().__init__()
+        self._loader = loader
+        self['encoding'] = encoding
+        self['modified_at'] = modified_at
+
+    def _ensure_content(self) -> str:
+        if 'content' not in dict.keys(self):
+            dict.__setitem__(self, 'content', self._loader())
+        return dict.__getitem__(self, 'content')
+
+    def __getitem__(self, key):
+        if key == 'content':
+            return self._ensure_content()
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        if key == 'content':
+            return self._ensure_content()
+        return super().get(key, default)
+
+
 class ProjectFilesystemBackend(BackendProtocol):
     """
     Read-only virtual filesystem mapping project data to files.
@@ -554,46 +580,58 @@ class ProjectFilesystemBackend(BackendProtocol):
         super().__init__(*args, **kwargs)
         self.runtime = runtime
 
-    def _get_project(self):
+    def _get_project(self, prefetch=True):
         runtime = self.runtime or get_runtime(ProjectContext)
-        return get_project(project_id=str(runtime.context.project_id), prefetch=True)
+        return get_project(project_id=str(runtime.context.project_id), prefetch=prefetch)
 
-    def _read_content(self, file_path: str) -> str | None:
-        match = self.FILE_PATH_RE.match(file_path)
-        if not match:
-            return None
-
-        project = self._get_project()
-        if file_path == '/project.yaml':
-            return format_project_overview(project)
-        if (finding_id := match.group('finding_id')) and (finding := next((f for f in project.findings.all() if str(f.finding_id) == finding_id), None)):
-            return format_finding_data(finding)
-        elif (section_id := match.group('section_id')) and (section := next((s for s in project.sections.all() if str(s.section_id) == section_id), None)):
-            return format_section_data(section)
-        elif (note_id := match.group('note_id')) and (note := next((n for n in project.notes.all() if str(n.note_id) == note_id), None)):
-            return format_note_data(note)
+    def _find_prefetched(self, project: PentestProject, relation: str, attr: str, value: str):
+        cache = getattr(project, '_prefetched_objects_cache', None)
+        if cache and relation in cache:
+            return next((obj for obj in cache[relation] if str(getattr(obj, attr)) == value), None)
         return None
 
-    def _file_size(self, fd: FileData) -> int:
-        raw = fd.get('content', '')
-        if isinstance(raw, str):
-            return len(raw)
-        if raw:
-            return len('\n'.join(raw))
-        return 0
+    def _load_file_content(self, file_path: str, project=None) -> str | None:
+        try:
+            match = self.FILE_PATH_RE.match(file_path)
+            if not match:
+                return None
 
+            project = project or self._get_project(prefetch=False)
+            if file_path == '/project.yaml':
+                return format_project_overview(project)
+            elif finding_id := match.group('finding_id'):
+                finding = self._find_prefetched(project, 'findings', 'finding_id', finding_id) or \
+                    PentestFinding.objects.select_related('assignee').filter(project_id=project.id, finding_id=finding_id).first()
+                return format_finding_data(finding) if finding else None
+            elif section_id := match.group('section_id'):
+                section = self._find_prefetched(project, 'sections', 'section_id', section_id) or \
+                    ReportSection.objects.select_related('assignee').filter(project_id=project.id, section_id=section_id).first()
+                return format_section_data(section) if section else None
+            elif note_id := match.group('note_id'):
+                note = self._find_prefetched(project, 'notes', 'note_id', note_id) or \
+                    ProjectNotebookPage.objects.select_related('parent', 'assignee').filter(project_id=project.id, note_id=note_id).first()
+                return format_note_data(note) if note else None
+            return None
+        except ValidationError:
+            return None
 
-    def _build_files(self) -> dict[str, FileData]:
-        project = self._get_project()
+    def _lazy_file(self, file_path: str, modified_at: str, project=None) -> LazyFileData:
+        return LazyFileData(
+            loader=lambda fp=file_path: self._load_file_content(fp, project=project) or '',
+            modified_at=modified_at,
+        )
+
+    def _build_files(self, prefetch=True) -> dict[str, FileData]:
+        project = self._get_project(prefetch=prefetch)
         files: dict[str, FileData] = {
-            '/project.yaml': create_file_data(format_project_overview(project)),
+            '/project.yaml': self._lazy_file('/project.yaml', project.updated.isoformat(), project=project),
         }
-        for finding in project.findings.all():
-            files[f'/findings/{finding.finding_id}.yaml'] = create_file_data(format_finding_data(finding))
-        for section in project.sections.all():
-            files[f'/sections/{section.section_id}.yaml'] = create_file_data(format_section_data(section))
-        for note in project.notes.all():
-            files[f'/notes/{note.note_id}.yaml'] = create_file_data(format_note_data(note))
+        for finding in (project.findings.all() if prefetch else project.findings.only('finding_id', 'updated').all()):
+            files[f'/findings/{finding.finding_id}.yaml'] = self._lazy_file(f'/findings/{finding.finding_id}.yaml', finding.updated.isoformat(), project=project)
+        for section in (project.sections.all() if prefetch else project.sections.only('section_id', 'updated').all()):
+            files[f'/sections/{section.section_id}.yaml'] = self._lazy_file(f'/sections/{section.section_id}.yaml', section.updated.isoformat(), project=project)
+        for note in (project.notes.all() if prefetch else project.notes.only('note_id', 'updated').all()):
+            files[f'/notes/{note.note_id}.yaml'] = self._lazy_file(f'/notes/{note.note_id}.yaml', note.updated.isoformat(), project=project)
         return files
 
     def _readonly_error(self, file_path: str) -> str:
@@ -604,7 +642,7 @@ class ProjectFilesystemBackend(BackendProtocol):
         )
 
     def ls(self, path: str) -> LsResult:
-        files = self._build_files()
+        files = self._build_files(prefetch=False)
         normalized_path = '/' if path in ('', '/') else (path if path.endswith('/') else path + '/')
 
         infos: list[FileInfo] = []
@@ -616,9 +654,9 @@ class ProjectFilesystemBackend(BackendProtocol):
             if '/' in relative:
                 subdirs.add(normalized_path + relative.split('/')[0] + '/')
                 continue
-            infos.append(FileInfo(path=k, is_dir=False, size=self._file_size(fd), modified_at=fd.get('modified_at', '')))
+            infos.append(FileInfo(path=k, is_dir=False, modified_at=fd.get('modified_at', '')))
 
-        infos.extend(FileInfo(path=subdir, is_dir=True, size=0, modified_at='') for subdir in sorted(subdirs))
+        infos.extend(FileInfo(path=subdir, is_dir=True) for subdir in sorted(subdirs))
         infos.sort(key=lambda x: x.get('path', ''))
 
         if not infos:
@@ -626,7 +664,7 @@ class ProjectFilesystemBackend(BackendProtocol):
         return LsResult(entries=infos)
 
     def read(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
-        content = self._read_content(file_path)
+        content = self._load_file_content(file_path)
         if content is None:
             return ReadResult(error=FILE_NOT_FOUND)
         file_data = create_file_data(content)
@@ -643,7 +681,7 @@ class ProjectFilesystemBackend(BackendProtocol):
         return grep_matches_from_files(self._build_files(), pattern, path if path is not None else '/', glob)
 
     def glob(self, pattern: str, path: str | None = None) -> GlobResult:
-        files = self._build_files()
+        files = self._build_files(prefetch=False)
         result = _glob_search_files(files, pattern, path if path is not None else '/')
         if result == 'No files found':
             return GlobResult(matches=[])
@@ -653,7 +691,6 @@ class ProjectFilesystemBackend(BackendProtocol):
             infos.append(FileInfo(
                 path=p,
                 is_dir=False,
-                size=self._file_size(fd) if fd else 0,
                 modified_at=(fd or {}).get('modified_at', ''),
             ))
         return GlobResult(matches=infos)

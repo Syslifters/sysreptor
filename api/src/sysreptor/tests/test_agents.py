@@ -840,6 +840,12 @@ class TestProjectFilesystemBackend:
         paths = [e['path'] for e in result.entries or []]
         assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
 
+    def test_lazy_file_loading(self):
+        with mock.patch('sysreptor.ai.agents.project.format_finding_data') as format_finding:
+            self.backend.ls('/project/findings/')
+            self.backend.glob('*.yaml', path='/project/findings/')
+            format_finding.assert_not_called()
+
     def test_ls_notes(self):
         note = self.project.notes.first()
         result = self.backend.ls('/project/notes/')
