@@ -30,6 +30,7 @@ from sysreptor.ai.agents.project import (
 )
 from sysreptor.ai.models import ChatThread, LangchainCheckpoint
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints
+from sysreptor.pentests.models import NoteType
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
@@ -512,6 +513,21 @@ class TestProjectAgentTools:
         note.refresh_from_db()
         assert note.text == expected_result
 
+    def test_tool_update_note_text_excalidraw_denied(self):
+        note = create_projectnotebookpage(
+            project=self.project,
+            type=NoteType.EXCALIDRAW,
+            excalidraw_data={'elements': [{'id': 'e1'}]},
+        )
+        res = self.run_tool(
+            update_field_value,
+            file_path=note_path(note.note_id),
+            field='text',
+            value='attempted write',
+        )
+        assert 'Error:' in res
+        assert 'excalidraw' in res.lower()
+
     @pytest.mark.parametrize(('initial_value', 'old_text', 'error_substring'), [
         ('Some content here', 'Non-existent text', 'Could not find'),
         ('Some content', '', 'old_text cannot be empty'),
@@ -864,6 +880,18 @@ class TestProjectFilesystemBackend:
         assert result.error is None
         assert note.title in result.file_data['content']
         assert 'Note body content' in result.file_data['content']
+
+    def test_read_note_excalidraw(self):
+        note = create_projectnotebookpage(
+            project=self.project,
+            title='Excalidraw Note',
+            type=NoteType.EXCALIDRAW,
+            excalidraw_data={'elements': [{'id': 'e1', 'type': 'rectangle', 'x': 0, 'y': 0}]},
+        )
+        result = self.backend.read(note_path(note.note_id))
+        assert result.error is None
+        assert 'excalidraw_data' in result.file_data['content']
+        assert 'Note body content' not in result.file_data['content']
 
     def test_read_not_found(self):
         result = self.backend.read('/project/findings/nonexistent.yaml')

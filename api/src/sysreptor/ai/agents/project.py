@@ -1,3 +1,4 @@
+import copy
 import dataclasses
 import itertools
 import re
@@ -50,6 +51,7 @@ from sysreptor.ai.agents.base import (
 from sysreptor.pentests.fielddefinition.sort import group_findings
 from sysreptor.pentests.models import (
     FindingTemplate,
+    NoteType,
     PentestFinding,
     PentestProject,
     ProjectNotebookPage,
@@ -205,6 +207,11 @@ NOTE_FIELD_DEFINITION = FieldDefinition(fields=[
 
 
 def get_note_data(note: ProjectNotebookPage) -> dict:
+    if note.type == NoteType.EXCALIDRAW:
+        return {
+            'title': note.title,
+            'excalidraw_data': note.excalidraw_data,
+        }
     return {
         'title': note.title,
         'text': note.text,
@@ -212,13 +219,19 @@ def get_note_data(note: ProjectNotebookPage) -> dict:
 
 
 def format_note_data(note: ProjectNotebookPage) -> str:
+    data = ProjectNotebookPageSerializer(note).data | {
+        'path': f'/project/notes/{note.note_id}.yaml',
+        **format_assignee(note.assignee),
+    }
+    definition = copy.copy(NOTE_FIELD_DEFINITION)
+    if note.type == NoteType.EXCALIDRAW:
+        data.pop('text', None)
+        data['excalidraw_data'] = note.excalidraw_data
+        del definition['text']
     return '\n'.join([
-        to_yaml(ProjectNotebookPageSerializer(note).data | {
-            'path': f'/project/notes/{note.note_id}.yaml',
-            **format_assignee(note.assignee),
-        }),
+        to_yaml(data),
         '# Field definitions for writable fields:',
-        format_field_definition(NOTE_FIELD_DEFINITION).replace('\n', '\n# '),
+        format_field_definition(definition).replace('\n', '\n# '),
     ])
 
 
@@ -418,8 +431,12 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
     field_parts = tuple(field.split('.'))
     try:
         if isinstance(obj, ProjectNotebookPage):
+            if obj.type == NoteType.EXCALIDRAW and field_parts and field_parts[0] == 'text':
+                raise ValidationError('Cannot write to "text" for excalidraw notes. Use the excalidraw note endpoints/tools instead.')
             data_path, old_value, definition = get_field_value_and_definition(
-                data=get_note_data(obj), definition=NOTE_FIELD_DEFINITION, path=field_parts,
+                data=get_note_data(obj),
+                definition=NOTE_FIELD_DEFINITION,
+                path=field_parts,
             )
         else:
             if field_parts[0] != 'data':
