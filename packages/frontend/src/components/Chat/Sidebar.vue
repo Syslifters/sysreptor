@@ -15,7 +15,7 @@
             density="compact"
           />
 
-          <s-btn-icon @click="localSettings.reportingSidebarType = ReportingSidebarType.NONE">
+          <s-btn-icon @click="sidebarType = ReportingSidebarType.NONE">
             <v-icon size="x-large" icon="mdi-close" />
           </s-btn-icon>
         </template>
@@ -153,15 +153,15 @@ import { throttle } from 'lodash-es';
 
 const props = defineProps<{
   project: PentestProject;
-  projectType: ProjectType;
   context: Record<string, string|undefined>;
+  collabFlush?: (() => void|Promise<void>);
 }>();
 
+const sidebarType = defineModel<ReportingSidebarType>('sidebarType', { required: true });
 
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
-const reportingCollab = projectStore.useReportingCollab({ project: props.project, projectType: props.projectType });
 
 const agent = projectStore.useReportingAgent({ project: props.project });
 
@@ -183,7 +183,7 @@ const form = ref({
 });
 async function sendMessage() {
   // Flush collab events such that the server/agent has the latest data
-  await reportingCollab.flushEvents();
+  await Promise.resolve(props.collabFlush?.());
 
   const promise = agent.submitMessage({ 
     message: form.value.message, 
