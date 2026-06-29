@@ -161,11 +161,11 @@ const projectFileRef = computed(() => {
   if (!filePath) {
     return null;
   }
-  const findingMatch = filePath.match(/^\/project\/findings\/([^/]+)\.yaml$/);
+  const findingMatch = filePath.match(/^\/project\/reporting\/findings\/([^/]+)\.yaml$/);
   if (findingMatch) {
     return { type: 'finding', id: findingMatch[1] };
   }
-  const sectionMatch = filePath.match(/^\/project\/sections\/([^/]+)\.yaml$/);
+  const sectionMatch = filePath.match(/^\/project\/reporting\/sections\/([^/]+)\.yaml$/);
   if (sectionMatch) {
     return { type: 'section', id: sectionMatch[1] };
   }

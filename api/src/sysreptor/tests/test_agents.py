@@ -131,11 +131,11 @@ def yaml_indent(text: str, spaces: int = 4) -> str:
 
 
 def finding_path(finding_id) -> str:
-    return f'/project/findings/{finding_id}.yaml'
+    return f'/project/reporting/findings/{finding_id}.yaml'
 
 
 def section_path(section_id) -> str:
-    return f'/project/sections/{section_id}.yaml'
+    return f'/project/reporting/sections/{section_id}.yaml'
 
 
 def note_path(note_id) -> str:
@@ -183,7 +183,7 @@ class TestProjectAgent:
             AIMessage(content='Hi, how can I assist you with your project?'),
             AIMessage(content='Let me update the section for you.', tool_calls=[
                 ToolCall(id='tool_call_1', name='update_field_value', args={
-                    'file_path': '/project/sections/executive_summary.yaml',
+                    'file_path': '/project/reporting/sections/executive_summary.yaml',
                     'field': 'data.executive_summary',
                     'value': 'New executive summary',
                 }),
@@ -238,7 +238,7 @@ class TestProjectAgent:
         def assert_injected_message(msg):
             assert msg.type == 'human'
             assert str(self.project.id) in msg.content
-            assert '/project/sections/executive_summary.yaml' in msg.content
+            assert '/project/reporting/sections/executive_summary.yaml' in msg.content
             assert yaml_indent(self.project.sections.get(section_id='executive_summary').data['executive_summary']) in msg.content
 
         user_messages = [
@@ -247,7 +247,7 @@ class TestProjectAgent:
             'User message 3',
         ]
         model = FakeChatModel(messages=iter([
-            AIMessage('Response', tool_calls=[ToolCall(id='tool_call_1', name='read_file', args={'file_path': '/project/sections/executive_summary.yaml'})]),
+            AIMessage('Response', tool_calls=[ToolCall(id='tool_call_1', name='read_file', args={'file_path': '/project/reporting/sections/executive_summary.yaml'})]),
             AIMessage('done'),
             AIMessage('Another response'),
             AIMessage('Final response'),
@@ -262,7 +262,7 @@ class TestProjectAgent:
         assert len(model.message_log) == 4
 
         assert [m.type for m in model.message_log[0]['messages']] == ['system', 'human']
-        assert '<navigation file="/project/sections/executive_summary.yaml">' in model.message_log[0]['messages'][1].content
+        assert '<navigation file="/project/reporting/sections/executive_summary.yaml">' in model.message_log[0]['messages'][1].content
         assert_injected_message(model.message_log[0]['messages'][1])
         assert user_messages[0] in model.message_log[0]['messages'][1].content
 
@@ -277,7 +277,7 @@ class TestProjectAgent:
         # Page switched to finding
         assert [m.type for m in model.message_log[3]['messages']] == ['system', 'human', 'ai', 'tool', 'ai', 'human', 'ai', 'human']
         finding_message = model.message_log[3]['messages'][7]
-        assert f'<navigation file="/project/findings/{finding.finding_id}.yaml">' in finding_message.content
+        assert f'<navigation file="/project/reporting/findings/{finding.finding_id}.yaml">' in finding_message.content
         assert finding.title in finding_message.content
         assert yaml_indent(finding.data['description']) in finding_message.content
         assert user_messages[2] in finding_message.content
@@ -290,7 +290,7 @@ class TestProjectAgent:
         subagent_tool_call_id = 'subagent_tool_call_1'
         subagent_inner_tool_call_id = 'subagent_inner_tool_1'
         task_call = ToolCall(id=subagent_tool_call_id, name='task', args={'subagent_type': 'general-purpose', 'description': 'Test subagent'})
-        read_section_call = ToolCall(id=subagent_inner_tool_call_id, name='read_file', args={'file_path': '/project/sections/executive_summary.yaml'})
+        read_section_call = ToolCall(id=subagent_inner_tool_call_id, name='read_file', args={'file_path': '/project/reporting/sections/executive_summary.yaml'})
         llm_messages = [
             AIMessage(content='', tool_calls=[task_call]),
             AIMessage(content='Subagent started', tool_calls=[read_section_call]),
@@ -418,7 +418,7 @@ class TestProjectAgentTools:
 
         res = self.run_tool(
             update_field_value,
-            file_path='/project/sections/other.yaml',
+            file_path='/project/reporting/sections/other.yaml',
             field=f'data.{field_path}',
             value=new_value,
         )
@@ -430,10 +430,10 @@ class TestProjectAgentTools:
 
     @pytest.mark.parametrize(('file_path', 'field', 'error_message'), [
         ('/project/unknown/x.yaml', 'data.title', 'File not found'),
-        ('/project/sections/executive_summary.yaml', 'title', 'Currently only "data" field updates are supported'),
-        ('/project/sections/nonexistent.yaml', 'data.title', None),
-        ('/project/findings/nonexistent.yaml', 'data.title', None),
-        ('/project/sections/executive_summary.yaml', 'data.nonexistent_field.nested', None),
+        ('/project/reporting/sections/executive_summary.yaml', 'title', 'Currently only "data" field updates are supported'),
+        ('/project/reporting/sections/nonexistent.yaml', 'data.title', None),
+        ('/project/reporting/findings/nonexistent.yaml', 'data.title', None),
+        ('/project/reporting/sections/executive_summary.yaml', 'data.nonexistent_field.nested', None),
         ('/project/notes/nonexistent.yaml', 'title', None),
     ])
     def test_tool_update_field_value_invalid_paths(self, file_path, field, error_message):
@@ -460,7 +460,7 @@ class TestProjectAgentTools:
 
         res = self.run_tool(
             update_markdown_field,
-            file_path='/project/sections/other.yaml',
+            file_path='/project/reporting/sections/other.yaml',
             field='data.field_markdown',
             old_text=old_text,
             new_text=new_text,
@@ -542,7 +542,7 @@ class TestProjectAgentTools:
 
         res = self.run_tool(
             update_markdown_field,
-            file_path='/project/sections/other.yaml',
+            file_path='/project/reporting/sections/other.yaml',
             field='data.field_markdown',
             old_text=old_text,
             new_text='new text',
@@ -553,7 +553,7 @@ class TestProjectAgentTools:
     def test_tool_update_markdown_field_non_markdown_field(self):
         res = self.run_tool(
             update_markdown_field,
-            file_path='/project/sections/other.yaml',
+            file_path='/project/reporting/sections/other.yaml',
             field='data.field_string',
             old_text='old',
             new_text='new',
@@ -679,7 +679,7 @@ class TestAgentPermissions:
             with mock_llm_response(messages=[
                 AIMessage(content='dummy', tool_calls=[
                     ToolCall(id='tool_call_1', name='update_field_value', args={
-                        'file_path': '/project/sections/executive_summary.yaml',
+                        'file_path': '/project/reporting/sections/executive_summary.yaml',
                         'field': 'data.executive_summary',
                         'value': 'updated',
                     }),
@@ -852,14 +852,14 @@ class TestProjectFilesystemBackend:
 
     def test_ls_findings(self):
         finding = self.project.findings.first()
-        result = self.backend.ls('/project/findings/')
+        result = self.backend.ls('/project/reporting/findings/')
         paths = [e['path'] for e in result.entries or []]
         assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
 
     def test_lazy_file_loading(self):
         with mock.patch('sysreptor.ai.agents.project.format_finding_data') as format_finding:
-            self.backend.ls('/project/findings/')
-            self.backend.glob('*.yaml', path='/project/findings/')
+            self.backend.ls('/project/reporting/findings/')
+            self.backend.glob('*.yaml', path='/project/reporting/findings/')
             format_finding.assert_not_called()
 
     def test_ls_notes(self):
@@ -894,13 +894,13 @@ class TestProjectFilesystemBackend:
         assert 'Note body content' not in result.file_data['content']
 
     def test_read_not_found(self):
-        result = self.backend.read('/project/findings/nonexistent.yaml')
+        result = self.backend.read('/project/reporting/findings/nonexistent.yaml')
         assert result.error is not None
         assert result.error.lower() in ['file_not_found', 'not found']
 
     def test_grep(self):
         finding = self.project.findings.first()
-        result = self.backend.grep(finding.title, path='/project/findings/')
+        result = self.backend.grep(finding.title, path='/project/reporting/findings/')
         assert any(m['path'].endswith(f'/{finding.finding_id}.yaml') for m in (result.matches or []))
 
     def test_grep_notes(self):
@@ -910,7 +910,7 @@ class TestProjectFilesystemBackend:
 
     def test_glob(self):
         finding = self.project.findings.first()
-        result = self.backend.glob('*.yaml', path='/project/findings/')
+        result = self.backend.glob('*.yaml', path='/project/reporting/findings/')
         paths = [m['path'] for m in (result.matches or [])]
         assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
 
@@ -921,12 +921,12 @@ class TestProjectFilesystemBackend:
         assert any(p.endswith(f'/{note.note_id}.yaml') for p in paths)
 
     def test_read_only_write(self):
-        result = self.backend.write('/project/findings/new.yaml', 'content')
+        result = self.backend.write('/project/reporting/findings/new.yaml', 'content')
         assert result.error is not None
         assert 'read-only' in result.error.lower()
         assert 'update_field_value' in result.error
         # The routed backend sees the prefix-stripped path
-        assert '/findings/new.yaml' in result.error
+        assert '/reporting/findings/new.yaml' in result.error
 
     def test_read_only_edit(self):
         finding = self.project.findings.first()

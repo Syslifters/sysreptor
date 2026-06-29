@@ -131,7 +131,7 @@ def format_project_overview(project: PentestProject) -> str:
 def format_section_info(s) -> str:
     return to_inline_context({
         'id': s.section_id,
-        'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/sections/{s.section_id}.yaml',
+        'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/sections/{s.section_id}.yaml',
         'label': s.section_label,
         'status': s.status,
         **format_assignee(s.assignee),
@@ -163,7 +163,7 @@ def format_project_info(project: PentestProject) -> str:
         '## Findings',
         *[to_inline_context({
             'id': f['id'],
-            'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/findings/{f['id']}.yaml',
+            'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/findings/{f['id']}.yaml',
             'title': f['title'],
             'risk': format_risk_score(f),
             **({'group': f.get('_group', '')} if is_grouped else {}),
@@ -180,7 +180,7 @@ def format_project_info(project: PentestProject) -> str:
 def format_finding_data(finding) -> str:
     return '\n'.join([
         to_yaml(PentestFindingSerializer(finding).data | {
-            'path': f'/project/findings/{finding.finding_id}.yaml',
+            'path': f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/findings/{finding.finding_id}.yaml',
             'risk': format_risk_score(finding.data),
             **format_assignee(finding.assignee),
         }),
@@ -192,7 +192,7 @@ def format_finding_data(finding) -> str:
 def format_section_data(section) -> str:
     return '\n'.join([
         to_yaml(ReportSectionSerializer(section).data | {
-            'path': f'/project/sections/{section.section_id}.yaml',
+            'path': f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/sections/{section.section_id}.yaml',
             **format_assignee(section.assignee),
         }),
         '# Field definitions for fields in `.data`:',
@@ -392,7 +392,7 @@ def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, temp
         serializer.is_valid(raise_exception=True)
         finding = serializer.save()
 
-    finding_data = ProjectFilesystemBackend(runtime=runtime).read(file_path=f'/findings/{finding.finding_id}.yaml').file_data.get('content', '')
+    finding_data = ProjectFilesystemBackend(runtime=runtime).read(file_path=f'/reporting/findings/{finding.finding_id}.yaml').file_data.get('content', '')
     return 'Successfully created finding:\n' + finding_data, {
         'id': str(finding.finding_id),
         'title': finding.title,
@@ -406,10 +406,16 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
         raise ValidationError('You do not have write permissions')
 
     filepath_parts = tuple(file_path.strip('/').split('/'))
-    if len(filepath_parts) != 3 or filepath_parts[0] != 'project':
+    if len(filepath_parts) < 3 or filepath_parts[0] != 'project':
         raise ValidationError('File not found.')
     obj_id = filepath_parts[-1][:-5] if filepath_parts[-1].endswith('.yaml') else filepath_parts[-1]
-    match filepath_parts[1]:
+    if len(filepath_parts) == 4 and filepath_parts[1] == 'reporting':
+        resource_type = filepath_parts[2]
+    elif len(filepath_parts) == 3:
+        resource_type = filepath_parts[1]
+    else:
+        raise ValidationError('File not found.')
+    match resource_type:
         case 'findings':
             try:
                 obj = project.findings.get(finding_id=obj_id)
@@ -426,7 +432,10 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
             except Exception:
                 raise ValidationError(FILE_NOT_FOUND) from None
         case _:
-            raise ValidationError('File not found. Only files in "/project/sections/", "/project/findings/" and "/project/notes/" directories are supported.')
+            raise ValidationError(
+                'File not found. Only files in "/project/reporting/sections/", '
+                '"/project/reporting/findings/" and "/project/notes/" directories are supported.',
+            )
 
     field_parts = tuple(field.split('.'))
     try:
@@ -491,8 +500,8 @@ def update_field_value(runtime: ToolRuntime[ProjectContext], file_path: str, fie
 
     Args:
         file_path: The file path to the section, finding, or note file. Examples:
-            /project/findings/123e4567-e89b-12d3-a456-426614174000.yaml,
-            /project/sections/executive_summary.yaml,
+            /project/reporting/findings/123e4567-e89b-12d3-a456-426614174000.yaml,
+            /project/reporting/sections/executive_summary.yaml,
             /project/notes/123e4567-e89b-12d3-a456-426614174000.yaml
         field: Dot-separated path to the field inside the file.
             e.g. "data.title", "data.summary", "data.affected_components.[0]".
@@ -519,8 +528,8 @@ def update_markdown_field(runtime: ToolRuntime[ProjectContext], file_path: str, 
 
     Args:
         file_path: The file path to the section, finding, or note file. Examples:
-            /project/findings/123e4567-e89b-12d3-a456-426614174000.yaml,
-            /project/sections/executive_summary.yaml,
+            /project/reporting/findings/123e4567-e89b-12d3-a456-426614174000.yaml,
+            /project/reporting/sections/executive_summary.yaml,
             /project/notes/123e4567-e89b-12d3-a456-426614174000.yaml
         field: Dot-separated path to the field inside the file.
             e.g. "data.summary", "data.recommendation".
@@ -588,8 +597,8 @@ class ProjectFilesystemBackend(BackendProtocol):
     PROJECT_ROOT = '/project'
     FILE_PATH_RE = re.compile(
         r'^/(?:project\.yaml'
-        r'|findings/(?P<finding_id>[^/]+)\.yaml'
-        r'|sections/(?P<section_id>[^/]+)\.yaml'
+        r'|reporting/findings/(?P<finding_id>[^/]+)\.yaml'
+        r'|reporting/sections/(?P<section_id>[^/]+)\.yaml'
         r'|notes/(?P<note_id>[^/]+)\.yaml)$',
     )
 
@@ -644,9 +653,11 @@ class ProjectFilesystemBackend(BackendProtocol):
             '/project.yaml': self._lazy_file('/project.yaml', project.updated.isoformat(), project=project),
         }
         for finding in (project.findings.all() if prefetch else project.findings.only('finding_id', 'updated').all()):
-            files[f'/findings/{finding.finding_id}.yaml'] = self._lazy_file(f'/findings/{finding.finding_id}.yaml', finding.updated.isoformat(), project=project)
+            path = f'/reporting/findings/{finding.finding_id}.yaml'
+            files[path] = self._lazy_file(path, finding.updated.isoformat(), project=project)
         for section in (project.sections.all() if prefetch else project.sections.only('section_id', 'updated').all()):
-            files[f'/sections/{section.section_id}.yaml'] = self._lazy_file(f'/sections/{section.section_id}.yaml', section.updated.isoformat(), project=project)
+            path = f'/reporting/sections/{section.section_id}.yaml'
+            files[path] = self._lazy_file(path, section.updated.isoformat(), project=project)
         for note in (project.notes.all() if prefetch else project.notes.only('note_id', 'updated').all()):
             files[f'/notes/{note.note_id}.yaml'] = self._lazy_file(f'/notes/{note.note_id}.yaml', note.updated.isoformat(), project=project)
         return files
@@ -756,14 +767,14 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
         project = get_project(runtime.context.project_id, prefetch=True)
         if (section_id := runtime.context.section_id) and (section := next((s for s in project.sections.all() if str(s.section_id) == str(section_id)), None)):
             return {
-                'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/sections/{str(section_id)}.yaml',
+                'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/sections/{str(section_id)}.yaml',
                 'project': project,
                 'section': section,
                 'info': format_section_info(section) if format_info else None,
             }
         elif (finding_id := runtime.context.finding_id) and (finding := next((f for f in project.findings.all() if str(f.finding_id) == str(finding_id)), None)):
             return {
-                'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/findings/{str(finding_id)}.yaml',
+                'file': f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/findings/{str(finding_id)}.yaml',
                 'project': project,
                 'finding': finding,
                 'info': to_inline_context({
@@ -821,7 +832,7 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
           when the user is viewing a section or finding, the full data for that item.
           Always up-to-date.
         - <navigation>: The file the user is currently viewing (e.g.
-          /project/sections/executive_summary.yaml, /project/findings/<id>.yaml).
+          /project/reporting/sections/executive_summary.yaml, /project/reporting/findings/<id>.yaml).
 
         Use <context> to locate file paths and understand current state. Use `read_file` on
         `/project/...` paths when you need full data for an item not shown in <context>.
@@ -871,6 +882,10 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         text and tool calls. The user sees your responses and tool outputs in real time.
 
         ## Working with the Project
+        The filesystem is for your tools only. The user does not see or understand file paths,
+        they work with findings, sections, and notes in the UI.
+        Map their requests to the correct paths internally; in chat, refer to items by title or label, not by path.
+
         When the user asks about or to change report content:
         1. **Use context**: <context> shows current project structure (with file paths) and, when
            relevant, the active section or finding file. Use it to see what exists before suggesting
@@ -878,7 +893,7 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         2. **Read project files**: Use `ls`, `read_file`, and `grep` on `/project/...` paths when
            you need full content for an item not in <context>. Filenames are canonical IDs.
         3. **Write changes**: Use update_field_value, update_markdown_field with file paths
-           and field paths shown in file contents (e.g. file="/project/findings/<id>.yaml", field="data.title").
+           and field paths shown in file contents (e.g. file="/project/reporting/findings/<id>.yaml", field="data.title").
         4. **Templates**: Use list_templates and read_template to search and inspect
            templates before creating findings from them.
 
