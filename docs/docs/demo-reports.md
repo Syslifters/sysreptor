@@ -34,6 +34,10 @@
     <a href="/assets/reports/Schutzpunkt-Pentest-Webapplication-EN.pdf" target="_blank"><img alt="Schutzpunkt Report" src="/assets/reports/Schutzpunkt-Pentest-Webapplication-EN-Preview.png" /></a>
     <figcaption><a href="https://www.schutzpunkt.com/" target="_blank">Schutzpunkt GmbH</a></figcaption>
 </figure>
+<figure>
+    <a href="/assets/reports/BrightFlare_FlexCo-Sample_Report.pdf" target="_blank"><img alt="BrightFlare FlexCo Demo Report" src="/assets/reports/BrightFlare_FlexCo-Sample_Report-Preview.png" /></a>
+    <figcaption><a href="https://brightflare.io/" target="_blank">BrightFlare FlexCo</a></figcaption>
+</figure>
 </div>
 
 ## Certifications
