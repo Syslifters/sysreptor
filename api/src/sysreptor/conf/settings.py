@@ -224,6 +224,8 @@ if not DISABLE_WEBSOCKETS:
                     'retry_on_timeout': True,
                     'retry_on_error': [redis.ConnectionError],
                 } | ( REDIS_CONNECTION_CONFIG or {'address': REDIS_URL})],
+                'capacity': 3000,
+                'expiry': 30,
             },
         },
     }
