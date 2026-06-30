@@ -49,16 +49,10 @@
 
         <!-- PDF encryption password -->
         <div class="mt-4">
-          <s-text-field
+          <s-pdf-password-field 
             v-model="generatePdfForm.password"
-            label="PDF password (optional)"
-            append-inner-icon="mdi-lock-reset" @click:append-inner="generatePdfForm.password = generateRandomPassword()"
-            spellcheck="false"
-          >
-            <template #prepend>
-              <s-checkbox v-model="shouldEncryptPdf" v-tooltip:top="'Encrypt PDF'" />
-            </template>
-          </s-text-field>
+            :filename="filename"
+          />
         </div>
 
         <div id="publish-actions-download" class="mt-4">
@@ -100,17 +94,11 @@
                   <template #append-fields>
                     <!-- Set password for encrypting report -->
                     <v-col cols="6">
-                      <s-text-field
+                      <s-pdf-password-field 
                         v-model="generatePdfForm.password"
-                        label="PDF password (optional)"
-                        append-inner-icon="mdi-lock-reset" @click:append-inner="generatePdfForm.password = generateRandomPassword()"
-                        spellcheck="false"
+                        :filename="filename"
                         class="mt-4"
-                      >
-                        <template #prepend>
-                          <s-checkbox v-model="shouldEncryptPdf" />
-                        </template>
-                      </s-text-field>
+                      />
                     </v-col>
                   </template>
                 </notes-share-info-form>
@@ -221,12 +209,8 @@ function updateFilename(value: string) {
   wasFilenameEdited.value = true;
 }
 
-const shouldEncryptPdf = computed({
-  get: () => !!generatePdfForm.value.password,
-  set: (value) => { generatePdfForm.value.password = value ? generateRandomPassword() : '' }
-});
-watch(shouldEncryptPdf, () => {
-  localSettings.pdfPasswordEnabled = shouldEncryptPdf.value;
+watch(() => generatePdfForm.value.password, () => {
+  localSettings.pdfPasswordEnabled = !!generatePdfForm.value.password;
 });
 
 const shareReportForm = ref({
