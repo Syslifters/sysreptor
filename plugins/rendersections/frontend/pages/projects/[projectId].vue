@@ -48,11 +48,8 @@
           </v-row>
           <v-row>
             <v-col cols="auto" class="flex-grow-1">
-              <s-text-field
+              <s-pdf-password-field
                 v-model="renderPassword"
-                label="PDF password (optional)"
-                append-inner-icon="mdi-lock-reset" @click:append-inner="renderPassword = generateRandomPassword()"
-                spellcheck="false"
               />
             </v-col>
           </v-row>

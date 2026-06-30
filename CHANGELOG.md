@@ -5,6 +5,7 @@
 * Enable (basic) spellcheck for additional languages
 * Add filters from project/design/template name in list views
 * Markdown editor: Add save indicator to image editor
+* UI: Add buttons to copy and download PDF password
 
 
 ## v2026.50 - 2026-06-17
