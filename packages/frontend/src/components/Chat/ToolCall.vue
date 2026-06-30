@@ -73,6 +73,13 @@
         {{ getFindingTitle(props.value.output?.id, props.value.output?.title) }}
       </nuxt-link>
     </template>
+    <template v-else-if="props.value.name === 'create_note' && props.project">
+      <chat-tool-call-status :status="props.value.status" />
+      Create note
+      <nuxt-link :to="`/projects/${props.project.id}/notes/${props.value.output?.id}/`">
+        {{ getNoteTitle(props.value.output?.id, props.value.output?.title) }}
+      </nuxt-link>
+    </template>
     <template v-else-if="props.value.name === 'write_todos'">
       <chat-tool-call-status :status="props.value.status" />
       Update TODO list

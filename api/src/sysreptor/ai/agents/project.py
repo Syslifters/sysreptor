@@ -60,7 +60,7 @@ from sysreptor.pentests.models import (
 from sysreptor.pentests.models.common import get_risk_score_from_data
 from sysreptor.pentests.permissions import ProjectSubresourcePermissions
 from sysreptor.pentests.rendering.entry import format_template_field_object
-from sysreptor.pentests.serializers.notes import ProjectNotebookPageSerializer
+from sysreptor.pentests.serializers.notes import ProjectNotebookPageCreateSerializer, ProjectNotebookPageSerializer
 from sysreptor.pentests.serializers.project import (
     PentestFindingFromTemplateSerializer,
     PentestFindingSerializer,
@@ -393,9 +393,60 @@ def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, temp
         finding = serializer.save()
 
     finding_data = ProjectFilesystemBackend(runtime=runtime).read(file_path=f'/reporting/findings/{finding.finding_id}.yaml').file_data.get('content', '')
-    return 'Successfully created finding:\n' + finding_data, {
+    file_path = f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/findings/{finding.finding_id}.yaml'
+    return f'Successfully created finding at {file_path}:\n' + finding_data, {
         'id': str(finding.finding_id),
         'title': finding.title,
+    }
+
+
+@agent_tool(parse_docstring=True, metadata={'writable': True})
+def create_note(
+    runtime: ToolRuntime[ProjectContext],
+    data: dict = None,
+    parent: str = '',
+    order: int | None = None,
+) -> tuple[str, dict]:
+    """
+    Create a new note in the project.
+
+    Use list_notes to see the note tree and valid parent note IDs. Set parent and
+    order to control placement in the hierarchy; put note content fields in data.
+
+    Args:
+        data: Optional. Note content fields, e.g. {"title": "...", "text": "..."}.
+            May include title, text, checked, and icon_emoji.
+        parent: Optional parent note ID from list_notes. Omit or leave empty for
+            a top-level note.
+        order: Optional 1-based position among siblings with the same parent.
+            Existing notes at or after this position are shifted down. When omitted,
+            the note is appended at the end of its sibling group.
+    """
+    project = get_project(runtime.context.project_id)
+    user = PentestUser.objects.get(id=runtime.context.user_id)
+    if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
+        raise ValidationError('You do not have write permissions')
+
+    serializer_data = dict(data or {})
+    if parent:
+        serializer_data['parent'] = parent
+    if order is not None:
+        serializer_data['order'] = order
+
+    serializer = ProjectNotebookPageCreateSerializer(
+        data=serializer_data,
+        context={'project': project},
+    )
+    serializer.is_valid(raise_exception=True)
+    note = serializer.save()
+
+    note_data = ProjectFilesystemBackend(runtime=runtime).read(
+        file_path=f'/notes/{note.note_id}.yaml',
+    ).file_data.get('content', '')
+    file_path = f'{ProjectFilesystemBackend.PROJECT_ROOT}/notes/{note.note_id}.yaml'
+    return f'Successfully created note at {file_path}:\n' + note_data, {
+        'id': str(note.note_id),
+        'title': note.title,
     }
 
 
@@ -905,7 +956,7 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         - Review and give feedback on finding and section content
         - Search and recommend templates; create findings from templates or from scratch
           (when in Agent mode)
-        - Edit section, finding and note fields (when in Agent mode)
+        - Create notes and edit section, finding and note fields (when in Agent mode)
 
         ## Output
         Use Markdown in chat. For code or structured data, use code blocks with four backticks
@@ -951,14 +1002,17 @@ def init_agent_project_agent():
         additional_system_prompt=textwrap.dedent("""\
         ## Agent Mode
         You are in Agent mode: full write access.
-        You can create findings (from templates or blank), update section, finding, and note fields
-        (update_field_value for full replacement, update_markdown_field for partial markdown
-        edits). Read data before editing; use the path format shown in the tool descriptions.
+        You can create findings (from templates or blank) and notes, update section, finding,
+        and note fields (update_field_value for full replacement, update_markdown_field for
+        partial markdown edits). Use list_notes to see the note hierarchy; set parent and
+        order on create_note for placement and note fields in data. Read data before editing;
+        use the path format shown in the tool descriptions.
         """).strip(),
         additional_tools=[
             update_field_value,
             update_markdown_field,
             create_finding,
+            create_note,
         ],
     )
 

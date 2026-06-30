@@ -22,6 +22,7 @@ from sysreptor.ai.agents.project import (
     ProjectContext,
     ProjectFilesystemBackend,
     create_finding,
+    create_note,
     list_notes,
     list_templates,
     read_template,
@@ -632,6 +633,40 @@ class TestProjectAgentTools:
         # Non-overridden field should come from template
         assert finding.data['recommendation'] == 'Template Recommendation'
         assert finding.template_id == template.id
+
+    def test_tool_create_note(self):
+        initial_count = self.project.notes.count()
+        res = self.run_tool(create_note, data={'title': 'Agent Note', 'text': 'Note content from agent'})
+
+        assert 'Successfully created note' in res
+        assert self.project.notes.count() == initial_count + 1
+
+        note = self.project.notes.order_by('-created').first()
+        assert note.title == 'Agent Note'
+        assert note.text == 'Note content from agent'
+        assert note.parent is None
+        assert str(note.note_id) in res
+
+    def test_tool_create_note_with_parent_and_order(self):
+        parent = create_projectnotebookpage(project=self.project, title='Parent note', order=1)
+        sibling = create_projectnotebookpage(project=self.project, parent=parent, title='Sibling', order=1, text='sibling')
+
+        res = self.run_tool(
+            create_note,
+            data={'title': 'Child note', 'text': 'Nested content'},
+            parent=str(parent.note_id),
+            order=1,
+        )
+
+        assert 'Successfully created note' in res
+        note = self.project.notes.order_by('-created').first()
+        assert note.title == 'Child note'
+        assert note.text == 'Nested content'
+        assert note.parent_id == parent.id
+        assert note.order == 1
+
+        sibling.refresh_from_db()
+        assert sibling.order == 2
 
 
 @pytest.mark.django_db()
