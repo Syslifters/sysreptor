@@ -50,6 +50,7 @@
             v-tooltip.top="'Share'"
           />
 
+          <chat-btn v-model="localSettings.notesSidebarType" />
           <btn-history v-model="historyVisible" />
         </template>
 

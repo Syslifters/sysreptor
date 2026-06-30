@@ -1,31 +1,31 @@
 <template>
   <div class="text-body-medium text-disabled mt-2">
-    <template v-if="props.value.name === 'get_project_info'">
+    <template v-if="props.value.name === 'read_file' && props.project && projectFileRef">
       <chat-tool-call-status :status="props.value.status" />
-      Read project info
+      Read
+      <template v-if="projectFileRef.type === 'finding'">
+        finding
+        <nuxt-link :to="`/projects/${props.project.id}/reporting/findings/${projectFileRef.id}/`">
+          {{ getFindingTitle(projectFileRef.id) }}
+        </nuxt-link>
+      </template>
+      <template v-else-if="projectFileRef.type === 'section'">
+        section
+        <nuxt-link :to="`/projects/${props.project.id}/reporting/sections/${projectFileRef.id}/`">
+          {{ getSectionTitle(projectFileRef.id) }}
+        </nuxt-link>
+      </template>
+      <template v-else-if="projectFileRef.type === 'note'">
+        note
+        <nuxt-link :to="`/projects/${props.project.id}/notes/${projectFileRef.id}/`">
+          {{ getNoteTitle(projectFileRef.id) }}
+        </nuxt-link>
+      </template>
+      <template v-else>
+        project overview
+      </template>
     </template>
-    <template v-else-if="props.value.name === 'get_finding_data' && props.project">
-      <chat-tool-call-status :status="props.value.status" />
-      Read finding
-      <nuxt-link :to="`/projects/${props.project.id}/reporting/findings/${props.value.args.finding_id}/`">
-        {{ getFindingTitle(props.value.args.finding_id, props.value.output?.title) }}
-      </nuxt-link>
-    </template>
-    <template v-else-if="props.value.name === 'get_section_data' && props.project">
-      <chat-tool-call-status :status="props.value.status" />
-      Read section
-      <nuxt-link :to="`/projects/${props.project.id}/reporting/sections/${props.value.args.section_id}/`">
-        {{ getSectionTitle(props.value.args.section_id, props.value.output?.title) }}
-      </nuxt-link>
-    </template>
-    <template v-else-if="props.value.name === 'get_note_data' && props.project">
-      <chat-tool-call-status :status="props.value.status" />
-      Read note
-      <nuxt-link :to="`/projects/${props.project.id}/notes/${props.value.args.note_id}/`">
-        {{ getNoteTitle(props.value.args.note_id, props.value.output?.title) }}
-      </nuxt-link>
-    </template>
-    <template v-else-if="props.value.name === 'get_template_data'">
+    <template v-else-if="props.value.name === 'read_template'">
       <chat-tool-call-status :status="props.value.status" />
       Read template
       <nuxt-link :to="`/templates/${props.value.args.template_id}/`">
@@ -35,18 +35,31 @@
     <template v-else-if="['update_field_value', 'update_markdown_field'].includes(props.value.name) && props.project">
       <chat-tool-call-status :status="props.value.status" />
       Update
-      <template v-if="props.value.args.path?.startsWith('findings.')">
+      <template v-if="projectFileRef?.type === 'finding'">
         finding
-        <nuxt-link :to="`/projects/${props.project.id}/reporting/findings/${props.value.args.path.split('.')[1]}/history/${props.value.timestamp}/`">
-          {{ getFindingTitle(props.value.args.path.split('.')[1]) }}
+        <nuxt-link :to="`/projects/${props.project.id}/reporting/findings/${projectFileRef.id}/history/${props.value.timestamp}/`">
+          {{ getFindingTitle(projectFileRef.id) }}
         </nuxt-link>
       </template>
-      <template v-else-if="props.value.args.path?.startsWith('sections.')">
+      <template v-else-if="projectFileRef?.type === 'section'">
         section
-        <nuxt-link :to="`/projects/${props.project.id}/reporting/sections/${props.value.args.path.split('.')[1]}/history/${props.value.timestamp}/`">
-          {{ getSectionTitle(props.value.args.path.split('.')[1]) }}
+        <nuxt-link :to="`/projects/${props.project.id}/reporting/sections/${projectFileRef.id}/history/${props.value.timestamp}/`">
+          {{ getSectionTitle(projectFileRef.id) }}
         </nuxt-link>
       </template>
+      <template v-else-if="projectFileRef?.type === 'note'">
+        note
+        <nuxt-link :to="`/projects/${props.project.id}/notes/${projectFileRef.id}/history/${props.value.timestamp}/`">
+          {{ getNoteTitle(projectFileRef.id) }}
+        </nuxt-link>
+      </template>
+      <template v-else>
+        Update {{ props.value.args.file_path || props.value.args.path }}
+      </template>
+    </template>
+    <template v-else-if="props.value.name === 'list_notes'">
+      <chat-tool-call-status :status="props.value.status" />
+      List notes
     </template>
     <template v-else-if="props.value.name === 'list_templates'">
       <chat-tool-call-status :status="props.value.status" />
@@ -58,6 +71,13 @@
       Create finding
       <nuxt-link :to="`/projects/${props.project.id}/reporting/findings/${props.value.output?.id}/`">
         {{ getFindingTitle(props.value.output?.id, props.value.output?.title) }}
+      </nuxt-link>
+    </template>
+    <template v-else-if="props.value.name === 'create_note' && props.project">
+      <chat-tool-call-status :status="props.value.status" />
+      Create note
+      <nuxt-link :to="`/projects/${props.project.id}/notes/${props.value.output?.id}/`">
+        {{ getNoteTitle(props.value.output?.id, props.value.output?.title) }}
       </nuxt-link>
     </template>
     <template v-else-if="props.value.name === 'write_todos'">
@@ -112,17 +132,17 @@
         </template>
       </chat-reasoning-panel>
     </template>
-    <template v-else-if="['glob', 'grep'].includes(props.value.name)">
+    <template v-else-if="props.value.name === 'ls'">
       <chat-tool-call-status :status="props.value.status" />
-      {{ props.value.name }} "{{ props.value.args.pattern }}"
+      {{ props.value.name }} {{ props.value.args.path }}
     </template>
     <template v-else-if="['read_file', 'write_file', 'edit_file'].includes(props.value.name)">
       <chat-tool-call-status :status="props.value.status" />
       {{ props.value.name }} {{ props.value.args.file_path }}
     </template>
-    <template v-else-if="props.value.name === 'ls'">
+    <template v-else-if="['glob', 'grep'].includes(props.value.name)">
       <chat-tool-call-status :status="props.value.status" />
-      {{ props.value.name }} {{ props.value.args.path }}
+      {{ props.value.name }} "{{ props.value.args.pattern }}" {{ props.value.args.path }} {{ props.value.args.glob }}
     </template>
     <template v-else>
       <chat-tool-call-status :status="props.value.status" />
@@ -139,6 +159,32 @@ const props = defineProps<{
 }>();
 
 const projectStore = useProjectStore();
+
+const projectFileRef = computed(() => {
+  if (!['read_file', 'update_field_value', 'update_markdown_field'].includes(props.value.name)) {
+    return null;
+  }
+  const filePath = props.value.args?.file_path;
+  if (!filePath) {
+    return null;
+  }
+  const findingMatch = filePath.match(/^\/project\/reporting\/findings\/([^/]+)\.yaml$/);
+  if (findingMatch) {
+    return { type: 'finding', id: findingMatch[1] };
+  }
+  const sectionMatch = filePath.match(/^\/project\/reporting\/sections\/([^/]+)\.yaml$/);
+  if (sectionMatch) {
+    return { type: 'section', id: sectionMatch[1] };
+  }
+  const noteMatch = filePath.match(/^\/project\/notes\/([^/]+)\.yaml$/);
+  if (noteMatch) {
+    return { type: 'note', id: noteMatch[1] };
+  }
+  if (filePath === '/project/project.yaml') {
+    return { type: 'project' };
+  }
+  return null;
+});
 
 function getFindingTitle(findingId: string, fallbackTitle?: string): string {
   const finding = projectStore.findings(props.project?.id || '').find(f => f.id === findingId);

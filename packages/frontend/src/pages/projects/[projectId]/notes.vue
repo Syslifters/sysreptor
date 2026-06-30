@@ -1,5 +1,10 @@
 <template>
-  <split-menu v-model="localSettings.notebookInputMenuSizePx" :content-props="{ class: 'pa-0 h-100' }">
+  <split-menu
+    v-model="localSettings.notebookInputMenuSizePx"
+    :sidebar-width="localSettings.notesSidebarType !== ReportingSidebarType.NONE ? localSettings.notesSidebarSizePx : undefined"
+    @update:sidebar-width="localSettings.notesSidebarSizePx = $event!"
+    :content-props="{ class: 'pa-0 h-100' }"
+  >
     <template #menu>
       <notes-menu
         title="Notes"
@@ -37,12 +42,25 @@
         <nuxt-page />
       </collab-loader>
     </template>
+
+    <template #sidebar>
+      <chat-sidebar
+        v-if="localSettings.notesSidebarType === ReportingSidebarType.AICHAT && apiSettings.settings!.features?.ai_agent"
+        v-model:sidebar-type="localSettings.notesSidebarType"
+        :project="project"
+        :context="{
+          note_id: router.currentRoute.value.params.noteId as string|undefined,
+        }"
+        :collab-flush="notesCollab.flushEvents"
+      />
+    </template>
   </split-menu>
 </template>
 
 <script setup lang="ts">
 const route = useRoute();
 const router = useRouter();
+const apiSettings = useApiSettings();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 

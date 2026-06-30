@@ -43,12 +43,13 @@
       />
       <chat-sidebar
         v-else-if="localSettings.reportingSidebarType === ReportingSidebarType.AICHAT && apiSettings.settings!.features?.ai_agent"
+        v-model:sidebar-type="localSettings.reportingSidebarType"
         :project="project"
-        :project-type="projectType"
         :context="{ 
           finding_id: router.currentRoute.value.params.findingId as string|undefined,
           section_id: router.currentRoute.value.params.sectionId as string|undefined,
         }"
+        :collab-flush="reportingCollab.flushEvents"
       />
     </template>
   </split-menu>

@@ -6,6 +6,7 @@ from unittest import mock
 
 import pytest
 from asgiref.sync import async_to_sync
+from deepagents.backends import CompositeBackend, StateBackend
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall
@@ -19,23 +20,23 @@ from sysreptor.ai.agents.base import get_default_model_id, get_model_configs, in
 from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
 from sysreptor.ai.agents.project import (
     ProjectContext,
+    ProjectFilesystemBackend,
     create_finding,
-    get_finding_data,
-    get_note_data,
-    get_project_info,
-    get_section_data,
-    get_template_data,
+    create_note,
     list_notes,
     list_templates,
+    read_template,
     update_field_value,
     update_markdown_field,
 )
 from sysreptor.ai.models import ChatThread, LangchainCheckpoint
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints
+from sysreptor.pentests.models import NoteType
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
     create_project,
+    create_projectnotebookpage,
     create_template,
     create_user,
     mock_time,
@@ -130,6 +131,28 @@ def yaml_indent(text: str, spaces: int = 4) -> str:
     return '\n'.join((' ' * spaces) + line if (line and idx > 0) else '' for idx, line in enumerate(text.splitlines()))
 
 
+def finding_path(finding_id) -> str:
+    return f'/project/reporting/findings/{finding_id}.yaml'
+
+
+def section_path(section_id) -> str:
+    return f'/project/reporting/sections/{section_id}.yaml'
+
+
+def note_path(note_id) -> str:
+    return f'/project/notes/{note_id}.yaml'
+
+
+@contextlib.contextmanager
+def project_filesystem_runtime(project, user):
+    with mock.patch('sysreptor.ai.agents.project.get_runtime') as m:
+        m.return_value = mock.Mock(context=ProjectContext(
+            project_id=str(project.id),
+            user_id=str(user.id),
+        ))
+        yield
+
+
 @pytest.mark.django_db()
 class TestProjectAgent:
     @pytest.fixture(autouse=True)
@@ -160,7 +183,11 @@ class TestProjectAgent:
         llm_messages = [
             AIMessage(content='Hi, how can I assist you with your project?'),
             AIMessage(content='Let me update the section for you.', tool_calls=[
-                ToolCall(id='tool_call_1', name='update_field_value', args={'path': 'sections.executive_summary.data.executive_summary', 'value': 'New executive summary'}),
+                ToolCall(id='tool_call_1', name='update_field_value', args={
+                    'file_path': '/project/reporting/sections/executive_summary.yaml',
+                    'field': 'data.executive_summary',
+                    'value': 'New executive summary',
+                }),
             ]),
             AIMessage(content='The executive summary has been updated successfully. How else can I help you?'),
         ]
@@ -212,7 +239,7 @@ class TestProjectAgent:
         def assert_injected_message(msg):
             assert msg.type == 'human'
             assert str(self.project.id) in msg.content
-            assert 'sections.executive_summary' in msg.content
+            assert '/project/reporting/sections/executive_summary.yaml' in msg.content
             assert yaml_indent(self.project.sections.get(section_id='executive_summary').data['executive_summary']) in msg.content
 
         user_messages = [
@@ -221,7 +248,7 @@ class TestProjectAgent:
             'User message 3',
         ]
         model = FakeChatModel(messages=iter([
-            AIMessage('Response', tool_calls=[ToolCall(id='tool_call_1', name='get_section_data', args={'section_id': 'executive_summary'})]),
+            AIMessage('Response', tool_calls=[ToolCall(id='tool_call_1', name='read_file', args={'file_path': '/project/reporting/sections/executive_summary.yaml'})]),
             AIMessage('done'),
             AIMessage('Another response'),
             AIMessage('Final response'),
@@ -236,7 +263,7 @@ class TestProjectAgent:
         assert len(model.message_log) == 4
 
         assert [m.type for m in model.message_log[0]['messages']] == ['system', 'human']
-        assert '<navigation target="sections.executive_summary">' in model.message_log[0]['messages'][1].content
+        assert '<navigation file="/project/reporting/sections/executive_summary.yaml">' in model.message_log[0]['messages'][1].content
         assert_injected_message(model.message_log[0]['messages'][1])
         assert user_messages[0] in model.message_log[0]['messages'][1].content
 
@@ -251,7 +278,7 @@ class TestProjectAgent:
         # Page switched to finding
         assert [m.type for m in model.message_log[3]['messages']] == ['system', 'human', 'ai', 'tool', 'ai', 'human', 'ai', 'human']
         finding_message = model.message_log[3]['messages'][7]
-        assert f'<navigation target="findings.{finding.finding_id}">' in finding_message.content
+        assert f'<navigation file="/project/reporting/findings/{finding.finding_id}.yaml">' in finding_message.content
         assert finding.title in finding_message.content
         assert yaml_indent(finding.data['description']) in finding_message.content
         assert user_messages[2] in finding_message.content
@@ -264,10 +291,10 @@ class TestProjectAgent:
         subagent_tool_call_id = 'subagent_tool_call_1'
         subagent_inner_tool_call_id = 'subagent_inner_tool_1'
         task_call = ToolCall(id=subagent_tool_call_id, name='task', args={'subagent_type': 'general-purpose', 'description': 'Test subagent'})
-        get_section_call = ToolCall(id=subagent_inner_tool_call_id, name='get_section_data', args={'section_id': 'executive_summary'})
+        read_section_call = ToolCall(id=subagent_inner_tool_call_id, name='read_file', args={'file_path': '/project/reporting/sections/executive_summary.yaml'})
         llm_messages = [
             AIMessage(content='', tool_calls=[task_call]),
-            AIMessage(content='Subagent started', tool_calls=[get_section_call]),
+            AIMessage(content='Subagent started', tool_calls=[read_section_call]),
             AIMessage(content='Subagent done'),
             AIMessage(content='Done.'),
         ]
@@ -278,8 +305,8 @@ class TestProjectAgent:
             {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
             {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}, 'subagent': subagent_tool_call_id}),
-            {'type': 'tool_call', 'content': copy_keys(get_section_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}, 'subagent': subagent_tool_call_id},
-            {'type': 'tool_call_status', 'content': copy_keys(get_section_call, ['id', 'name']) | {'status': 'success', 'output': mock.ANY}, 'subagent': subagent_tool_call_id},
+            {'type': 'tool_call', 'content': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}, 'subagent': subagent_tool_call_id},
+            {'type': 'tool_call_status', 'content': copy_keys(read_section_call, ['id', 'name']) | {'status': 'success'}, 'subagent': subagent_tool_call_id},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}, 'subagent': subagent_tool_call_id}),
             {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'success'}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[3].content}}),
@@ -315,21 +342,6 @@ class TestProjectAgentTools:
         )
         return res.update['messages'][0].content
 
-    def test_tool_get_project_info(self):
-        contains_infos = [
-            f'name: {self.project.name}',
-            f'language: {self.project.get_language_display()}',
-            '## Sections',
-            *[s.section_id for s in self.project.sections.all()],
-            *[s.title for s in self.project.sections.all()],
-            '## Findings',
-            *[f.finding_id for f in self.project.findings.all()],
-            *[f.title for f in self.project.findings.all()],
-        ]
-        res = self.run_tool(get_project_info)
-        for info in contains_infos:
-            assert str(info) in res
-
     def test_tool_list_notes(self):
         contains_infos = [
             *[n.title for n in self.project.notes.all()],
@@ -339,47 +351,14 @@ class TestProjectAgentTools:
         for info in contains_infos:
             assert str(info) in res
 
-    def test_tool_get_section_data(self):
-        section = self.project.sections.get(section_id='other')
-        contains_infos = [
-            f'sections.{section.section_id}',
-            section.data['field_string'],
-            section.data['field_markdown'],
-        ]
-        res = self.run_tool(get_section_data, section_id=section.section_id)
-        for info in contains_infos:
-            assert str(info) in res
-
-    def test_tool_get_finding_data(self):
-        finding = self.project.findings.first()
-        contains_infos = [
-            f'findings.{finding.finding_id}',
-            finding.data['field_string'],
-            yaml_indent(finding.data['field_markdown']),
-        ]
-        res = self.run_tool(get_finding_data, finding_id=str(finding.finding_id))
-        for info in contains_infos:
-            assert str(info) in res
-
-    def test_tool_get_note_data(self):
-        note = self.project.notes.first()
-        contains_infos = [
-            f'notes.{note.note_id}',
-            note.title,
-            yaml_indent(note.text),
-        ]
-        res = self.run_tool(get_note_data, note_id=str(note.note_id))
-        for info in contains_infos:
-            assert str(info) in res
-
-    def test_tool_get_template_data(self):
+    def test_tool_read_template(self):
         template = create_template()
         contains_infos = [
             str(template.id),
             template.main_translation.data['title'],
             yaml_indent(template.main_translation.data['description'], spaces=8),
         ]
-        res = self.run_tool(get_template_data, template_id=str(template.id))
+        res = self.run_tool(read_template, template_id=str(template.id))
         for info in contains_infos:
             assert str(info) in res
 
@@ -438,24 +417,28 @@ class TestProjectAgentTools:
         })
         section.save()
 
-        res = self.run_tool(update_field_value, path=f'sections.other.data.{field_path}', value=new_value)
+        res = self.run_tool(
+            update_field_value,
+            file_path='/project/reporting/sections/other.yaml',
+            field=f'data.{field_path}',
+            value=new_value,
+        )
         assert res == 'Updated successfully.'
 
         # Verify the update
         section.refresh_from_db()
         assert get_value_at_path(section.data, tuple(field_path.split('.'))) == new_value
 
-    @pytest.mark.parametrize(('path', 'error_message'), [
-        ('sections.data.title', 'Invalid path format'),
-        ('sections.executive_summary.title', 'Invalid path format'),
-        ('findings.123.title', 'Invalid path format'),
-        ('notes.123.data.title', 'Unknown object type'),
-        ('findings.nonexistent.data.title', None),
-        ('sections.nonexistent.data.title', None),
-        ('sections.executive_summary.data.nonexistent_field.nested', None),
+    @pytest.mark.parametrize(('file_path', 'field', 'error_message'), [
+        ('/project/unknown/x.yaml', 'data.title', 'File not found'),
+        ('/project/reporting/sections/executive_summary.yaml', 'title', 'Currently only "data" field updates are supported'),
+        ('/project/reporting/sections/nonexistent.yaml', 'data.title', None),
+        ('/project/reporting/findings/nonexistent.yaml', 'data.title', None),
+        ('/project/reporting/sections/executive_summary.yaml', 'data.nonexistent_field.nested', None),
+        ('/project/notes/nonexistent.yaml', 'title', None),
     ])
-    def test_tool_update_field_value_invalid_paths(self, path, error_message):
-        res = self.run_tool(update_field_value, path=path, value='test value')
+    def test_tool_update_field_value_invalid_paths(self, file_path, field, error_message):
+        res = self.run_tool(update_field_value, file_path=file_path, field=field, value='test value')
         assert 'Error:' in res
         if error_message:
             assert error_message in res
@@ -476,11 +459,75 @@ class TestProjectAgentTools:
         section.update_data({'field_markdown': initial_value})
         section.save()
 
-        res = self.run_tool(update_markdown_field, path='sections.other.data.field_markdown', old_text=old_text, new_text=new_text)
+        res = self.run_tool(
+            update_markdown_field,
+            file_path='/project/reporting/sections/other.yaml',
+            field='data.field_markdown',
+            old_text=old_text,
+            new_text=new_text,
+        )
         assert res == 'Updated successfully'
 
         section.refresh_from_db()
         assert section.data['field_markdown'] == expected_result
+
+    @pytest.mark.parametrize(('field', 'new_value'), [
+        ('title', 'Updated note title'),
+        ('text', 'Updated note text'),
+    ])
+    def test_tool_update_field_value_note(self, field, new_value):
+        note = create_projectnotebookpage(
+            project=self.project,
+            title='Original title',
+            text='Original note text',
+            checked=False,
+            icon_emoji=None,
+        )
+
+        res = self.run_tool(
+            update_field_value,
+            file_path=note_path(note.note_id),
+            field=field,
+            value=new_value,
+        )
+        assert res == 'Updated successfully.'
+
+        note.refresh_from_db()
+        assert getattr(note, field) == new_value
+
+    @pytest.mark.parametrize(('initial_value', 'old_text', 'new_text', 'expected_result'), [
+        ('# Note\n\nSome content here.', 'Some content', 'Updated content', '# Note\n\nUpdated content here.'),
+        ('First paragraph\n\nSecond paragraph', 'First paragraph', 'New first paragraph', 'New first paragraph\n\nSecond paragraph'),
+    ])
+    def test_tool_update_markdown_field_note(self, initial_value, old_text, new_text, expected_result):
+        note = create_projectnotebookpage(project=self.project, text=initial_value)
+
+        res = self.run_tool(
+            update_markdown_field,
+            file_path=note_path(note.note_id),
+            field='text',
+            old_text=old_text,
+            new_text=new_text,
+        )
+        assert res == 'Updated successfully'
+
+        note.refresh_from_db()
+        assert note.text == expected_result
+
+    def test_tool_update_note_text_excalidraw_denied(self):
+        note = create_projectnotebookpage(
+            project=self.project,
+            type=NoteType.EXCALIDRAW,
+            excalidraw_data={'elements': [{'id': 'e1'}]},
+        )
+        res = self.run_tool(
+            update_field_value,
+            file_path=note_path(note.note_id),
+            field='text',
+            value='attempted write',
+        )
+        assert 'Error:' in res
+        assert 'excalidraw' in res.lower()
 
     @pytest.mark.parametrize(('initial_value', 'old_text', 'error_substring'), [
         ('Some content here', 'Non-existent text', 'Could not find'),
@@ -494,12 +541,24 @@ class TestProjectAgentTools:
         section.update_data({'field_markdown': initial_value})
         section.save()
 
-        res = self.run_tool(update_markdown_field, path='sections.other.data.field_markdown', old_text=old_text, new_text='new text')
+        res = self.run_tool(
+            update_markdown_field,
+            file_path='/project/reporting/sections/other.yaml',
+            field='data.field_markdown',
+            old_text=old_text,
+            new_text='new text',
+        )
         assert 'Error:' in res
         assert error_substring in res
 
     def test_tool_update_markdown_field_non_markdown_field(self):
-        res = self.run_tool(update_markdown_field, path='sections.other.data.field_string', old_text='old', new_text='new')
+        res = self.run_tool(
+            update_markdown_field,
+            file_path='/project/reporting/sections/other.yaml',
+            field='data.field_string',
+            old_text='old',
+            new_text='new',
+        )
         assert 'Error:' in res
         assert 'not of type markdown' in res
 
@@ -575,6 +634,40 @@ class TestProjectAgentTools:
         assert finding.data['recommendation'] == 'Template Recommendation'
         assert finding.template_id == template.id
 
+    def test_tool_create_note(self):
+        initial_count = self.project.notes.count()
+        res = self.run_tool(create_note, data={'title': 'Agent Note', 'text': 'Note content from agent'})
+
+        assert 'Successfully created note' in res
+        assert self.project.notes.count() == initial_count + 1
+
+        note = self.project.notes.order_by('-created').first()
+        assert note.title == 'Agent Note'
+        assert note.text == 'Note content from agent'
+        assert note.parent is None
+        assert str(note.note_id) in res
+
+    def test_tool_create_note_with_parent_and_order(self):
+        parent = create_projectnotebookpage(project=self.project, title='Parent note', order=1)
+        sibling = create_projectnotebookpage(project=self.project, parent=parent, title='Sibling', order=1, text='sibling')
+
+        res = self.run_tool(
+            create_note,
+            data={'title': 'Child note', 'text': 'Nested content'},
+            parent=str(parent.note_id),
+            order=1,
+        )
+
+        assert 'Successfully created note' in res
+        note = self.project.notes.order_by('-created').first()
+        assert note.title == 'Child note'
+        assert note.text == 'Nested content'
+        assert note.parent_id == parent.id
+        assert note.order == 1
+
+        sibling.refresh_from_db()
+        assert sibling.order == 2
+
 
 @pytest.mark.django_db()
 class TestAgentPermissions:
@@ -620,7 +713,11 @@ class TestAgentPermissions:
         for thread_id in [None, thread.id]:
             with mock_llm_response(messages=[
                 AIMessage(content='dummy', tool_calls=[
-                    ToolCall(id='tool_call_1', name='update_field_value', args={'path': 'sections.executive_summary.data.executive_summary', 'value': 'updated'}),
+                    ToolCall(id='tool_call_1', name='update_field_value', args={
+                        'file_path': '/project/reporting/sections/executive_summary.yaml',
+                        'field': 'data.executive_summary',
+                        'value': 'updated',
+                    }),
                 ]),
                 AIMessage(content='done'),
             ]):
@@ -773,3 +870,192 @@ class TestLLMModelSelection:
         with mock_llm_response(messages=[AIMessage(content='Hello again')]):
             res = self.send_message('Follow up', model='model-b', thread_id=thread_id)
             assert res.status_code == 200
+
+
+@pytest.mark.django_db()
+class TestProjectFilesystemBackend:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.project = create_project(members=[self.user])
+        self.backend = CompositeBackend(
+            default=StateBackend(),
+            routes={ProjectFilesystemBackend.PROJECT_ROOT: ProjectFilesystemBackend()},
+        )
+        with project_filesystem_runtime(self.project, self.user):
+            yield
+
+    def test_ls_findings(self):
+        finding = self.project.findings.first()
+        result = self.backend.ls('/project/reporting/findings/')
+        paths = [e['path'] for e in result.entries or []]
+        assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
+
+    def test_lazy_file_loading(self):
+        with mock.patch('sysreptor.ai.agents.project.format_finding_data') as format_finding:
+            self.backend.ls('/project/reporting/findings/')
+            self.backend.glob('*.yaml', path='/project/reporting/findings/')
+            format_finding.assert_not_called()
+
+    def test_ls_notes(self):
+        note = self.project.notes.first()
+        result = self.backend.ls('/project/notes/')
+        paths = [e['path'] for e in result.entries or []]
+        assert any(p.endswith(f'/{note.note_id}.yaml') for p in paths)
+
+    def test_read_finding(self):
+        finding = self.project.findings.first()
+        result = self.backend.read(finding_path(finding.finding_id))
+        assert result.error is None
+        assert finding.title in result.file_data['content']
+
+    def test_read_note(self):
+        note = create_projectnotebookpage(project=self.project, title='Test Note', text='Note body content')
+        result = self.backend.read(note_path(note.note_id))
+        assert result.error is None
+        assert note.title in result.file_data['content']
+        assert 'Note body content' in result.file_data['content']
+
+    def test_read_note_excalidraw(self):
+        note = create_projectnotebookpage(
+            project=self.project,
+            title='Excalidraw Note',
+            type=NoteType.EXCALIDRAW,
+            excalidraw_data={'elements': [{'id': 'e1', 'type': 'rectangle', 'x': 0, 'y': 0}]},
+        )
+        result = self.backend.read(note_path(note.note_id))
+        assert result.error is None
+        assert 'excalidraw_data' in result.file_data['content']
+        assert 'Note body content' not in result.file_data['content']
+
+    def test_read_not_found(self):
+        result = self.backend.read('/project/reporting/findings/nonexistent.yaml')
+        assert result.error is not None
+        assert result.error.lower() in ['file_not_found', 'not found']
+
+    def test_grep(self):
+        finding = self.project.findings.first()
+        result = self.backend.grep(finding.title, path='/project/reporting/findings/')
+        assert any(m['path'].endswith(f'/{finding.finding_id}.yaml') for m in (result.matches or []))
+
+    def test_grep_notes(self):
+        note = create_projectnotebookpage(project=self.project, title='Unique grep note title', text='grep note body')
+        result = self.backend.grep('Unique grep note title', path='/project/notes/')
+        assert any(m['path'].endswith(f'/{note.note_id}.yaml') for m in (result.matches or []))
+
+    def test_glob(self):
+        finding = self.project.findings.first()
+        result = self.backend.glob('*.yaml', path='/project/reporting/findings/')
+        paths = [m['path'] for m in (result.matches or [])]
+        assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
+
+    def test_glob_notes(self):
+        note = self.project.notes.first()
+        result = self.backend.glob('*.yaml', path='/project/notes/')
+        paths = [m['path'] for m in (result.matches or [])]
+        assert any(p.endswith(f'/{note.note_id}.yaml') for p in paths)
+
+    def test_read_only_write(self):
+        result = self.backend.write('/project/reporting/findings/new.yaml', 'content')
+        assert result.error is not None
+        assert 'read-only' in result.error.lower()
+        assert 'update_field_value' in result.error
+        # The routed backend sees the prefix-stripped path
+        assert '/reporting/findings/new.yaml' in result.error
+
+    def test_read_only_edit(self):
+        finding = self.project.findings.first()
+        result = self.backend.edit(finding_path(finding.finding_id), 'old', 'new')
+        assert result.error is not None
+        assert 'read-only' in result.error.lower()
+
+    def test_project_scoping(self):
+        other_project = create_project(members=[self.user])
+        other_finding = other_project.findings.first()
+        result = self.backend.read(finding_path(other_finding.finding_id))
+        assert result.error is not None
+
+
+@pytest.mark.django_db()
+class TestProjectFilesystemAgent:
+    def test_agent_read_file_flow(self):
+        user = create_user()
+        project = create_project(members=[user])
+        client = api_client(user=user)
+        finding = project.findings.first()
+        file_path = finding_path(finding.finding_id)
+        llm_messages = [
+            AIMessage(content='', tool_calls=[
+                ToolCall(id='tool_call_1', name='read_file', args={'file_path': file_path}),
+            ]),
+            AIMessage(content=f'The finding title is {finding.title}.'),
+        ]
+        with mock_llm_response(messages=llm_messages):
+            res = client.post(reverse('chatthread-list'), data={
+                'agent': 'project_ask',
+                'project': project.id,
+                'messages': ['What is the finding title?'],
+                'context': {},
+            })
+            assert res.status_code == 200
+            events = parse_sse_events(res)
+            tool_status = next(e for e in events if e['type'] == 'tool_call_status')
+            assert tool_status['content']['name'] == 'read_file'
+            assert tool_status['content']['status'] == 'success'
+            assert finding.title in tool_status['content']['content']
+
+    def test_agent_scratch_file_write_then_read(self):
+        # Regular (non-/project) files use the read-write StateBackend.
+        user = create_user()
+        project = create_project(members=[user])
+        client = api_client(user=user)
+        llm_messages = [
+            AIMessage(content='', tool_calls=[
+                ToolCall(id='tool_call_1', name='write_file', args={'file_path': '/scratch/plan.md', 'content': 'step 1: investigate'}),
+            ]),
+            AIMessage(content='', tool_calls=[
+                ToolCall(id='tool_call_2', name='read_file', args={'file_path': '/scratch/plan.md'}),
+            ]),
+            AIMessage(content='Saved and read back the plan.'),
+        ]
+        with mock_llm_response(messages=llm_messages):
+            res = client.post(reverse('chatthread-list'), data={
+                'agent': 'project_agent',
+                'project': project.id,
+                'messages': ['Write a plan to a scratch file and read it back'],
+                'context': {},
+            })
+            assert res.status_code == 200
+            events = parse_sse_events(res)
+            statuses = [e for e in events if e['type'] == 'tool_call_status']
+            write_status = next(e for e in statuses if e['content']['name'] == 'write_file')
+            assert write_status['content']['status'] == 'success'
+            read_status = next(e for e in statuses if e['content']['name'] == 'read_file')
+            assert read_status['content']['status'] == 'success'
+            assert 'step 1: investigate' in read_status['content']['content']
+
+    def test_agent_write_project_path_read_only(self):
+        # Writing into /project/ via the generic write tool is rejected with a helpful error.
+        user = create_user()
+        project = create_project(members=[user])
+        client = api_client(user=user)
+        finding = project.findings.first()
+        llm_messages = [
+            AIMessage(content='', tool_calls=[
+                ToolCall(id='tool_call_1', name='write_file', args={'file_path': finding_path(finding.finding_id), 'content': 'hacked'}),
+            ]),
+            AIMessage(content='I cannot write there.'),
+        ]
+        with mock_llm_response(messages=llm_messages):
+            res = client.post(reverse('chatthread-list'), data={
+                'agent': 'project_agent',
+                'project': project.id,
+                'messages': ['Overwrite the finding file'],
+                'context': {},
+            })
+            assert res.status_code == 200
+            events = parse_sse_events(res)
+            tool_status = next(e for e in events if e['type'] == 'tool_call_status')
+            assert tool_status['content']['name'] == 'write_file'
+            assert tool_status['content']['status'] == 'error'
+            assert 'update_field_value' in tool_status['content']['content']
