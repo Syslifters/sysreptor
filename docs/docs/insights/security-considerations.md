@@ -10,9 +10,11 @@ The template injection is sandboxed in a dedicated Chromium process.
 Chromium is running in offline mode. It has no possibility to connect to remote locations. 
 It requires an exploit in the Chromium browser to get access to the container.
 
-<BadgeCloud /> · The Chromium process in our cloud is isolated in a dedicated Kubernetes pod. It receives rendering jobs via RabbitMQ, completes its rendering process and shuts down. An attacker breaking out of the Chromium process could prevent it from shutting down until a defined timeout. However, it would **not** be able to receive further rendering jobs.
+<BadgeCloud />  
+The Chromium process in our cloud is isolated in a dedicated Kubernetes pod. It receives rendering jobs via RabbitMQ, completes its rendering process and shuts down. An attacker breaking out of the Chromium process could prevent it from shutting down until a defined timeout. However, it would **not** be able to receive further rendering jobs.
 
-<BadgeSelfHosted /> · The Chromium process in self-hosted environments runs in an isolated process in the web application's docker container by default. An attacker breaking out of the Chromium process can also compromise the web application. However, it is possible to outsource the rendering process into a dedicated docker container. This requires two additional docker containers: Chromium and RabbitMQ. However, the Chromium process will be able to receive further rendering jobs (in contrast to the cloud setup).  
+<BadgeSelfHosted />  
+The Chromium process in self-hosted environments runs in an isolated process in the web application's docker container by default. An attacker breaking out of the Chromium process can also compromise the web application. However, it is possible to outsource the rendering process into a dedicated docker container. This requires two additional docker containers: Chromium and RabbitMQ. However, the Chromium process will be able to receive further rendering jobs (in contrast to the cloud setup).  
 For resource reasons, we do not use this setup in the standard installation. 
 
 
