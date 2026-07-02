@@ -38,7 +38,14 @@
       />
     </div>
     <div class="pa-2">
-      <s-card density="compact" variant="tonal">
+      <s-card density="compact" variant="tonal" class="chat-compose-card">
+        <chat-changes-panel
+          v-if="apiSettings.isProfessionalLicense"
+          :project="props.project"
+          :changed-pages="runChangedPages"
+          @revert="onRevertPage"
+          @accept="agent.acceptChange"
+        />
         <v-textarea
           ref="messageTextareaRef"
           v-model="form.message"
@@ -150,6 +157,7 @@
 
 <script setup lang="ts">
 import { throttle } from 'lodash-es';
+import { getPageTitle, parseProjectFilePath, type AgentChangedPage } from '@/utils/agent';
 
 const props = defineProps<{
   project: PentestProject;
@@ -164,6 +172,61 @@ const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 
 const agent = projectStore.useReportingAgent({ project: props.project });
+
+const runChangedPages = computed(() => {
+  const projectId = props.project.id;
+  const titles = {
+    findings: projectStore.findings(projectId),
+    sections: projectStore.sections(projectId),
+    notes: projectStore.notes(projectId),
+  };
+
+  return agent.changedFiles.value.flatMap((c) => {
+    const fileRef = parseProjectFilePath(c.filePath);
+    if (!fileRef) {
+      return [];
+    }
+    return [{
+      filePath: c.filePath,
+      type: fileRef.type,
+      id: fileRef.id,
+      title: getPageTitle(fileRef, titles),
+      isCreated: c.isCreated,
+      diffTimestamp: c.diffTimestamp,
+    } satisfies AgentChangedPage];
+  });
+});
+
+async function onRevertPage(page: AgentChangedPage) {
+  const fileRef = parseProjectFilePath(page.filePath);
+  if (!fileRef) {
+    return;
+  }
+
+  const projectId = props.project.id;
+  if (page.isCreated) {
+    if (fileRef.type === 'finding') {
+      const finding = projectStore.findings(projectId).find(f => f.id === fileRef.id);
+      if (finding) {
+        await projectStore.deleteFinding(props.project, finding);
+      }
+    } else if (fileRef.type === 'note') {
+      const note = projectStore.notes(projectId).find(n => n.id === fileRef.id);
+      if (note) {
+        await projectStore.deleteNote(props.project, note);
+      }
+    }
+  } else if (fileRef.type === 'finding') {
+    await projectStore.revertFinding(props.project, fileRef.id, page.diffTimestamp);
+  } else if (fileRef.type === 'section') {
+    await projectStore.revertSection(props.project, fileRef.id, page.diffTimestamp);
+  } else if (fileRef.type === 'note') {
+    await projectStore.revertNote(props.project, fileRef.id, page.diffTimestamp);
+  }
+
+  agent.acceptChange(page.filePath);
+  await Promise.resolve(props.collabFlush?.());
+}
 
 const currentStreamingMessageId = computed(() => {
   if (!agent.inProgress.value) {
@@ -185,7 +248,7 @@ async function sendMessage() {
   // Flush collab events such that the server/agent has the latest data
   await Promise.resolve(props.collabFlush?.());
 
-  const promise = agent.submitMessage({ 
+  const promise = agent.submitMessage({
     message: form.value.message, 
     context: props.context,
     agent: localSettings.reportingChatAgent,
@@ -286,5 +349,9 @@ const onScrollMessages = throttle(() => {
 .select-divider {
   margin-top: 0.2rem;
   margin-bottom: 0.2rem;
+}
+
+.chat-compose-card:deep() {
+  overflow: hidden;
 }
 </style>

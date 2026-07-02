@@ -152,6 +152,8 @@
 </template>
 
 <script setup lang="ts">
+import { getPageTitle, parseProjectFilePath } from '@/utils/agent';
+
 const props = defineProps<{
   value: ToolCall;
   project?: PentestProject;
@@ -168,35 +170,29 @@ const projectFileRef = computed(() => {
   if (!filePath) {
     return null;
   }
-  const findingMatch = filePath.match(/^\/project\/reporting\/findings\/([^/]+)\.yaml$/);
-  if (findingMatch) {
-    return { type: 'finding', id: findingMatch[1] };
-  }
-  const sectionMatch = filePath.match(/^\/project\/reporting\/sections\/([^/]+)\.yaml$/);
-  if (sectionMatch) {
-    return { type: 'section', id: sectionMatch[1] };
-  }
-  const noteMatch = filePath.match(/^\/project\/notes\/([^/]+)\.yaml$/);
-  if (noteMatch) {
-    return { type: 'note', id: noteMatch[1] };
-  }
   if (filePath === '/project/project.yaml') {
-    return { type: 'project' };
+    return { type: 'project' as const, id: '' };
   }
-  return null;
+  return parseProjectFilePath(filePath);
 });
 
+function getProjectPageTitle(fileRef: { type: string, id: string }, fallbackTitle?: string): string {
+  return getPageTitle(fileRef, {
+    findings: projectStore.findings(props.project?.id || ''),
+    sections: projectStore.sections(props.project?.id || ''),
+    notes: projectStore.notes(props.project?.id || ''),
+    fallbackTitle,
+  });
+}
+
 function getFindingTitle(findingId: string, fallbackTitle?: string): string {
-  const finding = projectStore.findings(props.project?.id || '').find(f => f.id === findingId);
-  return finding?.data.title ?? fallbackTitle ?? findingId;
+  return getProjectPageTitle({ type: 'finding', id: findingId }, fallbackTitle);
 }
 function getSectionTitle(sectionId: string, fallbackTitle?: string): string {
-  const section = projectStore.sections(props.project?.id || '').find(s => s.id === sectionId);
-  return section?.label ?? fallbackTitle ?? sectionId;
+  return getProjectPageTitle({ type: 'section', id: sectionId }, fallbackTitle);
 }
 function getNoteTitle(noteId: string, fallbackTitle?: string): string {
-  const note = projectStore.notes(props.project?.id || '').find(n => n.id === noteId);
-  return note?.title ?? fallbackTitle ?? noteId;
+  return getProjectPageTitle({ type: 'note', id: noteId }, fallbackTitle);
 }
 
 const writeTodosList = computed(() => {

@@ -233,6 +233,11 @@ class TestProjectAgent:
         assert history.history_user == self.user
         assert history.custom_fields == executive_summary.custom_fields
 
+        tool_msg = next(m for m in res.data['messages'] if m['role'] == 'tool')
+        from django.utils.dateparse import parse_datetime
+        tool_ts = parse_datetime(tool_msg['tool_call']['timestamp'])
+        assert tool_ts < history.history_date
+
     def test_inject_context_middleware(self):
         finding = self.project.findings.first()
 

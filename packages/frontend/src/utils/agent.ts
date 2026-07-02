@@ -1,3 +1,5 @@
+import type { PentestFinding, ProjectNote, ReportSection } from '#imports';
+
 export enum MessageRole {
   USER = 'user',
   ASSISTANT = 'assistant',
@@ -325,6 +327,11 @@ export type AiAgentStoreState = {
     promise?: Promise<any>;
     abortController?: AbortController;
   }|null;
+  changesState: {
+    sessionStartIndex: number;
+    historyReady: boolean;
+    acceptedUpTo: Record<string, string>;
+  };
 }
 
 
@@ -337,10 +344,48 @@ export function useAiAgentChat(options: {
   threadId?: string;
 }) {
   const inProgress = computed(() => !!options.storeState.currentRequest);
+  const changesState = computed(() => options.storeState.changesState);
+  const currentSessionMessages = computed(() => options.storeState.messageHistory.slice(changesState.value.sessionStartIndex));
+
+  function initChangesSession() {
+    if (!changesState.value.historyReady) {
+      // Only track changes made after history load (this browser session).
+      changesState.value.sessionStartIndex = options.storeState.messageHistory.length;
+      changesState.value.historyReady = true;
+    }
+  }
+
+  function resetChanges() {
+    changesState.value.sessionStartIndex = 0;
+    changesState.value.historyReady = true;
+    changesState.value.acceptedUpTo = {};
+  }
+
+  function acceptChange(filePath: string) {
+    const latestTimestamp = getLatestWriteToolTimestamp(currentSessionMessages.value, filePath);
+    if (!latestTimestamp) {
+      return;
+    }
+    changesState.value.acceptedUpTo = {
+      ...changesState.value.acceptedUpTo,
+      [filePath]: latestTimestamp,
+    };
+  }
+
+  const changedFiles = computed(() => {
+    if (!changesState.value.historyReady) {
+      return [];
+    }
+    return buildChangedFiles(
+      currentSessionMessages.value,
+      changesState.value.acceptedUpTo,
+    );
+  });
 
   async function loadHistory(params: Record<string, any>) {
     if (options.storeState.threadId) {
       // Already loaded
+      initChangesSession();
       return;
     }
 
@@ -358,6 +403,7 @@ export function useAiAgentChat(options: {
     } finally {
       options.storeState.currentRequest = null;
     }
+    initChangesSession();
   }
   
   async function submitMessage(opts: { message: string, context?: Record<string, string|null|undefined>, agent?: string, model?: string|null }) {
@@ -413,16 +459,174 @@ export function useAiAgentChat(options: {
     cancel();
     options.storeState.threadId = null;
     options.storeState.messageHistory = [];
+    resetChanges();
   }
 
   return {
     threadId: computed(() => options.storeState.threadId),
     messageHistory: computed(() => options.storeState.messageHistory),
+    changedFiles,
     inProgress,
     submitMessage,
     loadHistory,
     reset,
     cancel,
+    acceptChange,
   }
+}
+
+
+export type AgentChangedPage = {
+  filePath: string;
+  type: string;
+  id: string;
+  title: string;
+  isCreated: boolean;
+  diffTimestamp: string;
+};
+
+export function getToolFilePath(tool: ToolCall): string | null {
+  if (['update_field_value', 'update_markdown_field'].includes(tool.name)) {
+    return tool.args?.file_path || null;
+  } else if (tool.name === 'create_finding' && tool.output?.id) {
+    return `/project/reporting/findings/${tool.output.id}.yaml`;
+  } else if (tool.name === 'create_note' && tool.output?.id) {
+    return `/project/notes/${tool.output.id}.yaml`;
+  } else {
+    return null;
+  }
+}
+
+export function parseProjectFilePath(filePath: string) {
+  const findingMatch = filePath.match(/^\/project\/reporting\/findings\/([^/]+)\.yaml$/);
+  if (findingMatch?.[1]) {
+    return { type: 'finding', id: findingMatch[1] };
+  }
+  const sectionMatch = filePath.match(/^\/project\/reporting\/sections\/([^/]+)\.yaml$/);
+  if (sectionMatch?.[1]) {
+    return { type: 'section', id: sectionMatch[1] };
+  }
+  const noteMatch = filePath.match(/^\/project\/notes\/([^/]+)\.yaml$/);
+  if (noteMatch?.[1]) {
+    return { type: 'note', id: noteMatch[1] };
+  }
+  return null;
+}
+
+export function getChangedPagePath(projectId: string, page: AgentChangedPage): string|undefined {
+  let basePath;
+  if (page.type === 'finding') {
+    basePath = `/projects/${projectId}/reporting/findings/${page.id}/`;
+  } else if (page.type === 'section') {
+    basePath = `/projects/${projectId}/reporting/sections/${page.id}/`;
+  } else if (page.type === 'note') {
+    basePath = `/projects/${projectId}/notes/${page.id}/`;
+  } else {
+    return undefined;
+  }
+  
+  if (!page.isCreated) {
+    basePath += `history/${page.diffTimestamp}/`;
+  }
+  return basePath;
+}
+
+export function getPageTitle(
+  fileRef: { type: string, id: string },
+  titles: {
+    findings: PentestFinding[];
+    sections: ReportSection[];
+    notes: ProjectNote[];
+    fallbackTitle?: string;
+  },
+): string {
+  if (fileRef.type === 'finding') {
+    const finding = titles.findings.find(f => f.id === fileRef.id);
+    return finding?.data?.title ?? titles.fallbackTitle ?? fileRef.id;
+  } else if (fileRef.type === 'section') {
+    const section = titles.sections.find(s => s.id === fileRef.id);
+    return section?.label ?? titles.fallbackTitle ?? fileRef.id;
+  } else if (fileRef.type === 'note') {
+    const note = titles.notes.find(n => n.id === fileRef.id);
+    return note?.title ?? titles.fallbackTitle ?? fileRef.id;
+  } else {
+    return titles.fallbackTitle ?? fileRef.id;
+  }
+}
+
+function walkToolCalls(messages: ChatHistoryEntry[], callback: (tool: ToolCall) => void) {
+  for (const m of messages) {
+    if (m.role !== MessageRole.TOOL || !m.tool_call) {
+      continue;
+    }
+    callback(m.tool_call);
+    if (m.tool_call.name === 'task' && m.tool_call.subagentMessages?.length) {
+      walkToolCalls(m.tool_call.subagentMessages, callback);
+    }
+  }
+}
+
+function isSuccessfulWriteTool(tool: ToolCall): boolean {
+  const WRITE_TOOLS = new Set([
+    'update_field_value',
+    'update_markdown_field',
+    'create_finding',
+    'create_note',
+  ]);
+  return WRITE_TOOLS.has(tool.name)
+    && tool.status === ToolCallStatus.SUCCESS
+    && !!tool.timestamp
+    && !!getToolFilePath(tool);
+}
+
+export function getLatestWriteToolTimestamp(
+  messages: readonly ChatHistoryEntry[],
+  filePath: string,
+): string | null {
+  let latest: string | null = null;
+  walkToolCalls([...messages], (tool) => {
+    if (!isSuccessfulWriteTool(tool) || getToolFilePath(tool) !== filePath) {
+      return;
+    }
+    if (!latest || tool.timestamp > latest) {
+      latest = tool.timestamp;
+    }
+  });
+  return latest;
+}
+
+export function buildChangedFiles(
+  messages: readonly ChatHistoryEntry[],
+  acceptedUpTo: Record<string, string> = {},
+) {
+  const byPath = new Map<string, { 
+    filePath: string,
+    diffTimestamp: string,
+    isCreated: boolean,
+  }>();
+
+  walkToolCalls([...messages], (tool) => {
+    if (!isSuccessfulWriteTool(tool)) {
+      return;
+    }
+    const filePath = getToolFilePath(tool)!;
+    const acceptedUntil = acceptedUpTo[filePath];
+    if (acceptedUntil && tool.timestamp <= acceptedUntil) {
+      return;
+    }
+
+    const isCreate = tool.name === 'create_finding' || tool.name === 'create_note';
+    const existing = byPath.get(filePath);
+    if (existing) {
+      if (tool.timestamp < existing.diffTimestamp) {
+        existing.diffTimestamp = tool.timestamp;
+      }
+      existing.isCreated = existing.isCreated || isCreate;
+    } else {
+      byPath.set(filePath, { filePath, diffTimestamp: tool.timestamp, isCreated: isCreate });
+    }
+  });
+
+  return Array.from(byPath.values());
 }
 
