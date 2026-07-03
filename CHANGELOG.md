@@ -6,6 +6,7 @@
 * Add filters from project/design/template name in list views
 * Markdown editor: Add save indicator to image editor
 * UI: Add buttons to copy and download PDF password
+* UI: Allow copying global designs to private design
 * AI agent: Add virtual filesystem for project data
 * AI agent: Add tool calls for searching project content
 * AI agent: Support AI agent in notes

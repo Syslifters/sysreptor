@@ -4,7 +4,7 @@
       <edit-toolbar v-bind="toolbarAttrs" :form="form">
         <template #context-menu>
           <btn-copy
-            :disabled="!auth.permissions.value.designer"
+            :disabled="!auth.permissions.value.designer && !auth.permissions.value.private_designs"
             :copy="performCopy"
           />
           <btn-export
@@ -57,7 +57,6 @@
 
 <script setup lang="ts">
 import { useProjectTypeLockEditOptions } from "#imports";
-import type { VForm } from 'vuetify/components';
 
 const auth = useAuth();
 const projectTypeStore = useProjectTypeStore();
@@ -74,7 +73,7 @@ const form = useTemplateRef('form');
 async function performCopy() {
   const obj = await projectTypeStore.copy({
     id: projectType.value.id,
-    scope: ProjectTypeScope.GLOBAL,
+    scope: (!auth.permissions.value.designer || projectType.value.scope === ProjectTypeScope.PRIVATE) ? ProjectTypeScope.PRIVATE : ProjectTypeScope.GLOBAL,
   });
   await navigateTo(`/designs/${obj.id}/pdfdesigner/`);
 }
