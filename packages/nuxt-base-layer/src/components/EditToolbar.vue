@@ -174,7 +174,7 @@ watch(() => props.editMode, (newValue) => {
   if (newValue === EditMode.EDIT && !hasLock.value) {
     performLock();
   } else if (newValue === EditMode.READONLY) {
-    performUnlock(false);
+    performUnlock();
   }
 });
 
@@ -315,25 +315,15 @@ async function performLock(forceLock = false) {
   }
 }
 
-function performUnlockRequest(browserUnload: boolean): Promise<T> | null {
-  if (browserUnload) {
-    // sendbeacon does not support setting headers (including Authorization header)
-    // we might want to replace sendBeacon with fetch.keepalive in the future
-    // however, fetch.keepalive is currently not supported by Firefox
-    window.navigator.sendBeacon(
-      props.unlockUrl!,
-      auth.user.value!.id
-    );
-    return null;
-  } else {
-    return $fetch(props.unlockUrl!, {
-      method: 'POST',
-      body: {}
-    });
-  }
+function performUnlockRequest(options?: { keepalive?: boolean }) {
+  return $fetch<T>(props.unlockUrl!, {
+    method: 'POST',
+    body: {},
+    keepalive: options?.keepalive,
+  });
 }
 
-function performUnlock(browserUnload = false) {
+function performUnlock(fireAndForget = false) {
   if (!props.unlockUrl || !hasLock.value) {
     return Promise.resolve();
   }
@@ -347,30 +337,30 @@ function performUnlock(browserUnload = false) {
   lockInfo.value = null;
   lockError.value = false;
 
-  try {
-    // eslint-disable-next-line no-console
-    console.log('EditToolbar.performUnlock', hasLock.value);
+  // eslint-disable-next-line no-console
+  console.log('EditToolbar.performUnlock', hasLock.value);
 
-    const res = performUnlockRequest(browserUnload);
-    if (!browserUnload) {
-      return res!.then((unlockedData) => {
-        lockInfo.value = unlockedData.lock_info || null;
-        emit('update:lockedData', unlockedData);
-      })
-        .catch((error) => {
-          if (error?.data?.lock_info !== undefined) {
-            lockInfo.value = error.data.lock_info;
-            emit('update:lockedData', error.data);
-          }
-        });
-    }
-  } catch (error) {
-    // silently ignore error
-    // eslint-disable-next-line no-console
-    console.error('Unlock error', error);
+  if (fireAndForget) {
+    void performUnlockRequest({ keepalive: true })
+      .catch(() => { /* ignore errors */ });
+    return Promise.resolve();
   }
 
-  return Promise.resolve();
+  return performUnlockRequest()
+    .then((unlockedData) => {
+      lockInfo.value = unlockedData.lock_info || null;
+      emit('update:lockedData', unlockedData);
+    })
+    .catch((error: any) => {
+      if (error?.data?.lock_info !== undefined) {
+        lockInfo.value = error.data.lock_info;
+        emit('update:lockedData', error.data);
+      } else {
+        // silently ignore error
+        // eslint-disable-next-line no-console
+        console.error('Unlock error', error);
+      }
+    });
 }
 
 function beforeLeaveBrowser(event: BeforeUnloadEvent) {
@@ -402,10 +392,10 @@ async function beforeLeave(_to: RouteLocationNormalized, _from: RouteLocationNor
   }
 }
 
-function onUnloadBrowser() {
-  // Note: the unload event is not triggered in certain situations
-  //       e.g. on mobile devices or on Chrome when a user navigates to a different origin
-  //       https://developer.mozilla.org/en-US/docs/Web/API/Window/unload_event#usage_notes
+function onPageHide(event: PageTransitionEvent) {
+  if (event.persisted) {
+    return;
+  }
   performUnlock(true);
 }
 
@@ -418,14 +408,14 @@ function resetComponent(options?: { keepLock?: boolean }) {
   lockError.value = false;
 
   if (!options?.keepLock) {
-    return performUnlock(false);
+    return performUnlock();
   }
 }
 
 useKeyboardShortcut('ctrl+s', performSave);
 useKeyboardShortcut('meta+s', performSave);
 useEventListener(window, 'beforeunload', beforeLeaveBrowser);
-useEventListener(window, 'unload', onUnloadBrowser);
+useEventListener(window, 'pagehide', onPageHide);
 onBeforeUnmount(() => {
   if (refreshLockInterval.value) {
     clearInterval(refreshLockInterval.value);

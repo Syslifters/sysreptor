@@ -5,6 +5,7 @@
 * Enable (basic) spellcheck for additional languages
 * Add filters from project/design/template name in list views
 * Markdown editor: Add save indicator to image editor
+* Remove deprecated unload event handlers
 * UI: Add buttons to copy and download PDF password
 * UI: Allow copying global designs to private design
 * AI agent: Add virtual filesystem for project data
