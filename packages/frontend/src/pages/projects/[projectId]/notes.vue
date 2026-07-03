@@ -52,6 +52,7 @@
           note_id: router.currentRoute.value.params.noteId as string|undefined,
         }"
         :collab-flush="notesCollab.flushEvents"
+        :readonly="notesCollab.readonly.value"
       />
     </template>
   </split-menu>

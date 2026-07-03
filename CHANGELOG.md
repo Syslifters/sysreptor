@@ -9,6 +9,7 @@
 * AI agent: Add virtual filesystem for project data
 * AI agent: Add tool calls for searching project content
 * AI agent: Support AI agent in notes
+* AI agent: Show changes made by the agent and allow reverting
 
 
 ## v2026.50 - 2026-06-17

@@ -181,6 +181,11 @@ export const useProjectStore = defineStore('project', {
             threadId: null,
             messageHistory: [],
             currentRequest: null,
+            changesState: {
+              sessionStartIndex: 0,
+              historyReady: false,
+              acceptedUpTo: {},
+            },
           } as AiAgentStoreState,
           ...(initialStoreData || {})
         }
@@ -290,7 +295,7 @@ export const useProjectStore = defineStore('project', {
         data: finding.data,
       })
     },
-    async deleteFinding(project: PentestProject, finding: PentestFinding) {
+    async deleteFinding(project: PentestProject, finding: Pick<PentestFinding, 'id'>) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/findings/${finding.id}/`, {
         method: 'DELETE'
       });
@@ -363,7 +368,7 @@ export const useProjectStore = defineStore('project', {
       this.data[project.id]!.notesCollabState.data.notes[newNote.id] = newNote;
       return newNote;
     },
-    async deleteNote(project: PentestProject, note: ProjectNote) {
+    async deleteNote(project: PentestProject, note: Pick<ProjectNote, 'id'>) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/notes/${note.id}/`, {
         method: 'DELETE'
       });

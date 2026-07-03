@@ -50,6 +50,7 @@
           section_id: router.currentRoute.value.params.sectionId as string|undefined,
         }"
         :collab-flush="reportingCollab.flushEvents"
+        :readonly="readonly"
       />
     </template>
   </split-menu>

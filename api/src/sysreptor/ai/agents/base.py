@@ -77,6 +77,7 @@ def agent_tool(metadata=None, **kwargs):
                 status='error',
                 tool_call_id=runtime.tool_call_id,
             )
+            stamp_message_timestamp(out)
 
             try:
                 res_output = None
@@ -95,7 +96,6 @@ def agent_tool(metadata=None, **kwargs):
             except Exception as ex:
                 logging.exception(ex)
                 out.content = 'Error: Unexpected error'
-            stamp_message_timestamp(out)
             return Command(update={
                 'messages': [out],
             })
