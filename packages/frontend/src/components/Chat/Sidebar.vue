@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { throttle } from 'lodash-es';
+import { pick, throttle } from 'lodash-es';
 import { getPageTitle, parseProjectFilePath, type AgentChangedPage } from '@/utils/agent';
 
 const props = defineProps<{
@@ -205,29 +205,46 @@ async function onRevertPage(page: AgentChangedPage) {
     return;
   }
 
-  const projectId = props.project.id;
-  if (page.isCreated) {
-    if (fileRef.type === 'finding') {
-      const finding = projectStore.findings(projectId).find(f => f.id === fileRef.id);
-      if (finding) {
-        await projectStore.deleteFinding(props.project, finding);
+  try {
+    if (page.isCreated) {
+      if (fileRef.type === 'finding') {
+        await projectStore.deleteFinding(props.project, { id: fileRef.id });
+      } else if (fileRef.type === 'note') {
+        await projectStore.deleteNote(props.project, { id: fileRef.id });
       }
+    } else if (fileRef.type === 'finding') {
+      const historic = await $fetch<PentestFinding>(
+        `/api/v1/pentestprojects/${props.project.id}/history/${page.diffTimestamp}/findings/${fileRef.id}/`,
+      );
+      await $fetch(`/api/v1/pentestprojects/${props.project.id}/findings/${fileRef.id}/`, {
+        method: 'PATCH',
+        body: pick(historic, ['data']),
+      });
+    } else if (fileRef.type === 'section') {
+      const historic = await $fetch<ReportSection>(
+        `/api/v1/pentestprojects/${props.project.id}/history/${page.diffTimestamp}/sections/${fileRef.id}/`,
+      );
+      await $fetch(`/api/v1/pentestprojects/${props.project.id}/sections/${fileRef.id}/`, {
+        method: 'PATCH',
+        body: pick(historic, ['data']),
+      });
     } else if (fileRef.type === 'note') {
-      const note = projectStore.notes(projectId).find(n => n.id === fileRef.id);
-      if (note) {
-        await projectStore.deleteNote(props.project, note);
-      }
+      const historic = await $fetch<ProjectNote>(
+        `/api/v1/pentestprojects/${props.project.id}/history/${page.diffTimestamp}/notes/${fileRef.id}/`,
+      );
+      await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${fileRef.id}/`, {
+        method: 'PATCH',
+        body: pick(historic, ['title', 'text', 'checked', 'icon_emoji']),
+      });
     }
-  } else if (fileRef.type === 'finding') {
-    await projectStore.revertFinding(props.project, fileRef.id, page.diffTimestamp);
-  } else if (fileRef.type === 'section') {
-    await projectStore.revertSection(props.project, fileRef.id, page.diffTimestamp);
-  } else if (fileRef.type === 'note') {
-    await projectStore.revertNote(props.project, fileRef.id, page.diffTimestamp);
-  }
 
-  agent.acceptChange(page.filePath);
-  await Promise.resolve(props.collabFlush?.());
+    agent.acceptChange(page.filePath);
+  } catch (error) {
+    requestErrorToast({
+      error,
+      message: page.isCreated ? 'Failed to delete page' : 'Failed to revert changes',
+    });
+  }
 }
 
 const currentStreamingMessageId = computed(() => {

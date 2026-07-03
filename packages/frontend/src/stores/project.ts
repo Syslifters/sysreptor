@@ -295,7 +295,7 @@ export const useProjectStore = defineStore('project', {
         data: finding.data,
       })
     },
-    async deleteFinding(project: PentestProject, finding: PentestFinding) {
+    async deleteFinding(project: PentestProject, finding: Pick<PentestFinding, 'id'>) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/findings/${finding.id}/`, {
         method: 'DELETE'
       });
@@ -368,49 +368,13 @@ export const useProjectStore = defineStore('project', {
       this.data[project.id]!.notesCollabState.data.notes[newNote.id] = newNote;
       return newNote;
     },
-    async deleteNote(project: PentestProject, note: ProjectNote) {
+    async deleteNote(project: PentestProject, note: Pick<ProjectNote, 'id'>) {
       await $fetch(`/api/v1/pentestprojects/${project.id}/notes/${note.id}/`, {
         method: 'DELETE'
       });
       if (project.id in this.data) {
         delete this.data[project.id]!.notesCollabState.data.notes[note.id];
       }
-    },
-    async revertFinding(project: PentestProject, findingId: string, historyDate: string) {
-      const historic = await $fetch<PentestFinding>(
-        `/api/v1/pentestprojects/${project.id}/history/${historyDate}/findings/${findingId}/`,
-      );
-      const updated = await $fetch<PentestFinding>(
-        `/api/v1/pentestprojects/${project.id}/findings/${findingId}/`,
-        { method: 'PATCH', body: pick(historic, ['data']) },
-      );
-      this.ensureExists(project.id);
-      this.data[project.id]!.reportingCollabState.data.findings[updated.id] = updated;
-      return updated;
-    },
-    async revertSection(project: PentestProject, sectionId: string, historyDate: string) {
-      const historic = await $fetch<ReportSection>(
-        `/api/v1/pentestprojects/${project.id}/history/${historyDate}/sections/${sectionId}/`,
-      );
-      const updated = await $fetch<ReportSection>(
-        `/api/v1/pentestprojects/${project.id}/sections/${sectionId}/`,
-        { method: 'PATCH', body: pick(historic, ['data']) },
-      );
-      this.ensureExists(project.id);
-      this.data[project.id]!.reportingCollabState.data.sections[updated.id] = updated;
-      return updated;
-    },
-    async revertNote(project: PentestProject, noteId: string, historyDate: string) {
-      const historic = await $fetch<ProjectNote>(
-        `/api/v1/pentestprojects/${project.id}/history/${historyDate}/notes/${noteId}/`,
-      );
-      const updated = await $fetch<ProjectNote>(
-        `/api/v1/pentestprojects/${project.id}/notes/${noteId}/`,
-        { method: 'PATCH', body: pick(historic, ['title', 'text', 'checked', 'icon_emoji']) },
-      );
-      this.ensureExists(project.id);
-      this.data[project.id]!.notesCollabState.data.notes[updated.id] = updated;
-      return updated;
     },
     async sortNotes(project: PentestProject, noteGroups: NoteGroup<ProjectNote>) {
       this.ensureExists(project.id)
