@@ -43,6 +43,7 @@
           v-if="apiSettings.isProfessionalLicense"
           :project="props.project"
           :changed-pages="runChangedPages"
+          :readonly="props.readonly"
           @revert="onRevertPage"
           @accept="agent.acceptChange"
         />
@@ -163,6 +164,7 @@ const props = defineProps<{
   project: PentestProject;
   context: Record<string, string|undefined>;
   collabFlush?: (() => void|Promise<void>);
+  readonly?: boolean;
 }>();
 
 const sidebarType = defineModel<ReportingSidebarType>('sidebarType', { required: true });
@@ -199,7 +201,7 @@ const runChangedPages = computed(() => {
 
 async function onRevertPage(page: AgentChangedPage) {
   const fileRef = parseProjectFilePath(page.filePath);
-  if (!fileRef) {
+  if (!fileRef || props.readonly) {
     return;
   }
 

@@ -21,7 +21,7 @@
           >
             <template #prepend>
               <v-icon
-                :icon="page.type === 'note' ? 'mdi-note-outline' : 'mdi-file-document-outline'"
+                :icon="page.type === 'note' ? 'mdi-note-text-outline' : 'mdi-file-document-outline'"
                 size="x-small"
               />
             </template>
@@ -34,6 +34,7 @@
                 <s-btn-icon
                   @click.prevent.stop="emit('revert', page)"
                   icon="mdi-undo"
+                  :disabled="props.readonly"
                   size="x-small"
                   density="compact"
                   v-tooltip.top="page.isCreated ? 'Delete' : 'Revert changes'"
@@ -41,6 +42,7 @@
                 <s-btn-icon
                   @click.prevent.stop="emit('accept', page.filePath)"
                   icon="mdi-check"
+                  :disabled="props.readonly"
                   size="x-small"
                   density="compact"
                   v-tooltip.top="'Accept changes'"
@@ -60,6 +62,7 @@ import { getChangedPagePath, type AgentChangedPage } from '@/utils/agent';
 const props = defineProps<{
   project: PentestProject;
   changedPages: AgentChangedPage[];
+  readonly?: boolean;
 }>();
 
 const emit = defineEmits<{
