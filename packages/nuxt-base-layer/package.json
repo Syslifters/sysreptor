@@ -10,7 +10,7 @@
     "postinstall": "nuxt prepare .playground"
   },
   "dependencies": {
-    "vuetify-nuxt-module": "1.0.0-beta.4",
+    "vuetify-nuxt-module": "^1.0.0-rc.2",
     "@mdi/font": "^7.3.67",
     "@pinia/nuxt": "^0.11.0",
     "pinia-plugin-persistedstate": "^4.1.3",

@@ -19,7 +19,7 @@ dependencies = [
 
   "psycopg[binary,pool] (~=3.1)",
   "gunicorn (~=26.0)",
-  "uvicorn[standard] (~=0.49)",
+  "uvicorn[standard] (~=0.50)",
   "uvicorn-worker (~=0.4)",
   "whitenoise (~=6.4)",
   "channels[daphne] (~=4.2)",
@@ -51,7 +51,7 @@ dependencies = [
   "langchain[anthropic,openai,deepseek,ollama,mistralai] (~=1.0)",
   "deepagents (~=0.6)",
 
-  "django-debug-toolbar (~=6.0)",
+  "django-debug-toolbar (~=7.0)",
   "elastic-apm (~=6.20)",
   "debugpy (~=1.6)",
   "watchdog (~=6.0)",

@@ -64,9 +64,9 @@ const { data: user, error: checkTokenError } = useAsyncData(async () => {
     });
   } catch (error: any) {
     if (error.data.detail) {
-      throw new Error(error.data.detail);
+      throw new Error(error.data.detail, { cause: error });
     } else {
-      throw new Error('Failed to reset password');
+      throw new Error('Failed to reset password', { cause: error });
     }
   }
 });

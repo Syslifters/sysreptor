@@ -116,7 +116,7 @@ function ensureEffectCanvasSize(
 }
 
 function getStripePixel01(stripe: SrcStripe, x: number, y: number): Pixel01 {
-  let i = 0;
+  let i;
   if (stripe.dir === 'h') {
     i = ((x - stripe.left) * 4) | 0;
   } else {

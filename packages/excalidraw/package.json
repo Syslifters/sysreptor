@@ -13,6 +13,7 @@
     "@excalidraw/excalidraw": "^0.18.0",
     "react": "^19",
     "react-dom": "^19",
+    "scheduler": "^0.27.0",
     "idb-keyval": "^6.2.2",
     "lodash-es": "^4.17.21",
     "url-join": "^5.0.0",

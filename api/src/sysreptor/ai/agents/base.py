@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 from collections.abc import Callable
@@ -6,7 +5,7 @@ from functools import wraps
 from typing import Any
 
 import yaml
-from asgiref.sync import sync_to_async
+from asgiref.sync import iscoroutinefunction, sync_to_async
 from decouple import config
 from deepagents._tools import _apply_tool_description_overrides
 from deepagents.backends import StateBackend
@@ -66,7 +65,7 @@ def to_inline_context(data: dict[str, Any]) -> str:
 
 def agent_tool(metadata=None, **kwargs):
     def decorator(func: Callable) -> Callable:
-        if not asyncio.iscoroutinefunction(func):
+        if not iscoroutinefunction(func):
             func = sync_to_async(func)
 
         @tool(**kwargs)

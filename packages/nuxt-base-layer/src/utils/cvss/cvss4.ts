@@ -1207,7 +1207,7 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
   const score_eq1_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq1_next_lower_macro]!;
   const score_eq2_next_lower_macro = CVSS4_LOOKUP_MACROVECTOR[eq2_next_lower_macro]!;
 
-  let score_eq3eq6_next_lower_macro = 0;
+  let score_eq3eq6_next_lower_macro;
   if (eq3 === 0 && eq6 === 0) {
     // multiple path take the one with higher score
     const score_eq3eq6_next_lower_macro_left = CVSS4_LOOKUP_MACROVECTOR[eq3eq6_next_lower_macro_left]!;
@@ -1277,11 +1277,11 @@ export function calculateScoreCvss40(vector?: string|null): number|null {
   const available_distance_eq4 = value - score_eq4_next_lower_macro
   const available_distance_eq5 = value - score_eq5_next_lower_macro
 
-  let percent_to_next_eq1_severity = 0
-  let percent_to_next_eq2_severity = 0
-  let percent_to_next_eq3eq6_severity = 0
-  let percent_to_next_eq4_severity = 0
-  let percent_to_next_eq5_severity = 0
+  let percent_to_next_eq1_severity
+  let percent_to_next_eq2_severity
+  let percent_to_next_eq3eq6_severity
+  let percent_to_next_eq4_severity
+  let percent_to_next_eq5_severity
 
   // some of them do not exist, we will find them by retrieving the score. If score null then do not exist
   let n_existing_lower = 0

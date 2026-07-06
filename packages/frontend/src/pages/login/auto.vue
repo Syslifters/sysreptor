@@ -58,11 +58,11 @@ const { error } = useAsyncData(async () => {
     await auth.redirect();
   } catch (error: any) {
     if (error?.data?.detail) {
-      throw new Error(error.data.detail);
+      throw new Error(error.data.detail, { cause: error });
     } else if (error?.messages) {
       throw error;
     } else {
-      throw new Error('Login failed');
+      throw new Error('Login failed', { cause: error });
     }
   }
 });

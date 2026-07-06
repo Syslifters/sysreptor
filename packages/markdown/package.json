@@ -25,7 +25,7 @@
     "lodash-es": "^4.17.21",
 
     "@codemirror/view": "~6.43",
-    "@codemirror/state": "~6.6",
+    "@codemirror/state": "~6.7",
     "@codemirror/commands": "~6.10",
     "@codemirror/lint": "~6.9",
     "@codemirror/search": "~6.7",
