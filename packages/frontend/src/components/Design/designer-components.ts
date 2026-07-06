@@ -1652,7 +1652,7 @@ export function parseToComponentTree(htmlCode: string, cssCode: string, projectT
   context.htmlTree = htmlTree;
   context.cssTree = cssLanguage.parser.parse(context.cssCode).topNode;
 
-  let root = null;
+  let root;
   if (htmlTree.length === 1 && htmlTree[0]!.tagName === 'div' && Object.entries(htmlTree[0]!.attributes).length === 0) {
     root = new DesignerComponentBlockImpl({
       tagInfo: htmlTree[0]!,
