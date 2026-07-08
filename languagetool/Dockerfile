@@ -1,11 +1,11 @@
 ARG LANGUAGETOOL_VERSION=6.8
 ARG PROD_LANGUAGETOOL_IMAGE=languagetool
 
-FROM --platform=$BUILDPLATFORM debian:bookworm-slim AS build
+FROM --platform=$BUILDPLATFORM debian:trixie-slim AS build
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        openjdk-17-jdk-headless \
+        openjdk-21-jdk-headless \
         git \
         maven \
         unzip

@@ -2,7 +2,7 @@
 ARG TESTED_API_IMAGE=api
 ARG PROD_API_IMAGE=api-prod
 
-FROM --platform=$BUILDPLATFORM node:24-alpine3.22 AS frontend-dev
+FROM --platform=$BUILDPLATFORM node:24-alpine3.24 AS frontend-dev
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Install curl
 RUN apk add --no-cache curl
@@ -97,7 +97,7 @@ RUN /app/plugins/build.sh
 
 
 
-FROM python:3.13-slim-bookworm AS api-dev
+FROM python:3.14-slim-trixie AS api-dev
 
 # Get a list a preinstalled apt packages
 RUN mkdir /src && \
@@ -107,7 +107,8 @@ RUN mkdir /src && \
 
 # Install system dependencies required by weasyprint and chromium
 # Install a specific ghostscript version
-RUN apt-get update \
+RUN sed -i 's|http://|https://|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         chromium \
         curl \

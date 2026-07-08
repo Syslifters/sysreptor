@@ -21,7 +21,7 @@
     "markdown-it-attrs": "^5.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-footnote": "^4.0.0",
-    "vitepress": "^1.6.4",
+    "vitepress": "^2.0.0-alpha.18",
     "vitepress-plugin-llms": "^1.12.0",
     "vitepress-plugin-tabs": "^0.9.0",
     "vue": "^3.5.30"
