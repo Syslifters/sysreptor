@@ -146,6 +146,21 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
 
 :::
 
+::: details Optional: Verify docker images
+```shell
+SYSREPTOR_VERSION=$(cat sysreptor/deploy/.env | grep 'SYSREPTOR_VERSION=' | cut -d'=' -f2-)
+# SYSREPTOR_VERSION=$(docker exec -it sysreptor-app bash -c 'echo "$VERSION"')
+
+# Verify setup.tar.gz
+curl -s -L --output sysreptor.tar.gz.sigstore.json https://github.com/syslifters/sysreptor/releases/${SYSREPTOR_VERSION}/download/setup.tar.gz.sigstore.json
+cosign verify-blob sysreptor.tar.gz --key https://docs.sysreptor.com/cosign.pub --bundle sysreptor.tar.gz.sigstore.json
+
+# Verify docker images
+cosign verify --key https://docs.sysreptor.com/cosign.pub "syslifters/sysreptor:${SYSREPTOR_VERSION}"
+cosign verify --key https://docs.sysreptor.com/cosign.pub "syslifters/sysreptor-languagetool:${SYSREPTOR_VERSION}"  # Pro only
+```
+:::
+
 Access your application at http://127.0.0.1:8000/.
 
 We recommend [using a webserver](/setup/webserver) like Caddy (recommended), nginx or Apache to prevent [potential vulnerabilities](https://github.com/Syslifters/sysreptor/security/advisories) and to enable HTTPS.
