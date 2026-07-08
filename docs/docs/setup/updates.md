@@ -56,6 +56,7 @@ docker compose up -d
 ::: details Optional: Verify docker images
 ```shell
 SYSREPTOR_VERSION=$(cat sysreptor/deploy/.env | grep 'SYSREPTOR_VERSION=' | cut -d'=' -f2-)
+# SYSREPTOR_VERSION=$(docker exec -it sysreptor-app bash -c 'echo "$VERSION"')
 
 # Verify setup.tar.gz
 curl -s -L --output sysreptor.tar.gz.sigstore.json https://github.com/syslifters/sysreptor/releases/${SYSREPTOR_VERSION}/download/setup.tar.gz.sigstore.json
