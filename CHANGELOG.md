@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Sign releases and docker images with cosign for verification (https://docs.sysreptor.com/setup/installation)
+* Disable client infos and awareness in shared note collaborative editing
 * Fix excalidraw note content not copied
 * Enable (basic) spellcheck for additional languages
 * Add filters from project/design/template name in list views
