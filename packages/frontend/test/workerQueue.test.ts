@@ -1,6 +1,10 @@
-// @vitest-environment nuxt
+import { ref } from 'vue'
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useWorkerQueue } from '~/composables/workerQueue'
+
+vi.mock('#app/composables/state', () => ({
+  useState: <T>(_key: string, init: () => T) => ref(init()),
+}))
 
 function mockWorker() {
   const handlers: {
