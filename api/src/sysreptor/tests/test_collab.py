@@ -232,18 +232,21 @@ async def ws_connect(path, user, consume_init=True, other_clients=None):
             # Consume initial message
             init = await consumer.receive_json_from()
             assert init.get('type') == CollabEventType.INIT
+            consumer.path = path
             consumer.init = init
             consumer.client_id = init['client_id']
 
-            # Consume collab.connect message
-            connect = await consumer.receive_json_from()
-            assert connect.get('type') == CollabEventType.CONNECT
-            assert connect.get('client_id') == init['client_id']
+            if not path.startswith('/api/public/ws/shareinfos/'):
+                # Consume collab.connect message
+                connect = await consumer.receive_json_from()
+                assert connect.get('type') == CollabEventType.CONNECT
+                assert connect.get('client_id') == init['client_id']
 
             for c in (other_clients or []):
-                msg_connect = await c.receive_json_from()
-                assert msg_connect.get('type') == CollabEventType.CONNECT
-                assert msg_connect.get('client_id') == init['client_id']
+                if not c.path.startswith('/api/public/ws/shareinfos/'):
+                    msg_connect = await c.receive_json_from()
+                    assert msg_connect.get('type') == CollabEventType.CONNECT
+                    assert msg_connect.get('client_id') == init['client_id']
 
         yield consumer
 
@@ -1143,6 +1146,19 @@ class TestSharedProjectNotesDbSync:
         res = await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
 
+    async def test_omit_clients_and_awareness(self):
+        # Public share must not receive a list of other clients in init
+        assert self.client_public.init['clients'] == []
+
+        # Public awareness sent to user
+        event_awareness = {'type': CollabEventType.AWARENESS, 'path': self.childnote_shared_path_prefix + '.title'}
+        await self.client_public.send_json_to(event_awareness | {'version': self.client_public.init['version']})
+        await self.assert_event(event_awareness | {'client_id': self.client_public.client_id}, user=True, public=True)
+
+        # User awareness not sent to public
+        await self.client_user.send_json_to(event_awareness | {'version': self.client_user.init['version']})
+        await self.assert_event(event_awareness | {'client_id': self.client_user.client_id}, user=True, public=False)
+
     async def test_cannot_update_nonshared_notes(self):
         await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'notes.{self.note_not_shared.note_id}.icon_emoji', 'value': '👍'})
         res = await self.client_public.receive_json_from()
@@ -1293,6 +1309,19 @@ class TestSharedUserNotesDbSync:
         res = await sync_to_async(self.api_client_user.post)(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': self.user.id}), data=sort_data)
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
 
+    async def test_omit_clients_and_awareness(self):
+        # Public share must not receive a list of other clients in init
+        assert self.client_public.init['clients'] == []
+
+        # Public awareness sent to user
+        event_awareness = {'type': CollabEventType.AWARENESS, 'path': self.childnote_shared_path_prefix + '.title'}
+        await self.client_public.send_json_to(event_awareness | {'version': self.client_public.init['version']})
+        await self.assert_event(event_awareness | {'client_id': self.client_public.client_id}, user=True, public=True)
+
+        # User awareness not sent to public
+        await self.client_user.send_json_to(event_awareness | {'version': self.client_user.init['version']})
+        await self.assert_event(event_awareness | {'client_id': self.client_user.client_id}, user=True, public=False)
+
     async def test_cannot_update_nonshared_notes(self):
         await self.client_public.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': f'notes.{self.note_not_shared.note_id}.icon_emoji', 'value': '👍'})
         res = await self.client_public.receive_json_from()
@@ -1325,7 +1354,8 @@ class TestConsumerPermissions:
             can_write = False
             if can_read:
                 await consumer.receive_json_from()  # collab.init
-                await consumer.receive_json_from()  # collab.connect
+                if not path.startswith('/api/public/ws/shareinfos/'):
+                    await consumer.receive_json_from()  # collab.connect
 
                 await consumer.send_json_to(event or {'type': CollabEventType.UPDATE_KEY, 'path': 'test', 'value': 'test'})
                 msg = await consumer.receive_output()
