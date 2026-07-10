@@ -22,25 +22,6 @@ services:
     - export DOCKER_BUILDKIT=1
     - docker buildx create --use
 
-.deploy_docs:
-  image: python:3.13
-  script:
-    - cd docs
-    - git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor-docs.git ghpages
-    - cd ghpages
-    - git config --global user.email $GITHUB_USER_MAIL
-    - git config --global user.name $GITHUB_USERNAME
-    - shopt -u dotglob
-    - rm -rf * .well-known
-    - cp -r ../docs/.vitepress/dist/* .
-    - touch .nojekyll
-    - git add .
-    - git commit -m "INIT"
-    - git reset $(git commit-tree HEAD^{tree} -m "INIT")
-    - git push --force
-  allow_failure:
-    exit_codes: 127
-
 sync:
   stage: sync
   rules:
@@ -64,6 +45,7 @@ build-docs:
     when: always
     paths:
       - docs/docs/.vitepress/dist/
+      - docs/docs/cli/
     expire_in: 2 days
   allow_failure:
     exit_codes: 127
@@ -304,17 +286,69 @@ release-prod:
         -d "{\"title\": \"🎊 Update available\", \"text\": \"There's a new SysReptor version (v${VERSION_NUMBER}) waiting for you.\", \"active_until\": \"$(date -d "@$(( $(date +%s) + 30 * 24 * 60 * 60 ))" -I)\", \"link_url\": \"https://github.com/Syslifters/sysreptor/releases/tag/${VERSION_NUMBER}\", \"instance_conditions\": {\"version\": \"<${VERSION_NUMBER}\"} }"
 
 release-docs:
-  stage: release
-  extends: .deploy_docs
-  needs: [build-docs]
+  stage: release-docs
   rules:
+    - if: $CI_COMMIT_TAG =~ /^prod-.*/
+      needs:
+        - job: build-docs
+          artifacts: true
+        - job: release-prod
     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
+      needs:
+        - job: build-docs
+          artifacts: true
+  image: python:3.13
+  script:
+    - cd docs
+    - git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/Syslifters/sysreptor-docs.git ghpages
+    - cd ghpages
+    - git config --global user.email $GITHUB_USER_MAIL
+    - git config --global user.name $GITHUB_USERNAME
+    - shopt -u dotglob
+    - rm -rf * .well-known
+    - cp -r ../docs/.vitepress/dist/* .
+    - touch .nojekyll
+    - git add .
+    - git commit -m "INIT"
+    - git reset $(git commit-tree HEAD^{tree} -m "INIT")
+    - git push --force
+  allow_failure:
+    exit_codes: 127
 
-release-docs-on-prod-release:
-  stage: release
-  extends: .deploy_docs
+index-internal-anythingllm:
+  stage: release-docs
   rules:
-    - if: $CI_COMMIT_TAG =~ /^prod-.*/  # Run this job on prod deployments
-  needs: [release-prod, build-docs]
-
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      needs:
+        - job: build-docs
+          artifacts: true
+        - job: release-docs
+    - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      needs:
+        - job: build-docs
+          artifacts: true
+  image: python:3.13
+  variables:
+    # Set in GitLab CI/CD variables (masked/protected):
+    # - ANYTHINGLLM_API_KEY: Bearer token for AnythingLLM Developer API
+    # - ANYTHINGLLM_WORKSPACE_SLUG: dedicated SysReptor workspace slug
+    # Optional:
+    # - ANYTHINGLLM_BASE_URL: defaults to "https://anythingllm.internal.syslifters.com"
+    # - BASE_URL: defaults to "https://docs.sysreptor.com"
+    # - ANYTHINGLLM_UPLOAD_FOLDER: defaults to "sysreptor"
+    # - GITHUB_TOKEN: used for docs deploy/sync and public repo sync
+    ANYTHINGLLM_BASE_URL: "https://anythingllm.internal.syslifters.com"
+    BASE_URL: "https://docs.sysreptor.com"
+    ANYTHINGLLM_UPLOAD_FOLDER: "sysreptor"
+  script:
+    - test -n "$ANYTHINGLLM_API_KEY"
+    - test -n "$ANYTHINGLLM_WORKSPACE_SLUG"
+    - test -f docs/docs/.vitepress/dist/sitemap.xml
+    - pip install -r docs/requirements.txt
+    - python docs/scripts/index_docs_anythingllm.py
+        --sitemap docs/docs/.vitepress/dist/sitemap.xml
+        --docs-dir docs/docs
+        --plugins-dir plugins
+        --plugins-github-base "https://github.com/Syslifters/sysreptor/blob/main/plugins"

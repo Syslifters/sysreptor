@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import type { HeadConfig } from 'vitepress'
 import markdownItAttrs from 'markdown-it-attrs'
 import markdownItFootnote from 'markdown-it-footnote'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
@@ -9,6 +10,31 @@ import { pythonAutodocPlugin } from './plugins/pythonAutodoc'
 const env = (globalThis as any).process?.env as Record<string, string | undefined> | undefined
 const sitemapHostname = env?.VITEPRESS_SITEMAP_HOSTNAME ?? 'https://docs.sysreptor.com'
 
+/** AnythingLLM embed — shares handbook workspace temporarily. */
+function anythingllmEmbedScript(): HeadConfig {
+  return [
+    'script',
+    {
+      // Widget calls document.body.appendChild at parse time; defer until after <body> exists.
+      defer: '',
+      src: 'https://anythingllm.external.syslifters.com/embed/anythingllm-chat-widget.min.js',
+      'data-embed-id': 'ccf2a3af-c9c4-4366-9b0f-e9f222737848',
+      'data-base-api-url': 'https://anythingllm.external.syslifters.com/api/embed',
+      'data-chat-icon': 'magic',
+      'data-language': 'en',
+      'data-greeting': 'Hello from SysReptor! How can I help you today?',
+      'data-default-messages': 'Why is reporting with SysReptor so easy?,How do I install SysReptor?,Can I integrate SysReptor with Python?',
+      'data-brand-image-url': '/images/logo_ai.svg',
+      'data-assistant-icon': '/images/logo.svg',
+      'data-assistant-name': 'AI Assistant',
+      'data-support-email': 'team@syslifters.com',
+      'data-button-color': 'var(--vp-c-brand-1)',
+      'data-user-bg-color': 'var(--vp-c-brand-1)',
+      // Do not set data-show-thoughts="false" — dataset values are strings and "false" is truthy in the widget.
+      'data-sponsor-text': 'AI might make mistakes. Don\'t share personal information.',
+    },
+  ]
+}
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -17,6 +43,7 @@ export default defineConfig({
   lang: 'en-US',
   head: [
     ['link', { rel: 'icon', href: '/images/logo.svg' }],
+    anythingllmEmbedScript(),
   ],
   themeConfig: {
     logo: '/images/logo.svg',
