@@ -14,7 +14,6 @@ from rest_framework.response import Response
 from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
 
-from sysreptor.ai.agents.base import get_model_configs
 from sysreptor.api_utils import backup_utils
 from sysreptor.api_utils.healthchecks import run_healthchecks
 from sysreptor.api_utils.models import BackupLog
@@ -191,6 +190,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
         if not request.user.is_authenticated:
             return Response(public_settings)
 
+        from sysreptor.ai.agents.base import get_model_configs
         ai_agent_models = [
             {'id': m.get('id'), 'label': m.get('label', m.get('id'))}
             for m in get_model_configs()

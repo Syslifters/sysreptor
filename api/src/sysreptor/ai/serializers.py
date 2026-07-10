@@ -1,10 +1,7 @@
 from django.db.models import Prefetch
 from drf_spectacular.utils import OpenApiTypes, extend_schema_field
-from langgraph.types import Command
 from rest_framework import serializers
 
-from sysreptor.ai.agents import agent_stream, get_agent
-from sysreptor.ai.agents.base import get_model_configs
 from sysreptor.ai.models import ChatThread
 from sysreptor.pentests.models import PentestProject, ProjectNotebookPage
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
@@ -38,6 +35,8 @@ class LLMAgentSerializer(serializers.Serializer):
     project = ProjectRelatedField()
 
     def validate(self, attrs):
+        from sysreptor.ai.agents.base import get_model_configs
+
         # Validate message
         thread_id = attrs.get('id')
         messages = attrs.get('messages') or []
@@ -57,6 +56,7 @@ class LLMAgentSerializer(serializers.Serializer):
 
         # Set agent parameters
         if resume is not None:
+            from langgraph.types import Command
             attrs['input'] = Command(resume=resume)
         else:
             attrs['input'] = {'messages': messages}
@@ -82,6 +82,8 @@ class LLMAgentSerializer(serializers.Serializer):
         return super().validate(attrs)
 
     def get_agent(self, attrs):
+        from sysreptor.ai.agents import get_agent
+
         if attrs.get('agent') in ['project_ask', 'project_agent']:
             if not attrs.get('project'):
                 raise serializers.ValidationError('Project is required for project agent')
@@ -90,6 +92,8 @@ class LLMAgentSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid agent type')
 
     def stream(self):
+        from sysreptor.ai.agents import agent_stream
+
         thread = self.validated_data.get('thread')
         if not thread.id:
             # Create new thread
