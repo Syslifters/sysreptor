@@ -89,8 +89,8 @@ class Configuration:
         if not f:
             raise KeyError(f'Unknown setting: {name}')
 
-        if f.id in self._force_override:
-            value = self._force_override[f.id]
+        if f.id in self.__class__._force_override:
+            value = self.__class__._force_override[f.id]
         elif settings.LOAD_CONFIGURATIONS_FROM_ENV and f.extra_info.get('set_in_env'):
             value = self._load_env_value(definition=f, value=os.environ.get(f.id, ''))
         elif settings.LOAD_CONFIGURATIONS_FROM_DB:

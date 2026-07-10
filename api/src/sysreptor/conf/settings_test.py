@@ -3,13 +3,12 @@ import json
 from sysreptor.conf.settings import *  # noqa: F403
 from sysreptor.conf.settings import (
     CONFIGURATION_DEFINITION_CORE,
-    ENABLED_PLUGINS,
     INSTALLED_APPS,
-    PLUGIN_DIRS,
     REST_FRAMEWORK,
     STORAGES,
     load_plugins,
 )
+from sysreptor.utils.configuration import configuration
 
 STORAGES = STORAGES | {
     'uploadedimages': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -90,6 +89,6 @@ mail.send_mail_in_background = mail.send_mail
 
 
 # Always enable some plugins during tests
-ENABLED_PLUGINS += ['demoplugin']
-enable_test_plugins = load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
+configuration._force_override['ENABLED_PLUGINS'] = ['demoplugin']
+enable_test_plugins = load_plugins(locals())
 INSTALLED_APPS += [p for p in enable_test_plugins if p not in INSTALLED_APPS]

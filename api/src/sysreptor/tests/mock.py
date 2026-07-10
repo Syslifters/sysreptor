@@ -492,13 +492,18 @@ async def websocket_client(path, user, connect=True):
 
 @contextlib.contextmanager
 def override_configuration(**kwargs):
-    restore_map = configuration._force_override.copy()
+    cls = configuration.__class__
+    restore_map = cls._force_override.copy()
+    if '_force_override' in configuration.__dict__:
+        del configuration._force_override
     try:
-        configuration._force_override |= kwargs
+        cls._force_override.clear()
+        cls._force_override.update(restore_map | kwargs)
         configuration.clear_cache()
         yield
     finally:
-        configuration._force_override = restore_map
+        cls._force_override.clear()
+        cls._force_override.update(restore_map)
         configuration.clear_cache()
 
 

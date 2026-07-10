@@ -1,26 +1,47 @@
 import importlib.util
 import logging
+import os
+import re
 import shutil
 import sys
+import warnings
+from copy import deepcopy
 from functools import cached_property
 from importlib import import_module
 from pathlib import Path
+from unittest import mock
 
-from decouple import config
+from decouple import Csv, config
 from django.apps import AppConfig, apps
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.finders import AppDirectoriesFinder, FileSystemFinder
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.storage import FileSystemStorage, storages
+from django.db.backends.utils import CursorWrapper
+from django.db.utils import ConnectionHandler
 from django.utils.functional import classproperty
 from django.utils.module_loading import module_has_submodule
 
 from sysreptor.utils import license
-from sysreptor.utils.fielddefinition.types import FieldDefinition
+from sysreptor.utils.configuration import Configuration
+from sysreptor.utils.fielddefinition.types import FieldDefinition, ListField, StringField
 
 available_plugins = []
 enabled_plugins = []
+
+ENABLED_PLUGINS_FIELD = ListField(
+    id='ENABLED_PLUGINS',
+    items=StringField(),
+    default=[],
+    required=False,
+    extra_info={
+        'group': 'plugins',
+        'professional_only': False,
+        'load_from_env': Csv(post_process=lambda lst: list(filter(None, lst or []))),
+    },
+    help_text='List of enabled plugin names or plugin IDs.',
+)
 
 
 class PluginConfig(AppConfig):
@@ -153,16 +174,74 @@ def remove_entry(path: Path):
         path.unlink(missing_ok=True)
 
 
+def read_enabled_plugins_from_db(databases: dict) -> str | None:
+    if not databases.get('default', {}).get('HOST'):
+        return None
+
+    # Use a dedicated connection handler without the psycopg pool to avoid interfering
+    # with Django's default connection (especially during early settings import).
+    databases = deepcopy(databases)
+    databases.get('default', {}).get('OPTIONS', {}).pop('pool', None)
+    connections = ConnectionHandler(databases)
+    # Django blocks sync DB operations when an event loop is running (e.g. uvicorn subprocess startup).
+    with mock.patch.dict(os.environ, {'DJANGO_ALLOW_ASYNC_UNSAFE': 'true'}):
+        try:
+            with warnings.catch_warnings():
+                warnings.filterwarnings(
+                    'ignore',
+                    message=re.escape(CursorWrapper.APPS_NOT_READY_WARNING_MSG),
+                    category=RuntimeWarning,
+                )
+                with connections['default'].cursor() as cursor:
+                    cursor.execute(
+                        'SELECT value FROM api_utils_dbconfigurationentry WHERE name = %s LIMIT 1',
+                        ['ENABLED_PLUGINS'],
+                    )
+                    row = cursor.fetchone()
+                    if row is None:
+                        return None
+                    return row[0]
+        except Exception:
+            logging.exception('Failed to read ENABLED_PLUGINS from database during startup')
+            return None
+        finally:
+            connections.close_all()
+
+
+def resolve_enabled_plugins(
+    databases: dict | None = None,
+    *,
+    load_configurations_from_env: bool = True,
+    load_configurations_from_db: bool = True,
+) -> list[str]:
+    cfg = Configuration()
+    value = None
+    if ENABLED_PLUGINS_FIELD.id in Configuration._force_override:
+        value = Configuration._force_override[ENABLED_PLUGINS_FIELD.id]
+    elif load_configurations_from_env and 'ENABLED_PLUGINS' in os.environ:
+        value = cfg._load_env_value(ENABLED_PLUGINS_FIELD, os.environ['ENABLED_PLUGINS'])
+    elif load_configurations_from_db and databases:
+        value = cfg._decode_json_value(read_enabled_plugins_from_db(databases))
+    return cfg._validate_configuration_value(ENABLED_PLUGINS_FIELD, value) or []
+
+
+def load_all_plugins() -> bool:
+    return len(sys.argv) >= 2 and sys.argv[0] == 'manage.py' and sys.argv[1] in {
+        # Commands that should load all plugins into INSTALLED_APPS (even if not enabled at runtime).
+        # This is primarily needed for migrations, static file collection, and backups/restores.
+        'collectstatic', 'findstatic',
+        'makemigrations', 'migrate', 'optimizemigrations', 'showmigrations', 'squashmigrations', 'sqlflush', 'sqlmigrate', 'sqlsequencereset',
+        'check', 'spectacular',
+        'backup', 'restorebackup',
+    }
+
+
 def can_load_professional_plugins():
     license_text = getattr(settings, 'LICENSE', config('LICENSE', default=None))
     if license.decode_and_validate_license(license=license_text, skip_db_checks=True) \
         .get('type') == license.LicenseType.PROFESSIONAL:
         return True
-    elif len(sys.argv) >= 2 and sys.argv[0] == 'manage.py' and sys.argv[1] in [
-        'collectstatic', 'findstatic',
-        'makemigrations', 'migrate', 'optimizemigrations', 'showmigrations', 'squashmigrations', 'sqlflush', 'sqlmigrate', 'sqlsequencereset',
-        'check', 'spectacular',
-    ]:
+    elif load_all_plugins():
         return True
     return False
 
@@ -208,13 +287,13 @@ def collect_plugins(dst: Path, srcs: list[Path]):
             remove_entry(dst_module)
 
 
-def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
+def load_plugins(settings):
     dst = Path(__file__).parent.parent.parent / 'sysreptor_plugins'
     # Collect all plugin modules in dst directory
     try:
         collect_plugins(
             dst=dst,
-            srcs=plugin_dirs,
+            srcs=settings['PLUGIN_DIRS'],
         )
     except Exception:
         logging.exception('Error while collecting plugins')
@@ -260,8 +339,16 @@ def load_plugins(plugin_dirs: list[Path], enabled_plugins: list[str]):
     available_plugins.extend(available_plugin_configs)
 
     # Determine enabled plugins
+    enabled_plugin_ids = resolve_enabled_plugins(
+        databases=settings['DATABASES'],
+        load_configurations_from_env=settings['LOAD_CONFIGURATIONS_FROM_ENV'],
+        load_configurations_from_db=settings['LOAD_CONFIGURATIONS_FROM_DB'],
+    )
+    if load_all_plugins():
+        enabled_plugin_ids += ['*']
+
     installed_apps = []
-    for enabled_plugin_id in enabled_plugins:
+    for enabled_plugin_id in enabled_plugin_ids:
         for plugin_config_class in available_plugin_configs:
             plugin_id = plugin_config_class.plugin_id
             plugin_name = plugin_config_class.name.split('.')[-1]

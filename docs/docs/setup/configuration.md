@@ -234,19 +234,6 @@ This setting sould only be activated if WebSockets are blocked by a firewall or 
 DISABLE_WEBSOCKETS=true
 ```
 
-### Plugins
-Extend the functionality of SysReptor by enabling plugins. Plugins are disabled by default and need to be explicitly enabled.
-`ENABLED_PLUGINS` is a comma separated list of plugin names or plugin IDs.
-
-```dotenv title="Example:"
-ENABLED_PLUGINS="cyberchef,graphqlvoyager,checkthehash"
-```
-
-Some plugins require additional configuration. These plugin settings are configured as separate entries in `app.env` or via the settings page in the web interface.
-Please refer to the plugin documentation for more information on available plugin setting.
-
-
-
 
 
 
@@ -629,4 +616,21 @@ STATUS_DEFINITIONS='[
 ```
 
 Note: `allowed_next_statuses` is not enforced for [superusers with enabled admin permissions](/users/user-permissions#superuser). This is to allow administrators to fix incorrect status assignments if necessary.
+
+
+### Plugins
+Extend the functionality of SysReptor by enabling plugins. Plugins are disabled by default and need to be explicitly enabled.
+
+Enable plugins in the application settings page in the web interface by ticking plugin enabled checkboxes.
+
+You can also manage plugins via the environment variable `ENABLED_PLUGINS` in `app.env`.
+`ENABLED_PLUGINS` is a comma separated list of plugin names or plugin IDs.
+If `ENABLED_PLUGINS` is set in `app.env`, it takes precedence and the Settings UI will be read-only for plugin enable/disable.
+
+```dotenv title="Example:"
+ENABLED_PLUGINS="cyberchef,graphqlvoyager,checkthehash"
+```
+
+Some plugins require additional configuration. These plugin settings are configured as separate entries in `app.env` or via the settings page in the web interface.
+Please refer to the plugin documentation for more information on available plugin setting.
 

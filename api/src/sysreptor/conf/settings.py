@@ -22,7 +22,7 @@ from decouple import Csv, config
 from django.utils.csp import CSP
 from kombu import Queue
 
-from sysreptor.conf.plugins import load_plugins
+from sysreptor.conf.plugins import ENABLED_PLUGINS_FIELD, load_plugins
 from sysreptor.utils.fielddefinition.types import (
     BooleanField,
     EnumChoice,
@@ -583,11 +583,6 @@ NOTIFICATION_IMPORT_URL = config('NOTIFICATION_IMPORT_URL', default='https://sys
 # License
 LICENSE = config('LICENSE', default=None)
 
-# Plugins
-PLUGIN_DIRS = config('PLUGIN_DIRS', cast=Csv(cast=Path, post_process=remove_empty_items), default='')
-ENABLED_PLUGINS = config('ENABLED_PLUGINS', cast=Csv(post_process=remove_empty_items), default='')
-INSTALLED_APPS += load_plugins(PLUGIN_DIRS, ENABLED_PLUGINS)
-
 
 # Elastic APM
 ELASTIC_APM_ENABLED = config('ELASTIC_APM_ENABLED', cast=bool, default=False)
@@ -699,6 +694,7 @@ LOGGING = {
 
 
 CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
+    ENABLED_PLUGINS_FIELD,
     BooleanField(
         id='ENABLE_PRIVATE_DESIGNS',
         default=False,
@@ -969,3 +965,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
 LOAD_CONFIGURATIONS_FROM_ENV = True
 LOAD_CONFIGURATIONS_FROM_DB = config('LOAD_CONFIGURATIONS_FROM_DB', cast=bool, default=True)
 
+
+# Plugins
+PLUGIN_DIRS = config('PLUGIN_DIRS', cast=Csv(cast=Path, post_process=remove_empty_items), default='')
+INSTALLED_APPS += load_plugins(locals())

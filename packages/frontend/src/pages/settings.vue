@@ -64,22 +64,28 @@
             <markdown-preview :value="plugin.description" />
           </v-card-text>
           <v-card-text>
-            <s-checkbox 
-              v-model="plugin.enabled"
+            <s-checkbox
+              :model-value="isPluginEnabled(plugin)"
+              @update:model-value="setPluginEnabled(plugin, $event)"
+              :disabled="enabledPluginsSetInEnv || (plugin.professional_only && !apiSettings.isProfessionalLicense)"
               label="Is plugin enabled?"
-              disabled
             >
               <template #label>
                 <v-tooltip>
                   <template #activator="{props: tooltipProps}">
-                    <span class="info-env" v-bind="tooltipProps">
+                    <span :class="{'info-env': enabledPluginsSetInEnv}" v-bind="tooltipProps">
                       Is plugin enabled?
-                      <v-icon end icon="mdi-cog-off" />
+                      <v-icon v-if="enabledPluginsSetInEnv" end icon="mdi-cog-off" />
                     </span>
                   </template>
                   <template #default>
-                    Plugins can be enabled by configuring the environment variable `ENABLED_PLUGINS` in <v-code>app.env</v-code>.<br>
-                    Add the plugin name to the environment variable: e.g. <v-code>ENABLED_PLUGINS="{{ plugin.name }},other-plugin,..."</v-code>
+                    <template v-if="enabledPluginsSetInEnv">
+                      Plugins can be enabled by configuring the environment variable <v-code>ENABLED_PLUGINS</v-code> in <v-code>app.env</v-code>.<br>
+                      Add the plugin name to the environment variable: e.g. <v-code>ENABLED_PLUGINS="{{ plugin.name }},other-plugin,..."</v-code>
+                    </template>
+                    <template v-else>
+                      Enable or disable this plugin for the application.
+                    </template>
                   </template>
                 </v-tooltip>
               </template>
@@ -131,16 +137,18 @@ export type ConfigurationFieldDefinition = FieldDefinition & {
   professional_only?: boolean;
 }
 
+export type PluginConfigurationDefinition = {
+  plugin_id: string;
+  name: string;
+  description?: string|null;
+  professional_only: boolean;
+  enabled: boolean;
+  fields: ConfigurationFieldDefinition[];
+}
+
 export type ConfigurationDefinition = {
   core: ConfigurationFieldDefinition[];
-  plugins: {
-    plugin_id: string;
-    name: string;
-    description?: string|null;
-    professional_only: boolean;
-    enabled: boolean;
-    fields: ConfigurationFieldDefinition[];
-  }[];
+  plugins: PluginConfigurationDefinition[];
 }
 
 definePageMeta({
@@ -155,6 +163,38 @@ const apiSettings = useApiSettings();
 
 const configurationDefinition = await useFetchE<ConfigurationDefinition>('/api/v1/utils/configuration/definition/', { method: 'GET' });
 const configurationValues = await useFetchE<Record<string, any>>('/api/v1/utils/configuration/', { method: 'GET', deep: true });
+
+const enabledPluginsSetInEnv = computed(() => configurationDefinition.value.core.find(f => f.id === 'ENABLED_PLUGINS')?.set_in_env === true);
+const enabledPlugins = computed(() => {
+  const v = configurationValues.value?.ENABLED_PLUGINS;
+  return Array.isArray(v) ? v.filter(p => typeof p === 'string') : [];
+});
+
+function isPluginEnabled(plugin: PluginConfigurationDefinition): boolean {
+  if (plugin.professional_only && !apiSettings.isProfessionalLicense) {
+    return false;
+  }
+  return enabledPlugins.value.includes(plugin.name) || 
+         enabledPlugins.value.includes(plugin.plugin_id) || 
+         enabledPlugins.value.includes('*');
+}
+
+function setPluginEnabled(plugin: PluginConfigurationDefinition, enabled: boolean) {
+  const allPluginNames = configurationDefinition.value.plugins.map(p => p.name);
+  let current = [...enabledPlugins.value];
+  if (current.includes('*')) {
+    current = allPluginNames;
+  }
+
+  if (enabled) {
+    if (!current.includes(plugin.name)) {
+      current = [...current, plugin.name];
+    }
+  } else {
+    current = current.filter(p => ![plugin.name, plugin.plugin_id].includes(p));
+  }
+  configurationValues.value['ENABLED_PLUGINS'] = current;
+}
 const coreConfigGroups = computed(() => {
   const coreGroups = [
     {
@@ -231,8 +271,8 @@ async function performSave(data: Record<string, any>) {
 
     // Wait some time to ensure server worker processes began restarting
     await wait(2000);
-    // Reload frontend settings
-    await apiSettings.fetchSettings();
+    // Reload frontend to re-initialize settings, plugins, etc.
+    window.location.reload();
   } catch (error: any) {
     errorMessages.value = error?.data
     throw error;
