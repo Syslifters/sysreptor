@@ -250,4 +250,140 @@
   vertical-align: middle !important;
 }
 
+/*
+ * AnythingLLM embed: outer wrapper is full-viewport (fixed inset-0) and steals
+ * clicks. No official data-* to disable; pass events through the shell, keep them
+ * on the actual panel. https://github.com/Mintplex-Labs/anythingllm-embed/blob/main/src/App.jsx
+ */
+#anything-llm-embed-chat-container {
+  pointer-events: none;
+}
+
+#anything-llm-embed-chat-container img {
+  max-width: 120px !important;
+}
+
+#anything-llm-chat #anything-llm-header img {
+  max-width: 120px !important;
+  max-height: 28px !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+#anything-llm-chat {
+  pointer-events: auto;
+}
+
+#anything-llm-chat #send-message-button svg {
+  color: var(--vp-c-brand-1) !important;
+}
+
+#anything-llm-chat #anything-llm-header button {
+  color: var(--vp-c-brand-1) !important;
+}
+
+#anything-llm-chat #anything-llm-header button:hover {
+  background-color: var(--vp-c-brand-soft) !important;
+}
+
+#anything-llm-chat .msg-suggestion {
+  background-color: var(--vp-c-brand-1) !important;
+}
+
+#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > a,
+#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > button,
+#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > div {
+  color: var(--vp-c-brand-1) !important;
+}
+
+#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > a:hover,
+#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > button:hover,
+#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > div:hover {
+  background-color: var(--vp-c-brand-soft) !important;
+}
+
+#anything-llm-chat .allm-flex.allm-justify-center.allm-gap-x-1 button {
+  color: var(--vp-c-brand-1) !important;
+}
+
+#anything-llm-chat #scroll-to-bottom-button {
+  color: var(--vp-c-brand-1) !important;
+}
+
+/* Nav bar Ask button — teleported into .VPNavBarSearch beside local search */
+.VPNavBarSearch {
+  gap: 8px;
+}
+
+.sysreptor-ask-ai {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0;
+  margin-left: 8px;
+  padding: 0 10px;
+  height: 48px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  background-color: var(--vp-c-bg-alt);
+  color: var(--vp-c-text-1);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.25s, background-color 0.25s;
+}
+
+.sysreptor-ask-ai:hover {
+  border-color: var(--vp-c-brand-1);
+  background-color: var(--vp-c-bg-alt);
+}
+
+.sysreptor-ask-ai:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 2px;
+}
+
+.sysreptor-ask-ai-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.sysreptor-ask-ai-icon-logo {
+  display: none;
+}
+
+.sysreptor-ask-ai-icon-magic {
+  display: block;
+  color: var(--vp-c-brand-1);
+}
+
+.sysreptor-ask-ai-label {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sysreptor-ask-ai {
+    padding: 0 14px;
+    height: 40px;
+  }
+
+  .sysreptor-ask-ai-icon-logo {
+    display: block;
+  }
+
+  .sysreptor-ask-ai-icon-magic {
+    display: none;
+  }
+
+  .sysreptor-ask-ai-label {
+    display: inline;
+  }
+}
+
 

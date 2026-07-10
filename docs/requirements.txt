@@ -3,3 +3,5 @@
 griffe>=2.0
 PyYAML>=6.0
 reptor>=0.34
+click>=8.4
+requests>=2.34

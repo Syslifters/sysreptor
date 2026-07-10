@@ -9,6 +9,24 @@ import DocBadge from './components/DocBadge.vue'
 import Layout from './Layout.vue'
 import './style.css'
 
+/** AnythingLLM always renders sponsor text as a link; replace with plain text. */
+function plainTextAnythingllmSponsor() {
+  for (const link of Array.from(
+    document.querySelectorAll<HTMLAnchorElement>(
+      'a.allm-text-xs.allm-font-sans:not([data-plain-sponsor])'
+    )
+  )) {
+    if (!link.closest('[class*="allm-"]')) continue
+
+    const span = document.createElement('span')
+    span.className = link.className.replace(/\bhover:allm-underline\b/g, '').trim()
+    span.style.color = 'rgb(122, 125, 126)'
+    span.textContent = link.textContent
+    span.dataset.plainSponsor = 'true'
+    link.replaceWith(span)
+  }
+}
+
 export default {
   extends: DefaultTheme,
   Layout,
@@ -16,6 +34,13 @@ export default {
     app.component('Icon', Icon)
     enhanceAppWithTabs(app)
     registerDocBadges(app)
+
+    if (typeof window !== 'undefined') {
+      plainTextAnythingllmSponsor()
+      window.addEventListener('load', plainTextAnythingllmSponsor, { once: true })
+      const anythingllmSponsorObserver = new MutationObserver(plainTextAnythingllmSponsor)
+      anythingllmSponsorObserver.observe(document.body, { childList: true, subtree: true })
+    }
   },
 } satisfies Theme
 

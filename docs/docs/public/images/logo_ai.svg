@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 28" fill="none">
+  <text
+    x="0"
+    y="21"
+    font-family="Noto Sans, system-ui, -apple-system, Segoe UI, sans-serif"
+    font-size="18"
+    font-weight="600"
+    fill="#1e1e1d"
+  >SysReptor</text>
+  <g transform="translate(108 2) scale(0.09)" fill="#aabb11">
+    <path d="m 48,64 a 8,8 0 0 1 8,-8 H 72 V 40 a 8,8 0 0 1 16,0 v 16 h 16 a 8,8 0 0 1 0,16 H 88 V 88 A 8,8 0 0 1 72,88 V 72 H 56 a 8,8 0 0 1 -8,-8 z m 136,128 h -8 v -8 a 8,8 0 0 0 -16,0 v 8 h -8 a 8,8 0 0 0 0,16 h 8 v 8 a 8,8 0 0 0 16,0 v -8 h 8 a 8,8 0 0 0 0,-16 z m 56,-48 h -16 v -16 a 8,8 0 0 0 -16,0 v 16 h -16 a 8,8 0 0 0 0,16 h 16 v 16 a 8,8 0 0 0 16,0 v -16 h 16 a 8,8 0 0 0 0,-16 z M 219.31,80 80,219.31 a 16,16 0 0 1 -22.62,0 l -20.7,-20.68 a 16,16 0 0 1 0,-22.63 L 176,36.69 a 16,16 0 0 1 22.63,0 l 20.68,20.68 a 16,16 0 0 1 0,22.63 z M 164.68,112 144,91.31 48,187.31 68.68,208 Z M 208,68.69 187.31,48 l -32,32 20.69,20.69 z"/>
+  </g>
+</svg>
