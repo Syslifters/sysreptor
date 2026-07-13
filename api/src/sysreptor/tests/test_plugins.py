@@ -9,6 +9,7 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.core.management import call_command
+from django.db import ProgrammingError
 from django.test import override_settings
 from django.urls import reverse
 
@@ -127,7 +128,7 @@ class TestPluginLoading:
         try:
             DemoPluginConfig.professional_only = True
             with mock.patch('sysreptor.conf.plugins.can_load_professional_plugins', return_value=False):
-                with mock.patch.dict(os.environ, {'ENABLED_PLUGINS': 'demoplugin'}, clear=False):
+                with override_configuration(ENABLED_PLUGINS=['demoplugin']):
                     assert load_plugins({
                         'PLUGIN_DIRS': settings.PLUGIN_DIRS,
                         'DATABASES': settings.DATABASES,
@@ -178,8 +179,8 @@ class TestPluginBackupRestore:
         with disable_demoplugin():
             self.restore_backup(backup)
 
-        with enable_demoplugin():
-            assert obj.__class__.objects.filter(pk=obj.pk).exists()
+            with pytest.raises(ProgrammingError, match=f'relation "{DEMOPLUGIN_APPLABEL}_demopluginmodel" does not exist'):
+                obj.refresh_from_db()
 
     def test_backup_restore_new_plugin(self):
         with enable_demoplugin():

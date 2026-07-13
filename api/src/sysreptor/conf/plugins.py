@@ -202,7 +202,7 @@ def read_enabled_plugins_from_db(databases: dict) -> str | None:
                         return None
                     return row[0]
         except Exception:
-            logging.exception('Failed to read ENABLED_PLUGINS from database during startup')
+            logging.error('Failed to read ENABLED_PLUGINS from database during startup')
             return None
         finally:
             connections.close_all()

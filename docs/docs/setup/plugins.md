@@ -5,7 +5,7 @@ SysReptor provides a plugin system to extend the functionality of the applicatio
 Plugins can hook into the SysReptor core and provide additional features both in the API and the web UI.
 
 All plugins are disabled by default.
-Enable plugins in the application settings web interface by ticking plugin enabled checkboxes.
+Enable plugins in the application settings web interface (https://sysreptor.example.com/settings/) by ticking plugin enabled checkboxes.
 
 You can also enable plugins by setting [`ENABLED_PLUGINS`](/setup/configuration#plugins) in `app.env` (e.g. `ENABLED_PLUGINS=cyberchef,checkthehash`) and restarting your container (`docker compose up -d` from the `deploy` directory). If `ENABLED_PLUGINS` is set in `app.env`, it takes precedence and the Settings UI will be read-only for plugin enable/disable.
 
@@ -263,9 +263,9 @@ Run unit tests:
 
 ```shell
 # Test a single plugin
-docker compose run --rm -e ENABLED_PLUGINS=demoplugin app pytest sysreptor_plugins/demoplugin
+docker compose run --rm -e app pytest sysreptor_plugins/demoplugin
 # Run all tests (core + all plugins)
-docker compose run --rm -e ENABLED_PLUGINS='*' app pytest -n auto
+docker compose run --rm -e app pytest -n auto
 ```
 
 

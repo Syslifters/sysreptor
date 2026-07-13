@@ -8,7 +8,7 @@ from sysreptor.conf.settings import (
     STORAGES,
     load_plugins,
 )
-from sysreptor.utils.configuration import configuration
+from sysreptor.utils.configuration import Configuration
 
 STORAGES = STORAGES | {
     'uploadedimages': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -89,6 +89,6 @@ mail.send_mail_in_background = mail.send_mail
 
 
 # Always enable some plugins during tests
-configuration._force_override['ENABLED_PLUGINS'] = ['demoplugin']
+Configuration._force_override['ENABLED_PLUGINS'] = ['*']
 enable_test_plugins = load_plugins(locals())
 INSTALLED_APPS += [p for p in enable_test_plugins if p not in INSTALLED_APPS]

@@ -181,7 +181,7 @@ test-frontend:
 #     - docker cp $(docker create --name temp $CI_REGISTRY_IMAGE/frontend-test:$CI_COMMIT_SHORT_SHA):/app/packages/ packages2 && docker rm temp
 #     # Run API + DB
 #     - docker run --name postgres --rm --network=mynet --detach -e POSTGRES_DB=$POSTGRES_DB -e POSTGRES_USER=$POSTGRES_USER -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD postgres:15
-#     - docker run --name=api --rm --network=mynet --detach -e ENABLED_PLUGINS=* -e LICENSE="${SYSREPTOR_INTEGRATION_LICENSE}" -e SYSREPTOR_INTEGRATION_USER="${SYSREPTOR_INTEGRATION_USER}" -e DATABASE_HOST=postgres -e DATABASE_NAME="${POSTGRES_DB}" -e DATABASE_USER="${POSTGRES_USER}" -e DATABASE_PASSWORD="${POSTGRES_PASSWORD}" -e DJANGO_SUPERUSER_PASSWORD="${SYSREPTOR_INTEGRATION_PASSWORD}" $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA
+#     - docker run --name=api --rm --network=mynet --detach -e ENABLED_PLUGINS='*' -e LICENSE="${SYSREPTOR_INTEGRATION_LICENSE}" -e SYSREPTOR_INTEGRATION_USER="${SYSREPTOR_INTEGRATION_USER}" -e DATABASE_HOST=postgres -e DATABASE_NAME="${POSTGRES_DB}" -e DATABASE_USER="${POSTGRES_USER}" -e DATABASE_PASSWORD="${POSTGRES_PASSWORD}" -e DJANGO_SUPERUSER_PASSWORD="${SYSREPTOR_INTEGRATION_PASSWORD}" $CI_REGISTRY_IMAGE/api-test:$CI_COMMIT_SHORT_SHA
 #     # Let the api migrations run...
 #     - sleep 15
 #     # Add Superuser
