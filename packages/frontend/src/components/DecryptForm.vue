@@ -56,7 +56,13 @@ const props = defineProps<{
   errorMessages?: string[]|null;
 }>();
 
-const filename = computed(() => `message_${sampleSize('abcdefghijklmnopqrstuvwxyz', 6).join('')}.txt`)
+const filenameMap = ref<Map<string, string>>(new Map());
+watch(() => props.encryptedData, () => {
+  if (!filenameMap.value.has(props.encryptedData)) {
+    filenameMap.value.set(props.encryptedData, `message_${sampleSize('abcdefghijklmnopqrstuvwxyz', 6).join('')}.txt`);
+  }
+}, { immediate: true })
+const filename = computed(() => filenameMap.value.get(props.encryptedData) ?? 'message.txt');
 const gpgCommand = computed(() => `gpg --decrypt ${filename.value}`);
 
 </script>
