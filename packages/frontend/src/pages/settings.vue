@@ -127,6 +127,7 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep, isEqual } from 'lodash-es';
 import { VForm } from 'vuetify/components';
 import ProInfo from '@base/components/ProInfo.vue';
 import { wait } from '@base/utils/helpers';
@@ -164,6 +165,7 @@ const apiSettings = useApiSettings();
 const configurationDefinition = await useFetchE<ConfigurationDefinition>('/api/v1/utils/configuration/definition/', { method: 'GET' });
 const configurationValues = await useFetchE<Record<string, any>>('/api/v1/utils/configuration/', { method: 'GET', deep: true });
 
+const lastSavedEnabledPlugins = ref(cloneDeep(configurationValues.value?.ENABLED_PLUGINS));
 const enabledPluginsSetInEnv = computed(() => configurationDefinition.value.core.find(f => f.id === 'ENABLED_PLUGINS')?.set_in_env === true);
 const enabledPlugins = computed(() => {
   const v = configurationValues.value?.ENABLED_PLUGINS;
@@ -261,6 +263,7 @@ const fieldAttrs = computed(() => ({
 }));
 
 const errorMessages = ref<any|null>(null);
+
 async function performSave(data: Record<string, any>) {
   try {
     configurationValues.value = await $fetch('/api/v1/utils/configuration/', {
@@ -271,8 +274,15 @@ async function performSave(data: Record<string, any>) {
 
     // Wait some time to ensure server worker processes began restarting
     await wait(2000);
-    // Reload frontend to re-initialize settings, plugins, etc.
-    window.location.reload();
+    // Reload frontend settings
+    await apiSettings.fetchSettings();
+
+    // Reload frontend to re-initialize plugins
+    if (!isEqual(lastSavedEnabledPlugins.value, data.ENABLED_PLUGINS)) {
+      await wait(5000);
+      window.location.reload();
+    }
+    lastSavedEnabledPlugins.value = cloneDeep(configurationValues.value?.ENABLED_PLUGINS);
   } catch (error: any) {
     errorMessages.value = error?.data
     throw error;

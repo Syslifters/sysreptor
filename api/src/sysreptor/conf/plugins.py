@@ -33,7 +33,7 @@ enabled_plugins = []
 ENABLED_PLUGINS_FIELD = ListField(
     id='ENABLED_PLUGINS',
     items=StringField(),
-    default=[],
+    default=['cyberchef', 'renderfindings', 'scanimport'],
     required=False,
     extra_info={
         'group': 'plugins',

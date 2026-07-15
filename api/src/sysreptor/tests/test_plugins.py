@@ -205,7 +205,8 @@ class TestEnabledPluginLoading:
         (['database'], ['env'], ['env']),
         (['database'], None, ['database']),
         (None, ['env'], ['env']),
-        (None, None, []),
+        (None, [], []),
+        (None, None, configuration.definition['ENABLED_PLUGINS'].default),
     ])
     @override_configuration(ENABLED_PLUGINS=[])
     def test_load_enabled_plugins(self, enabled_plugins_db, enabled_plugins_env, expected):
