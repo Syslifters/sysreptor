@@ -81,7 +81,6 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
 
 class AuthIdentityViewSetPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
-        forbidden_with_apitoken_auth(request)
         user = view.get_user()
         if request.method in permissions.SAFE_METHODS:
             return request.user.is_admin or request.user.is_user_manager or user == request.user

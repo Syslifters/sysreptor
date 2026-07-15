@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Allow SSO identity API for API token auth
+
+
 ## v2026.55 - 2026-07-15
 * Sign releases and docker images with cosign for verification (https://docs.sysreptor.com/setup/installation)
 * Disable client infos and awareness in shared note collaborative editing
