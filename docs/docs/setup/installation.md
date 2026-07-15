@@ -46,7 +46,7 @@ Make sure your user is allowed to use Docker. For this, you can add your user to
 ```shell
 sudo groupadd docker 2>/dev/null  # Creates the Docker group if it doesn't exist
 sudo usermod -aG docker $USER  # Add the current user to the Docker group
-newgrp -  # Instantly apply the group membership
+newgrp docker  # Instantly apply the group membership
 ```
 
 Download the SysReptor install script and run:
@@ -71,7 +71,7 @@ Make sure your user is allowed to use Docker. For this, you can add your user to
 ```shell
 sudo groupadd docker 2>/dev/null  # Creates the Docker group if it doesn't exist
 sudo usermod -aG docker $USER  # Add the current user to the Docker group
-newgrp -  # Instantly apply the group membership
+newgrp docker  # Instantly apply the group membership
 ```
 
 Download and extract the latest SysReptor setup files:
