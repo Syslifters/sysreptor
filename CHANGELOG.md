@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Allow SSO identity API for API token auth
+* Restore archive: different message filename per key
 
 
 ## v2026.55 - 2026-07-15
