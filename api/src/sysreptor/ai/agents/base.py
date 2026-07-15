@@ -28,6 +28,7 @@ from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langchain_core._api import suppress_langchain_beta_warning
 from langgraph.config import get_config
+from langgraph.errors import GraphInterrupt
 from langgraph.stream import UpdatesTransformer
 from langgraph.types import Command
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -94,6 +95,8 @@ def agent_tool(metadata=None, **kwargs):
                 out.content = 'Error: Object not found'
             except (ValidationError, DRFValidationError) as ex:
                 out.content = f'Error: {ex}'
+            except GraphInterrupt:
+                raise
             except Exception as ex:
                 logging.exception(ex)
                 out.content = 'Error: Unexpected error'
@@ -287,7 +290,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                         'project_id': thread.project_id,
                         'model': model or get_default_model_id(),
                     }),
-                    durability='exit',
+                    durability='sync',
                     version='v3',
                     transformers=[UpdatesTransformer],
                     **kwargs,
@@ -322,6 +325,12 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                                 yield {'type': 'text', 'content': {'id': msg_id, 'role': 'assistant', 'reasoning': delta['reasoning']}, **meta}
                         elif isinstance(payload, AIMessage) and (m := format_message(payload)):
                             yield {'type': 'text', 'content': m, **meta}
+                    elif method == 'updates' and isinstance(chunk, dict) and (raw_interrupt := chunk.get('__interrupt__')):
+                        interrupts = raw_interrupt if isinstance(raw_interrupt, (list, tuple)) else (raw_interrupt,)
+                        yield {
+                            'type': 'interrupt',
+                            'content': [{'id': i.id, 'value': i.value} for i in interrupts],
+                        }
                     elif method == 'updates' and isinstance(chunk, dict) and \
                         (messages := (chunk.get('model') or {}).get('messages')) and len(messages) >= 1 and isinstance(messages[0], AIMessage):
                         ai_message = messages[0]
@@ -404,4 +413,5 @@ def get_chat_history(agent, thread: ChatThread):
         'id': thread.id,
         'project': thread.project_id,
         'messages': messages,
+        'interrupts': [{'id': i.id, 'value': i.value} for i in state.interrupts],
     }

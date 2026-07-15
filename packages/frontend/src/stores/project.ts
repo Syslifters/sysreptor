@@ -180,6 +180,7 @@ export const useProjectStore = defineStore('project', {
           aiAgentState: {
             threadId: null,
             messageHistory: [],
+            interrupts: [],
             currentRequest: null,
             changesState: {
               sessionStartIndex: 0,

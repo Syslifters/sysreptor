@@ -1,5 +1,6 @@
 from django.db.models import Prefetch
 from drf_spectacular.utils import OpenApiTypes, extend_schema_field
+from langgraph.types import Command
 from rest_framework import serializers
 
 from sysreptor.ai.agents import agent_stream, get_agent
@@ -20,7 +21,7 @@ class ProjectRelatedField(OptionalPrimaryKeyRelatedField):
 
 class ChatThreadSerializer(serializers.ModelSerializer):
     messages = serializers.ListField(child=serializers.DictField())
-    interrupts = serializers.DictField(allow_null=True)
+    interrupts = serializers.ListField(child=serializers.DictField(), allow_empty=True)
 
     class Meta:
         model = ChatThread
@@ -32,16 +33,21 @@ class LLMAgentSerializer(serializers.Serializer):
     model = serializers.CharField(required=False, allow_null=True)
     id = serializers.UUIDField(required=False, allow_null=True)
     messages = serializers.ListField(child=serializers.CharField(), required=False, allow_null=True)
+    resume = serializers.JSONField(required=False, allow_null=True)
     context = serializers.DictField(child=serializers.CharField(), required=False, allow_null=True)
     project = ProjectRelatedField()
 
     def validate(self, attrs):
         # Validate message
         thread_id = attrs.get('id')
-        messages = attrs.get('messages', [])
-        if not thread_id and not messages:
+        messages = attrs.get('messages') or []
+        resume = attrs.get('resume')
+        if resume is not None:
+            if not thread_id:
+                raise serializers.ValidationError('id is required when resuming')
+        elif not thread_id and not messages:
             raise serializers.ValidationError('messages are required')
-        if thread_id and not messages:
+        elif thread_id and not messages and resume is None:
             raise serializers.ValidationError('id requires messages')
 
         # Resolve model
@@ -50,7 +56,10 @@ class LLMAgentSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid model')
 
         # Set agent parameters
-        attrs['input'] = {'messages': messages}
+        if resume is not None:
+            attrs['input'] = Command(resume=resume)
+        else:
+            attrs['input'] = {'messages': messages}
 
         # Validate required parameters for agent type
         attrs['agent'], thread_filters = self.get_agent(attrs)
@@ -88,7 +97,7 @@ class LLMAgentSerializer(serializers.Serializer):
 
         return agent_stream(
             agent=self.validated_data['agent'],
-            input=self.validated_data['input'],
+            input=self.validated_data.get('input'),
             context=self.validated_data.get('context', {}),
             model=self.validated_data.get('model'),
             thread=thread,
