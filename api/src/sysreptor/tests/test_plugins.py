@@ -1,4 +1,5 @@
 import io
+import os
 from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
@@ -12,9 +13,10 @@ from django.db import ProgrammingError
 from django.test import override_settings
 from django.urls import reverse
 
-from sysreptor.conf.plugins import available_plugins, load_plugins
+from sysreptor.api_utils.models import DbConfigurationEntry
+from sysreptor.conf.plugins import available_plugins, load_plugins, resolve_enabled_plugins
 from sysreptor.management.commands import restorebackup
-from sysreptor.tests.mock import api_client, create_user
+from sysreptor.tests.mock import api_client, create_user, override_configuration
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.utils import omit_keys
 
@@ -30,23 +32,40 @@ def enable_demoplugin():
     except ImportError:
         pytest.skip('DemoPlugin not found')
 
-    if 'demoplugin' in settings.ENABLED_PLUGINS or DEMOPLUGIN_ID in settings.ENABLED_PLUGINS:
+    app_class = DemoPluginConfig.__module__ + '.' + DemoPluginConfig.__name__
+    plugin_enabled_in_config = 'demoplugin' in configuration.ENABLED_PLUGINS or DEMOPLUGIN_ID in configuration.ENABLED_PLUGINS
+    plugin_installed = app_class in settings.INSTALLED_APPS
+    if plugin_enabled_in_config and plugin_installed and _is_demoplugin_migrated():
         yield
         return
 
+    enabled_plugins = list(configuration.ENABLED_PLUGINS)
+    if not plugin_enabled_in_config:
+        enabled_plugins = enabled_plugins + ['demoplugin']
+
+    installed_apps = settings.INSTALLED_APPS if plugin_installed else settings.INSTALLED_APPS + [app_class]
     with override_settings(
-        ENABLED_PLUGINS=settings.ENABLED_PLUGINS + ['demoplugin'],
-        INSTALLED_APPS=settings.INSTALLED_APPS + [DemoPluginConfig.__module__ + '.' + DemoPluginConfig.__name__],
+        INSTALLED_APPS=installed_apps,
+    ), override_configuration(
+        ENABLED_PLUGINS=enabled_plugins,
     ):
         call_command('migrate', app_label=DEMOPLUGIN_APPLABEL, interactive=False)
         yield
 
 
+def _is_demoplugin_migrated() -> bool:
+    from django.db import connection
+    from django.db.migrations.recorder import MigrationRecorder
+
+    return MigrationRecorder(connection).migration_qs.filter(app=DEMOPLUGIN_APPLABEL).exists()
+
+
 @contextmanager
 def disable_demoplugin():
     with override_settings(
-        ENABLED_PLUGINS=[plugin for plugin in settings.ENABLED_PLUGINS if plugin not in ['demoplugin', DEMOPLUGIN_ID]],
         INSTALLED_APPS=[app for app in settings.INSTALLED_APPS if app != 'sysreptor_plugins.demoplugin.apps.DemoPluginConfig'],
+    ), override_configuration(
+        ENABLED_PLUGINS=[p for p in configuration.ENABLED_PLUGINS if p not in ['demoplugin', DEMOPLUGIN_ID]],
     ):
         yield
 
@@ -109,7 +128,13 @@ class TestPluginLoading:
         try:
             DemoPluginConfig.professional_only = True
             with mock.patch('sysreptor.conf.plugins.can_load_professional_plugins', return_value=False):
-                assert load_plugins(plugin_dirs=settings.PLUGIN_DIRS, enabled_plugins=['demoplugin']) == []
+                with override_configuration(ENABLED_PLUGINS=['demoplugin']):
+                    assert load_plugins({
+                        'PLUGIN_DIRS': settings.PLUGIN_DIRS,
+                        'DATABASES': settings.DATABASES,
+                        'LOAD_CONFIGURATIONS_FROM_ENV': True,
+                        'LOAD_CONFIGURATIONS_FROM_DB': False,
+                    }) == []
         finally:
             DemoPluginConfig.professional_only = False
 
@@ -120,7 +145,7 @@ class TestPluginLoading:
         assert configuration.PLUGIN_DEMOPLUGIN_SETTING == config.configuration_definition['PLUGIN_DEMOPLUGIN_SETTING'].default
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestPluginBackupRestore:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -155,7 +180,7 @@ class TestPluginBackupRestore:
             self.restore_backup(backup)
 
             with pytest.raises(ProgrammingError, match=f'relation "{DEMOPLUGIN_APPLABEL}_demopluginmodel" does not exist'):
-                assert not obj.__class__.objects.filter(pk=obj.pk).exists()
+                obj.refresh_from_db()
 
     def test_backup_restore_new_plugin(self):
         with enable_demoplugin():
@@ -167,9 +192,30 @@ class TestPluginBackupRestore:
         with enable_demoplugin():
             self.restore_backup(backup)
 
-            # Not in backup, because plugin was disabled
+            # Not in backup, because plugin was disabled when the backup was created
             with pytest.raises(obj.DoesNotExist):
                 obj.refresh_from_db()
             # Can create new models
             create_demopluginmodel()
 
+
+@pytest.mark.django_db(transaction=True)
+class TestEnabledPluginLoading:
+    @pytest.mark.parametrize(('enabled_plugins_db', 'enabled_plugins_env', 'expected'), [
+        (['database'], ['env'], ['env']),
+        (['database'], None, ['database']),
+        (None, ['env'], ['env']),
+        (None, [], []),
+        (None, None, configuration.definition['ENABLED_PLUGINS'].default),
+    ])
+    @override_configuration(ENABLED_PLUGINS=[])
+    def test_load_enabled_plugins(self, enabled_plugins_db, enabled_plugins_env, expected):
+        configuration._force_override.pop('ENABLED_PLUGINS', None)
+        DbConfigurationEntry.objects.filter(name='ENABLED_PLUGINS').delete()
+        if enabled_plugins_db is not None:
+            DbConfigurationEntry.objects.create(name='ENABLED_PLUGINS', value=configuration._encode_json_value(enabled_plugins_db))
+        with mock.patch.dict(os.environ, {'ENABLED_PLUGINS': ','.join(enabled_plugins_env or [])}):
+            if enabled_plugins_env is None:
+                del os.environ['ENABLED_PLUGINS']
+
+            assert resolve_enabled_plugins(databases=settings.DATABASES) == expected
