@@ -17,7 +17,7 @@
 
     "nuxt": "~4.4",
     "vuetify": "~4.1",
-    "pinia": "^3.0",
+    "pinia": "^4.0",
 
     "sass-embedded": "^1.79.5",
     "@vueuse/nuxt": "^14.0.0",

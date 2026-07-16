@@ -13,7 +13,7 @@
 
     "nuxt": "~4.4",
     "vuetify": "~4.1",
-    "pinia": "^3.0"
+    "pinia": "^4.0"
   },
   "overrides": {
     "vue": "latest"

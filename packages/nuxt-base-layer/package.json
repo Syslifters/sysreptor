@@ -12,7 +12,7 @@
   "dependencies": {
     "vuetify-nuxt-module": "^1.0.0-rc.2",
     "@mdi/font": "^7.3.67",
-    "@pinia/nuxt": "^0.11.0",
+    "@pinia/nuxt": "^1.0",
     "pinia-plugin-persistedstate": "^4.1.3",
     "sass-embedded": "^1.79.5",
     "@nuxt/eslint": "~1.16",
@@ -43,6 +43,6 @@
   "peerDependencies": {
     "nuxt": "~4.4",
     "vuetify": "~4.1",
-    "pinia": "^3.0"
+    "pinia": "^4.0"
   }
 }

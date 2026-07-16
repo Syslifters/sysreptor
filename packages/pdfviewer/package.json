@@ -14,6 +14,6 @@
   },
   "devDependencies": {
     "vite": "^8.0.0",
-    "typescript": "^6.0"
+    "typescript": "^7.0"
   }
 }
