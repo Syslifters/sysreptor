@@ -1,8 +1,8 @@
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
-index 8b91a7d..a64e14f 100644
+index 51daae8..d3e27c0 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.d.ts
-@@ -664,6 +664,10 @@ export interface ParserOptions extends ErrorHandlingOptions, CompilerCompatOptio
+@@ -677,6 +677,10 @@ export interface ParserOptions extends ErrorHandlingOptions, CompilerCompatOptio
       * e.g. elements that should preserve whitespace inside, e.g. `<pre>`
       */
      isPreTag?: (tag: string) => boolean;
@@ -14,10 +14,10 @@ index 8b91a7d..a64e14f 100644
       * Elements that should ignore the first newline token per parinsg spec
       * e.g. `<textarea>` and `<pre>`
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-index 95dad5a..d4c7feb 100644
+index 540c3e5..62d004f 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-@@ -1962,6 +1962,7 @@ const defaultParserOptions = {
+@@ -1983,6 +1983,7 @@ const defaultParserOptions = {
    getNamespace: () => 0,
    isVoidTag: NO,
    isPreTag: NO,
@@ -25,7 +25,7 @@ index 95dad5a..d4c7feb 100644
    isIgnoreNewlineTag: NO,
    isCustomElement: NO,
    onError: defaultOnError,
-@@ -2358,6 +2359,11 @@ function endOpenTag(end) {
+@@ -2379,6 +2380,11 @@ function endOpenTag(end) {
    if (ns === 0 && currentOptions.isPreTag(tag)) {
      inPre++;
    }
@@ -37,7 +37,7 @@ index 95dad5a..d4c7feb 100644
    if (currentOptions.isVoidTag(tag)) {
      onCloseTag(currentOpenTag, end);
    } else {
-@@ -2371,7 +2377,7 @@ function endOpenTag(end) {
+@@ -2392,7 +2398,7 @@ function endOpenTag(end) {
  function onText(content, start, end) {
    {
      const tag = stack[0] && stack[0].tag;

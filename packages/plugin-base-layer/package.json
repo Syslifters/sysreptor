@@ -15,7 +15,7 @@
   "devDependencies": {
     "nuxt": "~4.4",
     "vuetify": "~4.1",
-    "pinia": "^3.0.0",
+    "pinia": "^4.0",
 
     "sass-embedded": "^1.79.5",
     "eslint": "^10.0",

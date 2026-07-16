@@ -12,7 +12,7 @@ dependencies = [
 
   "django-storages[s3] (~=1.13)",
   "drf-nested-routers (~=0.95)",
-  "django-filter (~=25.1)",
+  "django-filter (~=26.1)",
   "drf-spectacular[sidecar] (~=0.29)",
   "django-simple-history (~=3.5)",
   "adrf (~=0.1)",

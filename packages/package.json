@@ -7,5 +7,12 @@
   },
   "devDependencies": {
     "license-checker-rseidelsohn": "^4.4.2"
+  },
+  "allowScripts": {
+    "canvas@3.2.3": true,
+    "core-js@3.49.0": true,
+    "esbuild@0.28.1": true,
+    "unrs-resolver@1.12.2": true,
+    "@parcel/watcher@2.5.6": true
   }
 }
