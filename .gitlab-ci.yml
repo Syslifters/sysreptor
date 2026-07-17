@@ -257,6 +257,7 @@ release-prod:
     - docker buildx imagetools create $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG --tag $DOCKER_HUB_IMAGE:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE:latest
     - docker buildx imagetools create $CI_REGISTRY_IMAGE/languagetool:$CI_COMMIT_TAG --tag $DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER --tag $DOCKER_HUB_IMAGE-languagetool:latest
     # Sign multi-arch manifest-list digests on Docker Hub (sign by digest, not tag)
+    - export COSIGN_PRIVATE_KEY="$(printf '%s' "$COSIGN_PRIVATE_KEY" | base64 -d)"
     - cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$DOCKER_HUB_IMAGE:$VERSION_NUMBER@$(docker buildx imagetools inspect "$DOCKER_HUB_IMAGE:$VERSION_NUMBER" --format '{{.Manifest.Digest}}')"
     - cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER@$(docker buildx imagetools inspect "$DOCKER_HUB_IMAGE-languagetool:$VERSION_NUMBER" --format '{{.Manifest.Digest}}')"
     - cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$DOCKER_HUB_IMAGE:$VERSION_NUMBER-src@$(docker buildx imagetools inspect "$DOCKER_HUB_IMAGE:$VERSION_NUMBER-src" --format '{{.Manifest.Digest}}')"
