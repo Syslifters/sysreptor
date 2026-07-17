@@ -10,6 +10,7 @@ set -o pipefail
 allow_only="MIT"
 allow_only="$allow_only;MIT License"
 allow_only="$allow_only;MIT-CMU"
+allow_only="$allow_only;MIT-0"
 allow_only="$allow_only;BSD"
 allow_only="$allow_only;BSD License"
 allow_only="$allow_only;BSD-2-Clause"
