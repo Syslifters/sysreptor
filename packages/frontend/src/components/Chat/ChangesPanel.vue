@@ -31,13 +31,24 @@
             </v-list-item-title>
             <template #append>
               <div class="d-flex align-center ga-3">
+                <btn-delete
+                  v-if="!page.isCreated"
+                  :delete="() => emit('revert', page)"
+                  :confirm="true"
+                  :disabled="props.readonly"
+                  button-variant="icon"
+                  size="x-small"
+                  density="compact"
+                  tooltip-text="Delete"
+                />
                 <s-btn-icon
+                  v-else
                   @click.prevent.stop="emit('revert', page)"
                   icon="mdi-undo"
                   :disabled="props.readonly"
                   size="x-small"
                   density="compact"
-                  v-tooltip.top="page.isCreated ? 'Delete' : 'Revert changes'"
+                  v-tooltip.top="'Revert changes'"
                 />
                 <s-btn-icon
                   @click.prevent.stop="emit('accept', page.filePath)"

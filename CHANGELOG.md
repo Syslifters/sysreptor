@@ -5,6 +5,7 @@
 * Enable some plugins by default
 * Allow SSO identity API for API token auth
 * Restore archive: different message filename per key
+* AI agent: Confirm delete when reverting changes
 
 
 

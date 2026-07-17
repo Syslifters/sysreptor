@@ -7,7 +7,7 @@
             v-if="props.buttonVariant === 'list-item'"
             :title="props.buttonText"
             :disabled="props.disabled"
-            @click="onClick"
+            @click.stop.prevent="onClick"
             link
             v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
           >
@@ -23,7 +23,7 @@
             :loading="actionInProgress"
             :disabled="disabled"
             :color="(attrs.color as string|undefined) || buttonColor || 'secondary'"
-            @click="onClick"
+            @click.stop.prevent="onClick"
             v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
           >
             <slot name="icon">
@@ -36,7 +36,7 @@
             :loading="actionInProgress"
             :disabled="disabled"
             :color="(attrs.color as string|undefined) || buttonColor || 'secondary'"
-            @click="onClick"
+            @click.stop.prevent="onClick"
             v-bind="{...attrs, ...tooltipProps, ...dialogProps}"
           >
             <template #prepend v-if="buttonIcon">
