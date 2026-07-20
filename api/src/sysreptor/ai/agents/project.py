@@ -4,6 +4,7 @@ import itertools
 import re
 import textwrap
 from collections.abc import Callable
+from typing import Annotated
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
@@ -40,6 +41,8 @@ from langchain.agents.middleware import (
 from langchain.messages import HumanMessage
 from langchain.tools import ToolRuntime
 from langgraph.runtime import Runtime, get_runtime
+from langgraph.types import interrupt
+from pydantic import Field
 from rest_framework.filters import search_smart_split
 
 from sysreptor.ai.agents.base import (
@@ -265,6 +268,34 @@ def format_template_data(template: FindingTemplate, short=False) -> str:
 def format_field_definition(definition: FieldDefinition):
     data = serialize_field_definition(definition, only_fields=['id', 'type', 'label', 'items', 'properties', 'choices'])
     return to_yaml(data)
+
+
+@agent_tool(parse_docstring=True)
+async def ask_user(
+    runtime: ToolRuntime[ProjectContext],
+    question: Annotated[str, Field(min_length=1)],
+    options: Annotated[list[str], Field(min_length=2)],
+) -> tuple[str, dict]:
+    """
+    Ask the user a clarifying question and wait for their answer.
+
+    Use this when you need more information, or when there are multiple valid approaches
+    and you are uncertain which to take. Prefer clear multiple-choice options. Do not use
+    for routine progress updates. Ask one question at a time; call again if you need more.
+
+    Args:
+        question: The full question text shown to the user.
+        options: 2 to 4 concise choice labels for the user to pick from.
+    """
+    answer = interrupt({
+        'interrupt_type': 'ask_user',
+        'question': question,
+        'options': options,
+    })
+    if not isinstance(answer, str) or not answer.strip():
+        raise ValidationError('Answer must be a non-empty string')
+    content = f'User answered: {answer}'
+    return content, {'answer': answer}
 
 
 @agent_tool(parse_docstring=True)
@@ -958,6 +989,11 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
           (when in Agent mode)
         - Create notes and edit section, finding and note fields (when in Agent mode)
 
+        ## Asking the user
+        When information is missing or you are uncertain which approach to take, use the
+        ask_user tool with one clear multiple-choice question instead of guessing.
+        Ask one question at a time; call ask_user again if you need another decision.
+
         ## Output
         Use Markdown in chat. For code or structured data, use code blocks with four backticks
         and a language identifier.
@@ -969,6 +1005,7 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
     return create_sysreptor_agent(
         system_prompt=system_prompt,
         tools=[
+            ask_user,
             list_notes,
             list_templates,
             read_template,

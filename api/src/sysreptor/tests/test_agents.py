@@ -16,7 +16,11 @@ from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.outputs.chat_generation import ChatGenerationChunk
 
 from sysreptor.ai.agents import get_agent
-from sysreptor.ai.agents.base import get_default_model_id, get_model_configs, init_chat_model
+from sysreptor.ai.agents.base import (
+    get_default_model_id,
+    get_model_configs,
+    init_chat_model,
+)
 from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
 from sysreptor.ai.agents.project import (
     ProjectContext,
@@ -316,6 +320,106 @@ class TestProjectAgent:
             {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'success'}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[3].content}}),
         ])
+
+
+@pytest.mark.django_db()
+class TestAskUserInterrupts:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.project = create_project(members=[self.user])
+        self.client = api_client(user=self.user)
+
+    def send_message(self, message: str, thread_id: str = None):
+        res = self.client.post(reverse('chatthread-list'), data={
+            'id': thread_id,
+            'agent': 'project_ask',
+            'project': self.project.id,
+            'messages': [message],
+            'context': {},
+        })
+        assert res.status_code == 200
+        return parse_sse_events(res)
+
+    def send_resume(self, resume, thread_id: str):
+        res = self.client.post(reverse('chatthread-list'), data={
+            'id': thread_id,
+            'agent': 'project_ask',
+            'project': self.project.id,
+            'resume': resume,
+            'context': {},
+        })
+        assert res.status_code == 200
+        return parse_sse_events(res)
+
+    def test_ask_user_interrupt_flow(self):
+        options = [
+            'Executive summary only',
+            'Full technical report',
+        ]
+        ask_user_call = ToolCall(
+            id='tool_call_ask_user',
+            name='ask_user',
+            args={
+                'question': 'Which report style?',
+                'options': options,
+            },
+        )
+        llm_messages = [
+            AIMessage(content='I need clarification.', tool_calls=[ask_user_call]),
+            AIMessage(content='Using executive summary only.'),
+            AIMessage(content='Let me ask again.', tool_calls=[ask_user_call]),
+            AIMessage(content='Okay, continuing without the style.'),
+        ]
+
+        with mock_llm_response(messages=llm_messages):
+            events = self.send_message('Write the report')
+            thread_id = events[0]['content']['thread_id']
+            interrupt_event = next(e for e in events if e['type'] == 'interrupt')
+            interrupt_id = interrupt_event['content'][0]['id']
+            assert interrupt_event['content'][0]['value'] == {
+                'interrupt_type': 'ask_user',
+                'question': 'Which report style?',
+                'options': options,
+            }
+
+            res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
+            assert res.status_code == 200
+            assert res.data['interrupts'] == interrupt_event['content']
+
+            events = self.send_resume({
+                interrupt_id: 'Executive summary only',
+            }, thread_id=thread_id)
+            assert not any(e['type'] == 'interrupt' for e in events)
+            tool_status = next(e for e in events if e['type'] == 'tool_call_status')
+            assert tool_status['content']['name'] == 'ask_user'
+            assert tool_status['content']['status'] == 'success'
+            content = tool_status['content']['content']
+            assert content == 'User answered: Executive summary only'
+            assert tool_status['content']['output'] == {
+                'answer': 'Executive summary only',
+            }
+
+            res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
+            assert res.status_code == 200
+            assert res.data['interrupts'] == []
+            tool_msg = next(
+                m for m in res.data['messages']
+                if m.get('role') == 'tool' and m.get('tool_call', {}).get('name') == 'ask_user'
+            )
+            assert tool_msg['tool_call']['status'] == 'success'
+            assert tool_msg['tool_call']['content'] == content
+
+            events = self.send_message('Ask again', thread_id=thread_id)
+            assert any(e['type'] == 'interrupt' for e in events)
+
+            events = self.send_message('Never mind', thread_id=thread_id)
+            assert not any(e['type'] == 'interrupt' for e in events)
+            assert any(e['type'] == 'text' for e in events)
+
+            res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
+            assert res.status_code == 200
+            assert res.data['interrupts'] == []
 
 
 @pytest.mark.django_db()

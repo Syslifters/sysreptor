@@ -69,7 +69,13 @@ export enum StreamEventType {
 
 export type ChatInterrupt = {
   id: string;
-  value: any;
+  value: AskUserInterruptValue;
+};
+
+export type AskUserInterruptValue = {
+  interrupt_type: 'ask_user';
+  question: string;
+  options: string[];
 };
 
 export type StreamEvent = {

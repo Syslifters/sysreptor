@@ -80,6 +80,19 @@
         {{ getNoteTitle(props.value.output?.id, props.value.output?.title) }}
       </nuxt-link>
     </template>
+    <template v-else-if="props.value.name === 'ask_user'">
+      <chat-tool-call-status :status="props.value.status" />
+      <template v-if="props.value.status === ToolCallStatus.PENDING">
+        Asking user
+      </template>
+      <template v-else>
+        Asked user
+        <div class="text-body-medium mt-1">
+          {{ props.value.args.question }}:
+          <span class="font-weight-medium">{{ props.value.output?.answer }}</span>
+        </div>
+      </template>
+    </template>
     <template v-else-if="props.value.name === 'write_todos'">
       <chat-tool-call-status :status="props.value.status" />
       Update TODO list
@@ -152,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { getPageTitle, parseProjectFilePath } from '@/utils/agent';
+import { getPageTitle, parseProjectFilePath, ToolCallStatus } from '@/utils/agent';
 
 const props = defineProps<{
   value: ToolCall;
