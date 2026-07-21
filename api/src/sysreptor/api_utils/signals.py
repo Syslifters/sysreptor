@@ -25,6 +25,12 @@ def check_configuration(sender, **kwargs):
     for msg in EncryptionKey.check_config(settings):
         logging.warning(msg)
 
+    if '*' in settings.ALLOWED_HOSTS:
+        logging.warning(
+            'ALLOWED_HOSTS is not configured. For production environments, set ALLOWED_HOSTS to your domain name(s); '
+            'otherwise your installation may be vulnerable to security issues.',
+        )
+
     # Validate DB-stored configuration
     try:
         for oidc_config in json.loads(configuration.OIDC_AUTHLIB_OAUTH_CLIENTS or '{}').values():

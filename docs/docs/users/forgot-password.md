@@ -20,8 +20,8 @@ If you've forgotten your password, you can reset it via email by following these
 
 ::: info
 
-[Email sending](/setup/configuration#emails) and [`FORGOT_PASSWORD_ENABLED`](/setup/configuration#local-user-authentication) need to be configured.
-Your user also needs to have an email address set.
+[Email sending](/setup/configuration#emails), [`FORGOT_PASSWORD_ENABLED`](/setup/configuration#local-user-authentication) and [`ALLOWED_HOSTS`](/setup/configuration#allowed-hosts) need to be configured.
+Your user also must have an email address.
 
 :::
 

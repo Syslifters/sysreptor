@@ -1,12 +1,14 @@
 # Changelog
 
-## Upcoming
+## v2026.58 - 2026-07-21
+* This is a security release: fix 2 high vulnerabilities
+* Disable forgot password functionality via email if ALLOWED_HOSTS is unset (https://github.com/Syslifters/sysreptor/security/advisories/GHSA-9x2r-5pff-8w6c)
+* Details for a second vulnerability have been temporarily withheld and will be disclosed at a later date
 * Enable/disable plugins in settings web UI
 * Enable some plugins by default
 * Allow SSO identity API for API token auth
 * Restore archive: different message filename per key
 * AI agent: Confirm delete when reverting changes
-
 
 
 ## v2026.55 - 2026-07-15

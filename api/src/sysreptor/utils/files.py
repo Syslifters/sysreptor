@@ -4,15 +4,83 @@ import string
 from pathlib import Path
 
 from django.apps import apps
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile, File
 from django.core.files.storage import storages
+from django.core.validators import FileExtensionValidator
 from django.db import models
+from django.forms.fields import FileField, ImageField
+from django.utils.translation import gettext_lazy as _
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.logging import log_timing
 
 log = logging.getLogger(__name__)
+
+ALLOWED_IMAGE_FORMATS = ('JPEG', 'PNG', 'GIF', 'WEBP', 'TIFF', 'AVIF', 'BMP', 'DIB', 'ICO', 'PPM', 'JPEG2000')
+
+
+def get_allowed_image_extensions():
+    Image.init()
+    return sorted({
+        ext.lstrip('.').lower()
+        for ext, fmt in Image.EXTENSION.items()
+        if fmt in ALLOWED_IMAGE_FORMATS
+    })
+
+
+class RestrictedImageField(ImageField):
+    """
+    Django forms ImageField that only opens image formats in ALLOWED_IMAGE_FORMATS.
+
+    Based on django.forms.fields.ImageField; keep in sync on Django upgrades.
+    """
+
+    default_validators = [FileExtensionValidator(allowed_extensions=get_allowed_image_extensions())]
+    default_error_messages = {
+        'invalid_image': _(
+            'Upload a valid image. The file you uploaded was either not an '
+            'image or a corrupted image.',
+        ),
+    }
+
+    def to_python(self, data):
+        f = FileField.to_python(self, data)
+        if f is None:
+            return None
+
+        # We need to get a file object for Pillow. We might have a path or we
+        # might have to read the data into memory.
+        if hasattr(data, 'temporary_file_path'):
+            file = data.temporary_file_path()
+        else:
+            if hasattr(data, 'read'):
+                file = io.BytesIO(data.read())
+            else:
+                file = io.BytesIO(data['content'])
+
+        try:
+            # load() could spot a truncated JPEG, but it loads the entire
+            # image in memory, which is a DoS vector. See #3848 and #18520.
+            image = Image.open(file, formats=ALLOWED_IMAGE_FORMATS)
+            # verify() must be called immediately after the constructor.
+            image.verify()
+
+            # Annotating so subclasses can reuse it for their own validation
+            f.image = image
+            # Pillow doesn't detect the MIME type of all formats. In those
+            # cases, content_type will be None.
+            f.content_type = Image.MIME.get(image.format)
+        except Exception as exc:
+            # Pillow doesn't recognize it as an image.
+            raise ValidationError(
+                self.error_messages['invalid_image'],
+                code='invalid_image',
+            ) from exc
+        if hasattr(f, 'seek') and callable(f.seek):
+            f.seek(0)
+        return f
 
 
 def normalize_filename(name):
@@ -50,7 +118,7 @@ def compress_image(file, name=None):
         return file, name
 
     try:
-        with Image.open(file) as img:
+        with Image.open(file, formats=ALLOWED_IMAGE_FORMATS) as img:
             img_format = img.format
             if img_format == 'SVG':
                 raise UnidentifiedImageError('Do not compress SVG')

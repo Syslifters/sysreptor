@@ -127,8 +127,10 @@ class ForgotPasswordPermissions(LocalUserAuthPermissions):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and \
               license.ProfessionalLicenseRequired().has_permission(request, view) and \
-              configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and \
-              settings.EMAIL_HOST
+              configuration.FORGOT_PASSWORD_ENABLED and \
+              configuration.LOCAL_USER_AUTH_ENABLED and \
+              settings.EMAIL_HOST and \
+              '*' not in settings.ALLOWED_HOSTS
 
 
 class UserNotebookPermissions(permissions.BasePermission):
