@@ -11,12 +11,15 @@ from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.forms.fields import FileField, ImageField
 from django.utils.translation import gettext_lazy as _
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import EpsImagePlugin, Image, ImageOps, UnidentifiedImageError
 
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.logging import log_timing
 
 log = logging.getLogger(__name__)
+
+# Explicitely disable Ghostscript/EPS processing
+EpsImagePlugin.gs_binary = False
 
 ALLOWED_IMAGE_FORMATS = ('JPEG', 'PNG', 'GIF', 'WEBP', 'TIFF', 'AVIF', 'BMP', 'DIB', 'ICO', 'PPM', 'JPEG2000')
 
