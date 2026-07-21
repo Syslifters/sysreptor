@@ -1,4 +1,5 @@
 import contextlib
+import io
 import json
 import random
 from datetime import datetime, timedelta
@@ -13,6 +14,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.module_loading import import_string
+from PIL import Image
 from rest_framework.test import APIClient
 
 from sysreptor import signals as sysreptor_signals
@@ -70,6 +72,25 @@ def create_png_file() -> bytes:
            b'IHDR\x00\x00\x00\x01\x00\x00\x00\x01\x01\x03\x00\x00\x00%\xdbV\xca\x00\x00\x00\x03' + \
            b'PLTE\x00\x00\x00\xa7z=\xda\x00\x00\x00\x01tRNS\x00@\xe6\xd8f\x00\x00\x00\n' + \
            b'IDAT\x08\xd7c`\x00\x00\x00\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82'
+
+
+def create_jpg_file() -> bytes:
+    # 1x1 pixel JPEG
+    buf = io.BytesIO()
+    Image.new('RGB', (1, 1), color=(255, 0, 0)).save(buf, format='JPEG')
+    return buf.getvalue()
+
+
+def create_gif_file() -> bytes:
+    buf = io.BytesIO()
+    Image.new('RGB', (1, 1), color=(0, 255, 0)).save(buf, format='GIF')
+    return buf.getvalue()
+
+
+def create_webp_file() -> bytes:
+    buf = io.BytesIO()
+    Image.new('RGB', (1, 1), color=(0, 0, 255)).save(buf, format='WEBP')
+    return buf.getvalue()
 
 
 def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, images_kwargs=None, files_kwargs=None, admin_permissions_enabled=False, **kwargs) -> PentestUser:
@@ -475,7 +496,11 @@ async def websocket_client(path, user, connect=True):
     consumer = WebsocketCommunicator(
         application=application,
         path=path,
-        headers=[(b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode())],
+        headers=[
+            (b'host', b'localhost'),
+            (b'origin', b'http://localhost'),
+            (b'cookie', f'{settings.SESSION_COOKIE_NAME}={session.session_key}'.encode()),
+        ],
     )
     consumer.session = session
 

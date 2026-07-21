@@ -35,7 +35,7 @@ REST_FRAMEWORK |= {
 }
 
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['testserver', 'localhost']
 CSRF_TRUSTED_ORIGINS = ['http://*', 'https://*']
 MFA_FIDO2_RP_ID = ''
 

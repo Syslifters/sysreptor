@@ -176,7 +176,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             'license': copy_keys(license.check_license(), ['type', 'error']),
             'features': {
                 'websockets': not settings.DISABLE_WEBSOCKETS,
-                'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST),
+                'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST) and '*' not in settings.ALLOWED_HOSTS,
             },
             'permissions': {},
             'plugins': [

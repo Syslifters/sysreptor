@@ -24,12 +24,15 @@ from sysreptor.pentests.models.files import UploadedImage, UploadedProjectFile
 from sysreptor.pentests.tasks import update_project_search_index
 from sysreptor.tests.mock import (
     api_client,
+    create_gif_file,
+    create_jpg_file,
     create_png_file,
     create_project,
     create_project_type,
     create_template,
     create_user,
     create_usernotebookpage,
+    create_webp_file,
     mock_time,
     update,
 )
@@ -836,4 +839,28 @@ class TestFileApi:
         else:
             assert res.status_code == 201
             assert UploadedImage.objects.get(id=res.data['id']).original is None
+
+    @pytest.mark.parametrize(('name', 'content', 'expected'), [
+        ('test.png', create_png_file(), True),
+        ('test.jpg', create_jpg_file(), True),
+        ('test.gif', create_gif_file(), True),
+        ('test.webp', create_webp_file(), True),
+        ('test.svg', b'<svg xmlns="http://www.w3.org/2000/svg"></svg>', False),
+        ('test.pdf', b'%PDF-1.3 test', False),
+        ('test.eps', b'%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 100 100\n', False),
+    ])
+    def test_upload_image_format(self, name, content, expected):
+        res_image = self.client.post(reverse('uploadedimage-list', kwargs={'project_pk': self.project.pk}), data={
+            'name': name,
+            'file': SimpleUploadedFile(name=name, content=content),
+        }, format='multipart')
+        assert res_image.status_code == (201 if expected else 400)
+
+        res_upload = self.client.post(
+            reverse('pentestproject-upload-image-or-file', kwargs={'pk': self.project.pk}),
+            data={'name': name, 'file': SimpleUploadedFile(name=name, content=content)},
+            format='multipart',
+        )
+        assert res_upload.status_code == 201
+        assert res_upload.data['resource_type'] == ('image' if expected else 'file')
 

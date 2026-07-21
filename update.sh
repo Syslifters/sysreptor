@@ -86,6 +86,15 @@ source deploy/.env
 OLD_SYSREPTOR_VERSION=$SYSREPTOR_VERSION
 echo "Your current version is $OLD_SYSREPTOR_VERSION"
 
+if ! grep -q '^ALLOWED_HOSTS=' deploy/app.env
+then
+    echo ""
+    echo "Warning: For production environments, set ALLOWED_HOSTS in deploy/app.env to your domain name(s)."
+    echo "Leaving it unset may expose your installation to security vulnerabilities."
+    echo "See: https://docs.sysreptor.com/setup/configuration/#allowed-hosts"
+    echo ""
+fi
+
 echo "Checking if update is available..."
 version=$(curl -s https://docs.sysreptor.com/latest.version || echo "error")
 if ! [[ $version =~ ^[0-9]{4}\.[0-9]+$ ]]

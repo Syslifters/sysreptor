@@ -485,6 +485,22 @@ from sysreptor.utils.middleware import CustomCsrfMiddleware  # noqa: E402
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
+# Monkey-Patch django ImageField to restrict image formats
+# Importing RestrictedImageField pulls in rest_framework.fields (via configuration),
+# which binds DjangoImageField before the swap below — rebind DRF as well.
+import sys  # noqa: E402
+
+import django.forms as django_forms  # noqa: E402
+from django.forms import fields as form_fields  # noqa: E402
+
+from sysreptor.utils.files import RestrictedImageField  # noqa: E402
+
+form_fields.ImageField = RestrictedImageField
+django_forms.ImageField = RestrictedImageField
+if (rf_fields := sys.modules.get('rest_framework.fields')) is not None:
+    rf_fields.DjangoImageField = RestrictedImageField
+
+
 PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BASE_DIR / '..' / 'rendering' / 'dist' / 'bundle.js')
 CHROMIUM_EXECUTABLE = config('CHROMIUM_EXECUTABLE', default='/usr/lib/chromium/chromium')
 GHOSTSCRIPT_EXECUTABLE = config('GHOSTSCRIPT_EXECUTABLE', default='/usr/bin/gs')
@@ -904,7 +920,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         default=False,
         extra_info={'group': 'auth', 'professional_only': True},
         help_text='Enable/disable the forgot password feature to allow users to reset their password by email. '
-                  'This feature requires an email server to be configured and LOCAL_USER_AUTH_ENABLED=True.'),
+                  'This feature requires an email server to be configured, LOCAL_USER_AUTH_ENABLED=True and ALLOWED_HOSTS not set to a wildcard value.'),
 
 
     BooleanField(

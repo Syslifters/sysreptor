@@ -66,6 +66,8 @@ ENABLE_BROWSABLE_API=off
 ### Allowed Hosts
 Comma-separated allowed hostnames/domain names for this installation. This setting might resolve issues with failing WebSocket connections.
 
+In production environments, `ALLOWED_HOSTS` must be set to your domain name(s). If left unset, any host header is accepted, which may expose your installation to security vulnerabilities.
+
 ```dotenv title="Example:"
 ALLOWED_HOSTS="sysreptor.example.com,sysreptor.example.local"
 ```
@@ -428,8 +430,7 @@ LOCAL_USER_AUTH_ENABLED=true
 FORGOT_PASSWORD_ENABLED=false
 ```
 
-By enabling the `FORGOT_PASSWORD_ENABLED` option, users can reset their passwords themselves via email. This setting only takes effect if `LOCAL_USER_AUTH_ENABLED=true`, email settings are configured, and the user has an email address set. To disable the forgot password functionality for specific users (e.g. superusers), remove the email address from the user profile. Users with superuser or "user manager" permissions are still able to reset passwords in the user management web UI or via the CLI.
-
+By enabling the `FORGOT_PASSWORD_ENABLED` option, users can reset their passwords via password-forgotten emails. This setting only takes effect if `ALLOWED_HOSTS` is set to a non-wildcard (`*`) value, `LOCAL_USER_AUTH_ENABLED=true` and email settings are configured.  
 
 ### Guest User Permissions
 <BadgePro />

@@ -156,6 +156,13 @@ then
     source caddy/setup.sh || true  # do not exit on error
 fi
 
+if [ -f app.env ] && ! grep -q '^ALLOWED_HOSTS=' app.env && [ -n "$SYSREPTOR_CADDY_FQDN" ]
+then
+    echo "Setting ALLOWED_HOSTS from Caddy domain name..."
+    allowed_hosts="ALLOWED_HOSTS=\"${SYSREPTOR_CADDY_FQDN}\""
+    sed -i'' -e "s#.*ALLOWED_HOSTS=.*#$allowed_hosts#" app.env
+fi
+
 # Delete docker-compose.override.yml because that's needed for existing PRO installations only due to legacy reasons
 # ...not for new installations
 rm docker-compose.override.yml 2>/dev/null || true
@@ -264,5 +271,12 @@ then
     fi
 fi
 
+if [ -f app.env ] && ! grep -q '^ALLOWED_HOSTS=' app.env
+then
+    echo ""
+    echo "Warning: For production environments, set ALLOWED_HOSTS in deploy/app.env to your domain name(s)."
+    echo "Leaving it unset may expose your installation to security vulnerabilities."
+    echo "See: https://docs.sysreptor.com/setup/configuration/#allowed-hosts"
+fi
 echo ""
 echo "This was easy, wasn't it?"
