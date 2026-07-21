@@ -82,7 +82,7 @@ from sysreptor.conf import plugins  # noqa: E402
 from sysreptor.utils import license, mail  # noqa: E402
 
 license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000, 'name': 'Company Name'}
-plugins.can_load_professional_plugins = lambda: True
+plugins.can_load_professional_plugins = lambda *args, **kwargs: True
 
 # Use blocking mail sending for tests
 mail.send_mail_in_background = mail.send_mail

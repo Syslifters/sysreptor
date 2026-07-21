@@ -134,6 +134,7 @@ class TestPluginLoading:
                         'DATABASES': settings.DATABASES,
                         'LOAD_CONFIGURATIONS_FROM_ENV': True,
                         'LOAD_CONFIGURATIONS_FROM_DB': False,
+                        'LICENSE': settings.LICENSE,
                     }) == []
         finally:
             DemoPluginConfig.professional_only = False

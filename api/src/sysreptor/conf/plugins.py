@@ -226,7 +226,7 @@ def resolve_enabled_plugins(
 
 
 def load_all_plugins() -> bool:
-    return len(sys.argv) >= 2 and sys.argv[0] == 'manage.py' and sys.argv[1] in {
+    return len(sys.argv) >= 2 and Path(sys.argv[0]).name == 'manage.py' and sys.argv[1] in {
         # Commands that should load all plugins into INSTALLED_APPS (even if not enabled at runtime).
         # This is primarily needed for migrations, static file collection, and backups/restores.
         'collectstatic', 'findstatic',
@@ -236,8 +236,8 @@ def load_all_plugins() -> bool:
     }
 
 
-def can_load_professional_plugins():
-    license_text = getattr(settings, 'LICENSE', config('LICENSE', default=None))
+def can_load_professional_plugins(license_text: str | None = None):
+    license_text = license_text or getattr(settings, 'LICENSE', None) or config('LICENSE', default=None)
     if license.decode_and_validate_license(license=license_text, skip_db_checks=True) \
         .get('type') == license.LicenseType.PROFESSIONAL:
         return True
@@ -357,7 +357,7 @@ def load_plugins(settings):
                 app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
                 app_label = plugin_config_class.label
 
-                if plugin_config_class.professional_only and not can_load_professional_plugins():
+                if plugin_config_class.professional_only and not can_load_professional_plugins(settings['LICENSE']):
                     logging.warning(f'Plugin "{plugin_name}" requires a professional license. Not enabling plugin.')
                     continue
                 if app_class not in installed_apps:
