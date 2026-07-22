@@ -1,6 +1,8 @@
-import argparse
 import json
 import logging
+import os
+import sys
+from typing import BinaryIO, TextIO
 
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 
@@ -20,9 +22,26 @@ def parse_s3_params(val):
     return S3ParamsSerializer(json.loads(val)).data
 
 
+def open_arg_file(path_or_file: str | os.PathLike | BinaryIO | TextIO, mode: str = 'rb') -> BinaryIO | TextIO:
+    """Open a CLI file argument after argparse parsing (replacement for deprecated FileType)."""
+    if not isinstance(path_or_file, str | os.PathLike):
+        return path_or_file
+    elif path_or_file == '-':
+        if 'r' in mode:
+            return sys.stdin.buffer if 'b' in mode else sys.stdin
+        if any(c in mode for c in 'wax'):
+            return sys.stdout.buffer if 'b' in mode else sys.stdout
+        raise CommandError(f'argument "-" not allowed with mode {mode!r}')
+    else:
+        try:
+            return open(path_or_file, mode)
+        except OSError as ex:
+            raise CommandError(f"can't open '{path_or_file}': {ex}") from ex
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser: CommandParser) -> None:
-        parser.add_argument('file', nargs='?', type=argparse.FileType('wb'), default='-')
+        parser.add_argument('file', nargs='?', default='-')
         parser.add_argument('--key', type=aes_key, help='AES key as hex string to encrypt the backup (optional)')
         parser.add_argument('--s3-params', type=parse_s3_params, help='S3 parameters for uploading the backup to S3 (optional)')
 
@@ -42,7 +61,7 @@ class Command(BaseCommand):
             upload_to_s3_bucket(z, s3_params)
         else:
             # Write backup to file
-            with file:
+            with open_arg_file(file, mode='wb') as f:
                 for c in to_chunks(z):
-                    file.write(c)
+                    f.write(c)
 
