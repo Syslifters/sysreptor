@@ -1,0 +1,17 @@
+{
+    "account_id": "210987654321",
+    "provider_name": "Amazon Web Services",
+    "services": {
+        "ec2": {
+            "findings": {
+                "ec2-security-group-opens-all-ports-to-all": {
+                    "level": "danger",
+                    "description": "Security group opens all ports to 0.0.0.0/0",
+                    "rationale": "Security groups should restrict access to required ports only.",
+                    "references": [],
+                    "items": ["regions.eu-west-1.vpcs.vpc-1.security_groups.sg-123.rules.ingress"]
+                }
+            }
+        }
+    }
+}

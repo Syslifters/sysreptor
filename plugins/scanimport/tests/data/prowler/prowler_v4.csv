@@ -1,0 +1,6 @@
+CHECK_ID,CHECK_TITLE,SEVERITY,STATUS,STATUS_EXTENDED,SERVICE_NAME,RESOURCE_UID,REGION,ACCOUNT_ID
+s3_bucket_public_access,S3 Bucket has public access configured,high,FAIL,Bucket bucket-one is publicly accessible,s3,arn:aws:s3:::bucket-one,eu-west-1,123456789012
+s3_bucket_public_access,S3 Bucket has public access configured,high,FAIL,Bucket bucket-two is publicly accessible,s3,arn:aws:s3:::bucket-two,eu-west-1,123456789012
+iam_password_policy_minimum_length_14,Ensure IAM password policy requires minimum length of 14,medium,FAIL,Password policy requires minimum length of 8,iam,arn:aws:iam::123456789012:account,us-east-1,123456789012
+ec2_ebs_volume_encryption,Ensure EBS volumes are encrypted,low,PASS,Volume vol-abc is encrypted,ec2,vol-abc,eu-west-1,123456789012
+guardduty_is_enabled,Ensure GuardDuty is enabled,medium,MANUAL,Requires manual verification,guardduty,n/a,eu-west-1,123456789012
