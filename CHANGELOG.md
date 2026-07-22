@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Security: implement multiple hardening measures
+* Disable user after multiple failed MFA login attempts
+
 ## v2026.58 - 2026-07-21
 * This is a security release: fix 2 high vulnerabilities
 * Disable forgot password functionality via email if ALLOWED_HOSTS is unset (https://github.com/Syslifters/sysreptor/security/advisories/GHSA-9x2r-5pff-8w6c)

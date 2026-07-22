@@ -1,4 +1,5 @@
 import pyotp
+from django.conf import settings
 from django.contrib.auth.models import UserManager
 from django.contrib.sessions.base_session import BaseSessionManager
 from django.db import models
@@ -81,7 +82,13 @@ class PentestUserQuerySet(models.QuerySet):
 
 
 class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQuerySet)):
-    pass
+    def record_failed_mfa_attempt(self, user):
+        self.filter(pk=user.pk).update(failed_mfa_attempts=models.F('failed_mfa_attempts') + 1)
+        user = self.get(pk=user.pk)
+        if user.failed_mfa_attempts >= settings.MFA_MAX_FAILED_ATTEMPTS and user.is_active:
+            user.is_active = False
+            user.save(update_fields=['is_active'])
+        return user
 
 
 class APITokenQuerySet(models.QuerySet):

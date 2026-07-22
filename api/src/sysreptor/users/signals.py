@@ -6,6 +6,12 @@ from sysreptor.utils import license
 
 
 @receiver(signals.pre_save, sender=PentestUser)
+def user_reset_failed_mfa_attempts_on_reactivate(sender, instance, *args, **kwargs):
+    if instance.get_field_diff('is_active') == (False, True):
+        instance.failed_mfa_attempts = 0
+
+
+@receiver(signals.pre_save, sender=PentestUser)
 def user_count_license_check(sender, instance, *args, **kwargs):
     if not instance.is_active:
         return

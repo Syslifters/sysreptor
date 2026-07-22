@@ -284,6 +284,7 @@ CSRF_COOKIE_SAMESITE = 'Strict'
 MFA_SERVER_NAME = config('MFA_SERVER_NAME', default='SysReptor')
 # FIDO2 RP ID: the domain name of the instance
 MFA_FIDO2_RP_ID = config('MFA_FIDO2_RP_ID', default='')
+MFA_MAX_FAILED_ATTEMPTS = 30
 MFA_LOGIN_TIMEOUT = timedelta(minutes=5)
 SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT = timedelta(minutes=15)
 

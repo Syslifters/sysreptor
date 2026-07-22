@@ -64,20 +64,24 @@ class TestLogin:
             self.assert_api_access(False)
         return res
 
-    def assert_mfa_login(self, mfa_method, data=None, user=None, success=True, status='success'):
-        self.assert_login(user=user or self.user_mfa, status='mfa-required')
+    def mfa_login_request(self, mfa_method, data=None):
         if mfa_method.method_type == MFAMethodType.BACKUP:
-            res = self.client.post(reverse('auth-login-code'), data={
+            return self.client.post(reverse('auth-login-code'), data={
                 'id': str(mfa_method.id),
                 'code': mfa_method.data['backup_codes'][0],
             } | (data or {}))
         elif mfa_method.method_type == MFAMethodType.TOTP:
-            res = self.client.post(reverse('auth-login-code'), data=data or {
+            res = self.client.post(reverse('auth-login-code'), data={
                 'id': str(mfa_method.id),
                 'code': pyotp.TOTP(**mfa_method.data).now(),
-            })
+            } | (data or {}))
+            return res
         elif mfa_method.method_type == MFAMethodType.FIDO2:
-            pass
+            raise NotImplementedError('FIDO2 login is not supported in tests')
+
+    def assert_mfa_login(self, mfa_method, data=None, user=None, success=True, status='success'):
+        self.assert_login(user=user or self.user_mfa, status='mfa-required')
+        res = self.mfa_login_request(mfa_method, data)
 
         if success:
             assert res.status_code == 200
@@ -145,6 +149,49 @@ class TestLogin:
         other_user = create_user()
         other_mfa = MFAMethod.objects.create_totp(user=other_user)
         self.assert_mfa_login(user=self.user_mfa, mfa_method=other_mfa, success=False)
+
+    @override_settings(MFA_MAX_FAILED_ATTEMPTS=1)
+    def test_failed_mfa_locks_user(self):
+        # Invalid password: don't count as failed MFA attempt
+        self.assert_login(user=self.user_mfa, password='invalid_password', success=False)  # noqa: S106
+        self.user_mfa.refresh_from_db()
+        assert self.user_mfa.failed_mfa_attempts == 0
+
+        # Failed MFA limit reached: lock user
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert self.mfa_login_request(self.mfa_totp, data={'code': 'invalid'}).status_code == 400
+        self.user_mfa.refresh_from_db()
+        assert self.user_mfa.failed_mfa_attempts == 1
+        assert not self.user_mfa.is_active
+
+        # User can not login anymore
+        # via the same MFA method
+        assert self.mfa_login_request(self.mfa_totp).status_code == 400
+        # vai another MFA method
+        assert self.mfa_login_request(self.mfa_backup).status_code == 400
+        # via a fresh password login
+        self.assert_login(user=self.user_mfa, success=False)  # noqa: S106
+
+        # Re-activate user: reset failed MFA attempts
+        update(self.user_mfa, is_active=True)
+        self.user_mfa.refresh_from_db()
+        self.assert_mfa_login(self.mfa_totp, success=True)
+
+    def test_mfa_failed_attempts_reset_on_success(self):
+        update(self.user_mfa, failed_mfa_attempts=5)
+        self.assert_mfa_login(self.mfa_totp)
+        self.user_mfa.refresh_from_db()
+        assert self.user_mfa.failed_mfa_attempts == 0
+
+    def test_login_inactive_user_wrong_password(self):
+        update(self.user_mfa, is_active=False)
+
+        res = self.assert_login(user=self.user_mfa, success=False)  # noqa: S106
+        assert 'user is disabled' in str(res.data).lower()
+
+        res = self.assert_login(user=self.user_mfa, password='invalid_password', success=False)  # noqa: S106
+        assert 'user is disabled' not in str(res.data).lower()
+        assert 'invalid username or password' in str(res.data).lower()
 
     def test_must_change_password(self):
         update(self.user, must_change_password=True)

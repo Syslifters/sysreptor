@@ -79,7 +79,7 @@ class APITokenAuthentication(authentication.BaseAuthentication):
         if not token.validate_token(token_key):
             raise exceptions.AuthenticationFailed('Invalid API token')
         if not token.user.is_active:
-            raise exceptions.AuthenticationFailed('User inactive or deleted.')
+            raise exceptions.AuthenticationFailed('User disabled or deleted.')
         if token.expire_date and token.expire_date < timezone.now().date():
             raise exceptions.AuthenticationFailed('API token expired')
         license.validate_login_allowed(token.user)

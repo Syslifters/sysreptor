@@ -404,11 +404,15 @@ class AuthViewSet(viewsets.ViewSet):
 
     def validate_login_allowed(self, user):
         if not user.is_active:
-            raise APIBadRequestError('User is inactive')
+            raise APIBadRequestError('User is disabled. Contact an administrator to reactivate it.')
         license.validate_login_allowed(user)
 
     def perform_login(self, request, user, can_reauth=True):
         self.validate_login_allowed(user)
+
+        if user.failed_mfa_attempts > 0:
+            user.failed_mfa_attempts = 0
+            user.save(update_fields=['failed_mfa_attempts'])
 
         request.session.pop('login_state', None)
         first_login = not user.last_login
