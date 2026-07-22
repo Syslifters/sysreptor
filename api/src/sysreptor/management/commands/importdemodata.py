@@ -1,4 +1,3 @@
-import argparse
 import logging
 import shutil
 import tempfile
@@ -7,6 +6,7 @@ import uuid
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
+from sysreptor.management.commands.backup import open_arg_file
 from sysreptor.pentests.import_export import import_project_types, import_projects, import_templates
 from sysreptor.pentests.models import PentestProject
 from sysreptor.users.models import PentestUser
@@ -16,7 +16,7 @@ class Command(BaseCommand):
     help = 'Import archives containing demo data'
 
     def add_arguments(self, parser):
-        parser.add_argument('file', nargs='?', type=argparse.FileType('rb'), default='-')
+        parser.add_argument('file', nargs='?', default='-')
         parser.add_argument('--type', choices=['design', 'template', 'project'], required=True)
         parser.add_argument('--add-member', action='append', help='Add user as member to imported projects')
 
@@ -49,7 +49,8 @@ class Command(BaseCommand):
             'project': import_projects,
         }[type]
 
-        with tempfile.SpooledTemporaryFile(max_size=settings.FILE_UPLOAD_MAX_MEMORY_SIZE, mode='w+b') as f:
+        with open_arg_file(file, mode='rb') as file, \
+            tempfile.SpooledTemporaryFile(max_size=settings.FILE_UPLOAD_MAX_MEMORY_SIZE, mode='w+b') as f:
             shutil.copyfileobj(file, f)
             f.seek(0)
             imported = import_func(f)
