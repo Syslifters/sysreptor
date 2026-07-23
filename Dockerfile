@@ -172,7 +172,9 @@ VOLUME [ "/data" ]
 # Configure application
 ENV MEDIA_ROOT=/data/ \
     PDF_RENDER_SCRIPT_PATH=/app/packages/rendering/dist/bundle.js \
-    PLUGIN_DIRS=/app/plugins/
+    PLUGIN_DIRS=/app/plugins/ \
+    PYTHONDONTWRITEBYTECODE=1
+
 
 # Start server
 EXPOSE 8000
@@ -194,7 +196,6 @@ FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
 COPY --chown=user:user api/src /app/api/src/
 COPY --chown=user:user plugins /app/plugins/
-RUN mkdir -p /app/api/src/sysreptor_plugins/ && chmod 777 /app/api/src/sysreptor_plugins/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/packages/rendering/dist /app/packages/rendering/dist/
