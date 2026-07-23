@@ -502,20 +502,10 @@ from sysreptor.utils.middleware import CustomCsrfMiddleware  # noqa: E402
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
-# Monkey-Patch django ImageField to restrict image formats
-# Importing RestrictedImageField pulls in rest_framework.fields (via configuration),
-# which binds DjangoImageField before the swap below — rebind DRF as well.
-import sys  # noqa: E402
+# Monkey-Patch pillow and django ImageField to restrict image formats
+from sysreptor.utils.files import install_django_image_field_restrictions  # noqa: E402
 
-import django.forms as django_forms  # noqa: E402
-from django.forms import fields as form_fields  # noqa: E402
-
-from sysreptor.utils.files import RestrictedImageField  # noqa: E402
-
-form_fields.ImageField = RestrictedImageField
-django_forms.ImageField = RestrictedImageField
-if (rf_fields := sys.modules.get('rest_framework.fields')) is not None:
-    rf_fields.DjangoImageField = RestrictedImageField
+install_django_image_field_restrictions()
 
 
 PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BASE_DIR / '..' / 'rendering' / 'dist' / 'bundle.js')
