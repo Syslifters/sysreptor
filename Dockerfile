@@ -217,7 +217,14 @@ COPY --from=api-statics /app/api/src/static/ /app/api/src/static/
 COPY --from=api-statics /app/plugins/ /app/plugins/
 COPY --from=frontend /app/packages/NOTICE /app/packages/NOTICE
 USER 0
-COPY --chown=1000:1000 api/verify_licenses.sh api/download_sources.sh api/entrypoint.sh api/start.sh /app/api/
+COPY api/verify_licenses.sh api/download_sources.sh api/entrypoint.sh api/start.sh /app/api/
+# Make source code tree read-only for service user
+RUN chown -R root:root /app \
+    && chmod -R a-w /app \
+    && chmod a+rx /app/api/*.sh \
+    && chown -R user:user /app/api/src/static \
+    && chmod -R u+rwX,go+rX /app/api/src/static \
+    && chown user:user /data
 RUN /bin/bash /app/api/verify_licenses.sh
 # Copy of changelog should be one of the last things to use cache for prod releases
 COPY LICENSE CHANGELOG.md /app/

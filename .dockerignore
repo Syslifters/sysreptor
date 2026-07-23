@@ -26,5 +26,12 @@ docker-compose.yml
 node_modules/
 **/node_modules/
 
+# Host Nuxt caches/outputs
+packages/frontend/dist
+packages/frontend/.output
+packages/frontend/.nuxt
+**/.output/
+**/.nuxt/
+
 api/data
 api/src/sysreptor_plugins/
