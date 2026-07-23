@@ -222,8 +222,6 @@ COPY api/verify_licenses.sh api/download_sources.sh api/entrypoint.sh api/start.
 RUN chown -R root:root /app \
     && chmod -R a-w /app \
     && chmod a+rx /app/api/*.sh \
-    && chown -R user:user /app/api/src/static \
-    && chmod -R u+rwX,go+rX /app/api/src/static \
     && chown user:user /data
 RUN /bin/bash /app/api/verify_licenses.sh
 # Copy of changelog should be one of the last things to use cache for prod releases
