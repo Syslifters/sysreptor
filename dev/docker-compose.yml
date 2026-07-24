@@ -203,7 +203,7 @@ services:
       DATABASE_USER: reportcreator
       DATABASE_PASSWORD: reportcreator
       SPELLCHECK_URL: http://languagetool:8010/
-      REDIS_URL: redis://:reportcreator@redis:6379/0
+      REDIS_URL: redis://${REDIS_USER-}:${REDIS_PASSWORD:-reportcreator}@${REDIS_HOST:-redis}:${REDIS_PORT:-6379}/${REDIS_INDEX:-0}
       # CELERY_BROKER_URL: amqp://reportcreator:reportcreator@rabbitmq:5672/
       # CELERY_RESULT_BACKEND: sysreptor.utils.celery_worker:CustomRPCBackend://reportcreator:reportcreator@rabbitmq:5672/
     env_file: ../deploy/app.env

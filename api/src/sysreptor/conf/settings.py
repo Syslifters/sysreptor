@@ -232,6 +232,19 @@ if not DISABLE_WEBSOCKETS:
 else:
     CHANNEL_LAYERS = {}
 
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        },
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        },
+    }
 
 
 # Password validation
@@ -588,7 +601,7 @@ ENCRYPTION_PLAINTEXT_FALLBACK = config('ENCRYPTION_PLAINTEXT_FALLBACK', cast=boo
 HEALTH_CHECKS = {
     'database': 'sysreptor.api_utils.healthchecks.check_database',
     'migrations': 'sysreptor.api_utils.healthchecks.check_migrations',
-    # 'cache': 'sysreptor.api_utils.healthchecks.check_cache',
+    'cache': 'sysreptor.api_utils.healthchecks.check_cache',
 }
 
 # Notifications
