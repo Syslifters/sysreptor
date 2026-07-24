@@ -237,7 +237,7 @@ class TestCommunityLicenseRestrictions:
             update(self.user_regular, is_active=True)
 
     def test_apitoken_limit(self):
-        res1 = self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test'})
+        res1 = self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'admin_permissions_enabled': True})
         assert res1.status_code == 201
         assert res1.data['admin_permissions_enabled'] is True
         res_token = api_client().get(reverse('pentestuser-detail', kwargs={'pk': 'self'}), HTTP_AUTHORIZATION='Bearer ' + res1.data['token'])
