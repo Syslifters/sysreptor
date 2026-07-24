@@ -1,4 +1,4 @@
-from django.db.models import signals
+from django.db.models import Q, signals
 from django.dispatch import receiver
 
 from sysreptor import signals as sysreptor_signals
@@ -121,10 +121,10 @@ def notification_comments(sender, instance, created, *args, **kwargs):
         for m in UserNotification.MENTION_USERNAME_PATTERN.finditer(c.text):
             if username := m.group('username'):
                 mentioned_usernames.add(username)
-    notify_users.update(
+    notify_users = set(
         PentestUser.objects
         .filter(projectmemberinfo__project_id=comment.project_id)
-        .filter(username__in=mentioned_usernames),
+        .filter(Q(id__in=[u.id for u in notify_users if u]) | Q(username__in=mentioned_usernames)),
     )
 
     UserNotification.objects.create_for_users(
