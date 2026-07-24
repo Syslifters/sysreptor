@@ -204,6 +204,7 @@ export type ApiToken = BaseModel & {
   name: string;
   expire_date: string|null;
   last_used: string|null;
+  admin_permissions_enabled: boolean;
   token?: string;
 }
 

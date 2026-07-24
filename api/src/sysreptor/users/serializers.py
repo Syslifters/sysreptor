@@ -315,7 +315,7 @@ class AuthIdentitySerializer(serializers.ModelSerializer):
 class APITokenSerializer(serializers.ModelSerializer):
     class Meta:
         model = APIToken
-        fields = ['id', 'created', 'updated', 'name', 'expire_date', 'last_used']
+        fields = ['id', 'created', 'updated', 'name', 'expire_date', 'last_used', 'admin_permissions_enabled']
 
     def validate_expire_date(self, value):
         if value and value < timezone.now().date():
@@ -328,6 +328,11 @@ class APITokenCreateSerializer(APITokenSerializer):
 
     class Meta(APITokenSerializer.Meta):
         fields = APITokenSerializer.Meta.fields + ['token']
+
+    def validate_admin_permissions_enabled(self, value):
+        if value and not getattr(self.context['request'].user, 'is_admin', False):
+            raise serializers.ValidationError('Cannot create API tokens with admin permissions enabled.')
+        return value
 
     def create(self, validated_data):
         return super().create(validated_data | {'user': self.context['user']})

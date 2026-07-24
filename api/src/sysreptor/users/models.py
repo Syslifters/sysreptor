@@ -112,6 +112,7 @@ class APIToken(BaseModel):
     name = models.CharField(max_length=255, default='API Token')
     expire_date = models.DateField(null=True, blank=True)
     last_used = models.DateTimeField(null=True, blank=True, editable=False)
+    admin_permissions_enabled = models.BooleanField(default=False)
     token_plaintext = None
 
     objects = querysets.APITokenManager()

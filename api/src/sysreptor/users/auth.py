@@ -84,8 +84,7 @@ class APITokenAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed('API token expired')
         license.validate_login_allowed(token.user)
 
-        # Always enable full permissions of user
-        if token.user.is_superuser:
+        if token.user.is_superuser and token.admin_permissions_enabled:
             token.user.admin_permissions_enabled = True
 
         # Update API token last used date. Throttle updates on frequent requests.

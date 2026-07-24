@@ -10,6 +10,13 @@
         >
           <v-list-item-title>
             {{ apiToken.name }}
+            <v-chip
+              v-if="apiToken.admin_permissions_enabled"
+              size="small"
+              class="ml-3"
+            >
+              Admin
+            </v-chip>
             <chip-expires class="ml-3" :value="apiToken.expire_date" />
             <chip-date :value="apiToken.last_used" label="Last Used" />
             <chip-created :value="apiToken.created" />
