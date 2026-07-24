@@ -15,6 +15,19 @@ class ScopedUserRateThrottle(throttling.ScopedRateThrottle):
         return int(m.group('rate')), {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}[m.group('period')] * int(m.group('mult') or 1)
 
     def get_ident(self, request):
-        if request.user and not request.user.is_anonymous:
+        if self.scope in ('pwreset_sendmail', 'pwreset_check'):
+            data = getattr(request, 'data', None) or {}
+            if email := str(data.get('email') or '').strip().lower():
+                return str(email)
+            elif user := data.get('user'):
+                return str(user)
+        if request.user and request.user.is_authenticated:
             return str(request.user.id)
         return super().get_ident(request)
+
+    def get_cache_key(self, request, view):
+        """Always use get_ident so scoped keys (e.g. email) are not replaced by user.pk."""
+        return self.cache_format % {
+            'scope': self.scope,
+            'ident': self.get_ident(request),
+        }

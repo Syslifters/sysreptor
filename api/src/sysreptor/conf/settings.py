@@ -151,7 +151,8 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_THROTTLE_RATES': {
         'pdf': '3/10s',
-        'pw': '10/1h',
+        'pwreset_sendmail': '10/1h',
+        'pwreset_check': '20/5min',
     },
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
