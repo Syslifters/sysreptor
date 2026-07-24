@@ -65,6 +65,13 @@ def notification_assigned(sender, instance, *args, **kwargs):
         (not created_by or instance.assignee_id != created_by.id) and
         not UserNotification.objects.get_prevent_notifications()
     ):
+        is_member = ProjectMemberInfo.objects \
+            .filter(project_id=instance.project_id) \
+            .filter(user_id=instance.assignee_id) \
+            .exists()
+        if not is_member:
+            return
+
         ref_field_name = {
             PentestFinding: 'finding',
             ReportSection: 'section',
