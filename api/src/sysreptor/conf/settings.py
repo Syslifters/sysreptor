@@ -503,7 +503,6 @@ if (rf_fields := sys.modules.get('rest_framework.fields')) is not None:
 
 PDF_RENDER_SCRIPT_PATH = config('PDF_RENDER_SCRIPT_PATH', cast=Path, default=BASE_DIR / '..' / 'rendering' / 'dist' / 'bundle.js')
 CHROMIUM_EXECUTABLE = config('CHROMIUM_EXECUTABLE', default='/usr/lib/chromium/chromium')
-GHOSTSCRIPT_EXECUTABLE = config('GHOSTSCRIPT_EXECUTABLE', default='/usr/bin/gs')
 
 
 # Celery client settings
@@ -723,17 +722,10 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         extra_info={'group': 'other', 'professional_only': False},
         help_text='Uploaded images are compressed to reduce file size, but to retain quality suitable for PDF rendering.'),
     BooleanField(
-        id='COMPRESS_PDFS',
-        default=True,
-        extra_info={'group': 'other', 'professional_only': False},
-        help_text='PDFs are compressed via ghostscript when generating the final report (not in previews). '
-                  'PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.'),
-    BooleanField(
         id='GENERATE_ACCESSIBLE_PDFS',
         default=False,
         extra_info={'group': 'other', 'professional_only': False},
-        help_text='Generate accessible PDFs in PDF/UA format. '
-                  'Warning: Incompatible with COMPRESS_PDFS. PDFs are not compressed and might be larger.',
+        help_text='Generate accessible PDFs in PDF/UA format.',
     ),
     ListField(
         id='STATUS_DEFINITIONS',

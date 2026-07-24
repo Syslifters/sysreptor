@@ -265,14 +265,6 @@ COMPRESS_IMAGES=false
 
 
 ### PDF Rendering
-PDFs are compressed via `ghostscript` when generating the final report (not in previews). 
-PDF compression reduces the file size, but can lead to quality loss of images and differences between the preview and the final PDF.
-PDF compression is enabled by default. Disable PDF compression using this setting.
-
-```dotenv title="Example:"
-COMPRESS_PDFS=false
-```
-
 It is possible to generate accessible PDFs in PDF/UA format.
 Accessible PDFs can be read by screen readers and are compliant with accessibility standards.
 Generating accessible PDFs is incompatible with PDF compression. If you enable accessible PDFs, PDF compression is automatically disabled.
