@@ -114,7 +114,11 @@ def notification_comments(sender, instance, created, *args, **kwargs):
         for m in UserNotification.MENTION_USERNAME_PATTERN.finditer(c.text):
             if username := m.group('username'):
                 mentioned_usernames.add(username)
-    notify_users.update(PentestUser.objects.filter(username__in=mentioned_usernames))
+    notify_users.update(
+        PentestUser.objects
+        .filter(projectmemberinfo__project_id=comment.project_id)
+        .filter(username__in=mentioned_usernames),
+    )
 
     UserNotification.objects.create_for_users(
         users=notify_users,
