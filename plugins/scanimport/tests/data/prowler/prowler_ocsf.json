@@ -1,0 +1,70 @@
+[
+  {
+    "metadata": {"event_code": "s3_bucket_public_access", "product": {"name": "Prowler"}},
+    "severity": "High",
+    "severity_id": 4,
+    "status_code": "FAIL",
+    "status": "New",
+    "status_detail": "Bucket bucket-one is publicly accessible",
+    "finding_info": {"uid": "prowler-aws-s3_bucket_public_access-1", "title": "S3 Bucket has public access configured"},
+    "resources": [
+      {"uid": "arn:aws:s3:::bucket-one", "name": "bucket-one", "type": "AwsS3Bucket", "region": "eu-west-1", "group": {"name": "s3"}}
+    ],
+    "cloud": {"account": {"uid": "123456789012"}, "region": "eu-west-1", "provider": "aws"},
+    "remediation": {"desc": "Block public access on the bucket.", "references": ["https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"]}
+  },
+  {
+    "metadata": {"event_code": "s3_bucket_public_access", "product": {"name": "Prowler"}},
+    "severity": "High",
+    "severity_id": 4,
+    "status_code": "FAIL",
+    "status": "New",
+    "status_detail": "Bucket bucket-two is publicly accessible",
+    "finding_info": {"uid": "prowler-aws-s3_bucket_public_access-2", "title": "S3 Bucket has public access configured"},
+    "resources": [
+      {"uid": "arn:aws:s3:::bucket-two", "name": "bucket-two", "type": "AwsS3Bucket", "region": "eu-west-1", "group": {"name": "s3"}}
+    ],
+    "cloud": {"account": {"uid": "123456789012"}, "region": "eu-west-1", "provider": "aws"},
+    "remediation": {"desc": "Block public access on the bucket.", "references": []}
+  },
+  {
+    "metadata": {"event_code": "iam_password_policy_minimum_length_14", "product": {"name": "Prowler"}},
+    "severity": "Medium",
+    "severity_id": 3,
+    "status_code": "FAIL",
+    "status": "New",
+    "status_detail": "Password policy requires minimum length of 8",
+    "finding_info": {"uid": "prowler-aws-iam_password_policy_minimum_length_14-1", "title": "Ensure IAM password policy requires minimum length of 14"},
+    "resources": [
+      {"uid": "arn:aws:iam::123456789012:account", "name": "account", "type": "AwsIamAccount", "region": "us-east-1", "group": {"name": "iam"}}
+    ],
+    "cloud": {"account": {"uid": "123456789012"}, "region": "us-east-1", "provider": "aws"},
+    "remediation": {"desc": "Set the minimum password length to 14.", "references": []}
+  },
+  {
+    "metadata": {"event_code": "ec2_ebs_volume_encryption", "product": {"name": "Prowler"}},
+    "severity": "Low",
+    "severity_id": 2,
+    "status_code": "PASS",
+    "status": "New",
+    "status_detail": "Volume vol-abc is encrypted",
+    "finding_info": {"uid": "prowler-aws-ec2_ebs_volume_encryption-1", "title": "Ensure EBS volumes are encrypted"},
+    "resources": [
+      {"uid": "vol-abc", "name": "vol-abc", "type": "AwsEc2Volume", "region": "eu-west-1", "group": {"name": "ec2"}}
+    ],
+    "cloud": {"account": {"uid": "123456789012"}, "region": "eu-west-1", "provider": "aws"}
+  },
+  {
+    "metadata": {"event_code": "guardduty_is_enabled", "product": {"name": "Prowler"}},
+    "severity": "Medium",
+    "severity_id": 3,
+    "status_code": "MANUAL",
+    "status": "New",
+    "status_detail": "Requires manual verification",
+    "finding_info": {"uid": "prowler-aws-guardduty_is_enabled-1", "title": "Ensure GuardDuty is enabled"},
+    "resources": [
+      {"uid": "n/a", "name": "n/a", "type": "AwsGuardDutyDetector", "region": "eu-west-1", "group": {"name": "guardduty"}}
+    ],
+    "cloud": {"account": {"uid": "123456789012"}, "region": "eu-west-1", "provider": "aws"}
+  }
+]

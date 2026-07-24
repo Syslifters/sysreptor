@@ -1,0 +1,4 @@
+check_id;check_title;severity;status;status_extended;service_name;resource_uid;region;account_id
+rds_instance_backup_enabled;RDS instance has backups enabled;low;FAIL;Automated backups disabled for db-1;rds;arn:aws:rds:eu-west-1:123456789012:db:db-1;eu-west-1;123456789012
+cloudtrail_multi_region_enabled;Ensure CloudTrail is enabled in all regions;medium;FAIL;Multi-region trail not configured;cloudtrail;arn:aws:cloudtrail:us-east-1:123456789012:trail/main;us-east-1;123456789012
+ec2_instance_managed_by_ssm;Ensure EC2 instances are managed by SSM;low;PASS;Instance i-123 managed by SSM;ec2;i-123;eu-west-1;123456789012

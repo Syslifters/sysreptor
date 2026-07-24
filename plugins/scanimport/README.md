@@ -27,7 +27,9 @@ The plugin currently supports the following security testing tools:
 | **Nessus** | .nessus (XML) | Findings/Notes | Vulnerability scanner |
 | **Nmap** | XML/Greppable | Findings/Notes | Network discovery and security auditing |
 | **OpenVAS** | XML | Findings/Notes | Vulnerability assessment system |
+| **Prowler** | CSV/JSON (OCSF) | Findings/Notes | AWS/cloud security assessment tool |
 | **Qualys** | XML | Findings/Notes | Cloud security and compliance platform |
+| **ScoutSuite** | JS/JSON | Findings/Notes | Multi-cloud security auditing tool |
 | **SSLyze** | JSON | Findings/Notes | SSL/TLS configuration scanner |
 | **OWASP ZAP** | XML/JSON | Findings/Notes | Web application security scanner |
 
