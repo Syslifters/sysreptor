@@ -158,7 +158,7 @@ class TestCommunityLicenseRestrictions:
         }))
 
     def test_system_users_api_access_allowed(self):
-        api_token = APIToken.objects.create(user=self.user_system)
+        api_token = APIToken.objects.create(user=self.user_system, admin_permissions_enabled=True)
         assert api_client().get(reverse('utils-license'), HTTP_AUTHORIZATION='Bearer ' + api_token.token_formatted).status_code == 200
 
     def test_ignore_must_change_password(self):
@@ -237,16 +237,25 @@ class TestCommunityLicenseRestrictions:
             update(self.user_regular, is_active=True)
 
     def test_apitoken_limit(self):
-        res1 = self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test'})
+        res1 = self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'admin_permissions_enabled': True})
         assert res1.status_code == 201
+        assert res1.data['admin_permissions_enabled'] is True
         res_token = api_client().get(reverse('pentestuser-detail', kwargs={'pk': 'self'}), HTTP_AUTHORIZATION='Bearer ' + res1.data['token'])
         assert res_token.status_code == 200
 
         with pytest.raises(license.LicenseLimitExceededError):
-            APIToken.objects.create(user=self.user)
+            APIToken.objects.create(user=self.user, admin_permissions_enabled=True)
 
     def test_apitoken_no_expiry(self):
         assert_api_license_error(self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'expire_date': timezone.now().date().isoformat()}))
+
+    def test_apitoken_admin_required(self):
+        assert_api_license_error(self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={
+            'name': 'test',
+            'admin_permissions_enabled': False,
+        }))
+        with pytest.raises(license.LicenseError):
+            APIToken.objects.create(user=self.user, admin_permissions_enabled=False)
 
 
 @pytest.mark.django_db()

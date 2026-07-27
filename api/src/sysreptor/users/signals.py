@@ -60,3 +60,8 @@ def api_token_license_limit(sender, instance, *args, **kwargs):
 
     if instance.expire_date:
         raise license.LicenseError('API token expiration is not supported in Community edition.')
+
+    # Community edition has no admin enable/disable: only admin tokens are allowed.
+    # Forcing True also covers ORM/CLI creates that omit the flag (model default is False).
+    if not instance.admin_permissions_enabled:
+        raise license.LicenseError('Non-admin API tokens are not supported in Community edition.')

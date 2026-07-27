@@ -312,7 +312,7 @@ class TestAPITokenAuth:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user(is_superuser=True)
-        self.api_token = APIToken.objects.create(user=self.user)
+        self.api_token = APIToken.objects.create(user=self.user, admin_permissions_enabled=True)
         self.client = api_client()
 
     def assert_api_access(self, url, expected, api_token=None):
@@ -339,6 +339,11 @@ class TestAPITokenAuth:
         project_not_member = create_project()
         self.assert_api_access(reverse('pentestproject-detail', kwargs={'pk': project_not_member.pk}), True)
 
+    def test_admin_permissions_disabled(self):
+        update(self.api_token, admin_permissions_enabled=False)
+        project_not_member = create_project()
+        self.assert_api_access(reverse('pentestproject-detail', kwargs={'pk': project_not_member.pk}), False)
+
     def test_user_inactive(self):
         update(self.user, is_active=False)
         self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), False)
@@ -346,6 +351,57 @@ class TestAPITokenAuth:
     def test_token_expired(self):
         update(self.api_token, expire_date=(timezone.now() - timedelta(days=10)).date())
         self.assert_api_access(reverse('pentestuser-detail', kwargs={'pk': 'self'}), False)
+
+
+@pytest.mark.django_db()
+class TestAPITokenCreateAdminPermissions:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.password = get_random_string(32)
+        self.user = create_user(is_superuser=True, password=self.password)
+        self.client = api_client()
+        self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
+        # Re-auth for sensitive operation
+        self.client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password})
+
+    def create_token(self, admin_permissions_enabled=False):
+        return self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={
+            'name': 'Test Token',
+            'admin_permissions_enabled': admin_permissions_enabled,
+        })
+
+    def test_create_with_admin_permissions_as_admin(self):
+        session = self.client.session
+        session['admin_permissions_enabled'] = True
+        session.save()
+
+        res = self.create_token(admin_permissions_enabled=True)
+        assert res.status_code == 201
+        assert res.data['admin_permissions_enabled'] is True
+        assert APIToken.objects.get(id=res.data['id']).admin_permissions_enabled is True
+
+    def test_create_with_admin_permissions_without_admin_mode(self):
+        res = self.create_token(admin_permissions_enabled=True)
+        assert res.status_code == 400
+        assert 'admin_permissions_enabled' in res.data
+
+    def test_create_without_admin_permissions(self):
+        res = self.create_token(admin_permissions_enabled=False)
+        assert res.status_code == 201
+        assert res.data['admin_permissions_enabled'] is False
+
+    def test_create_with_admin_permissions_as_non_superuser(self):
+        user = create_user(password=self.password)
+        client = api_client()
+        client.post(reverse('auth-login'), data={'username': user.username, 'password': self.password})
+        client.post(reverse('auth-login'), data={'username': user.username, 'password': self.password})
+
+        res = client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={
+            'name': 'Test Token',
+            'admin_permissions_enabled': True,
+        })
+        assert res.status_code == 400
+        assert 'admin_permissions_enabled' in res.data
 
 
 @pytest.mark.django_db()

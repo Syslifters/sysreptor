@@ -36,6 +36,13 @@
           >
             <v-list-item-title>
               {{ apiToken.name }}
+              <v-chip
+                v-if="apiToken.admin_permissions_enabled"
+                size="small"
+                class="ml-3"
+              >
+                Admin
+              </v-chip>
               <chip-expires class="ml-3" :value="apiToken.expire_date" />
               <chip-date :value="apiToken.last_used" label="Last Used" />
               <chip-created :value="apiToken.created" />
@@ -76,9 +83,19 @@
                       <template #label><pro-info>Expire Date (optional)</pro-info></template>
                     </s-date-picker>
 
-                    <p v-if="auth.permissions.value.superuser">
-                      Your API token will receive your full superuser permissions.
-                    </p>
+                    <s-checkbox
+                      v-if="auth.permissions.value.superuser"
+                      v-model="setupWizard.form.admin_permissions_enabled"
+                      hint="Grant this API token full admin permissions. Requires enabled admin permissions."
+                      :error-messages="setupWizard.errors?.admin_permissions_enabled"
+                      :disabled="!auth.permissions.value.admin || !apiSettings.isProfessionalLicense"
+                      density="compact"
+                      class="mt-2"
+                    >
+                      <template #label>
+                        <pro-info>Enable admin permissions</pro-info>
+                      </template>
+                    </s-checkbox>
 
                     <v-alert v-if="setupWizard.errors?.detail" color="error" class="mt-4">
                       {{ setupWizard.errors.detail }}
@@ -165,6 +182,7 @@ const setupWizard = ref({
   form: {
     name: '',
     expire_date: null as string|null,
+    admin_permissions_enabled: false,
   },
   errors: null as any|null,
   actionInProgress: false,
@@ -178,6 +196,8 @@ function openSetupWizard() {
     form: {
       name: 'API Token',
       expire_date: apiSettings.isProfessionalLicense ? formatISO9075(addMonths(new Date(), 3), { representation: 'date' })  : null,
+      // Community edition has no admin enable/disable: tokens always have admin permissions.
+      admin_permissions_enabled: apiSettings.isProfessionalLicense ? false : true,
     },
     errors: null,
     actionInProgress: false,
