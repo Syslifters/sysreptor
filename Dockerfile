@@ -106,7 +106,6 @@ RUN mkdir /src && \
     echo "This image distributes binaries of copyleft licensed software. Please find the corresponding source code in our source-code distributing images (append -src to the image tags; e.g. syslifters/sysreptor:2024.58-src)." > /src/SOURCES.txt
 
 # Install system dependencies required by weasyprint and chromium
-# Install a specific ghostscript version
 RUN sed -i 's|http://|https://|g' /etc/apt/sources.list.d/debian.sources \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -127,10 +126,6 @@ RUN sed -i 's|http://|https://|g' /etc/apt/sources.list.d/debian.sources \
         unzip \
         wget \
         postgresql-client \
-    && echo 'Types: deb\nURIs: https://snapshot.debian.org/archive/debian/20250301T010101Z/\nSuites: testing\nComponents: main\nSigned-By: /usr/share/keyrings/debian-archive-keyring.gpg\nCheck-Valid-Until: false' > /etc/apt/sources.list.d/snapshot.sources \
-    && echo 'Package: ghostscript\nPin: version 10.04.0~dfsg-2\nPin-Priority: 1001' > /etc/apt/preferences.d/ghostscript \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends ghostscript \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fonts
@@ -144,7 +139,6 @@ RUN mv /usr/share/fonts/truetype/fontconfig.conf /etc/fonts/conf.d/00-sysreptor-
 ENV PYTHONUNBUFFERED=on \
     PYTHONDONTWRITEBYTECODE=on \
     CHROMIUM_EXECUTABLE=/usr/lib/chromium/chromium \
-    GHOSTSCRIPT_EXECUTABLE=/usr/bin/gs \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
 
