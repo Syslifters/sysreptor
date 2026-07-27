@@ -19,6 +19,7 @@ from sysreptor.notifications.models import (
 )
 from sysreptor.notifications.tasks import create_notifications, fetch_notifications
 from sysreptor.pentests.import_export.import_export import export_projects, import_projects
+from sysreptor.pentests.models import ProjectMemberInfo
 from sysreptor.pentests.models.project import CommentAnswer
 from sysreptor.tests.mock import api_client, create_comment, create_project, create_user, update
 from sysreptor.tests.test_import_export import archive_to_file
@@ -207,6 +208,7 @@ class TestNotificationTriggers:
         users = {}
         for u in expected_users + existing_users:
             users[u] = create_user(username=u)
+            ProjectMemberInfo.objects.create(project=self.project, user=users[u])
 
         # Create via signal
         expected_notifications = [{'type': NotificationType.COMMENTED, 'user': users[u]} for u in expected_users]
@@ -251,11 +253,29 @@ class TestNotificationTriggers:
             CommentAnswer.objects.create(comment=c, text='Answer', user=self.user_self)
 
     @pytest.mark.parametrize('instance_type', ['finding', 'section'])
+    def test_comment_created_skip_non_member_assignee(self, instance_type):
+        instance = getattr(self, instance_type)
+        user_nonmember = create_user(username='nonmember_assignee')
+        update(instance, assignee=user_nonmember)
+
+        with assert_notifications_created([]):
+            create_comment(**{instance_type: instance}, user=self.user_self, answers_kwargs=[])
+
+    @pytest.mark.parametrize('instance_type', ['finding', 'section'])
     def test_comment_answered(self, instance_type):
         # Notify creator of comment when answered
         instance = getattr(self, instance_type)
         c = create_comment(**{instance_type: instance}, user=self.user_other, text='Comment', answers_kwargs=[])
         with assert_notifications_created([{'type': NotificationType.COMMENTED, 'user': self.user_other}]):
+            CommentAnswer.objects.create(comment=c, text='Answer', user=self.user_self)
+
+    @pytest.mark.parametrize('instance_type', ['finding', 'section'])
+    def test_comment_answered_skip_non_member_creator(self, instance_type):
+        instance = getattr(self, instance_type)
+        c = create_comment(**{instance_type: instance}, user=self.user_other, text='Comment', answers_kwargs=[])
+        ProjectMemberInfo.objects.filter(project=self.project, user=self.user_other).delete()
+
+        with assert_notifications_created([]):
             CommentAnswer.objects.create(comment=c, text='Answer', user=self.user_self)
 
     @pytest.mark.parametrize('instance_type', ['finding', 'section', 'note'])

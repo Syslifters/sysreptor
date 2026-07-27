@@ -1,4 +1,4 @@
-from django.db.models import signals
+from django.db.models import Q, signals
 from django.dispatch import receiver
 
 from sysreptor import signals as sysreptor_signals
@@ -65,6 +65,13 @@ def notification_assigned(sender, instance, *args, **kwargs):
         (not created_by or instance.assignee_id != created_by.id) and
         not UserNotification.objects.get_prevent_notifications()
     ):
+        is_member = ProjectMemberInfo.objects \
+            .filter(project_id=instance.project_id) \
+            .filter(user_id=instance.assignee_id) \
+            .exists()
+        if not is_member:
+            return
+
         ref_field_name = {
             PentestFinding: 'finding',
             ReportSection: 'section',
@@ -114,7 +121,11 @@ def notification_comments(sender, instance, created, *args, **kwargs):
         for m in UserNotification.MENTION_USERNAME_PATTERN.finditer(c.text):
             if username := m.group('username'):
                 mentioned_usernames.add(username)
-    notify_users.update(PentestUser.objects.filter(username__in=mentioned_usernames))
+    notify_users = set(
+        PentestUser.objects
+        .filter(projectmemberinfo__project_id=comment.project_id)
+        .filter(Q(id__in=[u.id for u in notify_users if u]) | Q(username__in=mentioned_usernames)),
+    )
 
     UserNotification.objects.create_for_users(
         users=notify_users,
