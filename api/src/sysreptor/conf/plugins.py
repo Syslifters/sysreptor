@@ -2,12 +2,12 @@ import importlib.util
 import logging
 import os
 import re
-import shutil
 import sys
 import warnings
 from copy import deepcopy
 from functools import cached_property
 from importlib import import_module
+from importlib.machinery import ModuleSpec
 from pathlib import Path
 from unittest import mock
 
@@ -29,6 +29,8 @@ from sysreptor.utils.fielddefinition.types import FieldDefinition, ListField, St
 
 available_plugins = []
 enabled_plugins = []
+
+SYSREPTOR_PLUGINS_PACKAGE = 'sysreptor_plugins'
 
 ENABLED_PLUGINS_FIELD = ListField(
     id='ENABLED_PLUGINS',
@@ -150,28 +152,133 @@ class PluginDirectoriesFinder(FileSystemFinder):
                 self.storages[str(path)] = storage
 
 
-def load_module_from_dir(module_name: str, path: Path):
-    """
-    Load a module from a directory.
-    Sets the module import directory such that sub-modules can be imported.
-    """
-    spec = importlib.util.spec_from_file_location(module_name, path)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[module_name] = module
-    spec.loader.exec_module(module)
-    return module
+class SysreptorPluginsLoader:
+    """Loader for the virtual ``sysreptor_plugins`` package (no on-disk package tree)."""
+
+    def create_module(self, spec):
+        return None
+
+    def exec_module(self, module):
+        pass
 
 
-def remove_entry(path: Path):
-    if not path.exists():
-        return
-    if path.is_dir() and not path.is_symlink():
+class SysreptorPluginsFinder:
+    """
+    Meta path finder that exposes PLUGIN_DIRS as the virtual package ``sysreptor_plugins``.
+    Submodules (e.g. ``sysreptor_plugins.demoplugin``) resolve via the normal path-based
+    importer against those directories.
+    """
+
+    def __init__(self, plugin_dirs: list[Path]):
+        self.plugin_dirs = [str(p) for p in plugin_dirs if p.is_dir()]
+
+    def find_spec(self, fullname, path, target=None):
+        if fullname != SYSREPTOR_PLUGINS_PACKAGE:
+            return None
+        if not self.plugin_dirs:
+            return None
+        # Point origin at PLUGIN_DIRS[0]/__init__.py so the collection root is that directory
+        # (the file need not exist; only the parent directory must).
+        origin = str(Path(self.plugin_dirs[0]) / '__init__.py')
+        spec = ModuleSpec(
+            SYSREPTOR_PLUGINS_PACKAGE,
+            SysreptorPluginsLoader(),
+            origin=origin,
+            is_package=True,
+        )
+        spec.submodule_search_locations = list(self.plugin_dirs)
+        return spec
+
+
+class _PluginAliasLoader:
+    """Loader that returns the already-named ``sysreptor_plugins.*`` module object."""
+
+    def __init__(self, real_name: str):
+        self.real_name = real_name
+
+    def create_module(self, spec):
+        return import_module(self.real_name)
+
+    def exec_module(self, module):
+        pass
+
+
+class SysreptorPluginAliasFinder:
+    """
+    Map top-level plugin module names (e.g. ``demoplugin``) to ``sysreptor_plugins.*``.
+
+    Pytest collects plugin tests from PLUGIN_DIRS as top-level packages because those
+    paths sit outside the api rootdir. Aliasing keeps relative imports and Django models
+    resolving to the same modules registered in INSTALLED_APPS.
+    """
+
+    def __init__(self, plugin_module_names: set[str]):
+        self.plugin_module_names = plugin_module_names
+
+    def find_spec(self, fullname, path, target=None):
+        root = fullname.split('.', 1)[0]
+        if root not in self.plugin_module_names:
+            return None
+        real_name = f'{SYSREPTOR_PLUGINS_PACKAGE}.{fullname}'
         try:
-            shutil.rmtree(path)
-        except FileNotFoundError:
-            pass  # ignore race condition errors when multiple worker processes start at the same time
-    else:
-        path.unlink(missing_ok=True)
+            real_spec = importlib.util.find_spec(real_name)
+        except (ImportError, ModuleNotFoundError, ValueError):
+            return None
+        if real_spec is None:
+            return None
+
+        is_package = real_spec.submodule_search_locations is not None
+        spec = ModuleSpec(fullname, _PluginAliasLoader(real_name), is_package=is_package)
+        if is_package:
+            spec.submodule_search_locations = list(real_spec.submodule_search_locations)
+        return spec
+
+
+def iter_plugin_module_dirs(plugin_dirs: list[Path]):
+    seen: dict[str, Path] = {}
+    for plugins_dir in plugin_dirs:
+        if not plugins_dir.is_dir():
+            continue
+        for module_dir in plugins_dir.iterdir():
+            if not module_dir.is_dir():
+                continue
+            existing = seen.get(module_dir.name)
+            if existing is not None and existing != module_dir:
+                raise ImproperlyConfigured(f'Duplicate plugin module: {module_dir.name}')
+            seen[module_dir.name] = module_dir
+            yield module_dir
+
+
+def install_sysreptor_plugins_finder(plugin_dirs: list[Path]) -> SysreptorPluginsFinder:
+    """
+    Register (or replace) the meta path finders for ``sysreptor_plugins``.
+    Validates duplicate module names across PLUGIN_DIRS before installing.
+    """
+    module_dirs = list(iter_plugin_module_dirs(plugin_dirs))
+    plugin_module_names = {d.name for d in module_dirs}
+
+    finder = SysreptorPluginsFinder(plugin_dirs)
+    alias_finder = SysreptorPluginAliasFinder(plugin_module_names)
+
+    # Idempotent: replace any prior finders (e.g. when load_plugins is called again in tests).
+    sys.meta_path[:] = [
+        f for f in sys.meta_path
+        if not isinstance(f, SysreptorPluginsFinder | SysreptorPluginAliasFinder)
+    ]
+    # Alias finder after the namespace finder so ``sysreptor_plugins`` resolves first.
+    sys.meta_path.insert(0, finder)
+    sys.meta_path.insert(1, alias_finder)
+
+    # Drop a previously loaded package so re-install picks up updated PLUGIN_DIRS.
+    if SYSREPTOR_PLUGINS_PACKAGE in sys.modules:
+        del sys.modules[SYSREPTOR_PLUGINS_PACKAGE]
+    for name in list(sys.modules):
+        if name in plugin_module_names or name.split('.', 1)[0] in plugin_module_names:
+            # Only drop top-level aliases, not sysreptor_plugins.* (except parent above)
+            if not name.startswith(SYSREPTOR_PLUGINS_PACKAGE):
+                del sys.modules[name]
+
+    return finder
 
 
 def read_enabled_plugins_from_db(databases: dict) -> str | None:
@@ -246,77 +353,26 @@ def can_load_professional_plugins(license_text: str | None = None):
     return False
 
 
-def collect_plugins(dst: Path, srcs: list[Path]):
-    # Collect plugins from all plugin directories
-    all_module_dirs = []
-    for plugins_dir in srcs:
-        if not plugins_dir.is_dir():
-            continue
-        for src_module in plugins_dir.iterdir():
-            if not src_module.is_dir():
-                continue
-            for p in all_module_dirs:
-                if p.name == src_module.name and p != src_module:
-                    raise ImproperlyConfigured(f'Duplicate plugin module: {src_module.name}')
-            all_module_dirs.append(src_module)
-
-    # Create symlinks to srcs modules in dst directory
-    dst.mkdir(exist_ok=True, parents=True)
-    for src_module in all_module_dirs:
-        dst_module = dst / src_module.name
-
-        if dst_module.is_dir() and dst_module.is_symlink() and dst_module.resolve() == src_module.resolve():
-            # Already the expected entry. Do nothing
-            continue
-        else:
-            # Create symlink
-            remove_entry(dst_module)
-            try:
-                dst_module.symlink_to(src_module.resolve())
-            except FileExistsError:
-                pass
-    # Add __init__.py
-    dst_init = dst / '__init__.py'
-    if not dst_init.exists():
-        dst_init.touch()
-
-    # Delete outdated entries
-    expected_names = [m.name for m in all_module_dirs] + ['__init__.py']
-    for dst_module in dst.iterdir():
-        if dst_module.name not in expected_names:
-            remove_entry(dst_module)
-
-
 def load_plugins(settings):
-    dst = Path(__file__).parent.parent.parent / 'sysreptor_plugins'
-    # Collect all plugin modules in dst directory
+    plugin_dirs = settings['PLUGIN_DIRS']
     try:
-        collect_plugins(
-            dst=dst,
-            srcs=settings['PLUGIN_DIRS'],
-        )
+        install_sysreptor_plugins_finder(plugin_dirs)
     except Exception:
-        logging.exception('Error while collecting plugins')
-
-    if not dst.is_dir() or not (dst / '__init__.py').is_file():
-        logging.warning(f'Cannot load plugins: Plugin directory "{dst}" not found')
+        logging.exception('Error while installing plugin import finder')
         return []
 
-    # Load sysreptor_plugins module from dst directory
-    load_module_from_dir('sysreptor_plugins', dst / '__init__.py')
+    if not any(d.is_dir() for d in plugin_dirs):
+        return []
 
     # Check plugin modules and get plugin config classes
     available_plugin_configs = []
-    for module_dir in dst.iterdir():
-        if not module_dir.is_dir():
-            continue
-
+    for module_dir in iter_plugin_module_dirs(plugin_dirs):
         init_file = module_dir / '__init__.py'
         apps_file = module_dir / 'apps.py'
         if not init_file.is_file() or not apps_file.is_file():
             continue
 
-        module_name = f"sysreptor_plugins.{module_dir.name}"
+        module_name = f'{SYSREPTOR_PLUGINS_PACKAGE}.{module_dir.name}'
         try:
             plugin_app_module = import_module(module_name + '.apps')
         except ImportError:

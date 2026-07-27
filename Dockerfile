@@ -172,7 +172,9 @@ VOLUME [ "/data" ]
 # Configure application
 ENV MEDIA_ROOT=/data/ \
     PDF_RENDER_SCRIPT_PATH=/app/packages/rendering/dist/bundle.js \
-    PLUGIN_DIRS=/app/plugins/
+    PLUGIN_DIRS=/app/plugins/ \
+    PYTHONDONTWRITEBYTECODE=1
+
 
 # Start server
 EXPOSE 8000
@@ -194,7 +196,6 @@ FROM --platform=$BUILDPLATFORM api-dev AS api-test
 # Copy source code
 COPY --chown=user:user api/src /app/api/src/
 COPY --chown=user:user plugins /app/plugins/
-RUN mkdir -p /app/api/src/sysreptor_plugins/ && chmod 777 /app/api/src/sysreptor_plugins/
 
 # Copy generated template rendering script
 COPY --from=rendering --chown=user:user /app/packages/rendering/dist /app/packages/rendering/dist/
@@ -216,7 +217,12 @@ COPY --from=api-statics /app/api/src/static/ /app/api/src/static/
 COPY --from=api-statics /app/plugins/ /app/plugins/
 COPY --from=frontend /app/packages/NOTICE /app/packages/NOTICE
 USER 0
-COPY --chown=1000:1000 api/verify_licenses.sh api/download_sources.sh api/entrypoint.sh api/start.sh /app/api/
+COPY api/verify_licenses.sh api/download_sources.sh api/entrypoint.sh api/start.sh /app/api/
+# Make source code tree read-only for service user
+RUN chown -R root:root /app \
+    && chmod -R a-w /app \
+    && chmod a+rx /app/api/*.sh \
+    && chown user:user /data
 RUN /bin/bash /app/api/verify_licenses.sh
 # Copy of changelog should be one of the last things to use cache for prod releases
 COPY LICENSE CHANGELOG.md /app/

@@ -3,7 +3,7 @@ Unit tests for plugin functionality.
 
 To run this test, execute the following command:
 cd sysreptor/dev
-docker compose run --rm -e ENABLED_PLUGINS=demoplugin api pytest sysreptor_plugins/demoplugin
+docker compose run --rm -e ENABLED_PLUGINS=demoplugin api pytest --pyargs sysreptor_plugins.demoplugin
 """
 
 import pytest

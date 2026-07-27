@@ -263,9 +263,11 @@ Run unit tests:
 
 ```shell
 # Test a single plugin
-docker compose run --rm -e app pytest sysreptor_plugins/demoplugin
+docker compose run --rm -e ENABLED_PLUGINS=demoplugin app pytest --pyargs sysreptor_plugins.demoplugin
+# Test all plugins
+docker compose run --rm app pytest --pyargs sysreptor_plugins
 # Run all tests (core + all plugins)
-docker compose run --rm -e app pytest -n auto
+docker compose run --rm app pytest -n auto
 ```
 
 

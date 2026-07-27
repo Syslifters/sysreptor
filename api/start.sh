@@ -7,8 +7,6 @@ set -o pipefail
 
 # Run DB migrations
 python3 /app/api/src/manage.py migrate
-# Collect static files (of custom plugins)
-python3 /app/api/src/manage.py collectstatic --noinput --no-post-process
 # Start web application
 exec gunicorn --bind=:8000 \
               --worker-class=uvicorn_worker.UvicornWorker \
