@@ -46,6 +46,7 @@ class PentestUser(BaseModel, AbstractUser):
     is_global_archiver = models.BooleanField(default=False, db_index=True)
 
     can_login_local = models.BooleanField(default=True)
+    failed_mfa_attempts = models.PositiveIntegerField(default=0)
 
     REQUIRED_FIELDS = []
 

@@ -200,7 +200,7 @@ class ForgotPasswordCheckSerializer(serializers.Serializer):
         if not user or not default_token_generator.check_token(user, attrs.get('token')):
             raise serializers.ValidationError('The link is invalid or expired.')
         if not user.is_active:
-            raise serializers.ValidationError('User is inactive or deleted.')
+            raise serializers.ValidationError('User is disabled or deleted.')
 
         return super().validate(attrs) | {
             'user': user,
@@ -234,6 +234,9 @@ class LoginSerializer(serializers.Serializer):
         if not user.check_password(attrs['password']):
             raise serializers.ValidationError('Invalid username or password')
 
+        if not user.is_active:
+            raise serializers.ValidationError('User is disabled. Contact an administrator to reactivate it.')
+
         return user
 
 
@@ -249,6 +252,7 @@ class LoginMFACodeSerializer(serializers.Serializer):
     def validate(self, attrs):
         mfa_method = attrs['id']
         if not mfa_method.verify_code(attrs['code']):
+            PentestUser.objects.record_failed_mfa_attempt(user=self.context['request'].user)
             raise serializers.ValidationError('Invalid code')
         return mfa_method
 
