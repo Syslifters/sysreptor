@@ -10,7 +10,7 @@ from sysreptor.conf.settings import (
     load_plugins,
 )
 from sysreptor.utils.configuration import Configuration
-from sysreptor.utils.utils import omit_items
+from sysreptor.utils.utils import omit_keys
 
 STORAGES = STORAGES | {
     'uploadedimages': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -24,7 +24,7 @@ CACHES = {
     },
 }
 # DummyCache does not store values, so check_cache would always fail
-HEALTH_CHECKS = omit_items(HEALTH_CHECKS, ['cache'])
+HEALTH_CHECKS = omit_keys(HEALTH_CHECKS, ['cache'])
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
