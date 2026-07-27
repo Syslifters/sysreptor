@@ -7,6 +7,28 @@
       <!-- Placeholder of raw text while markdown is initially rendered -->
       <p>{{ props.value }}</p>
     </div>
+
+    <!-- Download options, shown when right-clicking a file download link -->
+    <v-menu
+      v-model="fileDownloadMenu.visible"
+      :target="[fileDownloadMenu.x, fileDownloadMenu.y]"
+    >
+      <v-list density="compact" data-testid="file-download-menu">
+        <v-list-item
+          @click="downloadFile()"
+          prepend-icon="mdi-download"
+          title="Download"
+          data-testid="file-download-plain"
+        />
+        <v-list-item
+          @click="downloadFileEncryptedChannel()"
+          prepend-icon="mdi-shield-lock-outline"
+          title="Download via encrypted channel"
+          subtitle="Prevents proxies from inspecting the download"
+          data-testid="file-download-encrypted"
+        />
+      </v-list>
+    </v-menu>
   </div>
 </template>
 
@@ -14,6 +36,7 @@
 import { mermaid } from '@sysreptor/markdown';
 import type { ChangeSpec } from '@sysreptor/markdown/editor';
 import { uuidv4 } from "@base/utils/helpers";
+import { downloadFileEncrypted } from "@base/utils/download";
 import { renderMarkdownToHtmlInWorker, type ReferenceItem } from '~/composables/markdown';
 
 mermaid.initialize({
@@ -115,6 +138,27 @@ useEventListener(previewRef, 'click', (e) => {
   openImageDialog(img);
 });
 
+const fileDownloadMenu = ref({
+  visible: false,
+  x: 0,
+  y: 0,
+  link: null as HTMLAnchorElement|null,
+});
+function downloadFile() {
+  fileDownloadMenu.value.link?.click();
+}
+async function downloadFileEncryptedChannel() {
+  const link = fileDownloadMenu.value.link;
+  if (!link) {
+    return;
+  }
+  try {
+    await downloadFileEncrypted(link.href, { filename: link.getAttribute('download') || null });
+  } catch (error: any) {
+    requestErrorToast({ error, message: 'Download failed' });
+  }
+}
+
 async function postProcessRenderedHtml() {
   if (!previewRef.value) {
     return;
@@ -128,6 +172,15 @@ async function postProcessRenderedHtml() {
       if (target) {
         target.scrollIntoView({ behavior: 'smooth' });
       }
+    });
+  });
+
+  // Offer download options when right-clicking a file download link
+  previewRef.value.querySelectorAll<HTMLAnchorElement>('a.file-download-preview').forEach((a: HTMLAnchorElement) => {
+    a.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      fileDownloadMenu.value = { visible: true, x: e.clientX, y: e.clientY, link: a };
     });
   });
 

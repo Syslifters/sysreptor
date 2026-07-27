@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Download note files via an encrypted channel to prevent proxies from inspecting downloads (https://github.com/Syslifters/sysreptor/issues/676)
 * Security: implement multiple hardening measures
 * Disable user after multiple failed MFA login attempts
 
