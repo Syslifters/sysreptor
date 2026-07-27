@@ -32,6 +32,7 @@ FILTERING_XPATH = f"//*[({ALWAYS_SELECTOR} or {CHOOSABLE_SELECTOR} or {RELATED_S
 class RenderSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
     serializer_class = RenderSectionsSerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES
+    throttle_scope = 'pdf'
 
     def filter_element(self, elem, section_ids, include_parent=False):
         """

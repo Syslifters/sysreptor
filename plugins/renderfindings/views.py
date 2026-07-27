@@ -14,6 +14,7 @@ from .serializers import RenderFindingsSerializer
 class RenderFindingsView(ProjectSubresourceMixin, GenericAPIViewAsync):
     serializer_class = RenderFindingsSerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES
+    throttle_scope = 'pdf'
 
     @sync_to_async()
     def post_process_html(self, html, findings):

@@ -3,12 +3,14 @@ import json
 from sysreptor.conf.settings import *  # noqa: F403
 from sysreptor.conf.settings import (
     CONFIGURATION_DEFINITION_CORE,
+    HEALTH_CHECKS,
     INSTALLED_APPS,
     REST_FRAMEWORK,
     STORAGES,
     load_plugins,
 )
 from sysreptor.utils.configuration import Configuration
+from sysreptor.utils.utils import omit_keys
 
 STORAGES = STORAGES | {
     'uploadedimages': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
@@ -21,6 +23,8 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     },
 }
+# DummyCache does not store values, so check_cache would always fail
+HEALTH_CHECKS = omit_keys(HEALTH_CHECKS, ['cache'])
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',

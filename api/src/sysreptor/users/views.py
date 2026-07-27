@@ -507,14 +507,14 @@ class AuthViewSet(viewsets.ViewSet):
             raise exceptions.AuthenticationFailed()
         return self.perform_login(request, identity.user)
 
-    @action(detail=False, url_path='forgot-password', methods=['post'], permission_classes=[ForgotPasswordPermissions], throttle_scope='pw')
+    @action(detail=False, url_path='forgot-password', methods=['post'], permission_classes=[ForgotPasswordPermissions], throttle_scope='pwreset_sendmail')
     def forgot_password_send(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(data={})
 
-    @action(detail=False, url_path='forgot-password/check', methods=['post'], permission_classes=[ForgotPasswordPermissions])
+    @action(detail=False, url_path='forgot-password/check', methods=['post'], permission_classes=[ForgotPasswordPermissions], throttle_scope='pwreset_check')
     def forgot_password_check(self, request, *args, **kwargs):
         serializers = self.get_serializer(data=request.data)
         serializers.is_valid(raise_exception=True)
@@ -523,7 +523,7 @@ class AuthViewSet(viewsets.ViewSet):
             'email': user.email,
         })
 
-    @action(detail=False, url_path='forgot-password/reset', methods=['post'], permission_classes=[ForgotPasswordPermissions])
+    @action(detail=False, url_path='forgot-password/reset', methods=['post'], permission_classes=[ForgotPasswordPermissions], throttle_scope='pwreset_check')
     def forgot_password_reset(self, request, *args, **kwargs):
         # Check token
         serializer_check = ForgotPasswordCheckSerializer(data=request.data)
