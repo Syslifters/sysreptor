@@ -13,10 +13,15 @@ Execute following command to create a backup:
 docker compose run --rm app python3 manage.py backup > backup.zip
 ```
 
-Backups can be encrypted using a 256-bit AES key. 
+Backups can be encrypted using a 256-bit AES key.
 Specify the key as hex string via the `--key` CLI argument.
 ```shell title="Create encrypted backup via CLI"
-docker compose run --rm app python3 manage.py backup --key "<aes-key-as-hex>" > backup.zip.crypt
+docker compose run --rm app python3 manage.py backup --key="<aes-key-as-hex>" > backup.zip.crypt
+```
+
+To avoid exposing the key in the process list (e.g. interactive use), pass `--key=-` to enter the hex key from the terminal without echo:
+```shell title="Create encrypted backup with key from terminal"
+docker compose run --rm -it app python3 manage.py backup --key=- > backup.zip.crypt
 ```
 
 ## Create a backup during update
@@ -62,5 +67,10 @@ cat backup.zip | docker compose run --rm --no-TTY app python3 manage.py restoreb
 
 Encrypted backups can be restored as well. Specify the AES key as hex string via the `--key` CLI argument.
 ```shell title="Restore encrypted backup via CLI"
-cat backup.zip.crypt | docker compose run --rm --no-TTY app python3 manage.py restorebackup --key "<aes-key-as-hex>"
+cat backup.zip.crypt | docker compose run --rm --no-TTY app python3 manage.py restorebackup --key="<aes-key-as-hex>"
+```
+
+To avoid exposing the key in the process list, pass `--key=-` and provide the backup as a file path:
+```shell title="Restore encrypted backup with key from terminal"
+docker compose run --rm -it app python3 manage.py restorebackup --key=- backup.zip.crypt
 ```

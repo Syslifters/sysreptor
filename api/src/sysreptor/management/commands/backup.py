@@ -1,3 +1,5 @@
+import argparse
+import getpass
 import json
 import logging
 import os
@@ -12,9 +14,18 @@ from sysreptor.utils import crypto, license
 
 
 def aes_key(val):
-    key = bytes.fromhex(val)
+    if val == '-':
+        try:
+            val = getpass.getpass('AES key (hex): ')
+        except EOFError as ex:
+            raise argparse.ArgumentTypeError('AES key required') from ex
+
+    try:
+        key = bytes.fromhex(val.strip())
+    except ValueError as ex:
+        raise argparse.ArgumentTypeError('Invalid AES key: expected hex string') from ex
     if len(key) != 32:
-        raise ValueError('256-bit AES key required')
+        raise argparse.ArgumentTypeError('256-bit AES key required')
     return crypto.EncryptionKey(id=None, key=key)
 
 
@@ -42,7 +53,7 @@ def open_arg_file(path_or_file: str | os.PathLike | BinaryIO | TextIO, mode: str
 class Command(BaseCommand):
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument('file', nargs='?', default='-')
-        parser.add_argument('--key', type=aes_key, help='AES key as hex string to encrypt the backup (optional)')
+        parser.add_argument('--key', type=aes_key, help='AES key as hex string to encrypt the backup. Pass "-" to read the key from terminal.')
         parser.add_argument('--s3-params', type=parse_s3_params, help='S3 parameters for uploading the backup to S3 (optional)')
 
     def handle(self, file, key, s3_params=None, verbosity=1, **kwargs) -> str | None:

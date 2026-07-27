@@ -13,7 +13,7 @@ from sysreptor.utils import crypto, license
 class Command(BaseCommand):
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument('file', nargs='?', default='-')
-        parser.add_argument('--key', type=aes_key, help='AES key to decrypt the backup')
+        parser.add_argument('--key', type=aes_key, help='AES key as hex string to decrypt the backup. Pass "-" to read the key from terminal.')
         parser.add_argument('--keepfiles', action='store_true', default=False, help='Keep existing files in storages. Do not delete them.')
         parser.add_argument('--skip-files', action='store_true', default=False, help='Skip restoring files from the backup')
         parser.add_argument('--skip-database', action='store_true', default=False, help='Skip restoring database from the backup')
