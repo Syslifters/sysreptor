@@ -28,7 +28,7 @@ services:
     image: redis:8.0-alpine
     command: sh -c 'exec redis-server --requirepass "$${REDIS_PASSWORD:-}"'
     environment:
-      REDIS_PASSWORD: reportcreator
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-reportcreator}
     expose:
       - 6379
     restart: unless-stopped

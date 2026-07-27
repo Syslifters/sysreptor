@@ -92,6 +92,12 @@ Generate Django secret key and add to `app.env`:
 printf "SECRET_KEY=\"$(openssl rand -base64 64 | tr -d '\n=')\"\n"
 ```
 
+Generate database and Redis passwords and add to `.env` (copy from `.env.example` if needed):
+```shell
+cp -n .env.example .env
+printf "POSTGRES_PASSWORD=$(openssl rand -hex 32)\nREDIS_PASSWORD=$(openssl rand -hex 32)\n"
+```
+
 Optional: If you want to encrypt sensitive data at rest (data in the database and uploaded files and images), generate encryption keys and add to `app.env`:
 ```shell
 KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]\nDEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\"\n"

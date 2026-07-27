@@ -117,6 +117,22 @@ else
         sed -i'' -e "s#.*DEFAULT_ENCRYPTION_KEY_ID=.*#$default_encryption_key_id#" app.env
     fi
 
+    if [ ! -f .env ]
+    then
+        cp .env.example .env
+    fi
+    echo "Generating database and Redis passwords..."
+    for env_var in POSTGRES_PASSWORD REDIS_PASSWORD
+    do
+        password="$(openssl rand -hex 32)"
+        if grep -qE "^[[:space:]]*(#[[:space:]]*)?${env_var}=" .env
+        then
+            sed -i "s|^[[:space:]]*#\?[[:space:]]*${env_var}=.*|${env_var}=${password}|" .env
+        else
+            echo "${env_var}=${password}" >> .env
+        fi
+    done
+
     if [ -n "$SYSREPTOR_LICENSE" ]
     then
         echo "Adding your license key..."
