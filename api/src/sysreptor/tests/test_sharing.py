@@ -1,9 +1,11 @@
 from datetime import timedelta
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
 
+from sysreptor.pentests.models import UploadedProjectFile
 from sysreptor.tests.mock import (
     api_client,
     create_project,
@@ -223,6 +225,48 @@ class TestSharedUserNotePermissions:
         res_public = self.client.get(reverse('publicshareinfo-detail', kwargs={'pk': self.share_info.id}))
         assert res_public.status_code == 200
         assert 'comment' not in res_public.data
+
+
+@pytest.mark.django_db()
+class TestSharedNotePendingFileAccess:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.project = create_project(notes_kwargs=[], images_kwargs=[], files_kwargs=[])
+        self.note_shared = create_projectnotebookpage(project=self.project, text='Shared note')
+        self.share_info = create_shareinfo(projectnote=self.note_shared)
+        self.client = api_client(user=None)
+
+    @pytest.mark.parametrize(('via_share', 'same_session', 'after', 'expected'), [
+        pytest.param(False, True, None, 403, id='unreferenced-project-file'),
+        pytest.param(True, True, None, 200, id='same-session'),
+        pytest.param(True, False, None, 403, id='other-session'),
+        pytest.param(True, True, timedelta(minutes=2), 403, id='after-grace'),
+    ])
+    def test_pending_file_access(self, via_share, same_session, after, expected):
+        name = 'pending.txt'
+        if via_share:
+            res = self.client.post(
+                reverse('sharednote-upload-image-or-file', kwargs={'shareinfo_pk': self.share_info.id}),
+                data={'name': name, 'file': SimpleUploadedFile(name=name, content=b'content')},
+                format='multipart',
+            )
+            assert res.status_code == 201, res.data
+            name = res.data['name']
+        else:
+            UploadedProjectFile.objects.create(
+                linked_object=self.project,
+                name=name,
+                file=SimpleUploadedFile(name=name, content=b'content'),
+            )
+
+        client = self.client if same_session else api_client(user=None)
+        url = reverse('sharednote-file-by-name', kwargs={'shareinfo_pk': self.share_info.id, 'filename': name})
+        if after:
+            with mock_time(after=after):
+                res = client.get(url)
+        else:
+            res = client.get(url)
+        assert res.status_code == expected
 
 
 @pytest.mark.django_db()
