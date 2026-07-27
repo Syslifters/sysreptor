@@ -93,3 +93,34 @@ class TestReviewStatusTransitions:
         })
         assert res_s.status_code == 200 if expected else 400
 
+    @pytest.mark.parametrize(('username', 'status', 'expected'), [
+        ('user_regular', 'in-progress', True),
+        ('user_regular', 'ready-for-review', True),
+        ('user_regular', 'finished', False),
+        ('user_regular', 'deprecated', False),
+        ('user_regular', 'totally-made-up-xyz', False),
+        ('user_admin', 'finished', True),
+        ('user_admin', 'totally-made-up-xyz', True),
+    ])
+    @override_configuration(STATUS_DEFINITIONS=[
+        {"id": "in-progress", "label": "In Progress", "allowed_next_statuses": ["ready-for-review"]},
+        {"id": "ready-for-review", "label": "Ready for Review", "allowed_next_statuses": ["needs-improvement", "finished"]},
+        {"id": "needs-improvement", "label": "Needs Improvement", "allowed_next_statuses": ["ready-for-review"]},
+        {"id": "finished", "label": "Finished", "allowed_next_statuses": ["finished"]},
+    ])
+    def test_create_finding_status_api(self, username, status, expected):
+        user = {
+            'user_regular': create_user(username='user_regular'),
+            'user_admin': create_user(username='user_admin', is_superuser=True, admin_permissions_enabled=True),
+        }[username]
+        client = api_client(user=user)
+        project = create_project(members=[user], findings_kwargs=[])
+
+        res = client.post(reverse('finding-list', kwargs={'project_pk': project.pk}), data={
+            'status': status,
+            'data': {'title': 'status create test'},
+        })
+        assert res.status_code == (201 if expected else 400)
+        if expected:
+            assert res.data['status'] == status
+
