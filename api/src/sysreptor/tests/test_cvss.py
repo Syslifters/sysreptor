@@ -6,7 +6,13 @@ from sysreptor.pentests import cvss
 @pytest.mark.parametrize(("vector", "score"), [
     (None, 0.0),
     ('n/a', 0.0),
+    ('A:B:C', 0.0),
+    ('AV:N/AC:L:EXTRA', 0.0),
+    ('AV:N/AC:L/Au:N/C:N/I:N/A:N/XX:YY:ZZ', 0.0),
 
+    ('CVSS:4.0/invalid', 0.0),
+    ('CVSS:4.0/A:B:C', 0.0),
+    ('CVSS:4.0/AV:N', 0.0),
     ('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H', 10.0),
     ('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:N/SC:N/SI:N/SA:N', 0.0),
     ('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N', 9.3),
@@ -21,6 +27,8 @@ from sysreptor.pentests import cvss
     ('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/ui:N/VC:N/VI:L/VA:N/SC:N/SI:N/SA:N', 0.0),
     ('CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:L/SC:N/SI:N/SA:N', 0.0),
 
+    ('CVSS:3.0/invalid', 0.0),
+    ('CVSS:3.0/A:B:C', 0.0),
     ('CVSS:3.0/AV:N', 0.0),
     ('CVSS:3.0/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L/XX:X', 0.0),
     ('CVSS:3.0/AV:J/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L', 0.0),
@@ -33,6 +41,8 @@ from sysreptor.pentests import cvss
     ('CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H/E:P/RL:T/RC:U', 8.4),
     ('CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H/E:P/RL:X/RC:U/CR:M/IR:H/AR:X/MAV:A/MAC:L/MPR:L/MUI:R/MS:U/MC:L/MI:L/MA:X', 5.7),
 
+    ('CVSS:3.1/invalid', 0.0),
+    ('CVSS:3.1/A:B:C', 0.0),
     ('CVSS:3.1/AV:N', 0.0),
     ('CVSS:3.1/AV:N/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L/XX:X', 0.0),
     ('CVSS:3.1/AV:J/AC:H/PR:L/UI:R/S:U/C:L/I:L/A:L', 0.0),
@@ -47,6 +57,8 @@ from sysreptor.pentests import cvss
     ('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H/E:P/RL:T/RC:U', 8.4),
     ('CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H/E:P/RL:X/RC:U/CR:M/IR:H/AR:X/MAV:A/MAC:L/MPR:L/MUI:R/MS:U/MC:L/MI:L/MA:X', 5.7),
 
+    ('CVSS2#invalid', 0.0),
+    ('CVSS2#A:B:C', 0.0),
     ('CVSS2#AV:N', 0.0),
     ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:N/XX:X', 0.0),
     ('CVSS2#AV:N/AC:M/Au:M/C:P/I:C/A:J', 0.0),
