@@ -32,16 +32,13 @@ services:
     image: mcr.microsoft.com/playwright:v1.61.1-noble
     working_dir: /app/packages/frontend/
     environment:
-      # DISPLAY: :0 # for running with --ui in WSL 2 with XServer
       FRONTEND_ADMIN_USER: "reptor"
     env_file: ../deploy/app.env
     volumes:
       - type: bind
         source: ../packages/
         target: /app/packages/
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    command: npx playwright test # --ui
+    command: npx playwright test
     network_mode: host
     # depends_on:
     #   frontend:

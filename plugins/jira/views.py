@@ -3,6 +3,7 @@ import itertools
 
 import httpx
 from asgiref.sync import sync_to_async
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -12,7 +13,7 @@ from sysreptor.pentests.views import ProjectSubresourceMixin
 from sysreptor.plugins import configuration
 from sysreptor.utils.api import ViewSetAsync
 
-from .serializers import JiraExportSerializer
+from .serializers import JiraExportSerializer, quote_jql_string, validate_jira_project_id_or_key
 
 
 async def jira_request(client: httpx.AsyncClient, method: str, endpoint: str, **kwargs) -> dict:
@@ -61,13 +62,13 @@ async def search_existing_issues(client: httpx.AsyncClient, jira_project: str, i
     
     try:
         # Search for all issues with any of these labels in the target project
-        label_conditions = ' OR '.join([f'labels = "{label}"' for label in issue_infos_by_label.keys()])
+        label_conditions = ' OR '.join([f'labels = {quote_jql_string(label)}' for label in issue_infos_by_label.keys()])
         search_result = await jira_request(
             client,
             method='POST',
             endpoint='/rest/api/3/search/jql',
             json={
-                'jql': f'project = {jira_project} AND ({label_conditions})',
+                'jql': f'project = {quote_jql_string(jira_project)} AND ({label_conditions})',
                 'fields': ['id', 'key', 'labels', 'summary', 'description'],
                 'maxResults': 1000,
             }
@@ -253,7 +254,11 @@ class JiraExportViewSet(ProjectSubresourceMixin, ViewSetAsync):
         jira_project = request.query_params.get('jira_project')
         if not jira_project:
             raise ValidationError('jira_project query parameter is required')
-        
+        try:
+            validate_jira_project_id_or_key(jira_project)
+        except DjangoValidationError as e:
+            raise ValidationError(e.messages) from e
+
         async with httpx.AsyncClient() as client:
             project = await jira_request(client, method='GET', endpoint=f'/rest/api/3/project/{jira_project}')
             issue_types = [

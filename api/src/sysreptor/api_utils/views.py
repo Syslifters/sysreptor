@@ -235,9 +235,6 @@ class HealthcheckApiView(APIViewAsync):
             # Run periodic tasks
             run_in_background(PeriodicTask.objects.run_all_pending_tasks)()
 
-            # Memory cleanup of worker process
-            gc.collect()
-
         return res
 
 
