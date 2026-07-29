@@ -7,7 +7,6 @@ tags = [
     "htb",
     "HackTheBox",
 ]
-default_notes = []
 report_template = """
 <div id="header" data-sysreptor-generated="page-header">
     <div id="header-left">
@@ -1352,6 +1351,150 @@ order = "desc"
 [[finding_ordering]]
 field = "title"
 order = "asc"
+
+[[default_notes]]
+title = "Preparation"
+id = "093d6598-63cf-4423-92c5-9703464817a7"
+text = ""
+type = "text"
+order = 1
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "📚"
+
+[[default_notes]]
+title = "Study Notes"
+id = "65486a33-c25e-4f0e-960d-0131c91ac1c1"
+text = """
+Techniques, methodology, and resources from your preparation...
+
+"""
+type = "text"
+order = 1
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "📖"
+
+[[default_notes]]
+title = "Lab Notes"
+id = "1b8acbd6-f3aa-4fc9-ae89-54bb73076228"
+text = """
+Notes and progress from lab machines...
+
+"""
+type = "text"
+order = 2
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🧪"
+
+[[default_notes]]
+title = "To Do's"
+id = "7c2d41a6-950b-4f75-a350-fce566951f70"
+text = ""
+type = "text"
+order = 3
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "✔️"
+
+[[default_notes]]
+title = "To Do X"
+id = "d9090231-a2a4-4784-b62e-d9ace07638d0"
+text = ""
+type = "text"
+order = 1
+parent = "7c2d41a6-950b-4f75-a350-fce566951f70"
+checked = false
+created = "2026-07-23T14:00:00.000Z"
+
+[[default_notes]]
+title = "Exam"
+id = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+text = ""
+type = "text"
+order = 2
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🎯"
+
+[[default_notes]]
+title = "Exam Info"
+id = "3deb317e-3580-472b-8a3d-951c14d706e9"
+text = """
+# Exam Details
+OSID, VPN connection, start time, and exam rules reminders...
+
+"""
+type = "text"
+order = 1
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "ℹ️"
+
+[[default_notes]]
+title = "Targets"
+id = "a1af6eb1-2adf-44f9-a1cc-4ac0830fc72c"
+text = ""
+type = "text"
+order = 2
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "💻"
+
+[[default_notes]]
+title = "Target X"
+id = "0915eb97-ddaf-484a-9354-cef15e60dbe4"
+text = ""
+type = "text"
+order = 1
+parent = "a1af6eb1-2adf-44f9-a1cc-4ac0830fc72c"
+checked = false
+created = "2026-07-23T14:00:00.000Z"
+
+[[default_notes]]
+title = "Flags"
+id = "9ac95a50-2c13-4499-9032-7e4e413308f1"
+text = """
+Track local.txt / proof.txt and other trophies...
+
+"""
+type = "text"
+order = 3
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🚩"
+
+[[default_notes]]
+title = "Cleanup"
+id = "a1cdcd2f-cfa6-4b88-b616-b6da69a31cc8"
+text = """
+Document changes to revert: accounts, tools, persistence, uploaded files...
+
+"""
+type = "text"
+order = 4
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🧹"
+
+[[default_notes]]
+title = "To Do's"
+id = "e013a8e7-1d74-40fb-8419-6da7b198a462"
+text = ""
+type = "text"
+order = 5
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "✔️"
+
+[[default_notes]]
+title = "To Do X"
+id = "b269afd4-5fcc-4dcf-ba29-dc225cb283f2"
+text = ""
+type = "text"
+order = 1
+parent = "e013a8e7-1d74-40fb-8419-6da7b198a462"
+checked = false
+created = "2026-07-23T14:00:00.000Z"
 
 [report_preview_data]
 [report_preview_data.report]
