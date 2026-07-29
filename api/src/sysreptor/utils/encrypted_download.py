@@ -1,5 +1,7 @@
 import base64
+import dataclasses
 import json
+import zlib
 from functools import wraps
 
 from Cryptodome.Cipher import AES
@@ -20,8 +22,18 @@ KEY_SIZE = 32
 NONCE_SIZE = 12
 CHUNK_SIZE = 512 * 1024
 
+# Compression of base64 is dominated by huffman coding, therefore a low level is nearly as effective as a high one.
+GZIP_LEVEL = 1
+GZIP_WBITS = 16 + zlib.MAX_WBITS  # gzip container instead of raw deflate
 
-def get_encryption_key(request) -> bytes|None:
+
+@dataclasses.dataclass
+class EncryptedDownloadOptions:
+    key: bytes
+    gzip: bool
+
+
+def get_encrypted_download_options(request) -> EncryptedDownloadOptions|None:
     """
     Get the client-provided encryption key from the request headers.
     Returns None if the client did not request an encrypted download.
@@ -36,7 +48,11 @@ def get_encryption_key(request) -> bytes|None:
         raise exceptions.ValidationError(f'Invalid {ENCRYPTION_KEY_HEADER} header: not valid base64') from None
     if len(key) != KEY_SIZE:
         raise exceptions.ValidationError(f'Invalid {ENCRYPTION_KEY_HEADER} header: expected a {KEY_SIZE} byte key')
-    return key
+
+    return EncryptedDownloadOptions(
+        key=key,
+        gzip='gzip' in request.headers.get('Accept-Encoding', ''),
+    )
 
 
 def encrypt_frame(key: bytes, index: int, data: bytes, final: bool = False) -> bytes:
@@ -71,20 +87,41 @@ def encrypted_stream(file, key: bytes, metadata: dict):
     yield b'\n' + encrypt_frame(key=key, index=index + 1, data=b'', final=True)
 
 
-def encrypted_file_response(file, key: bytes, filename: str, content_type: str, headers: dict|None = None):
+def gzip_stream(stream):
+    """
+    Compress a stream as gzip.
+
+    base64 holds only 6 bit of information per byte, therefore compression removes most of the
+    base64 overhead. We compress in the application, because reverse proxies either do not compress
+    at all by default, or skip data that looks incompressible to them (e.g. Caddy).
+    """
+    compressor = zlib.compressobj(GZIP_LEVEL, zlib.DEFLATED, GZIP_WBITS)
+    for data in stream:
+        if compressed := compressor.compress(data):
+            yield compressed
+    yield compressor.flush()
+
+
+def encrypted_file_response(file, key: bytes, filename: str, content_type: str, gzip: bool = False, headers: dict|None = None):
     """
     Return a file as an encrypted text stream that is decrypted by the client.
     Proxies and firewalls cannot inspect the content type, the filename or the file content.
     """
+    stream = encrypted_stream(file=file, key=key, metadata={
+        'version': FORMAT_VERSION,
+        'cipher': 'AES-GCM',
+        'filename': filename,
+        'content_type': content_type,
+    })
+    encoding_headers = {}
+    if gzip:
+        stream = gzip_stream(stream)
+        encoding_headers = {'Content-Encoding': 'gzip', 'Vary': 'Accept-Encoding'}
+
     response = StreamingHttpResponseAsync(
-        streaming_content=encrypted_stream(file=file, key=key, metadata={
-            'version': FORMAT_VERSION,
-            'cipher': 'AES-GCM',
-            'filename': filename,
-            'content_type': content_type,
-        }),
+        streaming_content=stream,
         content_type='text/plain; charset=utf-8',
-        headers=(headers or {}) | {
+        headers=(headers or {}) | encoding_headers | {
             'Content-Disposition': 'attachment',
             # Encrypted responses must never be cached: the ciphertext is only valid for the key of this request.
             'Cache-Control': 'no-store',

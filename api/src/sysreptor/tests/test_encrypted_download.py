@@ -1,4 +1,5 @@
 import base64
+import gzip
 import json
 import math
 import tracemalloc
@@ -23,6 +24,7 @@ from sysreptor.utils.encrypted_download import (
     KEY_SIZE,
     NONCE_SIZE,
     encrypted_stream,
+    gzip_stream,
 )
 
 ENCRYPTION_KEY = b'\x01' * KEY_SIZE
@@ -90,24 +92,46 @@ class TestEncryptedStreaming:
         next(stream)
         assert file.position == 2 * CHUNK_SIZE
 
+    def test_gzip_is_streamed_lazily(self):
+        file = GeneratedFile(size=100 * CHUNK_SIZE)
+        stream = gzip_stream(encrypted_stream(file=file, key=ENCRYPTION_KEY, metadata=self.METADATA))
+
+        next(stream)
+        assert file.position <= CHUNK_SIZE
+
+    def measure_memory_usage(self, stream) -> tuple[int, int]:
+        tracemalloc.start()
+        try:
+            blocks = sum(1 for _ in stream)
+            _current, peak = tracemalloc.get_traced_memory()
+        finally:
+            tracemalloc.stop()
+        return blocks, peak
+
     def test_large_file_memory_usage(self):
         size = 1024 ** 3 + 1234
         file = GeneratedFile(size=size)
 
-        tracemalloc.start()
-        try:
-            frames = 0
-            for _frame in encrypted_stream(file=file, key=ENCRYPTION_KEY, metadata=self.METADATA):
-                frames += 1
-            _current, peak = tracemalloc.get_traced_memory()
-        finally:
-            tracemalloc.stop()
+        frames, peak = self.measure_memory_usage(
+            encrypted_stream(file=file, key=ENCRYPTION_KEY, metadata=self.METADATA))
 
         # metadata frame + content frames + final frame
         assert frames == math.ceil(size / CHUNK_SIZE) + 2
         assert file.position == size
         assert file.closed
         # Only single chunks are held in memory, not the whole file
+        assert peak < 16 * 1024 * 1024, f'peak memory usage of {peak} bytes is too high'
+
+    def test_large_file_memory_usage_gzip(self):
+        # Smaller than the uncompressed case: compressing a GiB is slow and adds nothing to the assertion
+        size = 128 * 1024 * 1024 + 1234
+        file = GeneratedFile(size=size)
+
+        _blocks, peak = self.measure_memory_usage(gzip_stream(
+            encrypted_stream(file=file, key=ENCRYPTION_KEY, metadata=self.METADATA)))
+
+        assert file.position == size
+        assert file.closed
         assert peak < 16 * 1024 * 1024, f'peak memory usage of {peak} bytes is too high'
 
 
@@ -157,6 +181,29 @@ class TestEncryptedFileDownload:
             'content_type': 'application/octet-stream',
         }
         assert content == b'file content'
+
+    def test_download_encrypted_gzip(self):
+        """base64 compresses well, therefore most of the base64 overhead is removed on the wire."""
+        content = b'0123456789' * (CHUNK_SIZE // 5)
+        file = self.create_file(content=content)
+
+        res = self.download(file, **ENCRYPTION_KEY_HEADER_KWARGS, HTTP_ACCEPT_ENCODING='gzip')
+        assert res.status_code == 200
+        assert res.headers['Content-Encoding'] == 'gzip'
+        assert 'Accept-Encoding' in res.headers['Vary']
+        assert res.headers['Content-Type'] == 'text/plain; charset=utf-8'
+
+        compressed = b''.join(res.streaming_content)
+        decompressed = gzip.decompress(compressed)
+        assert len(compressed) < len(decompressed)
+        assert decrypt_frames(decompressed.split(b'\n'))[1] == content
+
+    @pytest.mark.parametrize('accept_encoding', ['identity', ''])
+    def test_download_encrypted_without_gzip(self, accept_encoding):
+        file = self.create_file()
+        res = self.download(file, **ENCRYPTION_KEY_HEADER_KWARGS, HTTP_ACCEPT_ENCODING=accept_encoding)
+        assert 'Content-Encoding' not in res.headers
+        assert decrypt_response(res)[1] == b'file content'
 
     def test_download_encrypted_does_not_leak_plaintext(self):
         file = self.create_file(name='secret-report.pdf', content=b'%PDF-1.3 secret content')
