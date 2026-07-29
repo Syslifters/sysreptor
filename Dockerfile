@@ -167,7 +167,8 @@ VOLUME [ "/data" ]
 ENV MEDIA_ROOT=/data/ \
     PDF_RENDER_SCRIPT_PATH=/app/packages/rendering/dist/bundle.js \
     PLUGIN_DIRS=/app/plugins/ \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONNOUSERSITE=1
 
 
 # Start server

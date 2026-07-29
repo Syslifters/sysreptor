@@ -34,7 +34,7 @@ class NotificationSpecManagerBase(models.Manager.from_queryset(NotificationSpecQ
         return self \
             .only_active() \
             .filter(models.Q(user_conditions__is_superuser__isnull=True) | models.Q(user_conditions__is_superuser=user.is_superuser)) \
-            .filter(models.Q(user_conditions__is_desinger__isnull=True) | models.Q(user_conditions__is_designer=user.is_designer)) \
+            .filter(models.Q(user_conditions__is_designer__isnull=True) | models.Q(user_conditions__is_designer=user.is_designer)) \
             .filter(models.Q(user_conditions__is_template_editor__isnull=True) | models.Q(user_conditions__is_template_editor=user.is_template_editor)) \
             .filter(models.Q(user_conditions__is_user_manager__isnull=True) | models.Q(user_conditions__is_user_manager=user.is_user_manager)) \
             .filter(models.Q(user_conditions__is_project_admin__isnull=True) | models.Q(user_conditions__is_project_admin=user.is_project_admin))

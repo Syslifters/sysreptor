@@ -9,7 +9,18 @@ from sysreptor.utils.crypto.base import CryptoError
 @contextmanager
 def create_gpg():
     with tempfile.TemporaryDirectory() as d:
-        gpg = gnupg.GPG(gnupghome=d)
+        gpg = gnupg.GPG(
+            gnupghome=d,
+            env={},
+            options=[
+                '--no-options',
+                '--disable-dirmngr',
+                '--no-auto-key-locate',
+                '--no-auto-key-retrieve',
+                '--no-auto-key-import',
+                '--no-permission-warn',
+            ],
+        )
         gpg.encoding = 'utf-8'
         yield gpg
 

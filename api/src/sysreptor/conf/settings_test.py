@@ -19,9 +19,8 @@ STORAGES = STORAGES | {
     'archivedfiles': {'BACKEND': 'django.core.files.storage.InMemoryStorage'},
 }
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    },
+    'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'},
+    'local': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'},
 }
 # DummyCache does not store values, so check_cache would always fail
 HEALTH_CHECKS = omit_keys(HEALTH_CHECKS, ['cache'])
