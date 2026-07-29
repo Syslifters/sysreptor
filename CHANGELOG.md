@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Support downloading note files via an encrypted channel to prevent proxies from inspecting downloads (https://docs.sysreptor.com/reporting/notes#downloading-files)
+
+
 ## v2026.61 - 2026-07-29
 * This is a security release: full fix 1 high vulnerability
 * Security: implement multiple hardening measures
