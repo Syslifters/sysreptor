@@ -84,7 +84,7 @@ async function createNote(data?: Partial<NoteBase>) {
     checked: [true, false].includes(currentNote?.checked as any) ? false : null,
     ...data,
   });
-  await navigateTo({ path: `/notes/personal/${obj.id}/`, hash: 'title' });
+  await navigateTo({ path: `/notes/personal/${obj.id}/`, hash: '#title' });
 }
 async function performDelete(note: NoteBase) {
   return await userNotesStore.deleteNote(note as UserNote);
