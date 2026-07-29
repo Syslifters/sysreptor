@@ -246,7 +246,7 @@ if REDIS_URL:
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': REDIS_URL,
         'OPTIONS': {
-            'serializer': 'json',
+            'serializer': 'sysreptor.utils.cache_serializers.JsonRedisSerializer',
         },
     }
 

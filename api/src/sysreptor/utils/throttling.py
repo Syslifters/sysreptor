@@ -25,11 +25,13 @@ class ScopedUserRateThrottle(throttling.ScopedRateThrottle):
         return hashlib.sha256(value.encode()).hexdigest()[:32]
 
     def get_ident(self, request):
-        if self.scope in ('pwreset_sendmail', 'pwreset_check'):
+        if self.scope == 'pwreset_sendmail':
             data = getattr(request, 'data', None) or {}
             if email := str(data.get('email') or '').strip().lower():
                 return self.hash_ident(email)
-            elif user := data.get('user'):
+        elif self.scope == 'pwreset_check':
+            data = getattr(request, 'data', None) or {}
+            if user := data.get('user'):
                 if is_uuid(user):
                     # normalize UUID to canonical form
                     user = str(uuid.UUID(user))
