@@ -233,17 +233,20 @@ if not DISABLE_WEBSOCKETS:
 else:
     CHANNEL_LAYERS = {}
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'local': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+}
 if REDIS_URL:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-            'LOCATION': REDIS_URL,
-        },
-    }
-else:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    CACHES['default'] = {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'serializer': 'json',
         },
     }
 

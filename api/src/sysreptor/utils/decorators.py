@@ -2,34 +2,34 @@ import functools
 import itertools
 from collections.abc import Iterable
 
-from django.core.cache import cache as django_cache
+from django.core.cache import caches
 from frozendict import frozendict
 
 
-def cache(key, **cache_kwargs):
+def cache(key, cache_name='default', **cache_kwargs):
     def inner(func):
         def wrapped(*args, **kwargs):
-            val = django_cache.get(key)
+            c = caches[cache_name]
+            val = c.get(key)
             if val is not None:
                 return val
-            else:
-                val = func(*args, **kwargs)
-                django_cache.set(key=key, value=val, **cache_kwargs)
-                return val
+            val = func(*args, **kwargs)
+            c.set(key=key, value=val, **cache_kwargs)
+            return val
         return wrapped
     return inner
 
 
-def acache(key, **cache_kwargs):
+def acache(key, cache_name='default', **cache_kwargs):
     def inner(func):
         async def wrapped(*args, **kwargs):
-            val = await django_cache.aget(key)
+            c = caches[cache_name]
+            val = await c.aget(key)
             if val is not None:
                 return val
-            else:
-                val = await func(*args, **kwargs)
-                await django_cache.aset(key=key, value=val, **cache_kwargs)
-                return val
+            val = await func(*args, **kwargs)
+            await c.aset(key=key, value=val, **cache_kwargs)
+            return val
         return wrapped
     return inner
 
