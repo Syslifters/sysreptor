@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Support downloading note files via an encrypted channel to prevent proxies from inspecting downloads (https://docs.sysreptor.com/reporting/notes#downloading-files)
+* Render markdown preview content in iframes
 
 
 ## v2026.61 - 2026-07-29

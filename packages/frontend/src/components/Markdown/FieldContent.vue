@@ -161,7 +161,9 @@ function syncScrollEditorToPreview() {
   // previewElementOffsetTop and mdBlockOffsetTop should be at the same level (they are the same line/block).
   // Both offsets are relative to the same DOM position: inside the field below the toolbar.
   // So we need to scroll previewContainerRef to the difference between the two offsets (when height(preview) > height(codemirror)).
-  const previewElementOffsetTop = getOffsetTop(previewElement, previewContainerRef.value);
+  const previewElementOffsetTop =
+    getOffsetTop(previewElement, previewElement.ownerDocument.body) +
+    getOffsetTop(previewRef.value.element, previewContainerRef.value);
   const mdBlockOffsetTop = mdBlock.element.offsetTop;
   const newScrollTop = previewElementOffsetTop - mdBlockOffsetTop;
 
@@ -171,9 +173,9 @@ function syncScrollEditorToPreview() {
   }
 
   // Scroll to the new position
-  previewContainerRef.value.scrollTo({ 
+  previewContainerRef.value.scrollTo({
     top: newScrollTop,
-    behavior: 'smooth', 
+    behavior: 'smooth',
   });
   return true;
 }
@@ -274,7 +276,7 @@ function getDepth(el: Element): number {
 function getOffsetTop(el: HTMLElement, offsetParent: HTMLElement): number {
   let offsetTop = el.offsetTop;
   while (el.offsetParent && el.offsetParent !== offsetParent) {
-    el = el.offsetParent as HTMLElement
+    el = el.offsetParent as HTMLElement;
     offsetTop += el.offsetTop;
   }
   return offsetTop;
@@ -317,10 +319,12 @@ function getEditorLineForPosition(position: number): HTMLElement|null {
 }
 
 function getPreviewElementForLine(lineNumber?: number, editorPosition?: number): HTMLElement|null {
-  if (!Number.isInteger(lineNumber) || !previewRef.value?.element) {
+  const previewDoc = previewRef.value?.element?.contentDocument;
+  if (!previewDoc || !Number.isInteger(lineNumber)) {
     return null;
   }
-  const previewElements = Array.from(previewRef.value.element.querySelectorAll<HTMLElement>('[data-position]'))
+  const root = previewDoc.getElementById('preview-content') ?? previewDoc;
+  const previewElements = Array.from(root.querySelectorAll<HTMLElement>('[data-position]'))
     .filter(el => {
       const position = getPosition(el);
       return position &&  el.offsetTop > 0 && (
