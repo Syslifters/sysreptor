@@ -8,7 +8,8 @@ export type NoteGroup<T extends NoteBase> = {
 
 
 export function groupNotes<T extends NoteBase>(noteList: T[], options?: { parentNoteId: string|null}): NoteGroup<T> {
-  const groups = groupBy(noteList, 'parent');
+  // TOML-packed designs omit null parents; treat missing parent as null so top-level notes show in the UI.
+  const groups = groupBy(noteList.map(n => ({ ...n, parent: n.parent ?? null })), 'parent');
 
   function collectChildren(parentId: string|null): NoteGroup<T> {
     return sortBy(groups[parentId as any] || [], 'order')
