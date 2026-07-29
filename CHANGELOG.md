@@ -1,8 +1,21 @@
 # Changelog
 
-## Upcoming
+## v2026.61 - 2026-07-29
+* This is a security release: full fix 1 high vulnerability
 * Security: implement multiple hardening measures
+* Allow creating API tokens with/without superuser permissions
 * Disable user after multiple failed MFA login attempts
+* Remove PDF compression and `COMPRESS_PDFS` setting
+* Rework plugin loading to make source code directory readonly in docker image
+* Use redis as django cache
+* Throttle sending password reset mails per email
+* Validate initial status transition on create
+* Send mention/assignee notifications only to project members
+* Generate random postgres and redis passwords in install.sh
+* `backup`/`restorebackup` command: allow reading AES key from stdin
+* Harden PDF rendering
+* Plugin `scanimport`: add Prowler and ScoutSuite importers
+
 
 ## v2026.58 - 2026-07-21
 * This is a security release: fix 2 high vulnerabilities
