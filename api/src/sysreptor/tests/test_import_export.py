@@ -238,6 +238,60 @@ class TestImportExport:
         assert t.source == SourceEnum.IMPORTED
         assert t.assets.all().count() == 0
 
+    def test_import_project_type_default_notes_toml_nulls(self):
+        """TOML cannot represent null; omitted parent/checked must be restored on import."""
+        parent_id = '11111111-1111-1111-1111-111111111111'
+        child_id = '22222222-2222-2222-2222-222222222222'
+        project_type_data = {
+            'format': 'projecttypes/v2',
+            'id': str(self.project_type.id),
+            'assets': [],
+            'default_notes': [
+                # Top-level note as packed from TOML (no parent/checked keys)
+                {
+                    'id': parent_id,
+                    'order': 1,
+                    'title': 'Preparation',
+                    'text': '',
+                    'type': 'text',
+                    'icon_emoji': '📚',
+                },
+                # Child with parent set, but checked omitted
+                {
+                    'id': child_id,
+                    'parent': parent_id,
+                    'order': 1,
+                    'title': 'Study Notes',
+                    'text': 'Notes...',
+                    'type': 'text',
+                },
+                # Checkbox child with explicit checked=false must be preserved
+                {
+                    'id': '33333333-3333-3333-3333-333333333333',
+                    'parent': parent_id,
+                    'order': 2,
+                    'title': 'To Do X',
+                    'text': '',
+                    'type': 'text',
+                    'checked': False,
+                },
+            ],
+        } | copy_keys(self.project_type, [
+            'name', 'language', 'status', 'tags',
+            'report_sections', 'finding_fields', 'finding_ordering', 'finding_grouping',
+            'report_template', 'report_styles', 'report_preview_data',
+        ])
+        archive = create_archive([project_type_data])
+        imported = import_project_types(archive)
+
+        assert len(imported) == 1
+        notes = {n['id']: n for n in imported[0].default_notes}
+        assert notes[parent_id]['parent'] is None
+        assert notes[parent_id]['checked'] is None
+        assert notes[child_id]['parent'] == parent_id
+        assert notes[child_id]['checked'] is None
+        assert notes['33333333-3333-3333-3333-333333333333']['checked'] is False
+
     def assert_export_import_comments(self, obj_original, obj_imported):
         for i_c, o_c in zip(obj_imported.comments.order_by('created'), obj_original.comments.order_by('created'), strict=False):
             assertKeysEqual(i_c, o_c, ['created', 'user', 'text', 'path', 'text_range', 'text_original'])
@@ -725,6 +779,47 @@ class TestCopyModel:
         n2_1.refresh_from_db()
         assert n2_1.order == 1
 
+
+class TestNormalizeDefaultNotes:
+    @pytest.fixture
+    def validator(self):
+        from sysreptor.pentests.fielddefinition.validators import DefaultNotesValidator
+        return DefaultNotesValidator()
+
+    def test_empty(self, validator):
+        validator([])
+
+    def test_fills_missing_parent_and_checked(self, validator):
+        notes = [
+            {'id': '11111111-1111-1111-1111-111111111111', 'order': 1, 'title': 'Top', 'text': ''},
+            {
+                'id': '22222222-2222-2222-2222-222222222222',
+                'parent': '11111111-1111-1111-1111-111111111111',
+                'order': 1,
+                'title': 'Child',
+                'text': '',
+            },
+        ]
+        validator(notes)
+        assert notes[0]['parent'] is None
+        assert notes[0]['checked'] is None
+        assert notes[1]['parent'] == '11111111-1111-1111-1111-111111111111'
+        assert notes[1]['checked'] is None
+
+    def test_preserves_explicit_values(self, validator):
+        notes = [
+            {
+                'id': '11111111-1111-1111-1111-111111111111',
+                'parent': None,
+                'order': 1,
+                'checked': False,
+                'title': 'Checkbox',
+                'text': '',
+            },
+        ]
+        validator(notes)
+        assert notes[0]['parent'] is None
+        assert notes[0]['checked'] is False
 
 @pytest.mark.django_db()
 class TestDeleteUser:
