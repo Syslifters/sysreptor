@@ -136,7 +136,7 @@ def get_license_hash():
         return None
 
 
-@cache('license.license_info', timeout=10 * 60)
+@cache('license.license_info', cache_name='local', timeout=10 * 60)
 def check_license(**kwargs):
     return decode_and_validate_license(license=settings.LICENSE, **kwargs)
 

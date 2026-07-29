@@ -36,7 +36,7 @@ class NotificationSpecBase(BaseModel):
     def visible_until(self) -> datetime|None:
         out = None
         if self.visible_for_days:
-            out = timezone.now() + timedelta(days=min(self.visible_for_days, 10_000))
+            out = timezone.now() + timedelta(days=max(0, min(self.visible_for_days, 10_000)))
         if self.active_until:
             active_until_datetime = datetime_from_date(self.active_until)
             if not out or active_until_datetime < out:
