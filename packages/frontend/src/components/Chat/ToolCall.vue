@@ -81,17 +81,22 @@
       </nuxt-link>
     </template>
     <template v-else-if="props.value.name === 'ask_user'">
-      <chat-tool-call-status :status="props.value.status" />
       <template v-if="props.value.status === ToolCallStatus.PENDING">
+        <chat-tool-call-status :status="props.value.status" />
         Asking user
       </template>
-      <template v-else>
-        Asked user
-        <div class="text-body-medium mt-1">
-          {{ props.value.args.question }}:
-          <span class="font-weight-medium">{{ props.value.output?.answer }}</span>
-        </div>
-      </template>
+      <s-card
+        v-else
+        prepend-icon="mdi-comment-question-outline"
+        :title="props.value.args.question"
+        density="compact"
+        variant="tonal"
+        class="ask-user-result-card text-high-emphasis"
+      >
+        <v-card-text>
+          {{ props.value.output?.answer }}
+        </v-card-text>
+      </s-card>
     </template>
     <template v-else-if="props.value.name === 'write_todos'">
       <chat-tool-call-status :status="props.value.status" />
@@ -249,5 +254,15 @@ a {
 
 .message-text {
   font-size: 0.875rem;
+}
+
+.ask-user-result-card:deep() {
+  overflow: hidden;
+
+  .v-card-title {
+    font-size: 0.875rem;
+    font-weight: bold;
+    white-space: normal;
+  }
 }
 </style>

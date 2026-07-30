@@ -2,20 +2,18 @@
   <s-card
     v-if="askUser"
     prepend-icon="mdi-comment-question-outline"
-    title="Question"
+    :title="askUser.question"
     density="compact"
     variant="tonal"
     class="interrupt-prompt-card"
   >
     <v-card-text class="pb-0">
-      <div class="text-title-medium font-weight-bold">
-        {{ askUser.question }}
-      </div>
       <v-list
         v-model:selected="selected"
         select-strategy="single-leaf"
         density="compact"
         :lines="false"
+        class="pa-0"
       >
         <v-list-item
           v-for="(opt, index) in askUser.options"
@@ -167,5 +165,11 @@ function submit() {
 
 .interrupt-prompt-card:deep() {
   overflow: hidden;
+
+  .v-card-title {
+    font-size: 0.875rem;
+    font-weight: bold;
+    white-space: normal;
+  }
 }
 </style>

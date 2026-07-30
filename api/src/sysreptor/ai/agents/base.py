@@ -270,7 +270,7 @@ def format_message(m: AnyMessage) -> dict|None:
     return None
 
 
-async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None = None, model: str | None = None, **kwargs):
+async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]|None = None, model: str | None = None, **kwargs):
     try:
         with history_context(history_user=thread.user, set_history_date=False):
             yield {'type': 'metadata', 'content': {'thread_id': str(thread.id)}}
@@ -280,6 +280,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
             message_id_by_run: dict[str, str] = {}
             with suppress_langchain_beta_warning():
                 stream = await agent.astream_events(
+                    input,
                     config={
                         'configurable': {
                             'thread_id': str(thread.id),
@@ -290,7 +291,7 @@ async def agent_stream(agent, thread: ChatThread, context: dict[str, str]|None =
                         'project_id': thread.project_id,
                         'model': model or get_default_model_id(),
                     }),
-                    durability='sync',
+                    durability='exit',
                     version='v3',
                     transformers=[UpdatesTransformer],
                     **kwargs,

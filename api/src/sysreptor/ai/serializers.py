@@ -97,7 +97,7 @@ class LLMAgentSerializer(serializers.Serializer):
 
         return agent_stream(
             agent=self.validated_data['agent'],
-            input=self.validated_data.get('input'),
+            input=self.validated_data['input'],
             context=self.validated_data.get('context', {}),
             model=self.validated_data.get('model'),
             thread=thread,
