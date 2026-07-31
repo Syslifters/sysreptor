@@ -357,14 +357,16 @@ class TestProjectArchivingEncryption:
              pgp.create_gpg() as self.gpg:
             yield
 
-    def create_user_with_private_key(self, **kwargs):
-        user = create_user(public_key=False, **kwargs)
+    def create_user_with_private_key(self, name=None, **kwargs):
+        name = name or 'User'
+        user = create_user(public_key=False, first_name=name, **kwargs)
         master_key = self.gpg.gen_key(self.gpg.gen_key_input(
             key_type='EdDSA',
             key_curve='ed25519',
             no_protection=True,
             subkey_type='ECDH',
             subkey_curve='nistp384',
+            name_real=name,
         ))
         public_key_pem = self.gpg.export_keys(master_key.fingerprint)
         create_public_key(user=user, public_key=public_key_pem)
@@ -396,6 +398,19 @@ class TestProjectArchivingEncryption:
         assert res.status_code == 201
         user_public_key = UserPublicKey.objects.get(id=res.data['id'])
         assert user_public_key.public_key == public_key_pem
+
+    @override_configuration(ARCHIVING_THRESHOLD=1)
+    def test_archiving_public_key_uid_with_unicode(self):
+        # PGP key UIDs with non-ASCII characters must not break GPG stderr decoding
+        user = self.create_user_with_private_key(name='ⱣëntöΣt Üsär')
+        public_key_pem = user.public_keys.first().public_key
+        pgp.public_key_info(public_key_pem)
+        assert pgp.encrypt(data=b'test', public_key=public_key_pem)
+
+        project = create_project(members=[user], readonly=True)
+        res = api_client(user).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
+        assert res.status_code == 201
+        assert ArchivedProject.objects.filter(id=res.data['id']).exists()
 
     def test_delete_public_key(self):
         user = create_user(public_key=True)

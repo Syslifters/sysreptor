@@ -11,7 +11,10 @@ def create_gpg():
     with tempfile.TemporaryDirectory() as d:
         gpg = gnupg.GPG(
             gnupghome=d,
-            env={},
+            env={
+                'LC_ALL': 'C.UTF-8',
+                'LANG': 'C.UTF-8',
+            },
             options=[
                 '--no-options',
                 '--disable-dirmngr',
