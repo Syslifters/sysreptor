@@ -27,7 +27,7 @@ We identified an SQL injection vulnerability in the web application and were abl
 SQL Injection is a common server-side vulnerability in web applications. 
 It occurs when software developers create dynamic database queries that contain user input. 
 In an attack, user input is crafted in such a way that the originally intended action of an SQL statement is changed. 
-SQL injection vulnerabilities result from an application's failure to dynamically create database queries insecurely and to properly validate user input. 
+SQL injection vulnerabilities result from an application's failure to create dynamic database queries securely and to properly validate user input. 
 They are based on the fact that the SQL language basically does not distinguish between control characters and data characters. 
 In order to use a control character in the data part of an SQL statement, it must be encoded or escaped appropriately beforehand.
 

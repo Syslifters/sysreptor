@@ -194,7 +194,7 @@ order = 1
 [findings.data]
 title = "Assignment X"
 proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt."
-initial_analysis = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to under-stand. Include any custom code or references to public tools."
+initial_analysis = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
 vulnerability_discovery = """
 TODO Provide relevant analysis steps to locate vulnerability inside the application or environment, this includes results from static analysis and/or dynamic analysis. Explain the vulnerability identified.
 

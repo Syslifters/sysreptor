@@ -530,7 +530,7 @@ id = "details"
 type = "markdown"
 label = "Details"
 origin = "custom"
-default = "TODO Provide the method and code used to find the vulnerability ."
+default = "TODO Provide the method and code used to find the vulnerability."
 required = true
 
 [[finding_fields.items.properties]]
@@ -734,13 +734,13 @@ screenshots = "TODO Provide screenshots of local.txt and proof.txt contents as s
 steps = "TODO Provide a detailed account of your methodology in creating the exploits. The steps taken should be able to be easily followed and reproducible if necessary."
 
 [[report_preview_data.findings.vulnerabilities]]
-details = "TODO Provide the method and code used to find the vulnerability ."
+details = "TODO Provide the method and code used to find the vulnerability."
 reference = "Vulnerability X"
 
 [[report_preview_data.findings.vulnerabilities]]
-details = "TODO Provide the method and code used to find the vulnerability ."
+details = "TODO Provide the method and code used to find the vulnerability."
 reference = "Vulnerability X"
 
 [[report_preview_data.findings.vulnerabilities]]
-details = "TODO Provide the method and code used to find the vulnerability ."
+details = "TODO Provide the method and code used to find the vulnerability."
 reference = "Vulnerability X"

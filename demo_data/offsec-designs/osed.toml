@@ -526,7 +526,7 @@ id = "initial_analysis"
 type = "markdown"
 label = "Initial Analysis"
 origin = "custom"
-default = "Todo Provide relevant techniques and methods used to perform enumeration of the application, including network ports, security mitigations etc. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
+default = "TODO Provide relevant techniques and methods used to perform enumeration of the application, including network ports, security mitigations etc. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
 required = true
 
 [[finding_fields]]
@@ -569,7 +569,7 @@ type = "markdown"
 label = "Screenshots"
 origin = "custom"
 default = """
-TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel be-fore your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel before your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
 
 Each proof.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using ipconfig.
 """
@@ -752,7 +752,7 @@ Only the steps that ended up working are required.
 """
 exploit_creation = "TODO Provide a description of steps to create the exploit, this includes how to combine vulnerabilities, how to bypass DEP and how to write any custom shellcode. At the end of this section the full exploit code should be developed while an explanation of each step should be performed."
 screenshots = """
-TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel be-fore your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
+TODO The exam control panel contains a section available to submit your proof files. The contents of the proof.txt files obtained from your exam machines must be submitted in the control panel before your exam has ended. Note that the control panel will not indicate whether the submitted proof is correct or not. 
 
 Each proof.txt found must be shown in a screenshot that includes the contents of the file, as well as the IP address of the target by using ipconfig.
 """

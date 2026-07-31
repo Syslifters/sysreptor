@@ -982,7 +982,7 @@ type = "markdown"
 label = "Assessment Overview and Recommendations"
 origin = "custom"
 default = """
-During the Active Directory Security Assessment of {{ report.customer_full }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that pose risks to the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to improving security monitoring capabilities within the internal network.
+During the Active Directory Security Assessment of {{ report.customer_full }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that pose risks to the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational findings related to improving security monitoring capabilities within the internal network.
 
 TODO EXECUTIVE SUMMARY HERE
 
@@ -1523,7 +1523,7 @@ The scope of this assessment included three internal network ranges, the **EVERG
 | TODO OTHER DISCOVERED INTERNAL DOMAIN(S) | TODO FILL IN DESCRIPTION|
 """
 assessment_overview = """
-During the Active Directory Security Assessment of {{ report.customer_full }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that pose risks to the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to improving security monitoring capabilities within the internal network.
+During the Active Directory Security Assessment of {{ report.customer_full }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that pose risks to the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational findings related to improving security monitoring capabilities within the internal network.
 
 TODO EXECUTIVE SUMMARY HERE
 
