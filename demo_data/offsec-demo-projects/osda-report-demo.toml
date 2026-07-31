@@ -189,7 +189,7 @@ This report details and documents the attacks observed against the OffSec OSDA e
 
 The attacker organization started by performing a brute force against an internet accessible RDP server called APPSRV02 and obtained administrative access. This led to a complete compromise of the server.
 
-Next the attacker performed lateral movement to the internal server APPSRV02 by reusing stolen credentials from APPSRV02, this also led to a complete compromise of APPSRV03.
+Next the attacker performed lateral movement to the internal server APPSRV03 by reusing stolen credentials from APPSRV02, this also led to a complete compromise of APPSRV03.
 
 ...
 """
@@ -225,7 +225,7 @@ From this query we find the following event entry:
 
 ![Successful logon event](/assets/name/image-322213.png)
 
-This shows that the user Peter did a successful logon to APPSRV02 shortly after the suspected brute force attack. The source IP of the logon event was 192.168.67.69 which means its not a local logon, but remotely.
+This shows that the user Peter did a successful logon to APPSRV02 shortly after the suspected brute force attack. The source IP of the logon event was 192.168.67.69 which means it's not a local logon, but a remote one.
 
 At this point we have a strong suspicion that the account with the username Peter was compromised and a malicious actor obtained access to APPSRV02 coming from the IP address 192.168.67.69. We should escalate this to an incident and contact the user to verify whether this was a legitimate logon.
 """
@@ -238,9 +238,9 @@ order = 2
 [findings.data]
 title = "Persistence"
 description = """
-After suspicion of a compromise, additional investigation should be performed. One area is looking for persistence and a common way attackers employ is through the registry.
+After suspicion of a compromise, additional investigation should be performed. One area to investigate is persistence; a common technique attackers use is modifying the registry.
 
-To try and determine if this happed, we can use the KQL query:
+To try and determine if this happened, we can use the KQL query:
 
 ```
 process.name:"reg.exe"

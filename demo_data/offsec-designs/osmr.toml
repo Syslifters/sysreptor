@@ -524,7 +524,7 @@ id = "initial_analysis"
 type = "markdown"
 label = "Initial Analysis"
 origin = "custom"
-default = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to under-stand. Include any custom code or references to public tools."
+default = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
 required = true
 
 [[finding_fields]]
@@ -721,7 +721,7 @@ id = "cc0cb8c0-5ee8-4fc9-b1a0-a659e31ac2fb"
 created = "2025-09-30T08:02:23.777889+00:00"
 order = 1
 proof = "TODO Provide the contents of local.txt, proof.txt or secret.txt."
-initial_analysis = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to under-stand. Include any custom code or references to public tools."
+initial_analysis = "TODO Provide relevant techniques and methods used to perform enumeration and discovery of the application and/or the environment. The steps taken should be reproducible and easy to understand. Include any custom code or references to public tools."
 vulnerability_discovery = """
 TODO Provide relevant analysis steps to locate vulnerability inside the application or environment, this includes results from static analysis and/or dynamic analysis. Explain the vulnerability identified.
 

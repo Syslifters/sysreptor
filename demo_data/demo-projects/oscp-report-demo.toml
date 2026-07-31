@@ -195,7 +195,7 @@ highlevel_summary = """
 
 When performing the internal penetration test, there were several alarming vulnerabilities that were identified on Offensive Security’s network. When performing the attacks, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to gain access to multiple machines, primarily due to outdated patches and poor security configurations.  During the testing, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) had administrative level access to multiple systems. All systems were successfully exploited and access granted.
 """
-recommendations = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect additional vulnerabilities that are discovered at a later date."
+recommendations = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) recommends patching the vulnerabilities identified during the testing to ensure that an attacker cannot exploit these systems in the future. One thing to remember is that these systems require frequent patching and once patched, should remain on a regular patch program to protect against additional vulnerabilities that are discovered at a later date."
 methodology = "{{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) utilized a widely adopted approach to perform penetration testing that is effective in testing how well the Offensive Security Labs and Exam environments are secure. Below is a breakout of how {{ report.firstname }} {{ report.lastname}} ({{ report.osid}}) was able to identify and exploit the variety of systems and includes all individual vulnerabilities found."
 infogathering = """
 The information gathering portion of a penetration test focuses on identifying the scope of the penetration test. During this penetration test, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  was tasked with exploiting the lab and exam network. The specific IP addresses were:
@@ -215,7 +215,7 @@ Maintaining access to a system is important to us as attackers, ensuring that we
 {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  added administrator and root level accounts on all systems compromised. In addition to the administrative/root access, a Metasploit meterpreter service was installed on the machine to ensure that additional access could be established.
 """
 housecleaning = """
-The house cleaning portions of the assessment ensures that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organizations computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
+The house cleaning portions of the assessment ensure that remnants of the penetration test are removed. Often fragments of tools or user accounts are left on an organization's computer which can cause security issues down the road. Ensuring that we are meticulous and no remnants of our penetration test are left over is important.
 
 After the trophies on both the lab network and exam network were completed, {{ report.firstname }} {{ report.lastname}} ({{ report.osid}})  removed all user accounts and passwords as well as the Meterpreter services installed on the system. Offensive Security should not have to remove any user accounts or services from the system.
 """
@@ -242,7 +242,7 @@ serviceenum = """
 Upon manual enumeration of the available FTP service, John noticed it was running an outdated version 2.3.4 that is prone to the remote buffer overflow vulnerability.
 """
 initialaccess = """
-**Vulnerability Explanation:** Ability Server 2.34 is subject to a buffer overflow vulnerability in STOR field. Attackers can use this vulnerability to cause arbitrary remote code execution and take completely control over the system.
+**Vulnerability Explanation:** Ability Server 2.34 is subject to a buffer overflow vulnerability in the STOR field. Attackers can use this vulnerability to cause arbitrary remote code execution and take complete control over the system.
 
 **Vulnerability Fix:** The publishers of the Ability Server have issued a patch to fix this known issue. It can be found here: [http://www.code-crafters.com/abilityserver/](http://www.code-crafters.com/abilityserver/)
 
@@ -310,7 +310,7 @@ except:
 ```
 """
 privilegeescalation = """
-**Vulnerability Explation:** After establishing a foothold on target, John noticed there were several applications running locally, one of them, a custom web application on port 80 was prone to SQL Injection attacks. Using Chisel for port forwarding, John was able to access the web application. When performing the penetration test, John noticed error-based MySQL Injection on the taxid query string parameter. While enumerating table data, John was able to successfully extract the database root account login and password credentials that were unencrypted that also matched username and password accounts for the administrative user account on the system and John was able to log in remotely using RDP. This allowed for a successful breach of the operating system as well as all data contained on the system.
+**Vulnerability Explanation:** After establishing a foothold on the target, John noticed there were several applications running locally, one of them, a custom web application on port 80 was prone to SQL Injection attacks. Using Chisel for port forwarding, John was able to access the web application. When performing the penetration test, John noticed error-based MySQL Injection on the taxid query string parameter. While enumerating table data, John was able to successfully extract the database root account login and password credentials that were unencrypted that also matched username and password accounts for the administrative user account on the system and John was able to log in remotely using RDP. This allowed for a successful breach of the operating system as well as all data contained on the system.
 
 **Vulnerability Fix:** Since this is a custom web application, a specific update will not properly solve this issue. The application will need to be programmed to properly sanitize user-input
 data, ensure that the user is running off of a limited user account, and that any sensitive data stored within the SQL database is properly encrypted. Custom error messages are highly recommended, as it becomes more challenging for the attacker to exploit a given weakness if errors are not being presented back to them.
@@ -343,7 +343,7 @@ serviceenum = """
 | 10.5.5.30  | **TCP:** 53, 88, 135, 139, 389, 445, 464, 593, 636, 3268, 3269, 3389 |
 """
 initialaccess = """
-**Vulnerability Explation:** The user account on the Ajla host was protected by a trivial password that was cracked within 5 minutes of brute-forcing.
+**Vulnerability Explanation:** The user account on the Ajla host was protected by a trivial password that was cracked within 5 minutes of brute-forcing.
 
 **Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
 
@@ -356,11 +356,11 @@ initialaccess = """
 ![SSH brute force attack](/images/name/image.png){width="auto"}
 """
 privilegeescalation = """
-**Vulnerability Explanation:** sudo group allows any user in this group to escalate privileges to the root if they know the user’s password.
+**Vulnerability Explanation:** The sudo group allows any user in this group to escalate privileges to root if they know the user’s password.
 
 **Vulnerability Fix:** The SSH service should be configured to not accept password-based logins and the user account itself should contain a unique password not contained in the publicly available wordlists.
 
-**Steps to reproduce the attack:** John spotted that the ajla user was a member of the sudo group immediately upon logging in and using the “id” command. And knowing user’s password, he only needed to use a single command “sudo su” in order to obtain a root shell.
+**Steps to reproduce the attack:** John spotted that the ajla user was a member of the sudo group immediately upon logging in and using the “id” command. And knowing the user’s password, he only needed to use a single command “sudo su” in order to obtain a root shell.
 
 ![Elevate privileges to a root shell via sudo](/images/name/image-947c2ylq.png){width="auto"}
 """

@@ -200,15 +200,15 @@ steps = "TODO Provide a detailed account of your methodology in creating the exp
 screenshots = "TODO Provide screenshots of local.txt and proof.txt contents as stated in the Exam Control Panel Objectives."
 
 [[findings.data.vulnerabilities]]
-details = "TODO Provide the method and code used to find the vulnerability ."
+details = "TODO Provide the method and code used to find the vulnerability."
 reference = "Vulnerability X"
 
 [[findings.data.vulnerabilities]]
-details = "TODO Provide the method and code used to find the vulnerability ."
+details = "TODO Provide the method and code used to find the vulnerability."
 reference = "Vulnerability X"
 
 [[findings.data.vulnerabilities]]
-details = "TODO Provide the method and code used to find the vulnerability ."
+details = "TODO Provide the method and code used to find the vulnerability."
 reference = "Vulnerability X"
 
 [project_type]

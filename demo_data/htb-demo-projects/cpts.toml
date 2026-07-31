@@ -204,7 +204,7 @@ The scope of this assessment was one external IP address, two internal network r
 | TODO other discovered internal domain(s) | TODO |
 """
 assessment_overview = """
-During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational finding related to enhancing security monitoring capabilities within the internal network.
+During the penetration test against {{ report.customer_short }}, {{ report.candidate.name }} identified {{ finding_stats.count_total }} findings that threaten the confidentiality, integrity, and availability of {{ report.customer_short }}’s information systems. The findings were categorized by severity level, with TODO SEVERITY RATINGS HERE {{ finding_stats.count_critical }} of the findings being assigned a critical-risk rating, {{ finding_stats.count_high }} high-risk, {{ finding_stats.count_medium }} medium-risk, and {{ finding_stats.count_low }} low risk. There were also {{ finding_stats.count_info }} informational findings related to enhancing security monitoring capabilities within the internal network.
 
 TODO EXECUTIVE SUMMARY HERE
 
@@ -315,7 +315,7 @@ pentest_approach = "BLACKBOX"
 report_version = "TODO 1.0"
 customer_contacts = []
 network_summary = "{{ report.candidate.name }} began all testing activities from the perspective of an unauthenticated user on the internet. {{ report.customer_short }} provided the tester with network ranges but did not provide additional information such as operating system or configuration information."
-finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. {{ report.candidate.name }} also identified {{ finding_stats.count_info }} informational finding that, if addressed, could further strengthen {{ report.customer_short }}’s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
+finding_summary = "During the course of testing, {{ report.candidate.name }} uncovered a total of {{ finding_stats.count_total }} findings that pose a material risk to {{ report.customer_short }}’s information systems. {{ report.candidate.name }} also identified {{ finding_stats.count_info }} informational findings that, if addressed, could further strengthen {{ report.customer_short }}’s overall security posture. Informational findings are observations for areas of improvement by the organization and do not represent security vulnerabilities on their own. The below chart provides a summary of the findings by severity level."
 
 [report_data.candidate]
 a_name = "TODO Candidate Name"

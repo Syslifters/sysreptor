@@ -34,7 +34,7 @@ These HTTP headers are exchanged between a browser and a server and specify the 
 Below is a brief description and overview of the most important current HTTP security headers:
 
 * **Content Security Policy**.
-The Content Security Policy (CSP) HTTP header allows fine-grained control over what resources a browser is allowed to obtain resources from. 
+The Content Security Policy (CSP) HTTP header allows fine-grained control over what resources a browser is allowed to obtain. 
 The CSP header is a very effective measure to prevent the exploitation of cross-site scripting (XSS) vulnerabilities.
 
 * **Referrer Policy**.
@@ -67,10 +67,10 @@ This header is obsolete when using modern browsers, provided that a secure conte
 recommendation = """
 * Do not allow the web page to be included in a frame. Set `X-Frame-Options: DENY` for this. Alternatively you can restrict this setting to the same-origin with `X-Frame-Options: SAMEORIGIN`.
 * Set the header `X-XSS-Protection` explicitly with `X-XSS-Protection: 1; mode=block`.
-* Prevent the browser from guessing the MIME type based on the content of the resource. Sets the `X-Content-Type-Options` header with the `nosniff` option.
+* Prevent the browser from guessing the MIME type based on the content of the resource. Set the `X-Content-Type-Options` header with the `nosniff` option.
 * Restrict the `referrer policy` to prevent potentially sensitive information from being exposed to third party sites. You should define the header as follows: `Referrer-Policy: strict-origin-when-cross-origin`.
 * Configure the `Strict-Transport-Security` header so that your web application can only be accessed over a secured HTTPS connection. You should set the header like this: `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`.
-* If possible, define a Content Security Policy (CSP) for your web application CSP is an additional security measure that can make it much more difficult to exploit client-side vulnerabilities. Details on how to configure it securely can be found in the resources.
+* If possible, define a Content Security Policy (CSP) for your web application. CSP is an additional security measure that can make it much more difficult to exploit client-side vulnerabilities. Details on how to configure it securely can be found in the resources.
 * Restrict the use of sensitive browser features such as the camera, microphone or speaker using 'Permissions Policy' headers.
 """
 short_recommendation = "Follow best practices recommendations for configuring HTTP security headers and implement them for your web application if possible."
