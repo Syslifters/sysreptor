@@ -63,8 +63,20 @@ export enum StreamEventType {
   TEXT = 'text',
   TOOL_CALL = 'tool_call',
   TOOL_CALL_STATUS = 'tool_call_status',
+  INTERRUPT = 'interrupt',
   ERROR = 'error',
 }
+
+export type ChatInterrupt = {
+  id: string;
+  value: AskUserInterruptValue;
+};
+
+export type AskUserInterruptValue = {
+  interrupt_type: 'ask_user';
+  question: string;
+  options: string[];
+};
 
 export type StreamEvent = {
   type: StreamEventType.METADATA;
@@ -83,6 +95,9 @@ export type StreamEvent = {
   type: StreamEventType.TOOL_CALL_STATUS;
   content: Partial<ToolCall>;
   subagent?: string|null;
+} | {
+  type: StreamEventType.INTERRUPT;
+  content: ChatInterrupt[];
 } | {
   type: StreamEventType.ERROR;
   content: string;
@@ -251,6 +266,7 @@ export async function submitMessageStreamed(options: {
     agent: string;
     id?: string|null;
     messages?: string[];
+    resume?: Record<string, any>;
     model?: string;
     context?: Record<string, string|null|undefined>;
     [key: string]: any;
@@ -263,6 +279,7 @@ export async function submitMessageStreamed(options: {
   };
   const messages = [] as ChatHistoryEntry[];
   const pendingToolCalls = [] as ToolCall[];
+  let interrupts: ChatInterrupt[] = [];
 
   await fetchSSE("/api/v1/utils/chat/", {
     method: "POST",
@@ -305,6 +322,8 @@ export async function submitMessageStreamed(options: {
         if (toolCall) {
           Object.assign(toolCall, data.content);
         }
+      } else if (data.type === StreamEventType.INTERRUPT) {
+        interrupts = data.content;
       } else if (data.type === 'error') {
         throw new Error(data.content);
       }
@@ -315,6 +334,7 @@ export async function submitMessageStreamed(options: {
     metadata,
     messages,
     pendingToolCalls,
+    interrupts,
     messageHistory: options.messageHistory,
   }
 }
@@ -323,6 +343,7 @@ export async function submitMessageStreamed(options: {
 export type AiAgentStoreState = {
   threadId: string|null;
   messageHistory: ChatHistoryEntry[];
+  interrupts: ChatInterrupt[];
   currentRequest: {
     promise?: Promise<any>;
     abortController?: AbortController;
@@ -393,11 +414,13 @@ export function useAiAgentChat(options: {
       const promise = $fetch<{
         id: string;
         messages: ChatHistoryEntry[];
+        interrupts?: ChatInterrupt[];
       }>(`/api/v1/utils/chat/${options.storeState.threadId || 'latest'}/`, { method: 'GET', params, });
       options.storeState.currentRequest = { promise };
       const response = await promise;
       options.storeState.threadId = response.id;
       options.storeState.messageHistory = response.messages;
+      options.storeState.interrupts = response.interrupts ?? [];
     } catch {
       // ignore errors
     } finally {
@@ -411,6 +434,9 @@ export function useAiAgentChat(options: {
     if (inProgress.value || !message) {
       return;
     }
+
+    // User chose to send a new message instead of answering pending questions.
+    options.storeState.interrupts = [];
 
     options.storeState.messageHistory.push({
       id: uuidv4(),
@@ -435,6 +461,41 @@ export function useAiAgentChat(options: {
       options.storeState.currentRequest = { promise, abortController };
       const out = await promise;
       options.storeState.threadId = out.metadata.thread_id;
+      options.storeState.interrupts = out.interrupts;
+
+      if (abortController.signal.aborted) {
+        return 'aborted';
+      } else {
+        return 'success';
+      }
+    } catch (error) {
+      requestErrorToast({ error });
+      return 'error';
+    } finally {
+      options.storeState.currentRequest = null;
+    }
+  }
+
+  async function resume(resumePayload: Record<string, any>) {
+    if (inProgress.value || !options.storeState.threadId) {
+      return;
+    }
+
+    try {
+      const abortController = new AbortController();
+      const promise = submitMessageStreamed({
+        body: {
+          ...options.body,
+          id: options.storeState.threadId,
+          resume: resumePayload,
+        },
+        messageHistory: options.storeState.messageHistory,
+        signal: abortController.signal,
+      });
+      options.storeState.currentRequest = { promise, abortController };
+      const out = await promise;
+      options.storeState.threadId = out.metadata.thread_id;
+      options.storeState.interrupts = out.interrupts;
 
       if (abortController.signal.aborted) {
         return 'aborted';
@@ -459,15 +520,18 @@ export function useAiAgentChat(options: {
     cancel();
     options.storeState.threadId = null;
     options.storeState.messageHistory = [];
+    options.storeState.interrupts = [];
     resetChanges();
   }
 
   return {
     threadId: computed(() => options.storeState.threadId),
     messageHistory: computed(() => options.storeState.messageHistory),
+    interrupts: computed(() => options.storeState.interrupts),
     changedFiles,
     inProgress,
     submitMessage,
+    resume,
     loadHistory,
     reset,
     cancel,

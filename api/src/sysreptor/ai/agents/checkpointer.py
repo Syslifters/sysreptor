@@ -3,7 +3,7 @@ PostgreSQL checkpointer for LangGraph using Django ORM.
 Stores conversation state and enables thread persistence.
 """
 import json
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from typing import Any
 
 from asgiref.sync import sync_to_async
@@ -11,10 +11,13 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Subquery
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.base import (
+    WRITES_IDX_MAP,
     BaseCheckpointSaver,
+    ChannelVersions,
     Checkpoint,
     CheckpointMetadata,
     CheckpointTuple,
+    get_checkpoint_id,
     get_serializable_checkpoint_metadata,
 )
 
@@ -23,13 +26,20 @@ from sysreptor.utils.utils import copy_keys
 
 
 class DjangoModelCheckpointer(BaseCheckpointSaver):
-    def format_configurable(self, checkpoint: Checkpoint) -> dict[str, Any]:
+    def format_configurable(self, checkpoint: Checkpoint | LangchainCheckpoint) -> dict[str, Any]:
         return {
             k: str(v) for k, v in copy_keys(checkpoint, ['thread_id', 'checkpoint_ns', 'checkpoint_id']).items()
             if v is not None
         }
 
     def format_checkpoint_tuple(self, checkpoint: LangchainCheckpoint) -> CheckpointTuple:
+        pending_writes = []
+        if checkpoint.pending_writes:
+            for pw in self.serde.loads_typed((checkpoint.pending_writes_type, checkpoint.pending_writes)):
+                task_id = pw.get('task_id')
+                for c, v in pw.get('writes', []):
+                    pending_writes.append((task_id, c, v))
+
         return CheckpointTuple(
             config={
                 'configurable': self.format_configurable(checkpoint=checkpoint),
@@ -37,25 +47,31 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
             checkpoint=self.serde.loads_typed((checkpoint.checkpoint_type, checkpoint.checkpoint)),
             metadata=json.loads(checkpoint.metadata or {}),
             parent_config={
-                "configurable": self.format_configurable(checkpoint=checkpoint) | {
-                    "checkpoint_id": str(checkpoint.parent_checkpoint_id),
+                'configurable': {
+                    'thread_id': str(checkpoint.thread_id),
+                    'checkpoint_ns': checkpoint.checkpoint_ns or '',
+                    'checkpoint_id': str(checkpoint.parent_checkpoint_id),
                 },
             } if checkpoint.parent_checkpoint_id else None,
-            pending_writes=[
-                (pw.get('task_id'), c, v)
-                for pw in self.serde.loads_typed((checkpoint.pending_writes_type, checkpoint.pending_writes))
-                for (c, v) in pw.get('writes', [])
-            ] if checkpoint.pending_writes else [],
+            pending_writes=pending_writes,
         )
 
     def get_tuple(self, config: RunnableConfig) -> CheckpointTuple | None:
-        formatted = self.format_configurable(config['configurable'])
-        if 'thread_id' not in formatted:
+        thread_id = config['configurable'].get('thread_id')
+        if not thread_id:
             return None
-        checkpoint = LangchainCheckpoint.objects \
-            .filter(**formatted) \
-            .order_by("-created") \
-            .first()
+
+        filters = {
+            'thread_id': str(thread_id),
+            'checkpoint_ns': config['configurable'].get('checkpoint_ns', '') or '',
+        }
+        qs = LangchainCheckpoint.objects.filter(**filters)
+        if checkpoint_id := get_checkpoint_id(config):
+            qs = qs.filter(checkpoint_id=checkpoint_id)
+        else:
+            qs = qs.order_by('-created')
+
+        checkpoint = qs.first()
         if not checkpoint:
             return None
         return self.format_checkpoint_tuple(checkpoint=checkpoint)
@@ -64,65 +80,109 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
         filters = {k: str(v) for k, v in copy_keys(config['configurable'], ['thread_id', 'checkpoint_ns']).items() if v is not None}
         if 'thread_id' not in filters:
             return iter([])
+        if 'checkpoint_ns' not in filters:
+            filters['checkpoint_ns'] = ''
+
         qs = LangchainCheckpoint.objects \
             .filter(**filters) \
-            .order_by("-created")
-        if before and before["configurable"].get("checkpoint_id"):
+            .order_by('-created')
+        if before and before['configurable'].get('checkpoint_id'):
             qs = qs.filter(created__lt=Subquery(
                 LangchainCheckpoint.objects
                     .filter(**filters)
-                    .filter(checkpoint_id=before["configurable"]["checkpoint_id"])
-                    .values("created"),
+                    .filter(checkpoint_id=before['configurable']['checkpoint_id'])
+                    .values('created'),
                 ))
         if limit:
             qs = qs[:limit]
 
         return [self.format_checkpoint_tuple(checkpoint=checkpoint) for checkpoint in qs]
 
-    def put(self, config: dict, checkpoint: Checkpoint, metadata: CheckpointMetadata, new_versions: dict) -> RunnableConfig:
-        formatted = self.format_configurable(config['configurable'])
-        if 'thread_id' not in formatted:
+    def put(self, config: RunnableConfig, checkpoint: Checkpoint, metadata: CheckpointMetadata, new_versions: ChannelVersions) -> RunnableConfig:
+        thread_id = config['configurable'].get('thread_id')
+        if not thread_id:
             raise ValueError('thread_id is required for checkpoint persistence')
+
+        checkpoint_ns = config['configurable'].get('checkpoint_ns', '') or ''
+        checkpoint_id = checkpoint['id']
+        parent_checkpoint_id = config['configurable'].get('checkpoint_id')
+
         t, d = self.serde.dumps_typed(checkpoint)
         defaults = {
             'checkpoint_type': t,
             'checkpoint': d,
             'metadata': json.dumps(get_serializable_checkpoint_metadata(config=config, metadata=metadata), cls=DjangoJSONEncoder).encode(),
+            'parent_checkpoint_id': parent_checkpoint_id,
         }
-        instance, _ = LangchainCheckpoint.objects.update_or_create(
-            **formatted,
+        LangchainCheckpoint.objects.update_or_create(
+            thread_id=str(thread_id),
+            checkpoint_ns=checkpoint_ns,
+            checkpoint_id=checkpoint_id,
             defaults=defaults,
             create_defaults=defaults,
         )
         return {
-            'configurable': self.format_configurable(checkpoint=instance),
+            'configurable': {
+                'thread_id': str(thread_id),
+                'checkpoint_ns': checkpoint_ns,
+                'checkpoint_id': str(checkpoint_id),
+            },
         }
 
-    def put_writes(self, config, writes, task_id, task_path = ""):
-        formatted = self.format_configurable(config['configurable'])
-        if 'thread_id' not in formatted:
+    def put_writes(self, config: RunnableConfig, writes: Sequence[tuple[str, Any]], task_id: str, task_path: str = '') -> None:
+        thread_id = config['configurable'].get('thread_id')
+        checkpoint_id = config['configurable'].get('checkpoint_id')
+        if not thread_id or not checkpoint_id:
             return
-        instance = LangchainCheckpoint.objects \
-            .filter(**formatted) \
-            .first()
+
+        checkpoint_ns = config['configurable'].get('checkpoint_ns', '') or ''
+        instance = LangchainCheckpoint.objects.filter(
+            thread_id=str(thread_id),
+            checkpoint_ns=checkpoint_ns,
+            checkpoint_id=checkpoint_id,
+        ).first()
         if not instance:
             return
 
         pending_writes = self.serde.loads_typed((instance.pending_writes_type, instance.pending_writes)) if instance.pending_writes else []
-        for w in pending_writes:
-            if w['task_id'] == task_id and w['task_path'] == task_path:
-                # Update existing write
-                w['writes'].extend(writes)
-                break
-        else:
-            # Add new pending write
-            pending_writes.append({
+
+        # Index existing writes for this task like InMemorySaver / WRITES_IDX_MAP
+        existing_by_idx: dict[int, dict] = {}
+        for pw in pending_writes:
+            if pw.get('task_id') != task_id or pw.get('task_path') != task_path:
+                continue
+            for idx, (channel, _value) in enumerate(pw.get('writes', [])):
+                write_idx = WRITES_IDX_MAP.get(channel, idx)
+                existing_by_idx[write_idx] = pw
+
+        task_writes = next(
+            (pw for pw in pending_writes if pw.get('task_id') == task_id and pw.get('task_path') == task_path),
+            None,
+        )
+        if task_writes is None:
+            task_writes = {
                 'task_id': task_id,
                 'task_path': task_path,
-                'writes': writes,
-            })
+                'writes': [],
+            }
+            pending_writes.append(task_writes)
+
+        for idx, (channel, value) in enumerate(writes):
+            write_idx = WRITES_IDX_MAP.get(channel, idx)
+            # Special channels (negative idx) always overwrite; others are write-once
+            if write_idx >= 0 and write_idx in existing_by_idx:
+                continue
+            if write_idx < 0:
+                # Replace any previous write for this special channel on the task
+                task_writes['writes'] = [
+                    (c, v) for c, v in task_writes['writes']
+                    if WRITES_IDX_MAP.get(c) != write_idx
+                ]
+            task_writes['writes'].append((channel, value))
+            existing_by_idx[write_idx] = task_writes
+
         instance.pending_writes_type, instance.pending_writes = self.serde.dumps_typed(pending_writes)
-        instance.save()
+        instance.save(update_fields=['pending_writes_type', 'pending_writes'])
 
     def delete_thread(self, thread_id: str) -> None:
         LangchainCheckpoint.objects \
@@ -131,8 +191,7 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
 
     @sync_to_async
     def aget_tuple(self, *args, **kwargs):
-        out = self.get_tuple(*args, **kwargs)
-        return out
+        return self.get_tuple(*args, **kwargs)
 
     @sync_to_async
     def alist(self, *args, **kwargs):

@@ -80,6 +80,24 @@
         {{ getNoteTitle(props.value.output?.id, props.value.output?.title) }}
       </nuxt-link>
     </template>
+    <template v-else-if="props.value.name === 'ask_user'">
+      <template v-if="props.value.status === ToolCallStatus.PENDING">
+        <chat-tool-call-status :status="props.value.status" />
+        Asking user
+      </template>
+      <s-card
+        v-else
+        prepend-icon="mdi-comment-question-outline"
+        :title="props.value.args.question"
+        density="compact"
+        variant="tonal"
+        class="ask-user-result-card text-high-emphasis"
+      >
+        <v-card-text>
+          {{ props.value.output?.answer }}
+        </v-card-text>
+      </s-card>
+    </template>
     <template v-else-if="props.value.name === 'write_todos'">
       <chat-tool-call-status :status="props.value.status" />
       Update TODO list
@@ -152,7 +170,7 @@
 </template>
 
 <script setup lang="ts">
-import { getPageTitle, parseProjectFilePath } from '@/utils/agent';
+import { getPageTitle, parseProjectFilePath, ToolCallStatus } from '@/utils/agent';
 
 const props = defineProps<{
   value: ToolCall;
@@ -236,5 +254,15 @@ a {
 
 .message-text {
   font-size: 0.875rem;
+}
+
+.ask-user-result-card:deep() {
+  overflow: hidden;
+
+  .v-card-title {
+    font-size: 0.875rem;
+    font-weight: bold;
+    white-space: normal;
+  }
 }
 </style>

@@ -15,6 +15,11 @@ The agent has access to project data through context and tools. It can read proj
 - **Agent** (<BadgePro />): Full write access. In addition to everything in Ask mode, the agent can create findings and update fields.
 
 
+## Asking clarifying questions
+
+When information is missing or there are multiple valid approaches, the agent can pause and ask you a multiple-choice question. Pick an option (or type your own answer) to continue, or send a new message to skip the question.
+
+
 ## Example Use Cases
 
 - Generate executive summary from findings

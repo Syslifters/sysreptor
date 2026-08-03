@@ -36,6 +36,15 @@
         :is-streaming="msg.id === currentStreamingMessageId"
         :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory.value, idx)"
       />
+      <template v-if="agent.interrupts.value.length > 0 && !agent.inProgress.value">
+        <chat-interrupt-prompt
+          v-for="interrupt in agent.interrupts.value"
+          :key="interrupt.id"
+          :interrupt="interrupt"
+          @resume="agent.resume"
+          class="mb-2"
+        />
+      </template>
     </div>
     <div class="pa-2">
       <s-card density="compact" variant="tonal" class="chat-compose-card">
