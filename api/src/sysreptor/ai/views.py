@@ -7,10 +7,7 @@ from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from sysreptor.ai.agents import get_agent, get_chat_history
-from sysreptor.ai.agents.base import get_model_configs
 from sysreptor.ai.models import ChatThread
-from sysreptor.ai.serializers import ChatThreadSerializer, LLMAgentSerializer
 from sysreptor.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from sysreptor.utils.configuration import configuration
 
@@ -32,13 +29,13 @@ class ChatThreadPermissions(BasePermission):
     def has_permission(self, request, view):
         if not configuration.AI_AGENT_ENABLED:
             raise PermissionDenied('AI agent chat is disabled in settings')
+        from sysreptor.ai.agents.base import get_model_configs
         if not get_model_configs():
             raise PermissionDenied('No LLM models configured in settings')
         return True
 
 
 class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
-    serializer_class = ChatThreadSerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [ChatThreadPermissions]
 
     def get_queryset(self):
@@ -47,9 +44,10 @@ class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
             .filter_has_checkpoints()
 
     def get_serializer_class(self):
+        from sysreptor.ai.serializers import ChatThreadSerializer, LLMAgentSerializer
         if self.action == 'create':
             return LLMAgentSerializer
-        return super().get_serializer_class()
+        return ChatThreadSerializer
 
     def get_renderers(self):
         if self.action == 'create':
@@ -64,12 +62,16 @@ class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
         )
 
     def retrieve(self, request, *args, **kwargs):
+        from sysreptor.ai.agents import get_agent, get_chat_history
+
         instance = self.get_object()
         history = get_chat_history(agent=get_agent('project_ask'), thread=instance)
         return Response(data=history)
 
     @action(detail=False, methods=['get'])
     def latest(self, request, *args, **kwargs):
+        from sysreptor.ai.agents import get_agent, get_chat_history
+
         if not request.GET.get('project'):
             raise ValidationError('project is required')
 
