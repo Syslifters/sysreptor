@@ -405,24 +405,28 @@ def load_plugins(settings):
 
     installed_apps = []
     for enabled_plugin_id in enabled_plugin_ids:
+        matched = False
         for plugin_config_class in available_plugin_configs:
             plugin_id = plugin_config_class.plugin_id
             plugin_name = plugin_config_class.name.split('.')[-1]
-            if enabled_plugin_id in [plugin_id, plugin_name, '*']:
-                # Add to installed_apps
-                app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
-                app_label = plugin_config_class.label
+            if enabled_plugin_id not in [plugin_id, plugin_name, '*']:
+                continue
 
-                if plugin_config_class.professional_only and not can_load_professional_plugins(settings['LICENSE']):
-                    logging.warning(f'Plugin "{plugin_name}" requires a professional license. Not enabling plugin.')
-                    continue
-                if app_class not in installed_apps:
-                    installed_apps.append(app_class)
-                    logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})')
-                if enabled_plugin_id != '*':
-                    break
-        else:
+            matched = True
+            app_class = plugin_config_class.__module__ + '.' + plugin_config_class.__name__
+            app_label = plugin_config_class.label
+
+            if plugin_config_class.professional_only and not can_load_professional_plugins(settings['LICENSE']):
+                logging.info(f'Plugin "{plugin_name}" requires a professional license. Not enabling plugin.')
+            elif app_class not in installed_apps:
+                installed_apps.append(app_class)
+                logging.info(f'Enabling plugin {plugin_name} ({plugin_id=}, {app_label=}, {app_class=})')
+
             if enabled_plugin_id != '*':
-                logging.warning(f'Plugin "{enabled_plugin_id}" not found in plugins')
+                # Specific IDs match at most one plugin, skip iteration if we found a match
+                # '*' matches all plugins, so we need to continue iterating to check all plugins
+                break
+        if not matched and enabled_plugin_id != '*':
+            logging.info(f'Plugin "{enabled_plugin_id}" not found in plugins')
 
     return installed_apps
