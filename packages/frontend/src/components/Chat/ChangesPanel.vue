@@ -32,7 +32,7 @@
             <template #append>
               <div class="d-flex align-center ga-3">
                 <btn-delete
-                  v-if="!page.isCreated"
+                  v-if="page.isCreated"
                   :delete="() => emit('revert', page)"
                   :confirm="true"
                   :disabled="props.readonly"
