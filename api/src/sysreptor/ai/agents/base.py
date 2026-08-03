@@ -9,7 +9,6 @@ from asgiref.sync import iscoroutinefunction, sync_to_async
 from decouple import config
 from deepagents._tools import _apply_tool_description_overrides
 from deepagents.backends import StateBackend
-from deepagents.graph import BASE_AGENT_PROMPT
 from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
 from deepagents.middleware.subagents import GENERAL_PURPOSE_SUBAGENT, SubAgentMiddleware
 from deepagents.middleware.summarization import create_summarization_middleware
@@ -223,7 +222,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
     ]
     agent = create_agent(
         model=default_model,
-        system_prompt=system_prompt + '\n\n' + _apply_profile_prompt(profile, BASE_AGENT_PROMPT),
+        system_prompt=system_prompt + '\n\n' + _apply_profile_prompt(profile, ''),
         tools=tools,
         middleware=middleware + [
             SubAgentMiddleware(backend=backend, subagents=subagents),
@@ -327,7 +326,7 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                         elif isinstance(payload, AIMessage) and (m := format_message(payload)):
                             yield {'type': 'text', 'content': m, **meta}
                     elif method == 'updates' and isinstance(chunk, dict) and (raw_interrupt := chunk.get('__interrupt__')):
-                        interrupts = raw_interrupt if isinstance(raw_interrupt, (list, tuple)) else (raw_interrupt,)
+                        interrupts = raw_interrupt if isinstance(raw_interrupt, list | tuple) else (raw_interrupt,)
                         yield {
                             'type': 'interrupt',
                             'content': [{'id': i.id, 'value': i.value} for i in interrupts],

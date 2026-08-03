@@ -52,9 +52,11 @@ const noteSearchResults = computed(() => searchNotes(userNotesStore.notes, notes
 
 const noteTreeRef = useTemplateRef('noteTreeRef');
 
-useHeadExtended({
+useHead({
   titleTemplate: title => userNotesTitleTemplate(title, route),
-  breadcrumbs: () => [{ title: 'Personal Notes', to: '/notes/personal/' }],
+});
+useAppBar({
+  breadcrumbs: [{ title: 'Personal Notes', to: '/notes/personal/' }],
   syncState: notesCollab.syncState,
 });
 
@@ -112,8 +114,4 @@ async function updateNoteOrder(notes: NoteGroup<NoteBase>) {
     requestErrorToast({ error });
   }
 }
-
-useHeadExtended({
-  syncState: notesCollab.syncState,
-});
 </script>

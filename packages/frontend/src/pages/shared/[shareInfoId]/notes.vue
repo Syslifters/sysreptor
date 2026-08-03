@@ -117,8 +117,6 @@ function updateNoteChecked(note: NoteBase) {
   });
 }
 
-useHeadExtended({
-  syncState: notesCollab?.syncState,
-});
+useAppBar({ syncState: notesCollab?.syncState });
 
 </script>

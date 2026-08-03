@@ -45,6 +45,7 @@ export default defineNuxtConfig({
 
   vuetify: {
     moduleOptions: {
+      prefixComposables: true,
       styles: {
         configFile: join(currentDir, './src/assets/vuetify.scss'),
       }

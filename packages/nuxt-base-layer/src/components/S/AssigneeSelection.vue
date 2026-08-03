@@ -51,7 +51,7 @@ const props = defineProps<{
   disabled?: boolean;
 }>()
 
-const { lgAndUp } = useDisplay();
+const { lgAndUp } = useVDisplay();
 
 function formatUsername(u: UserShortInfo) {
   return (u.username && u.name) ? `${u.username} (${u.name})` : (u.username || u.name || 'Unknown User')

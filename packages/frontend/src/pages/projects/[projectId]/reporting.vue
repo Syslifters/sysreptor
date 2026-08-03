@@ -126,7 +126,5 @@ async function toggleOverrideFindingOrder() {
   } as PentestProject, ['override_finding_order']);
 }
 
-useHeadExtended({
-  syncState: reportingCollab.syncState,
-});
+useAppBar({ syncState: reportingCollab.syncState });
 </script>

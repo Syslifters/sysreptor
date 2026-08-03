@@ -163,7 +163,7 @@ const auth = useAuth();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
-const { mdAndDown } = useDisplay();
+const { mdAndDown } = useVDisplay();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
 const projectType = await useAsyncDataE(async () => await projectTypeStore.getById(project.value.project_type));

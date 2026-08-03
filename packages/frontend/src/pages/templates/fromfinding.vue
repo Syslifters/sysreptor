@@ -61,10 +61,10 @@ const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
 const templateStore = useTemplateStore();
 
-useHeadExtended({
+useHead({
   title: 'Templates',
-  breadcrumbs: () => templateListBreadcrumbs().concat([{ title: 'New', to: route.fullPath }]),
 });
+useAppBar({ breadcrumbs: () => templateListBreadcrumbs().concat([{ title: 'New', to: route.fullPath }]) });
 
 if (!route.query.project || !route.query.finding) {
   throw createError('No project or finding found.');

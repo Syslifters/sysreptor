@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 const apiSettings = useApiSettings();
-const theme = useTheme();
+const theme = useVTheme();
 
 const props = withDefaults(defineProps<{
   licenseTextVariant?: 'long' | 'short';

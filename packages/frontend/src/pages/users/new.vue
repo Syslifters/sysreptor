@@ -60,9 +60,7 @@
 import randomColor from 'randomcolor';
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
-useHeadExtended({
-  breadcrumbs: () => userListBreadcrumbs().concat([{ title: 'New', to: '/users/new/' }]),
-});
+useAppBar({ breadcrumbs: userListBreadcrumbs().concat([{ title: 'New', to: '/users/new/' }]) });
 
 const apiSettings = useApiSettings();
 

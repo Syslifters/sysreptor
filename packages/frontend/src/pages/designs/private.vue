@@ -76,9 +76,7 @@ definePageMeta({
   title: 'Designs',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => designListBreadcrumbs(),
-});
+useAppBar({ breadcrumbs: designListBreadcrumbs() });
 
 const auth = useAuth();
 const localSettings = useLocalSettings();

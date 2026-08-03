@@ -19,7 +19,7 @@ const props = defineProps<{
   value: Uint8Array|string|null;
 }>();
 
-const theme = useTheme();
+const theme = useVTheme();
 const runtimeConfig = useRuntimeConfig();
 
 const iframeRef = useTemplateRef('iframeRef');

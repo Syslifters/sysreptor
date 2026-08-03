@@ -217,7 +217,7 @@ watch(() => props.url, async () => {
 });
 
 const searchbarRef = useTemplateRef('searchbarRef');
-useHotkey('ctrl+f', () => searchbarRef.value?.focus(), { inputs: true });
+useVHotkey('ctrl+f', () => searchbarRef.value?.focus(), { inputs: true });
 function updateSearch(search: string) {
   items.search.value = search;
   router.replace({ query: { ...route.query, ordering: ordering.value?.value || '', search } });

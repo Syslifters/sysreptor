@@ -31,7 +31,7 @@ const props = defineProps<{
   disabled?: boolean;
 }>();
 
-const { mobile } = useDisplay();
+const { mobile } = useVDisplay();
 
 const editorState = ref<EditorState>(props.editorState);
 watchThrottled(() => props.editorState, (newValue) => { editorState.value = newValue; }, { throttle: 500 });

@@ -1,4 +1,5 @@
-import { describe, it, expect, afterEach, beforeEach, vi  } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import { mockNuxtImport } from '@nuxt/test-utils/runtime';
 import {
   MessageRole,
   StreamEventType,
@@ -11,30 +12,31 @@ import {
   type StreamEvent, type ToolCall 
 } from '~/utils/agent';
 
-function mockChatStream(events: StreamEvent[]) {
-  vi.stubGlobal('$fetch', vi.fn(async (url: string, opts?: { method?: string; responseType?: string }) => {
-    if (url === '/api/v1/utils/chat/' && opts?.method === 'POST' && opts?.responseType === 'stream') {
-      return new ReadableStream({
-        start(controller) {
-          const body = events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
-          controller.enqueue(new TextEncoder().encode(body));
-          controller.close();
-        },
-      });
-    }
-    throw new Error(`Unexpected $fetch call: ${url}`);
-  }));
-}
+const { mockFetch, mockChatStream } = vi.hoisted(() => {
+  const mockFetch = vi.fn();
+
+  function mockChatStream(events: StreamEvent[]) {
+    mockFetch.mockReset();
+    mockFetch.mockImplementation(async (url: string, opts?: { method?: string; responseType?: string }) => {
+      if (url === '/api/v1/utils/chat/' && opts?.method === 'POST' && opts?.responseType === 'stream') {
+        return new ReadableStream({
+          start(controller) {
+            const body = events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
+            controller.enqueue(new TextEncoder().encode(body));
+            controller.close();
+          },
+        });
+      }
+      throw new Error(`Unexpected $fetch call: ${url}`);
+    });
+  }
+
+  return { mockFetch, mockChatStream };
+});
+
+mockNuxtImport('$fetch', () => mockFetch);
 
 describe('agentStreaming', () => {
-  beforeEach(() => {
-    vi.stubGlobal('requestErrorToast', vi.fn());
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   describe('submitMessageStreamed', () => {
     it('parses a full backend turn with metadata, text chunks, tool_call, and tool_call_status', async () => {
       const threadId = 'thread-123';

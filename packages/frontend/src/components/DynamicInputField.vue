@@ -356,7 +356,7 @@ const emit = defineEmits<{
 defineSlots();
 
 
-const { mobile } = useDisplay();
+const { mobile } = useVDisplay();
 
 
 function getInitialValue(fieldDef: FieldDefinition, useDefault = true): any {

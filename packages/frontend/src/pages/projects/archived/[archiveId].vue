@@ -128,10 +128,10 @@ const restoreUntilDate = computed(() => {
   return 'in the next ' + formatDistanceToNowStrict(date, { unit: 'day' });
 })
 
-useHeadExtended({
+useHead({
   title: archive.value.name,
-  breadcrumbs: () => archivedProjectDetailBreadcrumbs(archive.value),
 });
+useAppBar({ breadcrumbs: () => archivedProjectDetailBreadcrumbs(archive.value) });
 
 const restoreWizard = ref({
   visible: false,

@@ -1,4 +1,3 @@
-import gc
 import logging
 from base64 import b64decode
 from inspect import cleandoc

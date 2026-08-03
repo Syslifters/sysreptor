@@ -125,14 +125,14 @@
 </template>
 
 <script setup lang="ts">
-import { PluginRouteScope, type SyncState } from '#imports';
+import { PluginRouteScope } from '#imports';
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
 const localSettings = useLocalSettings();
 const pluginStore = usePluginStore();
 const route = useRoute();
-const display = useDisplay();
+const display = useVDisplay();
 
 const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.MAIN));
 
@@ -149,33 +149,7 @@ const naviagtionDrawerProps = computed(() => ({
   })
 }));
 
-// Breadcrumbs
-const breadcrumbs = ref<Breadcrumbs>();
-const syncState = ref<SyncState|undefined>();
-const nuxtApp = useNuxtApp();
-const head = nuxtApp.vueApp._context.provides.usehead
-function syncBreadcrumbs() {
-  // Breadcrumbs
-  const bc = head.headEntries()
-    .filter((e: any) => e.input?.breadcrumbs)
-    .reverse()
-    .map((e: any) => e.input.breadcrumbs.map((b: Breadcrumb) => ({ ...b, title: b.title || '...', disabled: false })))[0];
-  if (bc) {
-    breadcrumbs.value = [
-      { icon: 'mdi-home', to: '/' },
-      ...bc,
-    ];
-  } else {
-    breadcrumbs.value = undefined;
-  }
-
-  // Save indicator
-  syncState.value = head.headEntries()
-    .filter((e: any) => e.input?.syncState)
-    .reverse()
-    .map((e: any) => e.input.syncState)[0];
-}
-head.hooks.hook('dom:beforeRender', syncBreadcrumbs);
+const { breadcrumbs, syncState } = useAppBar();
 </script>
 
 <style lang="scss" scoped>

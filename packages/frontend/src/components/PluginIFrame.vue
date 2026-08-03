@@ -20,7 +20,7 @@ const props = defineProps<{
 
 const router = useRouter();
 const route = useRoute();
-const theme = useTheme();
+const theme = useVTheme();
 const loadingIndicator = useLoadingIndicator();
 loadingIndicator.start();
 

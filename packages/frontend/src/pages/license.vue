@@ -64,9 +64,7 @@ definePageMeta({
   title: 'License',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => [{ title: 'License', to: '/license/' }],
-});
+useAppBar({ breadcrumbs: [{ title: 'License', to: '/license/' }] });
 
 const license = await useFetchE<LicenseInfoDetails>('/api/v1/utils/license/', { method: 'GET' });
 const licenseWarning = computed(() => {

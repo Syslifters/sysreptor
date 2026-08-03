@@ -25,9 +25,9 @@ export function useProjectTypeLockEdit(options: {
   const projectType = computed(() => options.projectType.value);
 
   const baseUrl = computed(() => `/api/v1/projecttypes/${projectType.value.id}/`);
-  useHeadExtended({
-    title: projectType.value.name
-  });
+  useHead({
+  title: projectType.value.name
+});
 
   const hasEditPermissions = computed(() => {
     if (options.hasEditPermissions && !options.hasEditPermissions.value) {

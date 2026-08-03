@@ -59,9 +59,7 @@ definePageMeta({
   title: 'Projects',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => archivedProjectListBreadcrumbs(),
-});
+useAppBar({ breadcrumbs: archivedProjectListBreadcrumbs() });
 
 const listViewRef = useTemplateRef('listViewRef');
 const suggestedTags = useArchivedProjectTags();

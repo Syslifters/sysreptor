@@ -112,9 +112,7 @@ definePageMeta({
   title: 'Projects',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => projectListBreadcrumbs(),
-});
+useAppBar({ breadcrumbs: projectListBreadcrumbs() });
 
 const auth = useAuth();
 const localSettings = useLocalSettings();

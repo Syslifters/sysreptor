@@ -59,7 +59,7 @@ const emits = defineEmits< {
   (e: 'update:modelValue', modelValue: string): void
 }>();
 
-const theme = useTheme();
+const theme = useVTheme();
 
 let editor: monaco.editor.IStandaloneCodeEditor;
 const editorElement = useTemplateRef('editorElement');

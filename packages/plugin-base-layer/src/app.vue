@@ -13,7 +13,7 @@
 import { merge } from 'lodash-es';
 
 // Inherit parent theme configs
-const theme = useTheme();
+const theme = useVTheme();
 onBeforeMount(() => {
   try {
     const parentThemeConfig = window.parent?.useNuxtApp?.().$vuetify?.theme;

@@ -178,7 +178,7 @@ useAutofocus(note, 'text', (id?: string) => {
   }
 });
 
-useHeadExtended({
+useHead({
   title: computed(() => note.value?.title || null),
 });
 

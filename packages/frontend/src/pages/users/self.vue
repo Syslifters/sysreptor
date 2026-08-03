@@ -45,9 +45,9 @@
 import { profileTitleTemplate } from "~/utils/title";
 
 const route = useRoute();
-useHeadExtended({
+useHead({
   titleTemplate: (title?: string|null) => profileTitleTemplate(title, route),
-  breadcrumbs: () => [{ title: 'Profile', to: '/users/self/' }],
 });
+useAppBar({ breadcrumbs: [{ title: 'Profile', to: '/users/self/' }] });
 const apiSettings = useApiSettings();
 </script>

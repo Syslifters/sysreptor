@@ -90,11 +90,11 @@ const editorDiffAttrs = computed(() => ({
   fieldDefinitionList: fieldDefinitionList.value,
   historyDate: route.params.historyDate as string,
 }));
-useHeadExtended({
+useHead({
   title: computed(() => {
     const mainTranslation = fetchState.data.value?.templateCurrent?.translations?.find(tr => tr.is_main);
     return mainTranslation?.data.title || null;
   }),
-  breadcrumbs: () => templateDetailBreadcrumbs(fetchState.data.value?.templateCurrent),
 });
+useAppBar({ breadcrumbs: () => templateDetailBreadcrumbs(fetchState.data.value?.templateCurrent) });
 </script>

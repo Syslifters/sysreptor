@@ -175,14 +175,14 @@ function onWheel(event: WheelEvent) {
 }
 
 // Keyboard shortcuts for tool selection
-useHotkey('v', () => setTool(ImageEditorTool.SELECT));
-useHotkey('r', () => setTool(ImageEditorTool.RECTANGLE_OUTLINED));
-useHotkey('shift+r', () => setTool(ImageEditorTool.RECTANGLE_FILLED));
-useHotkey('p', () => setTool(ImageEditorTool.PIXELATE));
-useHotkey('o', () => setTool(ImageEditorTool.ELLIPSE));
-useHotkey('l', () => setTool(ImageEditorTool.LINE));
-useHotkey('t', () => setTool(ImageEditorTool.TEXT));
-useHotkey('m', () => setTool(ImageEditorTool.MARKER));
+useVHotkey('v', () => setTool(ImageEditorTool.SELECT));
+useVHotkey('r', () => setTool(ImageEditorTool.RECTANGLE_OUTLINED));
+useVHotkey('shift+r', () => setTool(ImageEditorTool.RECTANGLE_FILLED));
+useVHotkey('p', () => setTool(ImageEditorTool.PIXELATE));
+useVHotkey('o', () => setTool(ImageEditorTool.ELLIPSE));
+useVHotkey('l', () => setTool(ImageEditorTool.LINE));
+useVHotkey('t', () => setTool(ImageEditorTool.TEXT));
+useVHotkey('m', () => setTool(ImageEditorTool.MARKER));
 </script>
 
 <style scoped lang="scss">

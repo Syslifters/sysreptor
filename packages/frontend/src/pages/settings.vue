@@ -156,9 +156,7 @@ definePageMeta({
   title: 'Settings',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => [{ title: 'Settings', to: '/settings/' }],
-});
+useAppBar({ breadcrumbs: [{ title: 'Settings', to: '/settings/' }] });
 
 const apiSettings = useApiSettings();
 
