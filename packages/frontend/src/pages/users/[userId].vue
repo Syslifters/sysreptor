@@ -48,9 +48,7 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
 
-useHeadExtended({
-  breadcrumbs: () => userDetailBreadcrumbs(user.value),
-});
+useAppBar({ breadcrumbs: () => userDetailBreadcrumbs(user.value) });
 
 await useAsyncData(async () => {
   if (!auth.permissions.value.user_manager) {

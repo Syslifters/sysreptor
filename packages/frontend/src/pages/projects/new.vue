@@ -47,10 +47,10 @@
 <script setup lang="ts">
 import type { VForm } from "vuetify/lib/components/index.mjs";
 
-useHeadExtended({
+useHead({
   title: 'Projects',
-  breadcrumbs: () => projectListBreadcrumbs().concat([{ title: 'New', to: '/projects/new/' }]),
 });
+useAppBar({ breadcrumbs: projectListBreadcrumbs().concat([{ title: 'New', to: '/projects/new/' }]) });
 
 const auth = useAuth();
 const apiSettings = useApiSettings();

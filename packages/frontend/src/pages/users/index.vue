@@ -61,9 +61,7 @@ definePageMeta({
   title: 'Users',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => userListBreadcrumbs(),
-});
+useAppBar({ breadcrumbs: userListBreadcrumbs() });
 
 const auth = useAuth();
 const localSettings = useLocalSettings();

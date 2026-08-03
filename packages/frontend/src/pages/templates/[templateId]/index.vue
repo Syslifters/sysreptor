@@ -62,10 +62,10 @@ const template = computed({
 const mainTranslation = computed(() => template.value?.translations?.find(tr => tr.is_main));
 
 const title = computed(() => mainTranslation.value?.data?.title || null);
-useHeadExtended({
+useHead({
   title,
-  breadcrumbs: () => templateDetailBreadcrumbs(template.value),
 });
+useAppBar({ breadcrumbs: () => templateDetailBreadcrumbs(template.value) });
 
 const vm = getCurrentInstance();
 const { toolbarAttrs, fetchLoaderAttrs, readonly } = useLockEdit({

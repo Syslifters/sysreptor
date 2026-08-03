@@ -263,7 +263,7 @@ async function setMarkdownEditorMode(mode: MarkdownEditorMode) {
 }
 
 
-const { thresholds } = useDisplay();
+const { thresholds } = useVDisplay();
 const { width: toolbarWidth } = useElementSize(toolbarRef);
 const hasSplitMode = computed(() => !props.hideSplitMode && toolbarWidth.value >= thresholds.value.md);
 watch(hasSplitMode, () => {

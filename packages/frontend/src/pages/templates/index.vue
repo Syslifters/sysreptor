@@ -88,9 +88,7 @@ definePageMeta({
   title: 'Templates',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => templateListBreadcrumbs(),
-});
+useAppBar({ breadcrumbs: templateListBreadcrumbs() });
 
 const route = useRoute();
 const router = useRouter();

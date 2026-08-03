@@ -6,7 +6,5 @@
 definePageMeta({
   name: 'plugins-main',
 });
-useHeadExtended({
-  breadcrumbs: () => pluginBreadcrumbs(PluginRouteScope.MAIN),
-});
+useAppBar({ breadcrumbs: () => pluginBreadcrumbs(PluginRouteScope.MAIN) });
 </script>

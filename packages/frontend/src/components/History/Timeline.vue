@@ -64,7 +64,7 @@ const props = defineProps<{
 }>();
 
 const apiSettings = useApiSettings();
-const { mobile } = useDisplay();
+const { mobile } = useVDisplay();
 
 const historyRecords = useSearchableCursorPaginationFetcher<HistoryTimelineRecord>({
   baseURL: props.url

@@ -85,7 +85,7 @@ const emit = defineEmits<{
   'change': [value: ChangeSpec];
 }>();
 
-const theme = useTheme();
+const theme = useVTheme();
 
 const cacheBusterFallback = uuidv4();
 const cacheBuster = computed(() => props.cacheBuster || cacheBusterFallback);

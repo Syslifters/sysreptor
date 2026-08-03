@@ -106,7 +106,7 @@ import { isEqual } from 'lodash-es';
 import { addDays, formatISO9075 } from "date-fns";
 
 const apiSettings = useApiSettings();
-const { lgAndDown } = useDisplay();
+const { lgAndDown } = useVDisplay();
 
 const isVisible = defineModel<boolean>();
 const props = defineProps<{

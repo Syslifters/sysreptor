@@ -68,7 +68,7 @@ export function usePluginHelpers(pluginHelperOptions: { pluginConfig: PluginConf
         attrs = props({
           route: router.currentRoute.value,
           user: auth.user.value!,
-          theme: useTheme(),
+          theme: useVTheme(),
         });
       }
       let iframeSrc = attrs.src;

@@ -15,7 +15,7 @@ const auth = useAuth();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 
-useHeadExtended({
+useHead({
   titleTemplate: title => rootTitleTemplate(title, route),
 });
 
@@ -25,7 +25,7 @@ useEventListener(colorSchemeQueryList, 'change', (event: MediaQueryListEvent) =>
   systemThemeIsDark.value = event.matches;
 });
 
-const vuetifyTheme = useTheme();
+const vuetifyTheme = useVTheme();
 const themeName = computed(() => {
   let baseTheme = localSettings.theme;
   if (!baseTheme || !['light', 'dark'].includes(baseTheme)) {

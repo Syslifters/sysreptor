@@ -216,6 +216,7 @@ if not DISABLE_WEBSOCKETS:
             'BACKEND': 'channels_redis.core.RedisChannelLayer',
             'CONFIG': {
                 'hosts': [{
+                    'socket_timeout': None,
                     'socket_keepalive': True,
                     'socket_keepalive_options': {
                         socket.TCP_KEEPIDLE: 2,

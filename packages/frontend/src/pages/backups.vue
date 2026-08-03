@@ -79,9 +79,7 @@ definePageMeta({
   title: 'Backup',
   toplevel: true,
 });
-useHeadExtended({
-  breadcrumbs: () => [{ title: 'Backup', to: '/backups/' }],
-});
+useAppBar({ breadcrumbs: [{ title: 'Backup', to: '/backups/' }] });
 
 const auth = useAuth();
 const csrftoken = useCookie('csrftoken');

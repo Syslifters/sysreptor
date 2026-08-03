@@ -561,8 +561,8 @@ function deleteSelected() {
     canvas.value.renderAll();
   }
 }
-useHotkey('Delete', deleteSelected);
-useHotkey('Backspace', deleteSelected);
+useVHotkey('Delete', deleteSelected);
+useVHotkey('Backspace', deleteSelected);
 
 
 function enterCropMode() {

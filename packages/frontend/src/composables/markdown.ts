@@ -119,7 +119,7 @@ export function useMarkdownEditorBase(options: {
   fileUploadSupported: boolean;
 }) {
   const apiSettings = useApiSettings();
-  const theme = useTheme();
+  const theme = useVTheme();
   const editorWasInView = ref(false);
   const previewCacheBuster = uuidv4();
 

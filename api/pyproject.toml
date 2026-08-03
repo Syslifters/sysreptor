@@ -19,12 +19,12 @@ dependencies = [
 
   "psycopg[binary,pool] (~=3.1)",
   "gunicorn (~=26.0)",
-  "uvicorn[standard] (~=0.50)",
+  "uvicorn[standard] (~=0.52)",
   "uvicorn-worker (~=0.4)",
   "whitenoise (~=6.4)",
   "channels[daphne] (~=4.2)",
   "channels-redis (~=4.2)",
-  "redis (~=7.4)",  # connection aborts on redis 8.0
+  "redis (~=8.1)",
 
   "requests (~=2.28)",
   "httpx (~=0.28)",
@@ -49,7 +49,7 @@ dependencies = [
   "psutil (~=7.0)",
   "markdownify (~=1.2)",
   "langchain[anthropic,openai,deepseek,ollama,mistralai] (~=1.0)",
-  "deepagents (~=0.6)",
+  "deepagents (~=0.7)",
 
   "django-debug-toolbar (~=7.0)",
   "elastic-apm (~=6.20)",
@@ -61,7 +61,7 @@ dependencies = [
   "pytest-cov (~=7.0)",
 
   "pip-licenses-cli (~=4.0)",
-  "ruff (~=0.15)",
+  "ruff (~=0.16)",
 ]
 
 

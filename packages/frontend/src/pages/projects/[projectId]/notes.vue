@@ -65,7 +65,7 @@ const apiSettings = useApiSettings();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 
-useHeadExtended({
+useHead({
   titleTemplate: title => projectNoteTitleTemplate(project.value, title, route),
 });
 
@@ -133,7 +133,5 @@ async function updateNoteOrder(notes: NoteGroup<NoteBase>) {
   }
 }
 
-useHeadExtended({
-  syncState: notesCollab.syncState,
-});
+useAppBar({ syncState: notesCollab.syncState });
 </script>

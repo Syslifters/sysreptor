@@ -15,13 +15,13 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer",
     "@sysreptor/markdown": "../markdown",
 
-    "nuxt": "~4.4",
+    "nuxt": "~4.5",
     "vuetify": "~4.1",
     "pinia": "^4.0",
 
     "sass-embedded": "^1.79.5",
     "@vueuse/nuxt": "^14.0.0",
-    "monaco-editor": "^0.55.0",
+    "monaco-editor": "^0.56.0",
     "vuedraggable": "^4.1.0",
     "@he-tree/vue": "^2.9.4",
     "@iconify/vue": "^5.0.0",
@@ -44,7 +44,7 @@
     "vitest": "^4.0",
     "happy-dom": "^20.0.0",
     "vue-tsc": "^3.0.4",
-    "@playwright/test": "1.61.1"
+    "@playwright/test": "1.62.1"
   },
   "overrides": {
     "vue": "latest"

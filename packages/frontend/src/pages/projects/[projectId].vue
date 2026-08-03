@@ -77,8 +77,8 @@ watch(() => project.value?.project_type, async () => {
 
 const pluginMenuEntries = computed(() => pluginStore.menuEntriesForScope(PluginRouteScope.PROJECT));
 
-useHeadExtended({
+useHead({
   titleTemplate: title => projectTitleTemplate(project.value, title, route),
-  breadcrumbs: () => projectDetailBreadcrumbs(project.value),
 });
+useAppBar({ breadcrumbs: () => projectDetailBreadcrumbs(project.value) });
 </script>

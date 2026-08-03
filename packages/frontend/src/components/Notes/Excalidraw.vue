@@ -24,7 +24,7 @@ const props = defineProps<{
   readonly?: boolean;
 }>();
 
-const theme = useTheme();
+const theme = useVTheme();
 const route = useRoute();
 const apiSettings = useApiSettings();
 const runtimeConfig = useRuntimeConfig();
