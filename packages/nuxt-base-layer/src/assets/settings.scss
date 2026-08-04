@@ -18,3 +18,12 @@ $risk-color-levels: (
 
 $status-color-finished: rgb(var(--v-theme-success));
 $status-color-deprecated: rgb(var(--v-theme-error));
+
+$retest-status-colors: (
+  open: rgb(var(--v-theme-retest-open)),
+  new: rgb(var(--v-theme-retest-new)),
+  changed: rgb(var(--v-theme-retest-changed)),
+  resolved: rgb(var(--v-theme-retest-resolved)),
+  accepted: rgb(var(--v-theme-retest-accepted)),
+  partial: rgb(var(--v-theme-retest-partial)),
+);

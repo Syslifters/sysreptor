@@ -35,6 +35,24 @@ You want to use the same colors for risk levels in the web UI as in the report P
 }
 ```
 
+### Custom Retest Status Colors
+You want to all retest statuses in different colors?
+
+```json
+{
+  "all": {
+    "colors": {
+      "retest-open": "#FF5252",
+      "retest-new": "#2196F3",
+      "retest-changed": "#9C27B0",
+      "retest-resolved": "#4CAF50",
+      "retest-accepted": "#4CAF50",
+      "retest-partial": "#FFC107"
+    }
+  }
+}
+```
+
 ### Header with Corporate Colors and Logo
 ```json
 {

@@ -202,7 +202,7 @@
                   <template #default>
                     <v-list-item-title class="text-body-medium">{{ findingTitle(finding) }}</v-list-item-title>
                     <v-list-item-subtitle v-if="finding.assignee">@{{ finding.assignee.username }}</v-list-item-subtitle>
-                    <v-tooltip v-if="['resolved', 'accepted', 'partial'].includes(findingRetestStatus(finding)?.value || '')" activator="parent">
+                    <v-tooltip v-if="findingRetestStatus(finding)" activator="parent">
                       Retest status: {{ findingRetestStatus(finding)?.label }}
                     </v-tooltip>
                   </template>
@@ -562,21 +562,20 @@ function deleteSelectedFindings() {
   color: settings.$status-color-deprecated;
 }
 
-.finding-retest-resolved, .finding-retest-accepted, .finding-retest-partial {
-  &:not(.v-list-item--active) > :deep(.v-list-item__overlay)  {
-    opacity: 0.1;
+@each $status, $color in settings.$retest-status-colors {
+  .finding-retest-#{$status} {
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      background-color: color-mix(in srgb, $color 10%, transparent);
+    }
+    &.v-list-item--active::before {
+      background-color: color-mix(in srgb, $color 20%, transparent);
+    }
   }
-  &.v-list-item--active > :deep(.v-list-item__overlay)  {
-    opacity: 0.2;
-  }
-}
-.finding-retest-resolved, .finding-retest-accepted {
-  &:deep(.v-list-item__overlay) {
-    background-color: rgb(var(--v-theme-success));
-  }
-}
-.finding-retest-partial:deep(.v-list-item__overlay) {
-  background-color: rgb(var(--v-theme-warning));
 }
 
 :deep(.v-list-item-subtitle) {
