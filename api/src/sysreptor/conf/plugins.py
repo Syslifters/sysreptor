@@ -239,9 +239,7 @@ def iter_plugin_module_dirs(plugin_dirs: list[Path]):
     for plugins_dir in plugin_dirs:
         if not plugins_dir.is_dir():
             continue
-        for module_dir in plugins_dir.iterdir():
-            if not module_dir.is_dir():
-                continue
+        for module_dir in sorted(list(plugins_dir.iterdir())):
             existing = seen.get(module_dir.name)
             if existing is not None and existing != module_dir:
                 raise ImproperlyConfigured(f'Duplicate plugin module: {module_dir.name}')
