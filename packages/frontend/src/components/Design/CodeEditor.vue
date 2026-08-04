@@ -4,9 +4,9 @@
 
 <script lang="ts">
 import * as monaco from 'monaco-editor';
-import cssWorkerUrl from 'monaco-editor/esm/vs/language/css/css.worker?worker&url';
-import htmlWorkerUrl from 'monaco-editor/esm/vs/language/html/html.worker?worker&url';
-import editorWorkerUrl from 'monaco-editor/esm/vs/editor/editor.worker?worker&url';
+import cssWorkerUrl from 'monaco-editor/language/css/css.worker?worker&url';
+import htmlWorkerUrl from 'monaco-editor/language/html/html.worker?worker&url';
+import editorWorkerUrl from 'monaco-editor/editor/editor.worker?worker&url';
 
 declare global {
   interface Window {
