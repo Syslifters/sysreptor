@@ -127,7 +127,7 @@
 </template>
 
 <script setup lang="ts">
-import { cloneDeep, isEqual } from 'lodash-es';
+import { cloneDeep, isEqual, sortBy } from 'lodash-es';
 import { VForm } from 'vuetify/components';
 import ProInfo from '@base/components/ProInfo.vue';
 import { wait } from '@base/utils/helpers';
@@ -193,7 +193,7 @@ function setPluginEnabled(plugin: PluginConfigurationDefinition, enabled: boolea
   } else {
     current = current.filter(p => ![plugin.name, plugin.plugin_id].includes(p));
   }
-  configurationValues.value['ENABLED_PLUGINS'] = current;
+  configurationValues.value['ENABLED_PLUGINS'] = sortBy(current);
 }
 const coreConfigGroups = computed(() => {
   const coreGroups = [
