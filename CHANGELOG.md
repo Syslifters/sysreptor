@@ -10,6 +10,7 @@
 * Fix gpg encoding error
 * AI agent: Fix wrong icon shown for reverting agent changes in UI
 * UI: improve comment textfield dark theme
+* UI: allow customizing retest status colors
 * Plugin `scanimport`: Improve template translation selection logic
 
 

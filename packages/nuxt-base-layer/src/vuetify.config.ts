@@ -29,6 +29,13 @@ const themeCommon = {
     'risk-high': '#F76226',
     'risk-critical': '#E83221',
 
+    'retest-open': '#ffffff00',
+    'retest-new': '#ffffff00',
+    'retest-changed': '#ffffff00',
+    'retest-resolved': sysreptorGreen,
+    'retest-accepted': sysreptorGreen,
+    'retest-partial': '#FFC107',
+
     'search-match': '#ffff00',
     'on-search-match': themeLightTextColor,
   },
