@@ -9,6 +9,7 @@
 * Fix redirect URL after creating new excalidraw note in personal notes
 * Fix gpg encoding error
 * AI agent: Fix wrong icon shown for reverting agent changes in UI
+* UI: improve comment textfield dark theme
 * Plugin `scanimport`: Improve template translation selection logic
 
 

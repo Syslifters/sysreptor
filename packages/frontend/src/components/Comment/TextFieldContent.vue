@@ -14,6 +14,7 @@ import {
   defaultKeymap, 
   tooltips,
   autocompletion, 
+  createEditorExtensionToggler,
   type CompletionContext,
 } from '@sysreptor/markdown/editor';
 
@@ -26,8 +27,10 @@ const emit = defineEmits<{
   'save': [];
 }>();
 
+const theme = useVTheme();
 const editorRef = useTemplateRef('editorRef');
-const editorView = ref<EditorView|null>(null);
+const editorView = shallowRef<EditorView|null>(null);
+const editorActions = ref<Record<string, (enabled: boolean) => void>>({});
 
 onMounted(() => {
   editorView.value = new EditorView({
@@ -69,6 +72,12 @@ onMounted(() => {
       ],
     }),
   });
+  editorActions.value = {
+    darkTheme: createEditorExtensionToggler(editorView.value!, [
+      EditorView.theme({}, { dark: true }),
+    ]),
+  };
+  editorActions.value.darkTheme!(theme.current.value.dark);
 });
 
 watch(modelValue, () => {
@@ -77,7 +86,8 @@ watch(modelValue, () => {
       changes: { from: 0, to: editorView.value.state.doc.length ?? 0, insert: modelValue.value }
     });
   }
-})
+});
+watch(theme.current, val => editorActions.value.darkTheme?.(val.dark));
 
 
 function autocompleteUsernames(context: CompletionContext) {
