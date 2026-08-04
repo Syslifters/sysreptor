@@ -132,6 +132,32 @@ class TestTemplateRendering:
         assert f['template_info']['language'] == Language.GERMAN_DE
         assertKeysEqual(f['data'], t.translations.get(language=Language.GERMAN_DE).data, ['title', 'description'])
 
+    def test_template_selection_language_across_templates(self):
+        update(self.project, language=Language.GERMAN_DE)
+        create_template(tags=['scanimport:burp'], data={'title': 'EN title'}, language=Language.ENGLISH_US)
+        t_de = create_template(tags=['scanimport:burp'], data={'title': 'DE title'}, language=Language.GERMAN_DE)
+        f = self.import_burp_finding()
+        assert f['template'] == t_de.id
+        assert f['template_info']['language'] == Language.GERMAN_DE
+        assert f['data']['title'] == 'DE title'
+
+    def test_template_selection_same_language_first_wins(self):
+        update(self.project, language=Language.GERMAN_DE)
+        t_first = create_template(tags=['scanimport:burp'], data={'title': 'DE first'}, language=Language.GERMAN_DE)
+        create_template(tags=['scanimport:burp'], data={'title': 'DE second'}, language=Language.GERMAN_DE)
+        f = self.import_burp_finding()
+        assert f['template'] == t_first.id
+        assert f['data']['title'] == 'DE first'
+
+    def test_template_selection_specific_path_over_language(self):
+        update(self.project, language=Language.GERMAN_DE)
+        t_specific = create_template(tags=['scanimport:burp:2097936'], data={'title': 'EN specific'}, language=Language.ENGLISH_US)
+        create_template(tags=['scanimport:burp'], data={'title': 'DE general'}, language=Language.GERMAN_DE)
+        f = self.import_burp_finding()
+        assert f['template'] == t_specific.id
+        assert f['template_info']['language'] == Language.ENGLISH_US
+        assert f['data']['title'] == 'EN specific'
+
     def test_django_template_language(self):
         t = create_template(tags=['scanimport:burp'], data={
             'description': textwrap.dedent(
