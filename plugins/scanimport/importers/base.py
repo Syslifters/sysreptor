@@ -46,13 +46,16 @@ class BaseImporter:
             .prefetch_related('translations')
         return list(results)
     
-    def select_template_translation(self, template: FindingTemplate, language: Language|None = None, additional_info: dict|None = None) -> FindingTemplateTranslation:
-        template.additional_info = additional_info or {}
+    def select_template_translation(self, templates: list[FindingTemplate], language: Language|None = None, additional_info: dict|None = None) -> FindingTemplateTranslation:
+        matching = []
         if language:
-            for tr in getattr(template, '_translations', template.translations.all()):
-                if tr.language == language:
-                    return tr
-        return template.main_translation
+            matching = [(t, tr) for t in templates for tr in getattr(t, '_translations', t.translations.all()) if tr.language == language]
+        if not matching:
+            matching = [(templates[0], templates[0].main_translation)]
+        t, tr = matching[0]
+        t.additional_info = additional_info or {}
+        tr.template = t
+        return tr
 
     def select_finding_template(self, templates: list[FindingTemplate], fallback: list[FindingTemplate], selector: str|None = None, language: Language|None = None) -> FindingTemplateTranslation:
         selector_base = f'scanimport:{self.id}'
@@ -63,11 +66,11 @@ class BaseImporter:
             additional_info['search_path'].insert(0, selector)
         
         for tag in additional_info['search_path']:
-            for t in templates + fallback:
-                if tag in t.tags:
-                    return self.select_template_translation(t, language, additional_info=additional_info)
+            matching = [t for t in templates + fallback if tag in t.tags]
+            if matching:
+                return self.select_template_translation(matching, language, additional_info=additional_info)
         if fallback:
-            return self.select_template_translation(fallback[0], language, additional_info=additional_info)
+            return self.select_template_translation(fallback, language, additional_info=additional_info)
         raise ValueError(f"No suitable template found for importer '{self.id}' with selector '{selector}'.")
     
     def generate_finding_from_template(self, project: PentestProject, tr: FindingTemplateTranslation, data: dict):

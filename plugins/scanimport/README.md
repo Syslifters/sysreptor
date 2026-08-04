@@ -57,9 +57,11 @@ The plugin selects templates for findings using a hierarchical tag system:
 
 `{finding_type}` is tool-specific (e.g. Nessus plugin ID, Burp issue type, OpenVAS OID, ZAP alert reference, Qualys QID, Prowler check ID, ScoutSuite finding ID).
 
-Because a specific tag is tried before a general one, a built-in specific template outranks a custom general tool template. For example, SSLyze ships a built-in template tagged `scanimport:sslyze:weak_tls_setup`. A custom template tagged only `scanimport:sslyze` will not override it — use `scanimport:sslyze:weak_tls_setup` instead.
+Because a specific tag is tried before a general one, a built-in specific template outranks a custom general tool template. For example, SSLyze ships a built-in template tagged `scanimport:sslyze:weak_tls_setup`. A custom template tagged only `scanimport:sslyze` will not override it — use `scanimport:sslyze:weak_tls_setup` instead. Tag specificity also outranks language: a specific-tag template is used even if only a more general template has the project language.
 
-### Template Language
+Within the chosen tag, the plugin prefers a translation in the project's language. If several templates share that tag and language, the first match wins. If none match the language, the first matching template's main translation is used. You can maintain one template with multiple translations (recommended) or separate templates per language.
+
+### Template Language Rendering
 
 The plugin uses a modified Django template language with HTML comment delimiters to avoid conflicts with Markdown:
 
