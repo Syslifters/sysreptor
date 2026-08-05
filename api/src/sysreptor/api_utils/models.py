@@ -1,6 +1,6 @@
+from django.conf import settings
 from django.db import models
 
-from sysreptor.users.models import PentestUser
 from sysreptor.utils.models import BaseModel
 
 
@@ -27,7 +27,7 @@ class BackupLogType(models.TextChoices):
 
 class BackupLog(BaseModel):
     type = models.CharField(choices=BackupLogType.choices, max_length=20)
-    user = models.ForeignKey(PentestUser, on_delete=models.SET_NULL, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
 
 class DbConfigurationEntry(models.Model):

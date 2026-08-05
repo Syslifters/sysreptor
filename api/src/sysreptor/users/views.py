@@ -18,6 +18,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from sysreptor.audit.models import AuditLogTypes
 from sysreptor.users.models import AuthIdentity, MFAMethod, PentestUser
 from sysreptor.users.permissions import (
     APITokenViewSetPermissions,
@@ -51,6 +52,7 @@ from sysreptor.users.serializers import (
 )
 from sysreptor.utils import license
 from sysreptor.utils.api import CursorMultiPagination
+from sysreptor.utils.audit import audit_log
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.utils import is_true
 
@@ -141,6 +143,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
         request.session['admin_permissions_enabled'] = True
         request.session.cycle_key()
         request.user.admin_permissions_enabled = True
+        audit_log(type=AuditLogTypes.ADMIN_ENABLED, user=request.user, related=request.user)
         self.kwargs['pk'] = 'self'
         return self.retrieve(*args, request=request, **kwargs)
 
@@ -149,6 +152,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
         request.session.pop('admin_permissions_enabled', False)
         request.session.cycle_key()
         request.user.admin_permissions_enabled = False
+        audit_log(type=AuditLogTypes.ADMIN_DISABLED, user=request.user, related=request.user)
         self.kwargs['pk'] = 'self'
         return self.retrieve(*args, request=request, **kwargs)
 

@@ -114,11 +114,15 @@ class Configuration:
     @transaction.atomic
     def update(self, settings: dict, only_changed=True):
         from sysreptor.api_utils.models import DbConfigurationEntry
+        from sysreptor.audit.models import AuditLogTypes
+        from sysreptor.utils.audit import audit_log
 
         definition = self.definition
         settings_to_update = []
+        changed_names = []
         for name, value in settings.items():
             if not only_changed or (configuration.get(name) != value and not definition[name].extra_info.get('set_in_env')):
+                changed_names.append(name)
                 settings_to_update.append(DbConfigurationEntry(
                     name=name,
                     value=self._encode_json_value(value=value),
@@ -127,6 +131,9 @@ class Configuration:
         DbConfigurationEntry.objects.filter(name__in=[s.name for s in settings_to_update]).delete()
         DbConfigurationEntry.objects.bulk_create(settings_to_update)
         self.clear_cache()
+
+        if changed_names:
+            audit_log(type=AuditLogTypes.SETTINGS_CHANGED, data={'changes': changed_names})
 
 
 configuration = Configuration()
