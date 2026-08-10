@@ -1,7 +1,9 @@
 from sysreptor.utils.utils import get_key_or_attr
 
 
-def assertKeysEqual(a, b, keys):
+def assertKeysEqual(a, b, keys=None):
+    if keys is None:
+        keys = b.keys()
     for k in keys:
         va = get_key_or_attr(a, k)
         vb = get_key_or_attr(b, k)
