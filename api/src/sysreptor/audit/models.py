@@ -35,8 +35,7 @@ class AuditLogTypes(enum.StrEnum):
 
 class AuditLogEntry(BaseModel):
     type = models.CharField(max_length=64, db_index=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
-    user_username = models.CharField(max_length=150, null=True, blank=True, db_index=True)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.DO_NOTHING, db_constraint=False, related_name='+')
     data = EncryptedField(base_field=models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder))
 
     content_type = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.SET_NULL)

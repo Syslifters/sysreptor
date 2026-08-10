@@ -315,7 +315,15 @@ class AuthViewSet(viewsets.ViewSet):
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return self.perform_login_local(request, request.user, step='mfa')
+        mfa = serializer.validated_data
+        return self.perform_login_local(request, request.user, step='mfa', auth={
+            'method': 'local',
+            'mfa': {
+                'id': str(mfa.id),
+                'method_type': mfa.method_type,
+                'name': mfa.name,
+            },
+        })
 
     @action(detail=False, url_path='login/fido2/begin', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
     def login_fido2_begin(self, request, *args, **kwargs):
@@ -332,10 +340,11 @@ class AuthViewSet(viewsets.ViewSet):
     def login_fido2_complete(self, request, *args, **kwargs):
         self._verify_mfa_preconditions(request)
         state = request.session.get('login_state', {}).pop('fido2_state', None)
+        methods, credentials = MFAMethod.objects.get_fido2_methods_with_credentials(request.user)
         try:
-            MFAMethod.get_fido2_server().authenticate_complete(
+            used_credential = MFAMethod.get_fido2_server().authenticate_complete(
                 state=state,
-                credentials=MFAMethod.objects.get_fido2_user_credentials(request.user),
+                credentials=credentials,
                 response=request.data,
             )
         except ValueError as ex:
@@ -343,7 +352,16 @@ class AuthViewSet(viewsets.ViewSet):
                 raise serializers.ValidationError(ex.args[0], 'fido2') from ex
             else:
                 raise ex
-        return self.perform_login_local(request, request.user, step='mfa')
+
+        mfa = methods[credentials.index(used_credential)]
+        return self.perform_login_local(request, request.user, step='mfa', auth={
+            'method': 'local',
+            'mfa': {
+                'id': str(mfa.id),
+                'method_type': mfa.method_type,
+                'name': mfa.name,
+            },
+        })
 
     def _verify_mfa_preconditions(self, request):
         login_state = request.session.get('login_state', {})
@@ -365,7 +383,8 @@ class AuthViewSet(viewsets.ViewSet):
 
         return self.perform_login_local(request, request.user, step='change-password')
 
-    def perform_login_local(self, request, user, step=None, can_reauth=True):
+    def perform_login_local(self, request, user, step=None, can_reauth=True, auth=None):
+        auth = {'method': 'local'} | dict(auth or {})
         is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get(SESSION_KEY)
         if not step:
             # After username+password successful
@@ -379,7 +398,7 @@ class AuthViewSet(viewsets.ViewSet):
             mfa_methods = list(user.mfa_methods.all().default_order())
             if not mfa_methods:
                 # MFA disabled: skip MFA setp
-                return self.perform_login_local(request, user, step='mfa')
+                return self.perform_login_local(request, user, step='mfa', can_reauth=can_reauth, auth=auth)
             else:
                 return Response({
                     'status': 'mfa-required',
@@ -391,27 +410,31 @@ class AuthViewSet(viewsets.ViewSet):
             if not user.can_login_local:
                 raise APIBadRequestError('Local user login via username/password is disabled for this user. Log in via SSO instead.')
 
-            request.session['login_state'] = request.session.get('login_state', {}) | {
-                'status': 'password-change-required',
-            }
+            login_state_update = {'status': 'password-change-required'}
+            if mfa := auth.get('mfa'):
+                login_state_update['mfa'] = mfa
+            request.session['login_state'] = request.session.get('login_state', {}) | login_state_update
 
             if not (user.must_change_password and license.is_professional()) or is_reauth:
                 # Continue with next stage
-                return self.perform_login_local(request, user, step='change-password')
+                return self.perform_login_local(request, user, step='change-password', can_reauth=can_reauth, auth=auth)
             else:
                 return Response({
                     'status': 'password-change-required',
                 }, status=200)
         else:
             # After all other steps: perform actual login
-            return self.perform_login(request, user, can_reauth=can_reauth)
+            if 'mfa' not in auth:
+                if mfa := request.session.get('login_state', {}).get('mfa'):
+                    auth['mfa'] = mfa
+            return self.perform_login(request, user, can_reauth=can_reauth, auth=auth)
 
     def validate_login_allowed(self, user):
         if not user.is_active:
             raise APIBadRequestError('User is disabled. Contact an administrator to reactivate it.')
         license.validate_login_allowed(user)
 
-    def perform_login(self, request, user, can_reauth=True):
+    def perform_login(self, request, user, can_reauth=True, auth=None):
         self.validate_login_allowed(user)
 
         if user.failed_mfa_attempts > 0:
@@ -427,6 +450,7 @@ class AuthViewSet(viewsets.ViewSet):
                 'reauth_time': timezone.now().isoformat(),
             }
         else:
+            request._audit_login = dict(auth or {})
             login(request=self.request, user=user)
             request.session['authentication_info'] = request.session.get('authentication_info', {}) | {
                 'login_time': timezone.now().isoformat(),
@@ -493,7 +517,14 @@ class AuthViewSet(viewsets.ViewSet):
             can_reauth = True
         elif (auth_time := token['userinfo'].get('auth_time')):
             can_reauth = (timezone.now() - timezone.make_aware(datetime.fromtimestamp(auth_time))) < timedelta(minutes=1)
-        res = self.perform_login(request, identity.user, can_reauth=can_reauth)
+        res = self.perform_login(request, identity.user, can_reauth=can_reauth, auth={
+            'method': 'oidc',
+            'auth_identity': {
+                'id': str(identity.id),
+                'provider': identity.provider,
+                'identifier': identity.identifier,
+            },
+        })
         request.session['authentication_info'] |= {
             f'oidc_{oidc_provider}_login_hint':
                 token['userinfo'].get('preferred_username') or
@@ -513,7 +544,14 @@ class AuthViewSet(viewsets.ViewSet):
             .first()
         if not identity:
             raise exceptions.AuthenticationFailed()
-        return self.perform_login(request, identity.user)
+        return self.perform_login(request, identity.user, auth={
+            'method': 'remoteuser',
+            'auth_identity': {
+                'id': str(identity.id),
+                'provider': identity.provider,
+                'identifier': identity.identifier,
+            },
+        })
 
     @action(detail=False, url_path='forgot-password', methods=['post'], permission_classes=[ForgotPasswordPermissions], throttle_scope='pwreset_sendmail')
     def forgot_password_send(self, request, *args, **kwargs):

@@ -26,6 +26,8 @@ def audit_log(*, type, user=None, data=None, related=None):
 
     user = _resolve_user(user)
     data = dict(data or {})
+    if user:
+        data['actor_name'] = f'{user.username} ({user.name})'
     if 'related_name' not in data:
         if isinstance(related, PentestUser):
             data['related_name'] = f'{related.username} ({related.name})'
@@ -36,8 +38,7 @@ def audit_log(*, type, user=None, data=None, related=None):
 
     AuditLogEntry.objects.create(
         type=type,
-        user=user,
-        user_username=user.username if user else None,
+        actor=user,
         related=related,
         data=data,
     )
