@@ -246,7 +246,7 @@ class MFAMethodViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixin
         return Response(MFAMethodSerializer(instance=instance).data, status=status.HTTP_201_CREATED)
 
 
-class AuthIdentityViewSet(UserSubresourceViewSetMixin, viewsets.ModelViewSet):
+class AuthIdentityViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet):
     serializer_class = AuthIdentitySerializer
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [AuthIdentityViewSetPermissions, license.ProfessionalLicenseRequired]
 
