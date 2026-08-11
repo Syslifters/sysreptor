@@ -17,6 +17,11 @@ class AuditLogEntryAdmin(BaseAdmin):
     ordering = ['-created']
     exclude = ['data', 'content_type', 'object_id', 'actor']
 
+    def get_queryset(self, request):
+        return super().get_queryset(request) \
+            .select_related('actor') \
+            .prefetch_related('related')
+
     def has_module_permission(self, request):
         return license.is_professional() and super().has_module_permission(request)
 

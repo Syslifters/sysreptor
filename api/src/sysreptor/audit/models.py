@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
+from sysreptor.audit.querysets import AuditLogEntryManager
 from sysreptor.utils.crypto.fields import EncryptedField
 from sysreptor.utils.models import BaseModel
 
@@ -40,6 +41,8 @@ class AuditLogEntry(BaseModel):
     content_type = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     object_id = models.UUIDField(null=True, blank=True, db_index=True)
 
+    objects = AuditLogEntryManager()
+
     class Meta(BaseModel.Meta):
         indexes = [
             models.Index(fields=['content_type', 'object_id'], name='audit_audit_content_type_idx'),
@@ -47,11 +50,16 @@ class AuditLogEntry(BaseModel):
 
     @property
     def related(self):
+        if '_related_cache' in self.__dict__:
+            return self.__dict__['_related_cache']
         if not self.content_type or not self.object_id:
+            self._related_cache = None
             return None
         app_label, model = self.content_type.split('.', 1)
         try:
             Model = apps.get_model(app_label, model)
         except LookupError:
+            self._related_cache = None
             return None
-        return Model.objects.filter(pk=self.object_id).first()
+        self._related_cache = Model.objects.filter(pk=self.object_id).first()
+        return self._related_cache

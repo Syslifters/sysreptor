@@ -28,7 +28,7 @@ def audit_log(*, type, user=None, data=None, related=None):
     data = dict(data or {})
     if user:
         data['actor_name'] = f'{user.username} ({user.name})'
-    if 'related_name' not in data:
+    if related and 'related_name' not in data:
         if isinstance(related, PentestUser):
             data['related_name'] = f'{related.username} ({related.name})'
         elif isinstance(related, PentestProject):
