@@ -15,7 +15,6 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -28,14 +27,14 @@ class Migration(migrations.Migration):
                 ('updated', models.DateTimeField(auto_now=True)),
                 ('type', models.CharField(db_index=True, max_length=64)),
                 ('actor', models.ForeignKey(blank=True, db_constraint=False, null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='+', to=settings.AUTH_USER_MODEL)),
-                ('object_id', models.UUIDField(blank=True, null=True)),
-                ('content_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='contenttypes.contenttype')),
+                ('content_type', models.CharField(blank=True, db_index=True, max_length=255, null=True)),
+                ('object_id', models.UUIDField(blank=True, db_index=True, null=True)),
                 ('data', sysreptor.utils.crypto.fields.EncryptedField(base_field=models.JSONField(blank=True, default=dict, encoder=django.core.serializers.json.DjangoJSONEncoder), editable=True)),
             ],
             options={
                 'ordering': ['-created'],
                 'abstract': False,
-                'indexes': [models.Index(fields=['content_type', 'object_id'], name='audit_audit_content_82c7f9_idx')],
+                'indexes': [models.Index(fields=['content_type', 'object_id'], name='audit_audit_content_type_idx')],
             },
         ),
     ]

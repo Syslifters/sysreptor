@@ -39,6 +39,7 @@ def audit_log(*, type, user=None, data=None, related=None):
     AuditLogEntry.objects.create(
         type=type,
         actor=user,
-        related=related,
+        content_type=f'{related._meta.app_label}.{related._meta.model_name}' if related is not None else None,
+        object_id=related.pk if related is not None else None,
         data=data,
     )

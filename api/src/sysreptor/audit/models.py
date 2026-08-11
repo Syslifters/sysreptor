@@ -1,8 +1,7 @@
 import enum
 
+from django.apps import apps
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 
@@ -38,11 +37,21 @@ class AuditLogEntry(BaseModel):
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.DO_NOTHING, db_constraint=False, related_name='+')
     data = EncryptedField(base_field=models.JSONField(default=dict, blank=True, encoder=DjangoJSONEncoder))
 
-    content_type = models.ForeignKey(ContentType, null=True, blank=True, on_delete=models.SET_NULL)
-    object_id = models.UUIDField(null=True, blank=True)
-    related = GenericForeignKey('content_type', 'object_id')
+    content_type = models.CharField(max_length=255, null=True, blank=True, db_index=True)
+    object_id = models.UUIDField(null=True, blank=True, db_index=True)
 
     class Meta(BaseModel.Meta):
         indexes = [
-            models.Index(fields=['content_type', 'object_id']),
+            models.Index(fields=['content_type', 'object_id'], name='audit_audit_content_type_idx'),
         ]
+
+    @property
+    def related(self):
+        if not self.content_type or not self.object_id:
+            return None
+        app_label, model = self.content_type.split('.', 1)
+        try:
+            Model = apps.get_model(app_label, model)
+        except LookupError:
+            return None
+        return Model.objects.filter(pk=self.object_id).first()
