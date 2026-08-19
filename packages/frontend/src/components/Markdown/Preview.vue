@@ -154,7 +154,7 @@ function updateIframeHeight() {
   const paddingY = bodyStyle
     ? (parseFloat(bodyStyle.paddingTop) || 0) + (parseFloat(bodyStyle.paddingBottom) || 0)
     : 0;
-  iframe.style.height = `${Math.ceil(Math.max(content.scrollHeight, content.offsetHeight) + paddingY)}px`;
+  iframe.style.height = `${Math.ceil(Math.max(content.scrollHeight, content.offsetHeight) + paddingY) + 10}px`;
 }
 
 function onIframeLoad() {
