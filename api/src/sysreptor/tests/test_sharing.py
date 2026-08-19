@@ -817,6 +817,40 @@ class TestSharedNotePendingFileIds:
         assert secret.id not in share_info.pending_file_ids
         assert project.files.filter(pk=secret.pk).exists()
 
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    def test_prefix_match_does_not_add_pending(self, share_type):
+        """A reference to /files/name/project.txt.extra must not flag a file named
+        project.txt as pending -- the regex requires an exact name match."""
+        owner, note_shared, share_info, client = self._setup_share(share_type, permissions_write=True)
+        secret = self._secret_asset(owner, share_type, self.PROJECT_FILE)
+        assert secret.id not in share_info.pending_file_ids
+
+        # Reference a file whose name starts with PROJECT_FILE but is different
+        prefix_ref_text = f'see [x](/files/name/{self.PROJECT_FILE}.extra)'
+        note_shared.text = prefix_ref_text
+        note_shared.save()
+        ShareInfo.objects.track_pending_files_for_note(note_shared)
+
+        share_info.refresh_from_db()
+        assert secret.id not in share_info.pending_file_ids
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    def test_prefix_match_does_not_seed_allowed(self, share_type):
+        """A share created when note text contains /files/name/project.txt.extra must
+        not seed project.txt into allowed_file_ids."""
+        owner, _, _, _ = self._setup_share(share_type, permissions_write=False)
+
+        prefix_ref_text = f'see [x](/files/name/{self.PROJECT_FILE}.extra)'
+        if share_type == 'project':
+            note = create_projectnotebookpage(project=owner, text=prefix_ref_text)
+            new_share = create_shareinfo(projectnote=note)
+        else:
+            note = create_usernotebookpage(user=owner, text=prefix_ref_text)
+            new_share = create_shareinfo(usernote=note)
+
+        secret = self._secret_asset(owner, share_type, self.PROJECT_FILE)
+        assert secret.id not in new_share.allowed_file_ids
+
 
 @pytest.mark.django_db()
 class TestSharedNotePendingFileIdsWithDbEncryption:
