@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 from unittest import mock
 from uuid import uuid4
@@ -41,6 +42,34 @@ def file_exists(file) -> bool:
 def test_uploadedfile_filename(original, cleaned):
     actual_name = UploadedAsset.objects.create(name=original, file=ContentFile(content=b'test', name='test'), linked_object=create_project_type()).name
     assert actual_name == cleaned
+
+
+@pytest.mark.django_db()
+@override_settings(UPLOAD_RANDOMIZE_NAME=True)
+def test_upload_name_always_suffixed_except_design_assets():
+    project = create_project(images_kwargs=[], files_kwargs=[])
+    project_type = create_project_type(assets_kwargs=[])
+
+    upload_suffix_pattern = re.compile(r'^.+-[A-Za-z0-9]{8}\.png$')
+
+    img = UploadedImage.objects.create(
+        name='test.png', file=ContentFile(content=b'test', name='test.png'), linked_object=project)
+    assert img.name != 'test.png'
+    assert upload_suffix_pattern.match(img.name)
+
+    img2 = UploadedImage.objects.create(
+        name='test.png', file=ContentFile(content=b'test2', name='test.png'), linked_object=project)
+    assert img2.name != img.name
+    assert upload_suffix_pattern.match(img2.name)
+
+    asset = UploadedAsset.objects.create(
+        name='test.png', file=ContentFile(content=b'test', name='test.png'), linked_object=project_type)
+    assert asset.name == 'test.png'
+
+    asset2 = UploadedAsset.objects.create(
+        name='test.png', file=ContentFile(content=b'test2', name='test.png'), linked_object=project_type)
+    assert asset2.name != 'test.png'
+    assert upload_suffix_pattern.match(asset2.name)
 
 
 @pytest.mark.django_db()

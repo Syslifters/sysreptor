@@ -1,8 +1,10 @@
+import asyncio
 import contextlib
 import copy
 import itertools
 import json
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
@@ -31,11 +33,14 @@ from sysreptor.pentests.models import (
     ProjectMemberInfo,
     ReportSection,
     ReviewStatus,
+    ShareInfo,
     collab_context,
 )
+from sysreptor.pentests.querysets import ShareInfoManager
 from sysreptor.tests.mock import (
     api_client,
     create_comment,
+    create_png_file,
     create_project,
     create_project_type,
     create_projectnotebookpage,
@@ -1510,4 +1515,308 @@ class TestConsumerPermissions:
         assert res.status_code in ([200] if expected_write else [403, 404])
         res = await sync_to_async(client.get)(reverse('sharednote-excalidraw', kwargs={'shareinfo_pk': share_info.id, 'id': share_info.usernote.note_id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
+
+
+@pytest.mark.django_db()
+class TestBroadcastPendingShareFlags:
+    PROJECT_FILE = 'secret.txt'
+    PROJECT_IMAGE = 'secret.png'
+    PROJECT_FILE_CONTENT = b'secret-ok'
+
+    def test_broadcast_pending_flags_builds_map_once(self):
+        setup = TestCollabPasteSharePending()
+        ctx = setup._setup('project', nested=True)
+        with patch.object(
+            ShareInfoManager, 'build_pending_share_files_map',
+            wraps=ShareInfo.objects.build_pending_share_files_map,
+        ) as mock_build:
+            ShareInfo.objects.broadcast_pending_share_files_flags(ctx['note_target'])
+        mock_build.assert_called_once()
+        args, _ = mock_build.call_args
+        assert len(args[0]) == 1
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio()
+class TestCollabPasteSharePending:
+    PROJECT_FILE = 'secret.txt'
+    PROJECT_IMAGE = 'secret.png'
+    PROJECT_FILE_CONTENT = b'secret-ok'
+
+    def _setup(self, share_type, *, nested=False, with_share=True):
+        note_kwargs = {'checked': None, 'icon_emoji': None, 'title': 'ABC', 'text': 'ABC'}
+        files_kwargs = [{'name': self.PROJECT_FILE, 'content': self.PROJECT_FILE_CONTENT}]
+        images_kwargs = [{'name': self.PROJECT_IMAGE, 'content': create_png_file()}]
+        if share_type == 'project':
+            user = create_user()
+            owner = create_project(members=[user], notes_kwargs=[], images_kwargs=images_kwargs, files_kwargs=files_kwargs)
+            note_shared = create_projectnotebookpage(project=owner, **note_kwargs)
+            note_other = create_projectnotebookpage(project=owner, **note_kwargs)
+
+            def create_note(**kwargs):
+                return create_projectnotebookpage(project=owner, **kwargs)
+
+            share_kwargs = {'projectnote': note_shared}
+            ws_path = f'/api/ws/pentestprojects/{owner.id}/notes/'
+        else:
+            user = create_user(
+                notes_kwargs=[],
+                images_kwargs=[{'name': self.PROJECT_IMAGE}],
+                files_kwargs=[{'name': self.PROJECT_FILE, 'file': SimpleUploadedFile(name=self.PROJECT_FILE, content=self.PROJECT_FILE_CONTENT)}],
+            )
+            owner = user
+            note_shared = create_usernotebookpage(user=owner, **note_kwargs)
+            note_other = create_usernotebookpage(user=owner, **note_kwargs)
+
+            def create_note(**kwargs):
+                return create_usernotebookpage(user=owner, **kwargs)
+
+            share_kwargs = {'usernote': note_shared}
+            ws_path = '/api/ws/pentestusers/self/notes/'
+
+        note_target = note_shared
+        if nested:
+            child = create_note(parent=note_shared, **note_kwargs)
+            note_target = create_note(parent=child, **note_kwargs)
+
+        share_info = create_shareinfo(**share_kwargs) if with_share else None
+        secret_file = owner.files.get(name=self.PROJECT_FILE)
+        secret_image = owner.images.get(name=self.PROJECT_IMAGE)
+        if share_info:
+            assert secret_file.id not in share_info.allowed_file_ids
+            assert secret_image.id not in share_info.allowed_file_ids
+        return {
+            'user': user,
+            'owner': owner,
+            'note_shared': note_shared,
+            'note_target': note_target,
+            'note_other': note_other,
+            'share_info': share_info,
+            'secret_file': secret_file,
+            'secret_image': secret_image,
+            'ws_path': ws_path,
+        }
+
+    async def _paste(self, ws_path, user, note, insert, *, collect_pending_flags=False):
+        async with ws_connect(path=ws_path, user=user) as client:
+            event = {
+                'type': CollabEventType.UPDATE_TEXT,
+                'path': f'notes.{note.note_id}.text',
+                'updates': [{'changes': [len(note.text), [0, insert]]}],
+            }
+            await client.send_json_to(event | {'version': client.init['version']})
+            res = await self._receive_json_from(client)
+            assert res['type'] == CollabEventType.UPDATE_TEXT
+            pending_flag_events = []
+            if collect_pending_flags:
+                pending_flag_events = await self._collect_pending_flag_events(client)
+            return res, pending_flag_events
+
+    async def _receive_json_from(self, client, connect_timeout=None):
+        while True:
+            receive = client.receive_json_from()
+            msg = await asyncio.wait_for(receive, timeout=connect_timeout) if connect_timeout is not None else await receive
+            if msg.get('type') not in (CollabEventType.CONNECT, CollabEventType.DISCONNECT):
+                return msg
+
+    async def _collect_pending_flag_events(self, client, receive_timeout=2):
+        events = []
+        while True:
+            try:
+                msg = await self._receive_json_from(client, connect_timeout=receive_timeout)
+            except TimeoutError:
+                break
+            if msg.get('type') == CollabEventType.UPDATE_KEY and msg.get('path', '').endswith('.has_pending_share_files'):
+                events.append(msg)
+                receive_timeout = 0.2
+        return events
+
+    def _approve_pending_url(self, share_type, owner, note_shared, share_info):
+        if share_type == 'project':
+            return reverse(
+                'projectnoteshareinfo-approve-pending-files',
+                kwargs={'project_pk': owner.id, 'note_id': note_shared.note_id, 'pk': share_info.id},
+            )
+        return reverse(
+            'usernoteshareinfo-approve-pending-files',
+            kwargs={'pentestuser_pk': owner.id, 'note_id': note_shared.note_id, 'pk': share_info.id},
+        )
+
+    def _share_root_note_id(self, share_info):
+        return (share_info.projectnote or share_info.usernote).note_id
+
+    def _asset_url(self, share_info, filename):
+        urlname = 'sharednote-image-by-name' if filename.endswith('.png') else 'sharednote-file-by-name'
+        return reverse(urlname, kwargs={'shareinfo_pk': share_info.id, 'filename': filename})
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    @pytest.mark.parametrize('nested', [False, True])
+    async def test_authenticated_paste_adds_pending(self, share_type, nested):
+        ctx = await sync_to_async(self._setup)(share_type, nested=nested)
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})\n![](/images/name/{self.PROJECT_IMAGE})'
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], insert)
+
+        await ctx['share_info'].arefresh_from_db()
+        assert ctx['secret_file'].id in ctx['share_info'].pending_file_ids
+        assert ctx['secret_image'].id in ctx['share_info'].pending_file_ids
+        assert ctx['secret_file'].id not in ctx['share_info'].allowed_file_ids
+        assert ctx['secret_image'].id not in ctx['share_info'].allowed_file_ids
+
+        client = api_client(user=None)
+        res_file = await sync_to_async(client.get)(self._asset_url(ctx['share_info'], self.PROJECT_FILE))
+        assert res_file.status_code == 404
+        res_image = await sync_to_async(client.get)(self._asset_url(ctx['share_info'], self.PROJECT_IMAGE))
+        assert res_image.status_code == 404
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_non_file_paste_does_not_expand(self, share_type):
+        ctx = await sync_to_async(self._setup)(share_type)
+        pending_before = list(ctx['share_info'].pending_file_ids)
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], ' hello')
+
+        await ctx['share_info'].arefresh_from_db()
+        assert list(ctx['share_info'].pending_file_ids) == pending_before
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_no_share_containing_note_is_noop(self, share_type):
+        ctx = await sync_to_async(self._setup)(share_type)
+        pending_before = list(ctx['share_info'].pending_file_ids)
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})'
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_other'], insert)
+
+        await ctx['share_info'].arefresh_from_db()
+        assert ctx['secret_file'].id not in ctx['share_info'].pending_file_ids
+        assert list(ctx['share_info'].pending_file_ids) == pending_before
+
+    async def test_no_active_share_does_not_fail(self):
+        ctx = await sync_to_async(self._setup)('project', with_share=False)
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], f'\n[file](/files/name/{self.PROJECT_FILE})')
+
+    async def test_missing_file_does_not_fail(self):
+        ctx = await sync_to_async(self._setup)('project')
+        pending_before = list(ctx['share_info'].pending_file_ids)
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], '\n[file](/files/name/missing-xyz.txt)')
+
+        await ctx['share_info'].arefresh_from_db()
+        assert list(ctx['share_info'].pending_file_ids) == pending_before
+
+    async def test_public_paste_adds_pending(self):
+        ctx = await sync_to_async(self._setup)('project')
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})'
+        public_path = f'/api/public/ws/shareinfos/{ctx["share_info"].id}/notes/'
+        await self._paste(public_path, None, ctx['note_target'], insert)
+
+        await ctx['share_info'].arefresh_from_db()
+        assert ctx['secret_file'].id in ctx['share_info'].pending_file_ids
+        assert ctx['secret_file'].id not in ctx['share_info'].allowed_file_ids
+        res = await sync_to_async(api_client(user=None).get)(self._asset_url(ctx['share_info'], self.PROJECT_FILE))
+        assert res.status_code == 404
+
+    async def test_typed_reference_across_batches_adds_pending(self):
+        ctx = await sync_to_async(self._setup)('project')
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], '\n/files/name/')
+        await ctx['share_info'].arefresh_from_db()
+        assert ctx['secret_file'].id not in ctx['share_info'].pending_file_ids
+
+        await ctx['note_target'].arefresh_from_db()
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], self.PROJECT_FILE)
+        await ctx['share_info'].arefresh_from_db()
+        assert ctx['secret_file'].id in ctx['share_info'].pending_file_ids
+        assert ctx['secret_file'].id not in ctx['share_info'].allowed_file_ids
+
+    async def test_unrelated_edit_with_existing_reference_is_noop(self):
+        ctx = await sync_to_async(self._setup)('project')
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})'
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], insert)
+        await ctx['share_info'].arefresh_from_db()
+        pending_after_ref = list(ctx['share_info'].pending_file_ids)
+
+        await ctx['note_target'].arefresh_from_db()
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], ' unrelated edit')
+        await ctx['share_info'].arefresh_from_db()
+        assert list(ctx['share_info'].pending_file_ids) == pending_after_ref
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_public_visitor_does_not_receive_pending_share_files_flag(self, share_type):
+        ctx = await sync_to_async(self._setup)(share_type)
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})'
+        public_path = f'/api/public/ws/shareinfos/{ctx["share_info"].id}/notes/'
+
+        async with ws_connect(path=ctx['ws_path'], user=ctx['user']) as owner_client, \
+                   ws_connect(path=public_path, user=None) as public_client:
+            event = {
+                'type': CollabEventType.UPDATE_TEXT,
+                'path': f'notes.{ctx["note_target"].note_id}.text',
+                'updates': [{'changes': [len(ctx['note_target'].text), [0, insert]]}],
+            }
+            await owner_client.send_json_to(event | {'version': owner_client.init['version']})
+            assert (await self._receive_json_from(owner_client))['type'] == CollabEventType.UPDATE_TEXT
+            assert len(await self._collect_pending_flag_events(owner_client)) > 0
+            assert (await self._receive_json_from(public_client))['type'] == CollabEventType.UPDATE_TEXT
+            assert await public_client.receive_nothing()
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_public_init_excludes_pending_share_files_flag(self, share_type):
+        ctx = await sync_to_async(self._setup)(share_type)
+        public_path = f'/api/public/ws/shareinfos/{ctx["share_info"].id}/notes/'
+        async with ws_connect(path=public_path, user=None) as client:
+            for note in client.init['data']['notes'].values():
+                assert 'has_pending_share_files' not in note
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    @pytest.mark.parametrize('nested', [False, True])
+    async def test_paste_broadcasts_pending_share_files_flag(self, share_type, nested):
+        ctx = await sync_to_async(self._setup)(share_type, nested=nested)
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})'
+        root_note_id = await sync_to_async(self._share_root_note_id)(ctx['share_info'])
+
+        _, pending_flag_events = await self._paste(
+            ctx['ws_path'], ctx['user'], ctx['note_target'], insert, collect_pending_flags=True,
+        )
+        events_by_path = {e['path']: e for e in pending_flag_events}
+        assert len(events_by_path) == 1
+        path = f'notes.{root_note_id}.has_pending_share_files'
+        assert events_by_path[path]['value'] is True
+        assert events_by_path[path]['client_id'] is None
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_approve_clears_pending_share_files_flag(self, share_type):
+        ctx = await sync_to_async(self._setup)(share_type)
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})'
+
+        async with ws_connect(path=ctx['ws_path'], user=ctx['user']) as client:
+            event = {
+                'type': CollabEventType.UPDATE_TEXT,
+                'path': f'notes.{ctx["note_target"].note_id}.text',
+                'updates': [{'changes': [len(ctx['note_target'].text), [0, insert]]}],
+            }
+            await client.send_json_to(event | {'version': client.init['version']})
+            assert (await self._receive_json_from(client))['type'] == CollabEventType.UPDATE_TEXT
+            true_events = await self._collect_pending_flag_events(client)
+            assert len(true_events) == 1
+            assert all(e['value'] is True for e in true_events)
+
+            approve_url = self._approve_pending_url(share_type, ctx['owner'], ctx['note_shared'], ctx['share_info'])
+            res = await sync_to_async(api_client(ctx['user']).post)(
+                approve_url,
+                data={'file_ids': [str(ctx['secret_file'].id)]},
+                format='json',
+            )
+            assert res.status_code == 200, res.data
+
+            false_events = await self._collect_pending_flag_events(client)
+            assert len(false_events) == 1
+            assert all(e['value'] is False for e in false_events)
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_init_sets_pending_share_files_flag_on_share_root(self, share_type):
+        ctx = await sync_to_async(self._setup)(share_type, nested=True)
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE})'
+        await self._paste(ctx['ws_path'], ctx['user'], ctx['note_target'], insert)
+
+        async with ws_connect(path=ctx['ws_path'], user=ctx['user']) as client:
+            root_note = client.init['data']['notes'][str(ctx['note_shared'].note_id)]
+            child_note = client.init['data']['notes'][str(ctx['note_target'].note_id)]
+            assert root_note['has_pending_share_files'] is True
+            assert child_note.get('has_pending_share_files') is not True
 

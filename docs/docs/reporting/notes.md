@@ -68,6 +68,8 @@ You can create multiple links per note. Each link has its own settings:
 * **Revoked**: Disable the link immediately without deleting it.
 * **Comment**: Optional, internal comment about the share link to tell links apart and document with whom the link was shared.
 
+The link exposes the note and its children, plus files and images that were linked in that tree when the share was created, and any files uploaded through that share. Editing notes (by visitors or project members) cannot automatically pull in other existing project or personal files. If someone references a file that is not yet on the share, project members can use **Review shared files** to approve it and make it visible on the link. To expose a file without approval, re-upload it to the shared note tree.
+
 On **Publish**, *Share by Link* generates the report PDF, creates a project note with the file attached, and opens the same sharing dialog so you can send the PDF to the client.
 
 ![Share notes](/images/share_notes.gif)

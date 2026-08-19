@@ -301,7 +301,7 @@ class TestEncryptedFileDownloadEndpoints:
         res = api_client().get(
             reverse('sharednote-file-by-name', kwargs={'shareinfo_pk': share_info.id, 'filename': 'file.pdf'}),
             **ENCRYPTION_KEY_HEADER_KWARGS)
-        assert res.status_code == 403
+        assert res.status_code == 404
 
     def test_historic_file(self):
         user = create_user()

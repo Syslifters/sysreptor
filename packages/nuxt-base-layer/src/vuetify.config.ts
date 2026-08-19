@@ -56,6 +56,7 @@ const themeLight = merge({}, themeCommon, {
     'on-background': themeLightTextColor,
     surface: '#ffffff',
     'on-surface': themeLightTextColor,
+    'surface-container': '#f0f0f0',
 
     header: '#ededed',
     'on-header': themeLightTextColor,
@@ -79,6 +80,7 @@ const themeDark = merge({}, themeCommon, {
     'on-background': themeDarkTextColor,
     surface: '#2a2a2a',
     'on-surface': themeDarkTextColor,
+    'surface-container': '#1a1a1a',
 
     header: '#3c3c3c',
     'on-header': themeDarkTextColor,

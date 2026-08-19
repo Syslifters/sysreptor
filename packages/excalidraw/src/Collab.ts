@@ -197,6 +197,7 @@ interface CollabProps {
     apiUrl?: string|null;
     websocketUrl?: string|null;
     imageApiBaseUrl?: string|null;
+    noteId?: string|null;
   };
   onConnectionChange?: (isConnected: boolean) => void;
   onReadonlyChange?: (isReadonly: boolean) => void;
@@ -221,6 +222,7 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
       this.fileManager = new FileManager({
         excalidrawAPI: this.excalidrawAPI,
         imageApiBaseUrl: this.params.imageApiBaseUrl,
+        noteId: this.params.noteId,
       });
     }
   }

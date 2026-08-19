@@ -347,6 +347,8 @@ UPLOADED_FILE_STORAGE = {
     's3': 'sysreptor.utils.storages.EncryptedS3Storage',
 }.get(UPLOADED_FILE_STORAGE, UPLOADED_FILE_STORAGE)
 
+UPLOAD_RANDOMIZE_NAME = config('UPLOAD_RANDOMIZE_NAME', default=True, cast=bool)
+
 ARCHIVED_FILE_STORAGE = config('ARCHIVED_FILE_STORAGE', default=DEFAULT_STORAGE)
 ARCHIVED_FILE_STORAGE = {
     'filesystem': 'sysreptor.utils.storages.UnencryptedFileSystemStorage',

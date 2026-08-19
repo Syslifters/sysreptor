@@ -5,11 +5,38 @@
     :min-width="lgAndDown ? '90vw' : '60vw'"
     height="80vh"
   >
-    <template #title>Share Note</template>
+    <template #title>
+      <div class="d-flex align-center ga-1">
+        <s-btn-icon
+          v-if="dialogView === 'pending'"
+          @click="dialogView = 'main'"
+          icon="mdi-arrow-left"
+          density="compact"
+          v-tooltip="'Back to share settings'"
+        />
+        <span>{{ dialogView === 'pending' ? 'Review shared files' : 'Share Note' }}</span>
+      </div>
+    </template>
     <template #default>
       <v-divider />
-      <split-menu :model-value="shareInfos.length > 0 ? 200 : 0" :class="{'split-menu-noexpand': shareInfos.length === 0}">
-        <template #menu>
+
+      <div v-if="dialogView === 'pending' && currentShareInfo" class="overflow-y-auto">
+        <v-container fluid>
+          <notes-share-pending-files-panel
+            :share-info="currentShareInfo"
+            :file-api-base-urls="fileApiBaseUrls"
+            :readonly="props.readonly || approveInProgress"
+            :approving="approveInProgress"
+            @approve="onApprovePendingFiles"
+          />
+        </v-container>
+      </div>
+
+      <split-menu
+        v-else
+        :model-value="260"
+      >
+        <template v-if="shareInfos.length > 0" #menu>
           <v-list
             v-model:selected="currentShareInfoSelection"
             mandatory
@@ -21,25 +48,60 @@
                 v-for="shareInfo in shareInfos"
                 :key="shareInfo.id"
                 :value="shareInfo.id"
-                :title="shareInfo.comment || undefined"
-                prepend-icon="mdi-share-variant"
-                lines="three"
-                class="pl-2"
+                density="compact"
+                class="py-2 px-3"
+                :class="{ 'text-medium-emphasis': shareInfo.is_revoked || isShareExpired(shareInfo) }"
               >
-                <template #subtitle>
-                  <chip-created :value="shareInfo.created" />
-                  <v-chip v-if="shareInfo.is_revoked" color="error" size="small">Revoked</v-chip>
-                  <chip-expires :value="shareInfo.expire_date" />
+                <template #prepend>
+                  <v-icon
+                    :icon="shareInfo.is_revoked ? 'mdi-link-variant-off' : 'mdi-link-variant'"
+                    :color="shareInfo.is_revoked || isShareExpired(shareInfo) ? 'error' : undefined"
+                    size="small"
+                  />
                 </template>
+
+                <v-list-item-title class="text-body-medium font-weight-medium">
+                  <span v-if="shareInfo.comment?.trim()" class="text-truncate d-block">{{ shareInfo.comment.trim() }}</span>
+                  <span v-else class="text-medium-emphasis">{{ formatShareCreated(shareInfo.created) }}</span>
+                </v-list-item-title>
+
+                <div class="d-flex flex-column ga-1 mt-1 text-body-small w-100">
+                  <div
+                    v-if="shareInfo.comment?.trim() || shareInfo.shared_by || shareInfo.permissions_write"
+                    class="d-flex flex-wrap align-center ga-1"
+                  >
+                    <span v-if="shareInfo.comment?.trim()" class="text-medium-emphasis">{{ formatShareCreated(shareInfo.created) }}</span>
+                    <span v-if="shareInfo.shared_by" class="text-medium-emphasis">@{{ shareInfo.shared_by.username }}</span>
+                    <v-chip v-if="shareInfo.permissions_write" size="x-small" variant="tonal" label>
+                      Can edit
+                    </v-chip>
+                  </div>
+                  <div :class="shareExpiryTextClass(shareInfo)">
+                    {{ formatShareExpiry(shareInfo) }}
+                  </div>
+                  <v-btn
+                    v-if="pendingCountFor(shareInfo.id) > 0"
+                    variant="tonal"
+                    color="error"
+                    size="x-small"
+                    block
+                    class="mt-1 text-caption"
+                    @click.stop="openPendingReview(shareInfo)"
+                  >
+                    <v-icon icon="mdi-file-eye-outline" size="x-small" start />
+                    {{ pendingCountFor(shareInfo.id) }} shared {{ pendingCountFor(shareInfo.id) === 1 ? 'file' : 'files' }} to review
+                    <v-spacer />
+                    <v-icon icon="mdi-chevron-right" size="x-small" end />
+                  </v-btn>
+                </div>
               </v-list-item>
-            </div>
-            <div>
-              <v-divider class="mb-1" />
               <v-list-item>
+                <v-divider />
                 <s-btn-secondary
+                  class="mt-4"
                   @click="openCreateForm"
                   :disabled="props.readonly"
-                  text="Share"
+                  text="New Share Link"
                   prepend-icon="mdi-share-variant"
                   size="small"
                   block
@@ -51,12 +113,21 @@
         <template #default>
           <v-container fluid>
             <div v-if="currentShareInfo">
+              <s-btn-secondary
+                v-if="(currentShareInfo.pending_file_ids?.length ?? 0) > 0"
+                @click="openPendingReview(currentShareInfo)"
+                text="Review shared files"
+                prepend-icon="mdi-file-eye-outline"
+                color="error"
+                variant="tonal"
+                class="mb-4"
+              />
               <notes-share-info-form
                 v-model="currentShareInfo"
                 :disabled="props.readonly"
               />
               <btn-confirm
-                :action="() => updateShareInfo(currentShareInfo!)"
+                :action="() => performUpdateShareInfo(currentShareInfo!)"
                 :disabled="props.readonly || (isEqual(currentShareInfo, shareInfos.find(si => si.id === currentShareInfo?.id)))"
                 :confirm="false"
                 button-text="Update"
@@ -73,7 +144,7 @@
                 :hidden-fields="['is_revoked']"
               />
               <btn-confirm
-                :action="createShareInfo"
+                :action="performCreateShareInfo"
                 :disabled="createShareInfoForm.saveInProgress || props.readonly"
                 :loading="createShareInfoForm.saveInProgress"
                 :confirm="false"
@@ -87,12 +158,22 @@
               <v-progress-circular indeterminate size="50" />
             </div>
             <div v-else>
-              <v-alert v-if="!apiSettings.settings!.features.sharing" color="warning">
+              <v-sheet
+                v-if="!apiSettings.settings!.features.sharing"
+                color="warning"
+                variant="tonal"
+                class="pa-4 rounded"
+              >
                 Note sharing is disabled in instance settings.
-              </v-alert>
-              <v-alert v-else color="warning">
+              </v-sheet>
+              <v-sheet
+                v-else
+                color="warning"
+                variant="tonal"
+                class="pa-4 rounded"
+              >
                 You do not have permission to share notes.
-              </v-alert>
+              </v-sheet>
             </div>
           </v-container>
         </template>
@@ -103,10 +184,12 @@
 
 <script setup lang="ts">
 import { isEqual } from 'lodash-es';
-import { addDays, formatISO9075 } from "date-fns";
+import { addDays, formatISO9075, formatDistanceToNow, parseISO, endOfDay, endOfToday } from "date-fns";
+import { getFileApiBaseUrls } from '~/utils/files';
 
 const apiSettings = useApiSettings();
 const { lgAndDown } = useVDisplay();
+const noteShareInfoStore = useNoteShareInfoStore();
 
 const isVisible = defineModel<boolean>();
 const props = defineProps<{
@@ -116,8 +199,21 @@ const props = defineProps<{
   readonly?: boolean;
 }>();
 
-const shareInfos = ref<ShareInfo[]>([]);
-const isListLoading = ref(false);
+const shareInfoContext = computed(() => ({
+  noteId: props.note.id,
+  projectId: props.project?.id,
+  userId: props.user?.id,
+}));
+const shareInfos = computed(() => noteShareInfoStore.shareInfosFor(shareInfoContext.value));
+const isListLoading = computed(() => noteShareInfoStore.isLoadingFor(shareInfoContext.value));
+const fileApiBaseUrls = computed(() => getFileApiBaseUrls({ project: props.project, user: props.user }));
+const approveInProgress = ref(false);
+
+function pendingCountFor(shareInfoId: string): number {
+  return shareInfos.value.find(si => si.id === shareInfoId)?.pending_file_ids?.length ?? 0;
+}
+
+const dialogView = ref<'main' | 'pending'>('main');
 const currentShareInfo = ref<ShareInfo|null>(null);
 const currentShareInfoSelection = computed({
   get: () => {
@@ -135,43 +231,86 @@ const currentShareInfoSelection = computed({
   }
 });
 
+watch(isVisible, (visible) => {
+  if (!visible) {
+    dialogView.value = 'main';
+  }
+});
+
+watch(() => currentShareInfo.value?.pending_file_ids?.length, (count) => {
+  if (dialogView.value === 'pending' && (count ?? 0) === 0) {
+    dialogView.value = 'main';
+  }
+});
+
 whenever(isVisible, updateShareInfoList);
 async function updateShareInfoList() {
   try {
-    isListLoading.value = true;
-    if (props.project) {
-      shareInfos.value = await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`, { method: 'GET' });
-    } else if (props.user) {
-      shareInfos.value = await $fetch(`/api/v1/pentestusers/${props.user.id}/notes/${props.note.id}/shareinfos/`, { method: 'GET' });
-    }
-    // Automatically select the first share info
+    await noteShareInfoStore.fetchShareInfos(shareInfoContext.value);
     if (shareInfos.value.length > 0) {
-      currentShareInfo.value = shareInfos.value[0]!;
+      const selectedId = currentShareInfo.value?.id;
+      currentShareInfo.value = selectedId
+        ? shareInfos.value.find(si => si.id === selectedId) ?? shareInfos.value[0]!
+        : shareInfos.value[0]!;
     } else {
       openCreateForm();
     }
-  } finally {
-    isListLoading.value = false;
+  } catch (error) {
+    requestErrorToast({ error });
   }
 }
 
-async function updateShareInfo(shareInfo: ShareInfo) {
+function openPendingReview(shareInfo: ShareInfo) {
+  currentShareInfo.value = shareInfo;
+  createShareInfoForm.value = null;
+  dialogView.value = 'pending';
+}
+
+function formatShareCreated(created: string) {
+  return formatDistanceToNow(parseISO(created)) + ' ago';
+}
+
+function isShareExpired(shareInfo: ShareInfo) {
+  return endOfDay(parseISO(shareInfo.expire_date)) < endOfToday();
+}
+
+function formatShareExpiry(shareInfo: ShareInfo) {
+  if (shareInfo.is_revoked) {
+    return 'Revoked';
+  }
+  if (isShareExpired(shareInfo)) {
+    return 'Expired';
+  }
+  return 'Expires in ' + formatDistanceToNow(parseISO(shareInfo.expire_date));
+}
+
+function shareExpiryTextClass(shareInfo: ShareInfo) {
+  return shareInfo.is_revoked || isShareExpired(shareInfo) ? 'text-error' : 'text-medium-emphasis';
+}
+
+async function performUpdateShareInfo(shareInfo: ShareInfo) {
   try {
-    if (props.project) {
-      shareInfo = await $fetch<ShareInfo>(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/${shareInfo.id}/`, {
-        method: 'PATCH',
-        body: shareInfo,
-      });
-    } else if (props.user) {
-      shareInfo = await $fetch<ShareInfo>(`/api/v1/pentestusers/${props.user.id}/notes/${props.note.id}/shareinfos/${shareInfo.id}/`, {
-        method: 'PATCH',
-        body: shareInfo,
-      });
-    }
-    shareInfos.value = shareInfos.value.map(si => si.id === shareInfo.id ? shareInfo : si);
-    currentShareInfo.value = shareInfo;
+    currentShareInfo.value = await noteShareInfoStore.updateShareInfo(shareInfoContext.value, shareInfo);
   } catch (error) {
     requestErrorToast({ error });
+  }
+}
+
+async function onApprovePendingFiles(fileIds: string[]) {
+  if (!currentShareInfo.value || approveInProgress.value) {
+    return;
+  }
+  approveInProgress.value = true;
+  try {
+    currentShareInfo.value = await noteShareInfoStore.approvePendingFiles(
+      shareInfoContext.value,
+      currentShareInfo.value,
+      fileIds,
+    );
+  } catch (error) {
+    requestErrorToast({ error });
+  } finally {
+    approveInProgress.value = false;
   }
 }
 
@@ -184,6 +323,7 @@ function openCreateForm() {
   if (props.readonly) {
     return;
   }
+  dialogView.value = 'main';
   createShareInfoForm.value = {
     data: {
       id: '',
@@ -197,27 +337,13 @@ function openCreateForm() {
   }
   currentShareInfo.value = null;
 }
-async function createShareInfo() {
+async function performCreateShareInfo() {
   if (!createShareInfoForm.value) {
     return;
   }
   try {
     createShareInfoForm.value.saveInProgress = true;
-    let obj: ShareInfo;
-    if (props.project) {
-      obj = await $fetch<ShareInfo>(`/api/v1/pentestprojects/${props.project.id}/notes/${props.note.id}/shareinfos/`, {
-        method: 'POST',
-        body: createShareInfoForm.value.data,
-      });
-    } else if (props.user) {
-      obj = await $fetch<ShareInfo>(`/api/v1/pentestusers/${props.user.id}/notes/${props.note.id}/shareinfos/`, {
-        method: 'POST',
-        body: createShareInfoForm.value.data,
-      });
-    } else {
-      return;
-    }
-    shareInfos.value.unshift(obj);
+    const obj = await noteShareInfoStore.createShareInfo(shareInfoContext.value, createShareInfoForm.value.data);
     currentShareInfo.value = obj;
     createShareInfoForm.value = null;
   } catch (error: any) {
@@ -230,18 +356,3 @@ async function createShareInfo() {
 }
 
 </script>
-
-<style lang="scss" scoped>
-:deep(.v-list-item__prepend) {
-  .v-list-item__spacer {
-    width: 0.5em;
-  }
-}
-:deep(.v-list-item-subtitle) {
-  opacity: 1;
-}
-
-.split-menu-noexpand:deep(.expand-button-wrapper) {
-  display: none;
-}
-</style>

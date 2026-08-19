@@ -363,13 +363,19 @@ export type NoteBase = {
   text: string;
   checked: boolean|null;
   icon_emoji: string|null;
+  is_shared?: boolean;
+  has_pending_share_files?: boolean;
 }
-
-export type UserNote = BaseModel & NoteBase;
 
 export type ProjectNote = BaseModel & NoteBase & {
   assignee: UserShortInfo|null;
   is_shared: boolean;
+  has_pending_share_files: boolean;
+};
+
+export type UserNote = BaseModel & NoteBase & {
+  is_shared: boolean;
+  has_pending_share_files: boolean;
 };
 
 export type ArchivedProjectKeyPart = BaseModel & {
@@ -644,6 +650,7 @@ export type ShareInfo = BaseModel & {
   permissions_write: boolean;
   password: string|null;
   comment: string|null;
+  pending_file_ids?: string[];
 }
 
 export type ShareInfoPublic = BaseModel & {

@@ -39,12 +39,14 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     const templateStore = useTemplateStore();
     const userNoteStore = useUserNotesStore();
     const shareInfoStore = useShareInfoStore();
+    const noteShareInfoStore = useNoteShareInfoStore();
     watch(auth.loggedIn, () => {
       projectStore.$reset();
       projectTypeStore.$reset();
       templateStore.$reset();
       userNoteStore.$reset();
       shareInfoStore.$reset();
+      noteShareInfoStore.$reset();
     });
 
     whenever(auth.loggedIn, async () => {

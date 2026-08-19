@@ -32,11 +32,12 @@
           </div>
         </template>
         <template #default>
-          <s-btn-icon 
+          <s-btn-icon
             @click="shareDialogVisible = true"
-            icon="mdi-share-variant"
             v-tooltip.top="'Share'"
-          />
+          >
+            <notes-share-pending-badge :pending="note.has_pending_share_files && note.is_shared" />
+          </s-btn-icon>
         </template>
 
         <template #context-menu>
@@ -131,7 +132,10 @@ async function performCopy() {
 }
 
 async function uploadFile(file: File, body?: Record<string, any>) {
-  const obj = await uploadFileHelper<UploadedFileInfo>('/api/v1/pentestusers/self/notes/upload/', file, body);
+  const obj = await uploadFileHelper<UploadedFileInfo>('/api/v1/pentestusers/self/notes/upload/', file, {
+    ...body,
+    note_id: route.params.noteId,
+  });
   if (obj.resource_type === 'file') {
     return `[${obj.name}](/files/name/${obj.name})`;
   } else {
