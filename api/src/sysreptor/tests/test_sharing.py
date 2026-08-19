@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import pytest
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
@@ -327,3 +328,31 @@ class TestSharePasswordAuth:
             assert self.share_info.failed_password_attempts == 0
             res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})
             assert res.status_code == 200
+
+    def test_share_auth_cycles_session_key(self):
+        old_session_key = self.client.session.session_key
+        res = self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})
+        assert res.status_code == 200
+        assert self.client.session.session_key != old_session_key
+
+        res = self.client.get(reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note.note_id}))
+        assert res.status_code == 200
+
+    def test_share_auth_prevents_session_fixation(self):
+        attacker_client = api_client(user=None)
+        attacker_client.get(reverse('publicshareinfo-detail', kwargs={'pk': self.share_info.id}))
+        fixed_session_key = attacker_client.session.session_key
+
+        victim_client = api_client(user=None)
+        victim_client.cookies[settings.SESSION_COOKIE_NAME] = fixed_session_key
+
+        res = victim_client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password})
+        assert res.status_code == 200
+        assert victim_client.session.session_key != fixed_session_key
+
+        note_url = reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note.note_id})
+        res = attacker_client.get(note_url)
+        assert res.status_code == 403
+
+        res = victim_client.get(note_url)
+        assert res.status_code == 200
