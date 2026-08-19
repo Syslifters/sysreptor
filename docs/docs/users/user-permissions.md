@@ -37,6 +37,7 @@ When all guest permissions are enabled, guest users are equivalent to regular us
 * update project settings (default: yes) - update project settings like name, design, members, does not affect project content like findings, sections, notes
 * delete projects (default: yes)
 * see all users (default: no) - see all users on the SysReptor instance or only users working in the same projects as guest users
+* share notes (default: no) - create and manage note sharing links, including approving pending share assets
 
 Configure your installation by adding the following settings to your [application settings](/setup/configuration#guest-user-permissions):
 ```dotenv
@@ -46,6 +47,7 @@ GUEST_USERS_CAN_EDIT_PROJECTS=True
 GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
 GUEST_USERS_CAN_DELETE_PROJECTS=True
 GUEST_USERS_CAN_SEE_ALL_USERS=False
+GUEST_USERS_CAN_SHARE_NOTES=False
 ```
 
 ## System

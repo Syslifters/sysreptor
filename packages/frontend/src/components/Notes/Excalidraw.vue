@@ -37,6 +37,7 @@ const iframeSrc = computed(() => `/static/excalidraw/dist/index.html?c=${runtime
   apiUrl: props.apiUrl,
   websocketUrl: (!props.readonly && apiSettings.settings!.features.websockets) ? props.websocketUrl : undefined,
   imageApiBaseUrl: props.imageApiBaseUrl,
+  noteId: route.params.noteId as string | undefined,
 }));
 
 

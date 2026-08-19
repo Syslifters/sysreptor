@@ -146,7 +146,10 @@ export function useProjectEditBase(options: {
 
   async function uploadFile(file: File, body?: Record<string, any>) {
     const uploadUrl = urlJoin(projectUrl.value, options.canUploadFiles ? '/upload/' : '/images/');
-    const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file, body);
+    const res = await uploadFileHelper<UploadedFileInfo>(uploadUrl, file, {
+      ...body,
+      ...(route.params.noteId ? { note_id: route.params.noteId } : {}),
+    });
     if (res.resource_type === UploadedFileType.IMAGE) {
       return `![](/images/name/${res.name}){width="auto"}`;
     } else {

@@ -44,11 +44,12 @@
             class="ml-1 mr-1"
           />
 
-          <s-btn-icon 
+          <s-btn-icon
             @click="shareDialogVisible = true"
-            icon="mdi-share-variant"
             v-tooltip.top="'Share'"
-          />
+          >
+            <notes-share-pending-badge :pending="note.has_pending_share_files && note.is_shared" />
+          </s-btn-icon>
 
           <chat-btn v-model="localSettings.notesSidebarType" />
           <btn-history v-model="historyVisible" />

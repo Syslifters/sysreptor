@@ -28,6 +28,7 @@ export const IMAGE_MIME_TYPES = {
 export class FileManager {
   excalidrawAPI: ExcalidrawImperativeAPI;
   private imageApiBaseUrl: string;
+  private noteId?: string | null;
 
   private fetchingFiles: Set<FileId> = new Set();
   private savingFiles: Set<FileId> = new Set();
@@ -37,8 +38,10 @@ export class FileManager {
   constructor(options: {
     excalidrawAPI: ExcalidrawImperativeAPI
     imageApiBaseUrl: string;
+    noteId?: string | null;
   }) {
     this.excalidrawAPI = options.excalidrawAPI;
+    this.noteId = options.noteId;
 
     const serverUrl = import.meta.env.DEV ?
       'http://localhost:3000/' : window.location.origin;
@@ -164,6 +167,9 @@ export class FileManager {
       const fileExtension = Object.entries(IMAGE_MIME_TYPES).find(([ext, mime]) => mime === file.mimeType)?.[0] || 'png';
       const form = new FormData();
       form.append('file', new File([base64decode(fileDataB64)], `${file.id}.${fileExtension}`, { type: file.mimeType }));
+      if (this.noteId) {
+        form.append('note_id', this.noteId);
+      }
 
       const uploadedImage = await $fetch(this.imageApiBaseUrl, {
         method: 'POST',

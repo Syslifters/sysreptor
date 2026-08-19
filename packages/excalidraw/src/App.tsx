@@ -31,6 +31,7 @@ export default function App() {
     apiUrl: iframeParams.get('apiUrl'),
     websocketUrl: iframeParams.get('websocketUrl'),
     imageApiBaseUrl: iframeParams.get('imageApiBaseUrl'),
+    noteId: iframeParams.get('noteId'),
   };
 
   const [excalidrawAPI, setExcalidrawAPI] = useState<ExcalidrawImperativeAPI|null>(null);

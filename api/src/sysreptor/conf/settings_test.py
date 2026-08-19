@@ -54,6 +54,9 @@ SPELLCHECK_URL = None
 
 BACKUP_KEY = 'dummy-backup-key-used-in-unit-test'
 
+# Keep uploaded file names stable in tests (no random suffix)
+UPLOAD_RANDOMIZE_NAME = False
+
 
 # Use default configurations, do not load from environment variables
 LOAD_CONFIGURATIONS_FROM_ENV = False

@@ -108,6 +108,35 @@ def file_viewset_urls(basename, get_obj, get_base_kwargs=None, read=False, write
     return out
 
 
+def shareinfo_viewset_urls(basename, get_kwargs, get_approve_data, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False, approve=False):
+    out = viewset_urls(
+        basename=basename,
+        get_kwargs=get_kwargs,
+        list=list,
+        retrieve=retrieve,
+        create=create,
+        update=update,
+        update_partial=update_partial,
+        destroy=destroy,
+    )
+    if approve:
+        def perform_approve_request(s, c):
+            data = get_approve_data(s)
+            share_info = data.get('share_info')
+            if share_info is not None:
+                file_id = data['file_id']
+                share_info.pending_file_ids = [file_id]
+                share_info.allowed_file_ids = [fid for fid in share_info.allowed_file_ids if fid != file_id]
+                share_info.save(update_fields=['pending_file_ids', 'allowed_file_ids'])
+            return c.post(
+                reverse(f'{basename}-approve-pending-files', kwargs=get_kwargs(s, True)),
+                data={'file_ids': [str(data['file_id'])]},
+            )
+
+        out.append((f'{basename} approve-pending-files', perform_approve_request))
+    return out
+
+
 def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False, destroy=None, update=None, share=False):
     destroy = destroy if destroy is not None else write
     update = update if update is not None else write
@@ -121,7 +150,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
         *file_viewset_urls('uploadedprojectfile', get_base_kwargs=lambda s: {'project_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).files.first(), read=read, write=write),
         *viewset_urls('comment', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'pk': get_obj(s).findings.first().comments.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write),
         *viewset_urls('commentanswer', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'comment_pk': get_obj(s).findings.first().comments.first().id} | ({'pk': get_obj(s).findings.first().comments.first().answers.first().id} if detail else {}), list=read, retrieve=read, create=write, destroy=write),
-        *viewset_urls('projectnoteshareinfo', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'note_id': get_obj(s).notes.only_shared().first().note_id} | ({'pk': get_obj(s).notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=read, retrieve=read, create=share, update=share, update_partial=share),
+        *shareinfo_viewset_urls('projectnoteshareinfo', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk, 'note_id': get_obj(s).notes.only_shared().first().note_id} | ({'pk': get_obj(s).notes.only_shared().first().shareinfos.first().pk} if detail else {}), get_approve_data=lambda s: {'share_info': get_obj(s).notes.only_shared().first().shareinfos.first(), 'file_id': get_obj(s).files.first().id}, list=read, retrieve=read, create=share, update=share, update_partial=share, approve=share),
     ]
     if read:
       out.extend([
@@ -294,7 +323,7 @@ def guest_urls():
 def regular_user_urls():
     return [
         *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True),
-        *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self', 'note_id': s.current_user.notes.only_shared().first().note_id if s.current_user else uuid4()} | ({'pk': s.current_user.notes.only_shared().first().shareinfos.first().pk if s.current_user else uuid4()} if detail else {}), create=True, update=True, update_partial=True),
+        *shareinfo_viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self', 'note_id': s.current_user.notes.only_shared().first().note_id if s.current_user else uuid4()} | ({'pk': s.current_user.notes.only_shared().first().shareinfos.first().pk if s.current_user else uuid4()} if detail else {}), get_approve_data=lambda s: {'share_info': s.current_user.notes.only_shared().first().shareinfos.first() if s.current_user else None, 'file_id': s.current_user.files.first().id if s.current_user else uuid4()}, create=True, update=True, update_partial=True, approve=True),
 
         *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destroy=True, share=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True),
@@ -381,7 +410,7 @@ def forbidden_urls():
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), create=True, update=True, update_partial=True, destroy=True),
         ('userpublickey register begin', lambda s, c: c.post(reverse('userpublickey-register-begin', kwargs={'pentestuser_pk': s.user_other.pk}), data={'name': 'new', 'public_key': s.user_other.public_keys.first().public_key})),
         *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'id': s.user_other.notes.first().note_id} if detail else {}), create=True, update=True, destroy=True),
-        *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk, 'note_id': s.user_other.notes.only_shared().first().note_id} | ({'pk': s.user_other.notes.only_shared().first().shareinfos.first().pk} if detail else {}), create=True, update=True, update_partial=True, destroy=True),
+        *shareinfo_viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk, 'note_id': s.user_other.notes.only_shared().first().note_id} | ({'pk': s.user_other.notes.only_shared().first().shareinfos.first().pk} if detail else {}), get_approve_data=lambda s: {'share_info': s.user_other.notes.only_shared().first().shareinfos.first(), 'file_id': s.user_other.files.first().id}, create=True, update=True, update_partial=True, destroy=True, approve=True),
     ]
 
 

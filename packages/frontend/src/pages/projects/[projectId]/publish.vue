@@ -163,6 +163,7 @@ const auth = useAuth();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();
 const projectTypeStore = useProjectTypeStore();
+const noteShareInfoStore = useNoteShareInfoStore();
 const { mdAndDown } = useVDisplay();
 
 const project = await useAsyncDataE(async () => await projectStore.getById(route.params.projectId as string));
@@ -276,10 +277,10 @@ const shareReport = useAbortController(async (fetchOptions: { signal: AbortSigna
       parent: null,
       order: 1,
     });
-    await $fetch(`/api/v1/pentestprojects/${project.value.id}/notes/${note.id}/shareinfos/`, {
-      method: 'POST',
-      body: shareReportForm.value.data,
-    });
+    await noteShareInfoStore.createShareInfo({
+      noteId: note.id,
+      projectId: project.value.id,
+    }, shareReportForm.value.data);
     await navigateTo(`/projects/${project.value.id}/notes/${note.id}/#shareinfo`);
   } catch (error: any) {
     requestErrorToast({ error });

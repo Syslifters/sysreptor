@@ -57,7 +57,29 @@
         </template>
         <template #default>
           <v-list-item-title class="text-body-medium">
-            <v-icon v-if="note.is_shared" size="small" icon="mdi-share-variant" />
+            <span
+              v-if="note.is_shared"
+              class="d-inline-flex align-center ga-0 me-1"
+            >
+              <v-badge
+                v-if="note.has_pending_share_files"
+                color="transparent"
+                floating
+                location="top end"
+                :offset-x="5"
+                :offset-y="12"
+              >
+                <v-icon size="small" icon="mdi-share-variant" class="text-disabled" />
+                <template #badge>
+                  <v-icon size="x-small" icon="mdi-alert-circle" class="text-error" />
+                </template>
+              </v-badge>
+              <v-tooltip
+                v-if="note.has_pending_share_files"
+                activator="parent"
+                text="Shared files need approval"
+              />
+            </span>
             {{ note.title }}
           </v-list-item-title>
           <v-list-item-subtitle>
