@@ -74,6 +74,7 @@
                   <v-icon size="x-small" icon="mdi-alert-circle" class="text-error" />
                 </template>
               </v-badge>
+              <v-icon v-else size="small" icon="mdi-share-variant" class="text-disabled" />
               <v-tooltip
                 v-if="note.has_pending_share_files"
                 activator="parent"
