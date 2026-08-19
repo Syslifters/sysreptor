@@ -1820,3 +1820,39 @@ class TestCollabPasteSharePending:
             assert root_note['has_pending_share_files'] is True
             assert child_note.get('has_pending_share_files') is not True
 
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_query_string_reference_adds_pending(self, share_type):
+        """A reference with a query-string suffix like /files/name/secret.txt?x=1
+        must still be detected and add the file to pending_file_ids."""
+        data = await sync_to_async(self._setup)(share_type)
+        insert = f'\n[file](/files/name/{self.PROJECT_FILE}?x=1)'
+        await self._paste(data['ws_path'], data['user'], data['note_target'], insert)
+
+        await data['share_info'].arefresh_from_db()
+        assert data['secret_file'].id in data['share_info'].pending_file_ids
+        assert data['secret_file'].id not in data['share_info'].allowed_file_ids
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_bare_path_reference_not_pending(self, share_type):
+        """A bare-path reference /secret.txt (without /files/name/ prefix) is not a
+        canonical file URL and must NOT be treated as a file reference."""
+        data = await sync_to_async(self._setup)(share_type)
+        insert = f'\n[file](/{self.PROJECT_FILE})'
+        await self._paste(data['ws_path'], data['user'], data['note_target'], insert)
+
+        await data['share_info'].arefresh_from_db()
+        assert data['secret_file'].id not in data['share_info'].pending_file_ids
+        assert data['secret_file'].id not in data['share_info'].allowed_file_ids
+
+    @pytest.mark.parametrize('share_type', ['project', 'user'])
+    async def test_html_comment_reference_adds_pending(self, share_type):
+        """A reference buried inside an HTML comment is still detected by the
+        substring check and must produce a pending entry."""
+        data = await sync_to_async(self._setup)(share_type)
+        insert = f'\n<!-- [file](/files/name/{self.PROJECT_FILE}) -->'
+        await self._paste(data['ws_path'], data['user'], data['note_target'], insert)
+
+        await data['share_info'].arefresh_from_db()
+        assert data['secret_file'].id in data['share_info'].pending_file_ids
+        assert data['secret_file'].id not in data['share_info'].allowed_file_ids
+
