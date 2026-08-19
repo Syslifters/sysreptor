@@ -1,6 +1,6 @@
 # Changelog
 
-## v2026.66 - 2026-08-19
+## v2026.67 - 2026-08-19
 * This is a security release: fix 1 medium vulnerability
 * Rotate session cookie after shared note password authentication
 * Support downloading note files via an encrypted channel to prevent proxies from inspecting downloads (https://docs.sysreptor.com/reporting/notes#downloading-files)
@@ -8,6 +8,7 @@
 * Add default note structures to HTB, OffSec and demo designs
 * Remove deprecated excalidraw plugin
 * AI agent: ask the user questions
+* Fix empty Excalidraw canvas on read-only sharing links
 * Fix redirect URL after creating new excalidraw note in personal notes
 * Fix gpg encoding error
 * AI agent: Fix wrong icon shown for reverting agent changes in UI
