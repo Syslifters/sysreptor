@@ -72,6 +72,17 @@ In production environments, `ALLOWED_HOSTS` must be set to your domain name(s). 
 ALLOWED_HOSTS="sysreptor.example.com,sysreptor.example.local"
 ```
 
+::: warning Avoid wildcards
+A value with a leading dot (e.g. `.example.com`) is a wildcard that matches the domain and all its subdomains.
+Every host header matching the wildcard is accepted, including subdomains you do not control.
+
+Some links are built from the host header of the incoming request, most notably the confirmation link in password reset emails.
+An attacker who can send a request with a host header matching your wildcard can therefore trigger a password reset email that contains a link (including the valid reset token) pointing to a host they control.
+If the user clicks it, the token is leaked and their account can be taken over.
+
+List your exact hostnames instead of using a wildcard.
+:::
+
 
 ### FIDO2/WebAuthn
 If you want to use FIDO2/WebAuthn for MFA, you have to define the hostname ([WebAuthn Relying Party ID](https://www.w3.org/TR/webauthn-2/#relying-party-identifier)) of your installation.
@@ -389,12 +400,28 @@ OIDC_AUTHLIB_OAUTH_CLIENTS='{
 }'
 ```
 
-If your reverse proxy enforces authentication and provides the username via a HTTP-Header, use following settings to enable SSO.
+We recommend SSO via OIDC. Use Remote-User authentication only if OIDC is not an option for your setup.
+
+If your reverse proxy enforces authentication and provides the username via a HTTP header, use the following settings to enable SSO.
 
 ```dotenv title="Remote-User example"
 REMOTE_USER_AUTH_ENABLED=true
 REMOTE_USER_AUTH_HEADER="Remote-User"
 ```
+
+::: danger The reverse proxy is the trust boundary
+With Remote-User authentication enabled, SysReptor trusts the configured header unconditionally.
+Anyone who can send this header to SysReptor can log in as any user, including superusers.
+
+* The SysReptor backend must not be reachable except through the authenticating reverse proxy.
+  Bind it to localhost or an internal network and make sure no other route (container port mapping, load balancer, service mesh, VPN, host firewall rule) reaches it directly.
+* The reverse proxy must **overwrite** the authentication header on every inbound request, regardless of what the client sent.
+  Removing the header only when it is present is not enough - it has to be set unconditionally from the authenticated identity.
+* Overwriting the canonical header name is not enough.
+  HTTP headers reach the application as WSGI variables, where the header name is uppercased and `-` is replaced by `_`.
+  `Remote-User`, `Remote_User`, `remote-user`, `remote_user` and any other case variant therefore all map to the same variable and are all accepted by SysReptor.
+  Your proxy configuration must cover every spelling that normalizes to the configured header name, not just the canonical one.
+:::
 
 By default users can decide whether they want to log in via SSO or username/password. It is possible to globally disable login via username/password via this setting.
 Make sure all users have SSO identities configured before enabling this option. Else they will not be able to log in anymore.
