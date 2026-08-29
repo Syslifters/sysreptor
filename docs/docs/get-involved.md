@@ -55,7 +55,7 @@ answering questions in the community.
 ::: info <DocBadge icon="mdi:code-braces" label="Contribute to the core" />
 
 Fix bugs, implement new features, or improve existing functionality
-by contributing directly the SysReptor.
+by contributing directly to SysReptor.
 
 [Contributing guidelines](https://github.com/Syslifters/sysreptor/blob/main/CONTRIBUTING.md)
 
