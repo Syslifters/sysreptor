@@ -90,7 +90,7 @@ and to change the `plugin_id` in `apps.py`.
 
 ### Plugin Loading
 Custom plugins need to be made available to the SysReptor docker container.
-This can be achived by extending the SysReptor docker image and adding your custom plugins to the image.
+This can be achieved by extending the SysReptor docker image and adding your custom plugins to the image.
 
 ```dockerfile title="Dockerfile example"
 ARG SYSREPTOR_VERSION="latest"
