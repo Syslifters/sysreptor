@@ -73,8 +73,8 @@ export default function App() {
     }
   }, [isConnected]);
 
-  function onChange(elements: readonly OrderedExcalidrawElement[], appState: AppState, files: BinaryFiles) {
-    collabRef.current?.syncElementsThrottled({ elements });
+  function onChange(_elements: readonly OrderedExcalidrawElement[], _appState: AppState, _files: BinaryFiles) {
+    collabRef.current?.syncElementsThrottled();
   }
 
   useHandleLibrary({

@@ -232,34 +232,34 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
   }
 
   componentWillUnmount(): void {
-    this.syncElements({ syncAll: true });
+    void this.syncElements({ syncAll: true });
     this.connection?.disconnect();
     window.removeEventListener('visibilitychange', this.onLeavePage.bind(this));
   }
 
   private onLeavePage() {
     if (document.visibilityState === 'hidden') {
-      this.syncElements({ syncAll: true });
+      void this.syncElements({ syncAll: true });
     }
   }
 
-  syncElements(options: { elements?: readonly OrderedExcalidrawElement[], syncAll?: boolean }) {
+  async syncElements(options: { syncAll?: boolean }) {
     // sync out only the elements we think we need to to save bandwidth.
     // periodically we'll resync the whole thing to make sure no one diverges
     // due to a dropped message (server goes down etc).
-    const elements = (options.elements || this.excalidrawAPI.getSceneElementsIncludingDeleted());
+    const uploaded = await this.fileManager?.saveFiles() ?? false;
+    const syncAll = options.syncAll || uploaded;
+
+    const elements = this.excalidrawAPI.getSceneElementsIncludingDeleted();
     const version = hashElementsVersion(elements);
     const syncableElements = elements
       .filter(element => isSyncableElement(element) && (
-        options?.syncAll ||
+        syncAll ||
         !this.broadcastedElementVersions.has(element.id) ||
         element.version > this.broadcastedElementVersions.get(element.id)!)
       );
-    
-    // Upload new files
-    this.fileManager?.saveFiles();
 
-    if (syncableElements.length === 0 || version === (options?.syncAll ? this.lastSyncAllVersion : this.lastUpdateVersion)) {
+    if (syncableElements.length === 0 || version === (syncAll ? this.lastSyncAllVersion : this.lastUpdateVersion)) {
       // Already synced, no new changes
       return;
     }
@@ -273,11 +273,14 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
 
     // Update versions
     this.lastUpdateVersion = version;
+    if (syncAll) {
+      this.lastSyncAllVersion = version;
+    }
     for (const element of syncableElements) {
       this.broadcastedElementVersions.set(element.id, element.version);
     }
 
-    if (!options?.syncAll) {
+    if (!syncAll) {
       this.syncAllElementsThrottled();
     } else {
       // Already synced
@@ -286,12 +289,12 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
     }
   }
 
-  syncElementsThrottled = throttle((options: { elements?: readonly OrderedExcalidrawElement[] }) => {
-    this.syncElements(options);
+  syncElementsThrottled = throttle(() => {
+    void this.syncElements({ syncAll: false });
   }, WS_THROTTLE_INTERVAL, { leading: false, trailing: true });
 
   syncAllElementsThrottled = throttle(() => {
-    this.syncElements({ syncAll: true });
+    void this.syncElements({ syncAll: true });
   }, WS_FULL_SYNC_INTERVAL, { leading: false, trailing: true });
 
   async onReceiveMessage(msg: ExcalidrawCollabEvent) {
@@ -310,7 +313,7 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
       } else if (msg.type === ExcalidrawCollabEventType.CONNECT) {
         // Send current scene to new client
         if (this.clientId !== msg.client_id) {
-          this.syncElements({ syncAll: true });
+          void this.syncElements({ syncAll: true });
         }
       } else if ([ExcalidrawCollabEventType.PING, ExcalidrawCollabEventType.DISCONNECT].includes(msg.type)) {
         // Do nothing

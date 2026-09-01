@@ -33,7 +33,8 @@ export class FileManager {
   private fetchingFiles: Set<FileId> = new Set();
   private savingFiles: Set<FileId> = new Set();
   private savedFiles: Set<FileId> = new Set();
-  private erroredFiles: Set<FileId> = new Set(); 
+  private erroredFiles: Set<FileId> = new Set();
+  private saveFilesPromise: Promise<boolean> | null = null;
 
   constructor(options: {
     excalidrawAPI: ExcalidrawImperativeAPI
@@ -49,7 +50,15 @@ export class FileManager {
   }
 
   isFileTracked(fileId: FileId): boolean {
-    return this.fetchingFiles.has(fileId) || this.savedFiles.has(fileId) || this.erroredFiles.has(fileId) || this.savingFiles.has(fileId);
+    return this.fetchingFiles.has(fileId)
+      || this.savedFiles.has(fileId)
+      || this.erroredFiles.has(fileId)
+      || this.savingFiles.has(fileId);
+  }
+
+  private removeFileFromStore(fileId: FileId) {
+    // Excalidraw has no removeFiles API; getFiles() returns a live reference to App.files.
+    delete this.excalidrawAPI.getFiles()[fileId];
   }
 
   updateImageElements(getUpdateData: (e: InitializedExcalidrawImageElement) => ElementUpdate<InitializedExcalidrawImageElement>|null) {
@@ -96,12 +105,6 @@ export class FileManager {
 
       // Add files to scene
       this.excalidrawAPI.addFiles(loadedFiles);
-      if (erroredFiles.length > 0) {
-        this.updateImageElements(e => 
-            loadedFiles.some(f => f.id === e.fileId) ? { status: 'saved' } :
-            // erroredFiles.includes(e.fileId) ? { status: 'error' } : 
-            null);
-      }
 
       return { loadedFiles, erroredFiles };
     } finally {
@@ -138,7 +141,18 @@ export class FileManager {
     }
   }
 
-  async saveFiles() {  
+  async saveFiles(): Promise<boolean> {
+    if (this.saveFilesPromise) {
+      return this.saveFilesPromise;
+    }
+
+    this.saveFilesPromise = this.saveFilesInternal().finally(() => {
+      this.saveFilesPromise = null;
+    });
+    return this.saveFilesPromise;
+  }
+
+  private async saveFilesInternal(): Promise<boolean> {
     const files = this.excalidrawAPI.getFiles();
 
     const newFiles = [];
@@ -148,9 +162,13 @@ export class FileManager {
         this.savingFiles.add(e.fileId);
       }
     }
-    
+    if (newFiles.length === 0) {
+      return false;
+    }
+
     try {
-      await Promise.allSettled(newFiles.map(this.uploadFileToAPI.bind(this)));
+      const results = await Promise.allSettled(newFiles.map(this.uploadFileToAPI.bind(this)));
+      return results.some(result => result.status === 'fulfilled');
     } finally {
       for (const file of newFiles) {
         this.savingFiles.delete(file.id);
@@ -181,11 +199,11 @@ export class FileManager {
       this.savedFiles.delete(file.id);
       this.savedFiles.add(newFileId);
       this.excalidrawAPI.addFiles([{ ...file, id: newFileId }]);
-      delete this.excalidrawAPI.getFiles()[file.id];
       this.updateImageElements(e => e.fileId === file.id ? {
         fileId: newFileId,
         status: 'saved',
       } : null);
+      this.removeFileFromStore(file.id);
 
       return uploadedImage;
     } catch (error) {

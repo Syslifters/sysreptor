@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Allow image uploads in shared excalidraw notes
+
+
 ## v2026.68 - 2026-08-19
 * This is a security release: fix 1 medium vulnerability
 * Rotate session cookie after shared note password authentication
