@@ -268,7 +268,7 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
     this.connection?.send({
       type: ExcalidrawCollabEventType.UPDATE,
       elements: syncableElements,
-      sync_all: options?.syncAll,
+      sync_all: syncAll,
     });
 
     // Update versions
