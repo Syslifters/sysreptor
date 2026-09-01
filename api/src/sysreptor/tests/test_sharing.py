@@ -505,7 +505,7 @@ class TestSharedNoteFileAuthorization:
             share_info = create_shareinfo(projectnote=excalidraw_note, permissions_write=True)
             client = api_client(user=None)
             res_upload = client.post(
-                reverse('sharednote-upload-image-or-file', kwargs={'shareinfo_pk': share_info.id}),
+                reverse('sharednote-upload-image', kwargs={'shareinfo_pk': share_info.id}),
                 data={
                     'file': SimpleUploadedFile(name='excal-public.png', content=create_png_file()),
                     'note_id': str(excalidraw_note.note_id),

@@ -257,6 +257,7 @@ def public_urls():
         ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-image-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.images.first().name}))),
         ('sharednote retrive-image-by-name', lambda s, c: c.get(reverse('sharednote-file-by-name', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'filename': s.project.files.first().name}))),
         ('sharednote upload-image-or-file', lambda s, c: c.post(reverse('sharednote-upload-image-or-file', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
+        ('sharednote upload-image', lambda s, c: c.post(reverse('sharednote-upload-image', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
         ('sharednote excalidraw', lambda s, c: c.get(reverse('sharednote-excalidraw', kwargs={'shareinfo_pk': s.project.notes.only_shared().first().shareinfos.first().pk, 'id': s.project.notes.filter(type=NoteType.EXCALIDRAW).first().note_id}))),
     ]
 
