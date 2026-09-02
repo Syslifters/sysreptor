@@ -1,7 +1,7 @@
 @import 'pdfjs-dist/legacy/web/pdf_viewer.css';
 
 :root {
-  /* Modern color palette */
+  /* SysReptor palette */
   --body-bg-color: light-dark(#f5f5f7, #1e1e1e);
   --main-color: light-dark(#2c2c2e, #f5f5f7);
   --accent-color: #aabb11;
@@ -14,7 +14,14 @@
   --field-height: 24px;
   --field-bg-color: light-dark(rgba(240, 240, 245, 1), rgba(60, 60, 65, 1));
   --field-border-color: light-dark(rgba(210, 210, 215, 1), rgba(80, 80, 85, 1));
-  --hover-bg-color: light-dark(rgba(235, 235, 240, 1), rgba(75, 75, 80, 1));
+  --button-hover-color: light-dark(rgba(235, 235, 240, 1), rgba(75, 75, 80, 1));
+  --toggled-btn-bg-color: rgb(0 0 0 / 0.3);
+  --toggled-btn-color: light-dark(rgb(0 0 0), rgb(255 255 255));
+  --toggled-hover-active-btn-color: rgb(0 0 0 / 0.4);
+  --toggled-hover-btn-outline: none;
+  --focus-ring-color: #aabb11;
+  --focus-ring-outline: 2px solid var(--focus-ring-color);
+  --resizer-hover-bg-color: #aabb11;
   --sidebar-width: 250px;
 
   /* Transitions */
@@ -129,10 +136,17 @@ body {
   vertical-align: middle;
   display: inline-block;
 
-  &:hover, &:focus-visible {
+  &:hover {
     background-color: var(--field-bg-color);
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+  }
+
+  &:focus-visible {
+    background-color: var(--field-bg-color);
+    outline: var(--focus-ring-outline);
+    outline-offset: 1px;
+    border-color: var(--accent-color);
+    box-shadow: none;
   }
 }
 
@@ -198,10 +212,22 @@ body {
     opacity: 0.5;
   }
 
-  &:hover, &:focus-visible {
+  &:hover {
     color: var(--accent-color);
-    background-color: var(--hover-bg-color);
-    
+    background-color: var(--button-hover-color);
+
+    & svg {
+      fill: var(--accent-color);
+      transform: scale(1.1);
+    }
+  }
+
+  &:focus-visible {
+    color: var(--accent-color);
+    background-color: var(--button-hover-color);
+    outline: var(--focus-ring-outline);
+    outline-offset: 2px;
+
     & svg {
       fill: var(--accent-color);
       transform: scale(1.1);
@@ -209,13 +235,26 @@ body {
   }
 
   &.toggled {
-    background-color: var(--hover-bg-color);
+    background-color: var(--toggled-btn-bg-color);
+    color: var(--toggled-btn-color);
 
-    &:hover {
-      outline: none !important;
-      &:active {
-        background-color: var(--hover-bg-color);
+    & svg {
+      fill: var(--toggled-btn-color);
+    }
+
+    &:hover, &:focus-visible {
+      outline: var(--toggled-hover-btn-outline) !important;
+      background-color: var(--button-hover-color);
+      color: var(--toggled-btn-color);
+
+      & svg {
+        fill: var(--toggled-btn-color);
+        transform: none;
       }
+    }
+
+    &:active {
+      background-color: var(--toggled-hover-active-btn-color);
     }
   }
 }
@@ -306,6 +345,12 @@ body {
     width: 6px;
     z-index: 200;
     cursor: ew-resize;
+    transition: background-color var(--transition-speed) ease;
+
+    &:hover, &:focus-visible {
+      background-color: var(--resizer-hover-bg-color);
+      outline: none;
+    }
   }
 }
 

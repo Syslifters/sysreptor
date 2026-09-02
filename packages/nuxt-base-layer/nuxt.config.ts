@@ -48,7 +48,8 @@ export default defineNuxtConfig({
       prefixComposables: true,
       styles: {
         configFile: join(currentDir, './src/assets/vuetify.scss'),
-      }
+      },
+      enableRules: false,
     },
     vuetifyOptions: join(currentDir, './src/vuetify.config.ts'),
   },

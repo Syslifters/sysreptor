@@ -7,7 +7,7 @@ requires-python = ">=3.12,<4.0"
 
 dependencies = [
   "django[argon2] (>=6.0,<6.1)",
-  "djangorestframework (>=3.17,<3.18)",
+  "djangorestframework (>=3.18,<3.19)",
   "weasyprint (==69.0)",
 
   "django-storages[s3] (~=1.13)",
@@ -51,7 +51,7 @@ dependencies = [
   "langchain[anthropic,openai,deepseek,ollama,mistralai] (~=1.0)",
   "deepagents (~=0.7)",
 
-  "django-debug-toolbar (~=7.0)",
+  "django-debug-toolbar (~=8.0)",
   "elastic-apm (~=6.20)",
   "debugpy (~=1.6)",
   "watchdog (~=6.0)",
