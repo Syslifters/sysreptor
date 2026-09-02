@@ -9,6 +9,7 @@ from sysreptor.users.models import PentestUser
 from sysreptor.users.roles import Permission
 from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
+from sysreptor.utils.mail import is_email_configured
 
 
 def _is_eligible_user(user) -> bool:
@@ -168,7 +169,7 @@ class ForgotPasswordPermissions(LocalUserAuthPermissions):
               license.ProfessionalLicenseRequired().has_permission(request, view) and \
               configuration.FORGOT_PASSWORD_ENABLED and \
               configuration.LOCAL_USER_AUTH_ENABLED and \
-              settings.EMAIL_HOST and \
+              is_email_configured() and \
               '*' not in settings.ALLOWED_HOSTS
 
 

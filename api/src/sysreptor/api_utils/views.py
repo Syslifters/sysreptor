@@ -39,6 +39,7 @@ from sysreptor.utils.fielddefinition.serializers import (
     serializer_from_field,
 )
 from sysreptor.utils.fielddefinition.types import CweField, FieldDefinition, serialize_field_definition
+from sysreptor.utils.mail import is_email_configured
 from sysreptor.utils.utils import copy_keys, remove_duplicates
 
 log = logging.getLogger(__name__)
@@ -178,7 +179,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             'license': copy_keys(license.check_license(), ['type', 'error']),
             'features': {
                 'websockets': not settings.DISABLE_WEBSOCKETS and 'default' in channel_layers,
-                'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST) and '*' not in settings.ALLOWED_HOSTS,
+                'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and is_email_configured() and '*' not in settings.ALLOWED_HOSTS,
             },
             'permissions': {},
             'plugins': [

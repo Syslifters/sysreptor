@@ -30,8 +30,12 @@ CHANNEL_LAYERS = {
     },
 }
 DISABLE_WEBSOCKETS = False
-EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
-EMAIL_HOST = 'localhost'
+MAILERS = {
+    'default': {
+        'BACKEND': 'django.core.mail.backends.locmem.EmailBackend',
+        'FROM_EMAIL': 'sysreptor@example.com',
+    },
+}
 
 REST_FRAMEWORK |= {
     'DEFAULT_THROTTLE_CLASSES': [],
