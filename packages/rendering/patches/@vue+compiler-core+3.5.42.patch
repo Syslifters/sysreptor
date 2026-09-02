@@ -14,7 +14,7 @@ index 9e9cdcd..9fedae8 100644
       * Elements that should ignore the first newline token per parinsg spec
       * e.g. `<textarea>` and `<pre>`
 diff --git a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
-index 0734b06..da76562 100644
+index d5b88f0..c6cd244 100644
 --- a/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
 +++ b/node_modules/@vue/compiler-core/dist/compiler-core.esm-bundler.js
 @@ -1983,6 +1983,7 @@ const defaultParserOptions = {

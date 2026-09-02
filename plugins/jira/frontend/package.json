@@ -14,7 +14,7 @@
     "@sysreptor/markdown": "../../../packages/markdown",
 
     "nuxt": "~4.5",
-    "vuetify": "~4.1",
+    "vuetify": "~4.2",
     "pinia": "^4.0"
   },
   "devDependencies": {

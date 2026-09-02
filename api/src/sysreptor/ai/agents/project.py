@@ -24,6 +24,7 @@ from deepagents.backends.protocol import (
     WriteResult,
 )
 from deepagents.backends.utils import (
+    InvalidGlobPatternError,
     _glob_search_files,
     create_file_data,
     grep_matches_from_files,
@@ -792,7 +793,10 @@ class ProjectFilesystemBackend(BackendProtocol):
 
     def glob(self, pattern: str, path: str | None = None) -> GlobResult:
         files = self._build_files(prefetch=False)
-        result = _glob_search_files(files, pattern, path if path is not None else '/')
+        try:
+            result = _glob_search_files(files, pattern, path if path is not None else '/')
+        except InvalidGlobPatternError as exc:
+            return GlobResult(error=str(exc))
         if result == 'No files found':
             return GlobResult(matches=[])
         infos: list[FileInfo] = []

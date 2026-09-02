@@ -2,8 +2,8 @@
 
 set -e
 
-CYBERCHEF_VERSION="v11.2.0"
-CYBERCHEF_URL="https://github.com/gchq/CyberChef/releases/download/${CYBERCHEF_VERSION}/CyberChef_d358d82cbcb269d764a2deb598a37043bd054f45.zip"
+CYBERCHEF_VERSION="v11.4.0"
+CYBERCHEF_URL="https://github.com/gchq/CyberChef/releases/download/${CYBERCHEF_VERSION}/CyberChef_49d1a5634a67a3b806c6db0fdca7dcecb41a776c.zip"
 
 if [ ! -f "./static/cyberchef/CyberChef_${CYBERCHEF_VERSION}.html" ]; then
   echo "Downloading CyberChef"
