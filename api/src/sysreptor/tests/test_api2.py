@@ -228,7 +228,7 @@ class TestProjectApi:
         update_project_search_index(task_info=None)
 
         # Title/tags should rank higher than trigram-only matches.
-        self.assert_project_search_result({"search": "tls crypt"}, [p_title_and_tag, p_data_only, p_title_and_content])
+        self.assert_project_search_result({"search": "tls crypt"}, [p_title_and_tag, p_title_and_content, p_data_only])
         # Projects match all trigrams
         self.assert_project_search_result({"search": "tls crypt weak"}, [p_data_only])
         # Only projects with tags, ordered by search rank
@@ -236,6 +236,23 @@ class TestProjectApi:
         # All projects
         self.assert_project_search_result({"search": ""}, [p_title_and_tag, p_data_only, p_title_and_content, p_no_match])
 
+    def test_project_search_name_tiers(self):
+        p_name_a = create_project(name="ACME Alpha Assessment", tags=["unrelated"], members=[self.user], findings_kwargs=[])
+        p_name_b = create_project(name="ACME Beta Assessment", tags=["unrelated"], members=[self.user], findings_kwargs=[])
+        p_content = create_project(name="Internal Network Assessment", tags=["unrelated"], members=[self.user], findings_kwargs=[
+            {"data": {"description": "Findings for ACME systems"}},
+        ])
+        create_project(name="Customer Portal Review", tags=["unrelated"], members=[self.user], findings_kwargs=[])
+
+        update_project_search_index(task_info=None)
+
+        # Name matches before content-only; within the same score, default created ordering applies
+        self.assert_project_search_result({"search": "ACME"}, [p_name_a, p_name_b, p_content])
+        # User ordering applies within the same score
+        self.assert_project_search_result(
+            {"search": "ACME", "ordering": "-name"},
+            [p_name_b, p_name_a, p_content],
+        )
 
 @pytest.mark.django_db()
 class TestProjectTypeApi:
