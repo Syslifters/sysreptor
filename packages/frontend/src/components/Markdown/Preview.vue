@@ -9,7 +9,7 @@
       v-show="isRendered"
       ref="iframeRef"
       :srcdoc="IFRAME_SRCDOC"
-      sandbox="allow-same-origin allow-downloads allow-popups"
+      sandbox="allow-same-origin allow-downloads allow-popups allow-popups-to-escape-sandbox"
       referrerpolicy="no-referrer"
       title="Markdown preview"
       class="preview-iframe"

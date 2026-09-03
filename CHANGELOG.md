@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Allow image uploads in shared excalidraw notes
+* Markdown editor: Prevent browser from opening some links in markdown preview
 
 
 ## v2026.68 - 2026-08-19
