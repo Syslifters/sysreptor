@@ -1,4 +1,4 @@
-# Upgrade to PRO
+# Upgrade to Professional
 
 <BadgeSelfHosted />
 
@@ -6,7 +6,7 @@ You can upgrade from SysReptor Community to SysReptor Professional anytime witho
 Here's how:
 
 1. Add your license key to `deploy/app.env` (`LICENSE='your_license_key'`)
-2. Add `languagetool/docker-compose.yml` to `docker-compose.yml` in the `deploy` directory:
+2. Add languagetool to `deploy/docker-compose.yml`:
    ```
    name: sysreptor
 
@@ -17,7 +17,13 @@ Here's how:
 3. `cd` to `deploy` and run `docker compose up -d`
 4. Enjoy
 
+## From Professional to Community
 
+For reverting to community, remove or comment out the license key from `deploy/app.env`.  
+You can also remove `languagetool/docker-compose.yml` from `deploy/docker-compose.yml`. This saves resources (one docker container), as languagetool is not available in SysReptor Community.
+
+Moving from Professional to Community does not result in data loss. All data will be preserved.  
+Non-superuser accounts, will, however, no longer be able to log in.
 
 ::: info <DocBadge icon="mdi:calendar" label="Book a demo" />
 
