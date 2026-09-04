@@ -2,8 +2,9 @@
 
 ## Upcoming
 * Allow image uploads in shared excalidraw notes
-* Markdown editor: Prevent browser from opening some links in markdown preview
 * Rank project search results to prioritize name and tag matches over content
+* Harden shared note event filtering
+* Markdown editor: Prevent browser from opening some links in markdown preview
 * Plugin `jira`: Follow API pagination to list all available projects
 
 
