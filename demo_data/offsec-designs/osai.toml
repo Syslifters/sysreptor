@@ -1,0 +1,853 @@
+format = "projecttypes/v2"
+id = "8acab1c9-5497-49c2-85d0-25aef9acdc1c"
+name = "OffSec OSAI Exam Report v1.0"
+language = "en-US"
+status = "finished"
+tags = [
+    "OffSec",
+]
+finding_ordering = []
+report_template = """
+<div id="footer" data-sysreptor-generated="page-footer">
+    <div id="footer-left"><em>CONFIDENTIAL</em></div>
+    <div id="footer-center">{{ report.title }}</div>
+</div>
+
+<div v-if="report.watermark" id="watermark-osid">{{ report.osid }}</div>
+
+
+<section id="page-cover" data-sysreptor-generated="page-cover">
+    <img id="page-cover-logo" src="/assets/name/logo-transparent.svg" alt="logo">
+    <div id="page-cover-title">
+        <h1>{{ report.title }}</h1>
+        <h2>Exam Report</h2>
+    </div>
+
+    <div id="page-cover-student">
+        <p id="page-cover-osid">
+            <strong>OSID: {{ report.osid }}</strong><br>
+            {{ report.mail }}<br>
+        </p>
+        <p id="page-cover-meta">
+            {{ formatDate(report.report_date, 'long') }}<br>
+            v{{ report.report_version }}
+        </p>
+    </div>
+</section>
+<pagebreak />
+
+
+<table-of-contents id="toc" v-slot="tocItems">
+    <h1>Table of Contents</h1>
+    <ul>
+        <li v-for="item in tocItems" :class="'toc-level' + item.level">
+            <ref :to="item.id" />
+        </li>
+    </ul>
+    <pagebreak />
+</table-of-contents>
+
+<markdown>
+    # OffSec AI Red Teamer Exam Report {.in-toc.numbered}
+
+    ## Introduction {.in-toc.numbered}
+    The OffSec AI Red Teamer (OSAI) exam report contains all efforts that were conducted in order to pass the OffSec certification examination. This report should contain all items that were used to pass the exam, and it will be graded from a standpoint of correctness and completeness across all aspects of the exam. The purpose of this report is to ensure that the candidate has a full understanding of red team methodologies in AI-enabled environments, as well as the technical knowledge required to meet the qualifications for the OffSec AI Red Teamer certification.
+
+    ## Objective {.in-toc.numbered}
+    The objective of this assessment is to perform a hands-on red team engagement against an AI-enabled enterprise environment. The candidate is tasked with identifying and exploiting both AI-focused and traditional attack vectors across two independent attack chains, a standalone host, and a shared Domain Controller, demonstrating a complete exploitation path from external access through to internal compromise.
+
+    Each chain begins from a single publicly accessible entry point that allows a pivot into the internal network and spans three machines; both chains converge on the Domain Controller. A separate standalone host with an AI-focused vector becomes reachable once a foothold is established from either chain. A total of 100 points is available across the environment, and the candidate must obtain at least 75 points to pass.
+
+    ## Requirements {.in-toc.numbered}
+    The candidate is required to write a report describing the exploitation process for each target in the environment. The report must document all attacks, including every step taken, all commands issued, any code or scripts written, and the relevant console output. Where an existing script or exploit is used, the candidate must provide a link to its source or a copy of the code, along with documentation of any modifications made to it. Each stage of the attack should be supported by screenshots showing the various steps and stages of the exploitation process.
+
+    In addition, the report must include a summary and overview of the vulnerabilities identified, the attacks performed, and the overall exploitation process. The documentation should be thorough enough that the attacks can be replicated step-by-step, via a copy/paste approach, by a technically competent reader.
+
+    Because effective use of AI is a core component of this assessment, any AI tooling used during the engagement — including prompts, model interactions, and AI-assisted payload generation — should be documented to the same standard as any other tool or technique.
+</markdown>
+<pagebreak />
+
+<section>
+    <h1 id="summary" class="in-toc numbered">Executive Summary</h1>
+
+    <h2 id="overview" class="in-toc numbered">Overview</h2>
+    <markdown :text="report.overview" />
+
+    <h2 id="attack-path" class="in-toc numbered">High-Level Attack Path</h2>
+    <markdown :text="report.high_level_attack_path" />
+</section>
+<pagebreak />
+
+<section v-for="group in finding_groups">
+    <h1 class="in-toc numbered">{{ group.label }}</h1>
+    <div v-for="finding in group.findings">
+        <h2 :id="finding.id" class="in-toc numbered">{{ finding.title }}</h2>
+
+        <div v-if="finding.initialaccess">
+            <h3 class="in-toc numbered">Compromise</h3>
+            <markdown :text="finding.initialaccess" />
+        </div>
+        <div v-if="finding.privilegeescalation">
+            <h3 class="in-toc numbered">Privilege Escalation</h3>
+            <markdown :text="finding.privilegeescalation" />
+        </div>
+        <div v-if="finding.proof">
+            <h3 class="in-toc numbered">Proof</h3>
+            <markdown :text="finding.proof" />
+        </div>
+        <pagebreak />
+    </div>
+</section>
+
+<section v-if="report.appendix_sections.length > 0" class="appendix">
+    <h1 id="appendix" class="in-toc numbered">Appendix</h1>
+
+    <div v-for="appendix_section in report.appendix_sections">
+        <h2 class="in-toc numbered">{{ appendix_section.title }}</h2>
+        <markdown :text="appendix_section.content" />
+    </div>
+    <pagebreak />
+</section>
+
+<section>
+    <div class="end-of-report">
+        End of Report<br>
+    </div>
+    <div class="end-of-report">
+        This report was rendered<br>
+        by <a href="https://docs.sysreptor.com/">SysReptor</a> with<br>
+        <span style="color:red;">&hearts;</span><br>
+    </div>
+</section>
+"""
+report_styles = """
+@import "/assets/global/base.css";
+
+/* Define variables */
+:root {
+    --color-risk-critical: #E83221;
+    --color-risk-high: #FF9300;
+    --color-risk-medium: #FFDA00;
+    --color-risk-low: #4285F5;
+    --color-risk-info: #00AE51;
+    
+    --color-primary: #4a1220;
+    --color-secondary: rgba(251, 32, 59);
+
+    --color-table-header: var(--color-primary);
+    --color-table-header-text: white;
+    --color-table-row-even: rgb(221, 221, 221);
+    --color-table-row-odd: white;
+    --color-table-content: #151515;
+
+    --color-code: rgb(221, 221, 221);
+}
+
+/* Font settings */
+html {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 10pt;
+}
+
+
+/* Global styles */
+@page {
+    size: A4 portrait;
+    margin: 35mm 20mm 25mm 20mm;
+}
+
+a {
+    font-style: italic;
+    text-decoration: underline;
+    color: var(--color-secondary);
+}
+
+pre code {
+    border: 1px solid black;
+    padding: 0.2em !important;
+}
+code {
+    background-color: var(--color-code);
+}
+
+
+table {
+    table-layout: fixed;
+}
+.markdown table {
+    table-layout: auto;
+}
+th {
+    font-weight: bold;
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr.table-row-link td {
+    padding: 0;
+}
+tr.table-row-link td a {
+    display: block;
+    padding: 0.3em;
+    color: inherit;
+    text-decoration: none;
+    font-style: inherit;
+}
+.table-key {
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-text);
+}
+tr {
+    color: var(--color-table-content);
+}
+tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+tr:nth-child(odd) {
+    background-color: var(--color-table-row-odd);
+}
+tr .highlight, tr code {
+    background-color: var(--color-primary);
+}
+
+
+/* Classes for risk colors */
+.risk-critical { color: var(--color-risk-critical) !important; font-weight: bold; }
+.risk-high { color: var(--color-risk-high) !important; font-weight: bold; }
+.risk-medium { color: var(--color-risk-medium) !important; font-weight: bold; }
+.risk-low { color: var(--color-risk-low) !important; font-weight: bold; }
+.risk-info { color: var(--color-risk-info) !important; font-weight: bold; }
+
+.risk-bg-critical { background-color: var(--color-risk-critical) !important; color: white !important; }
+.risk-bg-high { background-color: var(--color-risk-high) !important; }
+.risk-bg-medium { background-color: var(--color-risk-medium) !important; }
+.risk-bg-low { background-color: var(--color-risk-low) !important; }
+.risk-bg-info { background-color: var(--color-risk-info) !important; }
+
+/* Helper class for referencing page number */
+.ref-page::before { 
+    content: "" !important;
+}
+.ref-page::after {
+    content: target-counter(attr(href), page) !important;
+}
+.ref-page .ref-title {
+    display: none !important;
+}
+
+/* Table in finding chapters */
+.finding-heading .table-key {
+    height: 3em;
+    width: 10em;
+}
+
+
+.end-of-report {
+    text-align:center;
+    font-style:italic;
+    margin-top:70px;
+    line-height:1.7;
+}
+
+
+
+
+/* #region footer */
+@page {
+    @bottom-left { content: element(footer-left); }
+    @bottom-center { content: element(footer-center); }
+    @bottom-right-corner { content: counter(page); }
+}
+#footer {
+    position: absolute;
+    width: 0;
+}
+#footer #footer-left { position: running(footer-left); }
+#footer #footer-center { position: running(footer-center); }
+/* #endregion footer */
+
+/* #region watermark */
+#watermark-osid {
+    position: fixed;
+    top: 9cm;
+    left: 1cm;
+    transform: rotate(-45deg);
+    font-size: 90pt;
+    text-transform: uppercase;
+    opacity: 0.2;
+}
+/* #endregion watermark */
+
+/* #region page-cover */
+#page-cover {
+    page: page-cover;
+}
+@page page-cover {
+    /* Footer on the cover page */
+    @bottom-right-corner {
+        content: "";
+    }
+    @bottom-right {
+        /* Page number */
+        content: counter(page);
+        font-size: 9pt;
+        color: white
+    }
+    @bottom-left {
+        content: "Confidential";
+        text-transform: uppercase;
+        font-style: italic;
+        color: white;
+    }
+     /* Pentest title should not appear on cover page */
+    @bottom-center {
+        content: '';
+    }
+    background-color: var(--color-primary);
+}
+
+#page-cover-logo {
+    position: absolute;
+    left: 2cm;
+    height: 6cm;
+    transform: translate(-50%, -50%);
+    display: inline-block
+}
+/* Title page elements */
+#page-cover-title {
+    position: absolute;
+    top: 20mm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-title h1 {
+    font-size: 32pt;
+}
+#page-cover-title h2 {
+    font-size: 24pt;
+}
+#page-cover-student {
+    position: absolute;
+    top: 11cm;
+    left: 0;
+    width: 14cm;
+    color: #ffffff;
+}
+#page-cover-osid {
+    font-size: 14pt;
+}
+#page-cover-meta {
+    line-height: 2em;
+}
+/* #endregion page-cover */
+
+/* #region toc */
+#toc li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#toc .ref::before {
+    padding-right: 0.5em;
+}
+#toc .ref::after {
+    content: " " leader(".") " " target-counter(attr(href), page);
+}
+#toc .toc-level1 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.8rem;
+}
+#toc .toc-level2 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-left: 2rem;
+}
+#toc .toc-level3 {
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    margin-left: 4rem;
+}
+#toc .toc-level4 {
+    font-size: 1rem;
+    margin-top: 0;
+    margin-left: 6rem;
+}
+/* #endregion toc */
+"""
+
+[[report_sections]]
+id = "Student"
+label = "Student"
+
+[[report_sections.fields]]
+id = "firstname"
+type = "string"
+label = "Firstname"
+origin = "custom"
+default = "John"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "lastname"
+type = "string"
+label = "Lastname"
+origin = "custom"
+default = "Doe"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "osid"
+type = "string"
+label = "OSID"
+origin = "custom"
+default = "XXXXX"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "mail"
+type = "string"
+label = "Mail"
+origin = "custom"
+default = "student@example.com"
+required = true
+spellcheck = false
+
+[[report_sections]]
+id = "other"
+label = "Document Control"
+
+[[report_sections.fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "OffSec AI Red Teamer"
+required = true
+spellcheck = true
+
+[[report_sections.fields]]
+id = "report_date"
+type = "date"
+label = "Report Date"
+origin = "custom"
+required = true
+
+[[report_sections.fields]]
+id = "report_version"
+type = "string"
+label = "Report Version"
+origin = "custom"
+default = "1.0"
+required = true
+spellcheck = false
+
+[[report_sections.fields]]
+id = "watermark"
+type = "boolean"
+label = "Watermark"
+origin = "custom"
+default = false
+
+[[report_sections]]
+id = "executive_summary"
+label = "Executive Summary"
+
+[[report_sections.fields]]
+id = "overview"
+type = "markdown"
+label = "Overview"
+origin = "custom"
+default = "TODO This section should provide a high-level, non-technical overview of the engagement suitable for a management audience. Summarize the scope of the assessment, the overall outcome, and the most significant vulnerabilities discovered across the AI-enabled environment."
+required = true
+
+[[report_sections.fields]]
+id = "high_level_attack_path"
+type = "markdown"
+label = "High-Level Attack Path"
+origin = "custom"
+default = """
+TODO The following summarizes the path taken to compromise the environment. Replace each item with your own attack narrative.
+
+1. **Chain 1** — the externally accessible entry point was compromised and used to pivot into the internal network, followed by lateral movement and privilege escalation across the two subsequent hosts in the chain.
+2. **Chain 2** — a second, independent external entry point was compromised, providing an alternate route into the internal network and onward to its two subsequent hosts.
+3. **Standalone host** — reached from the internal network once a foothold was established, this AI-focused target was compromised via its exposed AI vector.
+4. **Domain Controller** — both chains converged on the Domain Controller, which was compromised to retrieve the shared endgame proof.
+"""
+required = true
+
+[[report_sections]]
+id = "appendix"
+label = "Appendix"
+
+[[report_sections.fields]]
+id = "appendix_sections"
+type = "list"
+label = "Appendix"
+origin = "custom"
+required = false
+
+[report_sections.fields.items]
+id = ""
+type = "object"
+label = ""
+origin = "custom"
+
+[[report_sections.fields.items.properties]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "custom"
+default = "TODO appendix title"
+required = true
+spellcheck = false
+
+[[report_sections.fields.items.properties]]
+id = "content"
+type = "markdown"
+label = "Content"
+origin = "custom"
+default = "TODO Please add here very long PoC code snippets, any additional screenshots, your AI conversation/session history, or the prompts you have used during the exam."
+required = true
+
+[[finding_fields]]
+id = "title"
+type = "string"
+label = "Title"
+origin = "core"
+default = "HOSTNAME (IP: X.X.X.X)"
+required = true
+spellcheck = true
+
+[[finding_fields]]
+id = "target_type"
+type = "combobox"
+label = "Target Type"
+origin = "custom"
+default = "Chain 1"
+required = true
+suggestions = [
+    "Chain 1",
+    "Chain 2",
+    "Standalone Host",
+]
+
+[[finding_fields]]
+id = "initialaccess"
+type = "markdown"
+label = "Compromise"
+origin = "custom"
+default = """
+TODO Document the enumeration that revealed the attack surface (port scans, service/version detection, web/API discovery, exposed AI components, etc.). Describe the vulnerability and the full exploitation process in copy/paste-reproducible detail. For AI vectors, document the prompts, payloads, or model-interaction steps used. Link or paste any script/exploit used and note every modification you made to it.
+
+For the Domain Controller, document how it was compromised from this chain. Both chains converge here; the proof flag can be submitted only once even if both chains are completed.
+
+Include the exact commands and the relevant output or screenshots.
+
+```
+# example nmap -sC -sV -p- <TARGET_IP>
+```
+"""
+required = true
+
+[[finding_fields]]
+id = "privilegeescalation"
+type = "markdown"
+label = "Privilege Escalation"
+origin = "custom"
+default = "TODO If a privilege-escalation step was required to reach the flag, document the enumeration that identified it and the exact steps used to escalate. Include before/after proof of privilege (e.g., `whoami`)."
+required = false
+
+[[finding_fields]]
+id = "proof"
+type = "markdown"
+label = "Proof"
+origin = "custom"
+default = """
+TODO Show the contents of the flag file and a screenshot proving access on the target. Traditional-vector flags are named `trad_vector.txt`, AI-vector flags `ai_vector.txt`; both live in the compromised user's home directory or `C:\\Users\\Administrator\\Desktop\\` (Windows) / `/root/` (Linux). Domain Controller proof is `proof.txt` in `C:\\Users\\Public\\`.
+
+```
+type C:\\Users\\Administrator\\Desktop\\ai_vector.txt   # Windows
+cat /root/ai_vector.txt                        # Linux
+type C:\\Users\\Public\\proof.txt                  # Domain Controller
+```
+
+[ paste flag value and screenshot here ]
+"""
+required = true
+
+[[finding_grouping]]
+field = "target_type"
+order = "asc"
+
+[[default_notes]]
+title = "Preparation"
+id = "093d6598-63cf-4423-92c5-9703464817a7"
+text = ""
+type = "text"
+order = 1
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "📚"
+
+[[default_notes]]
+title = "Study Notes"
+id = "65486a33-c25e-4f0e-960d-0131c91ac1c1"
+text = """
+Techniques, methodology, and resources from your preparation...
+
+"""
+type = "text"
+order = 1
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "📖"
+
+[[default_notes]]
+title = "Lab Notes"
+id = "1b8acbd6-f3aa-4fc9-ae89-54bb73076228"
+text = """
+Notes and progress from lab machines...
+
+"""
+type = "text"
+order = 2
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🧪"
+
+[[default_notes]]
+title = "To Do's"
+id = "7c2d41a6-950b-4f75-a350-fce566951f70"
+text = ""
+type = "text"
+order = 3
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "✔️"
+
+[[default_notes]]
+title = "To Do X"
+id = "d9090231-a2a4-4784-b62e-d9ace07638d0"
+text = ""
+type = "text"
+order = 1
+parent = "7c2d41a6-950b-4f75-a350-fce566951f70"
+checked = false
+created = "2026-07-23T14:00:00.000Z"
+
+[[default_notes]]
+title = "Exam"
+id = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+text = ""
+type = "text"
+order = 2
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🎯"
+
+[[default_notes]]
+title = "Exam Info"
+id = "3deb317e-3580-472b-8a3d-951c14d706e9"
+text = """
+# Exam Details
+OSID, VPN connection, start time, and exam rules reminders...
+
+"""
+type = "text"
+order = 1
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "ℹ️"
+
+[[default_notes]]
+title = "Targets"
+id = "a1af6eb1-2adf-44f9-a1cc-4ac0830fc72c"
+text = ""
+type = "text"
+order = 2
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "💻"
+
+[[default_notes]]
+title = "Target X"
+id = "0915eb97-ddaf-484a-9354-cef15e60dbe4"
+text = ""
+type = "text"
+order = 1
+parent = "a1af6eb1-2adf-44f9-a1cc-4ac0830fc72c"
+checked = false
+created = "2026-07-23T14:00:00.000Z"
+
+[[default_notes]]
+title = "Flags"
+id = "9ac95a50-2c13-4499-9032-7e4e413308f1"
+text = """
+Track local.txt / proof.txt and other trophies...
+
+"""
+type = "text"
+order = 3
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🚩"
+
+[[default_notes]]
+title = "Cleanup"
+id = "a1cdcd2f-cfa6-4b88-b616-b6da69a31cc8"
+text = """
+Document changes to revert: accounts, tools, persistence, uploaded files...
+
+"""
+type = "text"
+order = 4
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "🧹"
+
+[[default_notes]]
+title = "To Do's"
+id = "e013a8e7-1d74-40fb-8419-6da7b198a462"
+text = ""
+type = "text"
+order = 5
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+created = "2026-07-23T14:00:00.000Z"
+icon_emoji = "✔️"
+
+[[default_notes]]
+title = "To Do X"
+id = "b269afd4-5fcc-4dcf-ba29-dc225cb283f2"
+text = ""
+type = "text"
+order = 1
+parent = "e013a8e7-1d74-40fb-8419-6da7b198a462"
+checked = false
+created = "2026-07-23T14:00:00.000Z"
+
+[report_preview_data.report]
+title = "OffSec AI Red Teamer"
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_date = "2025-09-30"
+report_version = "1.0"
+watermark = true
+overview = "TODO This section should provide a high-level, non-technical overview of the engagement suitable for a management audience. Summarize the scope of the assessment, the overall outcome, and the most significant vulnerabilities discovered across the AI-enabled environment."
+high_level_attack_path = """
+TODO The following summarizes the path taken to compromise the environment. Replace each item with your own attack narrative.
+
+1. **Chain 1** — the externally accessible entry point was compromised and used to pivot into the internal network, followed by lateral movement and privilege escalation across the two subsequent hosts in the chain.
+2. **Chain 2** — a second, independent external entry point was compromised, providing an alternate route into the internal network and onward to its two subsequent hosts.
+3. **Standalone host** — reached from the internal network once a foothold was established, this AI-focused target was compromised via its exposed AI vector.
+4. **Domain Controller** — both chains converged on the Domain Controller, which was compromised to retrieve the shared endgame proof.
+"""
+
+[[report_preview_data.report.appendix_sections]]
+title = "Appendix Title"
+content = "TODO Please add here very long PoC code snippets, any additional screenshots, your AI conversation/session history, or the prompts you have used during the exam."
+
+[[report_preview_data.findings]]
+title = "HOSTNAME (IP: X.X.X.X)"
+id = "fbfa102b-7750-40c7-a64f-b83eb4464dc6"
+created = "2025-09-30T08:02:22.958702+00:00"
+order = 1
+target_type = "Chain 1"
+initialaccess = """
+TODO Document the enumeration that revealed the attack surface (port scans, service/version detection, web/API discovery, exposed AI components, etc.). Describe the vulnerability and the full exploitation process in copy/paste-reproducible detail. For AI vectors, document the prompts, payloads, or model-interaction steps used. Link or paste any script/exploit used and note every modification you made to it.
+
+Include the exact commands and the relevant output or screenshots.
+
+```
+# example nmap -sC -sV -p- <TARGET_IP>
+```
+"""
+privilegeescalation = "TODO If a privilege-escalation step was required to reach the flag, document the enumeration that identified it and the exact steps used to escalate. Include before/after proof of privilege (e.g., `whoami`)."
+proof = """
+TODO Show the contents of the flag file and a screenshot proving access on the target. Traditional-vector flags are named `trad_vector.txt`, AI-vector flags `ai_vector.txt`; both live in the compromised user's home directory or `C:\\Users\\Administrator\\Desktop\\` (Windows) / `/root/` (Linux).
+
+```
+type C:\\Users\\Administrator\\Desktop\\ai_vector.txt   # Windows
+cat /root/ai_vector.txt                        # Linux
+```
+
+[ paste flag value and screenshot here ]
+"""
+
+[[report_preview_data.findings]]
+title = "Domain Controller - HOSTNAME (IP: X.X.X.X)"
+id = "ef97bb8a-982e-403b-ba87-0065dd1e4233"
+created = "2025-09-30T08:02:23.958702+00:00"
+order = 2
+target_type = "Chain 1"
+initialaccess = "TODO Document how the Domain Controller was compromised from this chain. Both chains converge here; the proof flag can be submitted only once even if both chains are completed."
+privilegeescalation = ""
+proof = """
+TODO The Domain Controller proof flag is named `proof.txt` and is located in `C:\\Users\\Public\\`.
+
+```
+type C:\\Users\\Public\\proof.txt
+```
+
+[ paste flag value and screenshot here ]
+"""
+
+[[report_preview_data.findings]]
+title = "HOSTNAME (IP: X.X.X.X)"
+id = "ebff5a51-af93-4270-858f-09a40249c1c1"
+created = "2025-09-30T08:02:24.958702+00:00"
+order = 3
+target_type = "Chain 2"
+initialaccess = """
+TODO Document the enumeration that revealed the attack surface (port scans, service/version detection, web/API discovery, exposed AI components, etc.). Describe the vulnerability and the full exploitation process in copy/paste-reproducible detail. For AI vectors, document the prompts, payloads, or model-interaction steps used. Link or paste any script/exploit used and note every modification you made to it.
+
+For the Domain Controller, document how it was compromised from this chain. Both chains converge here; the proof flag can be submitted only once even if both chains are completed.
+
+Include the exact commands and the relevant output or screenshots.
+
+```
+# example nmap -sC -sV -p- <TARGET_IP>
+```
+"""
+privilegeescalation = "TODO If a privilege-escalation step was required to reach the flag, document the enumeration that identified it and the exact steps used to escalate. Include before/after proof of privilege (e.g., `whoami`)."
+proof = """
+TODO Show the contents of the flag file and a screenshot proving access on the target. Traditional-vector flags are named `trad_vector.txt`, AI-vector flags `ai_vector.txt`; both live in the compromised user's home directory or `C:\\Users\\Administrator\\Desktop\\` (Windows) / `/root/` (Linux).
+
+```
+type C:\\Users\\Administrator\\Desktop\\ai_vector.txt   # Windows
+cat /root/ai_vector.txt                        # Linux
+```
+
+[ paste flag value and screenshot here ]
+"""
+
+[[report_preview_data.findings]]
+title = "HOSTNAME (IP: X.X.X.X)"
+id = "62862984-ad63-404f-8bb9-2238419e2125"
+created = "2025-09-30T08:02:25.958702+00:00"
+order = 4
+target_type = "Standalone Host"
+initialaccess = """
+TODO Document the enumeration that revealed the attack surface (port scans, service/version detection, web/API discovery, exposed AI components, etc.). Describe the vulnerability and the full exploitation process in copy/paste-reproducible detail. For AI vectors, document the prompts, payloads, or model-interaction steps used. Link or paste any script/exploit used and note every modification you made to it.
+
+Include the exact commands and the relevant output or screenshots.
+
+```
+# example nmap -sC -sV -p- <TARGET_IP>
+```
+"""
+privilegeescalation = "TODO If a privilege-escalation step was required to reach the flag, document the enumeration that identified it and the exact steps used to escalate. Include before/after proof of privilege (e.g., `whoami`)."
+proof = """
+TODO Show the contents of the flag file and a screenshot proving access on the target. Traditional-vector flags are named `trad_vector.txt`, AI-vector flags `ai_vector.txt`; both live in the compromised user's home directory or `C:\\Users\\Administrator\\Desktop\\` (Windows) / `/root/` (Linux).
+
+```
+type C:\\Users\\Administrator\\Desktop\\ai_vector.txt   # Windows
+cat /root/ai_vector.txt                        # Linux
+```
+
+[ paste flag value and screenshot here ]
+"""

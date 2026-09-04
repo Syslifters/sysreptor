@@ -1,6 +1,6 @@
 # OffSec Reporting
 
-Our free cloud service to write your OffSec OSCP+, OSEP, OSWP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA, OSIR, OSTH reports.
+Our free cloud service to write your OffSec OSCP+, OSEP, OSWP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA, OSIR, OSTH, OSAI reports.
 
 💲 Free.  
 💎 Including Pro features.  
@@ -90,6 +90,17 @@ curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemoda
   <figure>
     <img alt="OffSec OSEE Exam Report Demo" src="/assets/reports/OffSec-OSEE-Exam-Report-Preview.png" />
     <figcaption>OffSec OSEE Exam Report Demo</figcaption>
+  </figure>
+</a>
+</div>
+
+### Artificial Intelligence
+
+<div class="grid-reports">
+<a href="/assets/reports/OffSec-OSAI-Exam-Report.pdf" target="_blank">
+  <figure>
+    <img alt="OffSec OSAI Exam Report Demo" src="/assets/reports/OffSec-OSAI-Exam-Report-Preview.png" />
+    <figcaption>OffSec OSAI Exam Report Demo</figcaption>
   </figure>
 </a>
 </div>
