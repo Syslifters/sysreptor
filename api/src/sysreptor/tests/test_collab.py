@@ -5,6 +5,7 @@ import itertools
 import json
 from datetime import timedelta
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 import pytest_asyncio
@@ -27,6 +28,7 @@ from sysreptor.pentests.collab.text_transformations import (
 from sysreptor.pentests.import_export import export_notes
 from sysreptor.pentests.models import (
     CollabClientInfo,
+    CollabEvent,
     CollabEventType,
     NoteType,
     PentestFinding,
@@ -1118,13 +1120,27 @@ class TestSharedProjectNotesDbSync:
             data={'title': 'new', 'text': 'new', 'parent': self.note_shared.note_id})
         # Create event
         await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None})
-        # Sort event
+        # Sort event (share root omitted for public consumers)
         event_sort = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
-        assert {s['id'] for s in event_sort['sort']} == {str(self.note_shared.note_id), str(self.childnote_shared.note_id), res_api.data['id']}
+        assert {s['id'] for s in event_sort['sort']} == {str(self.childnote_shared.note_id), res_api.data['id']}
 
     async def test_delete_sync(self):
         await self.childnote_shared.adelete()
         await self.assert_event({'type': CollabEventType.DELETE, 'path': self.childnote_shared_path_prefix, 'client_id': None})
+
+    async def test_share_root_parent_order_scrubbed(self):
+        root = self.client_public.init['data']['notes'][str(self.note_shared.note_id)]
+        assert root['parent'] is None
+        assert root['order'] == 0
+        child = self.client_public.init['data']['notes'][str(self.childnote_shared.note_id)]
+        assert child['parent'] == str(self.note_shared.note_id)
+        assert child['order'] == self.childnote_shared.order
+
+        res = await sync_to_async(self.api_client_public.get)(
+            reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note_shared.note_id}))
+        assert res.status_code == 200
+        assert res.data['parent'] is None
+        assert res.data['order'] == 0
 
     async def test_receive_only_shared_notes(self):
         shared_note_ids = {str(self.note_shared.note_id), str(self.childnote_shared.note_id)}
@@ -1149,7 +1165,30 @@ class TestSharedProjectNotesDbSync:
             {'id': str(self.childnote_not_shared.note_id), 'parent': str(self.childnote_shared.note_id), 'order': 1},
         ]
         res = await sync_to_async(self.api_client_user.post)(reverse('projectnotebookpage-sort', kwargs={'project_pk': self.project.id}), data=sort_data)
-        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data}, user=True, public=None)
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': [o for o in res.data if o['id'] != str(self.note_shared.note_id)]}, user=None, public=True)
+
+    async def test_fallback_skips_events_before_share_created(self):
+        old_note_id = uuid4()
+        old_version = self.share_info.created.timestamp() - 60
+        await CollabEvent.objects.acreate(
+            related_id=self.project.id,
+            type=CollabEventType.DELETE,
+            path=f'notes.{old_note_id}',
+            created=self.share_info.created - timedelta(seconds=60),
+            version=old_version,
+            data={},
+        )
+        res = await sync_to_async(self.api_client_public.post)(
+            reverse('sharednote-fallback', kwargs={'shareinfo_pk': self.share_info.id}),
+            data={'version': 0, 'client_id': 'anonymous/aaaaaaaa', 'messages': []},
+        )
+        assert res.status_code == 200
+        assert not any(m.get('path') == f'notes.{old_note_id}' for m in res.data['messages'])
+        assert all(
+            m.get('version', 0) >= self.share_info.created.timestamp()
+            for m in res.data['messages']
+        )
 
     async def test_omit_clients_and_awareness(self):
         # Public share must not receive a list of other clients in init
@@ -1281,13 +1320,27 @@ class TestSharedUserNotesDbSync:
             data={'title': 'new', 'text': 'new', 'parent': self.note_shared.note_id})
         # Create event
         await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None})
-        # Sort event
+        # Sort event (share root omitted for public consumers)
         event_sort = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
-        assert {s['id'] for s in event_sort['sort']} == {str(self.note_shared.note_id), str(self.childnote_shared.note_id), res_api.data['id']}
+        assert {s['id'] for s in event_sort['sort']} == {str(self.childnote_shared.note_id), res_api.data['id']}
 
     async def test_delete_sync(self):
         await self.childnote_shared.adelete()
         await self.assert_event({'type': CollabEventType.DELETE, 'path': self.childnote_shared_path_prefix, 'client_id': None})
+
+    async def test_share_root_parent_order_scrubbed(self):
+        root = self.client_public.init['data']['notes'][str(self.note_shared.note_id)]
+        assert root['parent'] is None
+        assert root['order'] == 0
+        child = self.client_public.init['data']['notes'][str(self.childnote_shared.note_id)]
+        assert child['parent'] == str(self.note_shared.note_id)
+        assert child['order'] == self.childnote_shared.order
+
+        res = await sync_to_async(self.api_client_public.get)(
+            reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note_shared.note_id}))
+        assert res.status_code == 200
+        assert res.data['parent'] is None
+        assert res.data['order'] == 0
 
     async def test_receive_only_shared_notes(self):
         shared_note_ids = {str(self.note_shared.note_id), str(self.childnote_shared.note_id)}
@@ -1312,7 +1365,30 @@ class TestSharedUserNotesDbSync:
             {'id': str(self.childnote_not_shared.note_id), 'parent': str(self.childnote_shared.note_id), 'order': 1},
         ]
         res = await sync_to_async(self.api_client_user.post)(reverse('usernotebookpage-sort', kwargs={'pentestuser_pk': self.user.id}), data=sort_data)
-        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data})
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data}, user=True, public=None)
+        await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': [o for o in res.data if o['id'] != str(self.note_shared.note_id)]}, user=None, public=True)
+
+    async def test_fallback_skips_events_before_share_created(self):
+        old_note_id = uuid4()
+        old_version = self.share_info.created.timestamp() - 60
+        await CollabEvent.objects.acreate(
+            related_id=self.user.id,
+            type=CollabEventType.DELETE,
+            path=f'notes.{old_note_id}',
+            created=self.share_info.created - timedelta(seconds=60),
+            version=old_version,
+            data={},
+        )
+        res = await sync_to_async(self.api_client_public.post)(
+            reverse('sharednote-fallback', kwargs={'shareinfo_pk': self.share_info.id}),
+            data={'version': 0, 'client_id': 'anonymous/aaaaaaaa', 'messages': []},
+        )
+        assert res.status_code == 200
+        assert not any(m.get('path') == f'notes.{old_note_id}' for m in res.data['messages'])
+        assert all(
+            m.get('version', 0) >= self.share_info.created.timestamp()
+            for m in res.data['messages']
+        )
 
     async def test_omit_clients_and_awareness(self):
         # Public share must not receive a list of other clients in init
