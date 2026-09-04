@@ -1,0 +1,206 @@
+format = "projects/v2"
+id = "54b37af8-b082-44dc-8658-475168f8e0a9"
+name = "OffSec OSAI Exam Report v1.0"
+language = "en-US"
+tags = []
+members = []
+images = []
+files = []
+
+
+[[sections]]
+id = "Student"
+status = "in-progress"
+
+[[sections]]
+id = "other"
+status = "in-progress"
+
+[[sections]]
+id = "executive_summary"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[[notes]]
+title = "To Do X"
+id = "b269afd4-5fcc-4dcf-ba29-dc225cb283f2"
+type = "text"
+text = ""
+checked = false
+order = 1
+parent = "e013a8e7-1d74-40fb-8419-6da7b198a462"
+
+[[notes]]
+title = "To Do's"
+id = "e013a8e7-1d74-40fb-8419-6da7b198a462"
+type = "text"
+text = ""
+icon_emoji = "✔️"
+order = 5
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+
+[[notes]]
+title = "Cleanup"
+id = "a1cdcd2f-cfa6-4b88-b616-b6da69a31cc8"
+type = "text"
+text = """Document changes to revert: accounts, tools, persistence, uploaded files...
+
+"""
+icon_emoji = "🧹"
+order = 4
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+
+[[notes]]
+title = "Flags"
+id = "9ac95a50-2c13-4499-9032-7e4e413308f1"
+type = "text"
+text = """Track local.txt / proof.txt and other trophies...
+
+"""
+icon_emoji = "🚩"
+order = 3
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+
+[[notes]]
+title = "Target X"
+id = "0915eb97-ddaf-484a-9354-cef15e60dbe4"
+type = "text"
+text = ""
+checked = false
+order = 1
+parent = "a1af6eb1-2adf-44f9-a1cc-4ac0830fc72c"
+
+[[notes]]
+title = "Targets"
+id = "a1af6eb1-2adf-44f9-a1cc-4ac0830fc72c"
+type = "text"
+text = ""
+icon_emoji = "💻"
+order = 2
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+
+[[notes]]
+title = "Exam Info"
+id = "3deb317e-3580-472b-8a3d-951c14d706e9"
+type = "text"
+text = """# Exam Details
+OSID, VPN connection, start time, and exam rules reminders...
+
+"""
+icon_emoji = "ℹ️"
+order = 1
+parent = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+
+[[notes]]
+title = "Exam"
+id = "2c932ba1-11cf-4e23-bbe1-a65235513872"
+type = "text"
+text = ""
+icon_emoji = "🎯"
+order = 2
+
+[[notes]]
+title = "To Do X"
+id = "d9090231-a2a4-4784-b62e-d9ace07638d0"
+type = "text"
+text = ""
+checked = false
+order = 1
+parent = "7c2d41a6-950b-4f75-a350-fce566951f70"
+
+[[notes]]
+title = "To Do's"
+id = "7c2d41a6-950b-4f75-a350-fce566951f70"
+type = "text"
+text = ""
+icon_emoji = "✔️"
+order = 3
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+
+[[notes]]
+title = "Lab Notes"
+id = "1b8acbd6-f3aa-4fc9-ae89-54bb73076228"
+type = "text"
+text = """Notes and progress from lab machines...
+
+"""
+icon_emoji = "🧪"
+order = 2
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+
+[[notes]]
+title = "Study Notes"
+id = "65486a33-c25e-4f0e-960d-0131c91ac1c1"
+type = "text"
+text = """Techniques, methodology, and resources from your preparation...
+
+"""
+icon_emoji = "📖"
+order = 1
+parent = "093d6598-63cf-4423-92c5-9703464817a7"
+
+[[notes]]
+title = "Preparation"
+id = "093d6598-63cf-4423-92c5-9703464817a7"
+type = "text"
+text = ""
+icon_emoji = "📚"
+order = 1
+
+[report_data]
+title = "OffSec AI Red Teamer"
+firstname = "John"
+lastname = "Doe"
+osid = "OS-XXXXX"
+mail = "student@example.com"
+report_version = "1.0"
+watermark = true
+report_date = "2026-09-01"
+overview = "TODO This section should provide a high-level, non-technical overview of the engagement suitable for a management audience. Summarize the scope of the assessment, the overall outcome, and the most significant vulnerabilities discovered across the AI-enabled environment."
+high_level_attack_path = """
+TODO The following summarizes the path taken to compromise the environment. Replace each item with your own attack narrative.
+
+1. **Chain 1** — the externally accessible entry point was compromised and used to pivot into the internal network, followed by lateral movement and privilege escalation across the two subsequent hosts in the chain.
+2. **Chain 2** — a second, independent external entry point was compromised, providing an alternate route into the internal network and onward to its two subsequent hosts.
+3. **Standalone host** — reached from the internal network once a foothold was established, this AI-focused target was compromised via its exposed AI vector.
+4. **Domain Controller** — both chains converged on the Domain Controller, which was compromised to retrieve the shared endgame proof.
+"""
+appendix_sections = []
+
+[[findings]]
+id = "b99c5382-d8c6-4e1d-9ad7-effa029340cb"
+status = "in-progress"
+order = 1
+
+[findings.data]
+title = "HOSTNAME (IP: X.X.X.X)"
+target_type = "Chain 1"
+initialaccess = """
+TODO Document the enumeration that revealed the attack surface (port scans, service/version detection, web/API discovery, exposed AI components, etc.). Describe the vulnerability and the full exploitation process in copy/paste-reproducible detail. For AI vectors, document the prompts, payloads, or model-interaction steps used. Link or paste any script/exploit used and note every modification you made to it.
+
+For the Domain Controller, document how it was compromised from this chain. Both chains converge here; the proof flag can be submitted only once even if both chains are completed.
+
+Include the exact commands and the relevant output or screenshots.
+
+```
+# example nmap -sC -sV -p- <TARGET_IP>
+```
+"""
+privilegeescalation = "TODO If a privilege-escalation step was required to reach the flag, document the enumeration that identified it and the exact steps used to escalate. Include before/after proof of privilege (e.g., `whoami`)."
+proof = """
+TODO Show the contents of the flag file and a screenshot proving access on the target. Traditional-vector flags are named `trad_vector.txt`, AI-vector flags `ai_vector.txt`; both live in the compromised user's home directory or `C:\\Users\\Administrator\\Desktop\\` (Windows) / `/root/` (Linux). Domain Controller proof is `proof.txt` in `C:\\Users\\Public\\`.
+
+```
+type C:\\Users\\Administrator\\Desktop\\ai_vector.txt   # Windows
+cat /root/ai_vector.txt                        # Linux
+type C:\\Users\\Public\\proof.txt                  # Domain Controller
+```
+
+[ paste flag value and screenshot here ]
+"""
+
+[project_type]
+file = "../offsec-designs/osai.toml"

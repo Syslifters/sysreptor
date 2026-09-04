@@ -4,6 +4,7 @@
 * Allow image uploads in shared excalidraw notes
 * Rank project search results to prioritize name and tag matches over content
 * Harden shared note event filtering
+* Add design for OffSec OSAI certification
 * Markdown editor: Prevent browser from opening some links in markdown preview
 * Plugin `jira`: Follow API pagination to list all available projects
 
