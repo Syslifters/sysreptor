@@ -45,6 +45,35 @@ async def jira_request(client: httpx.AsyncClient, method: str, endpoint: str, **
         raise ValidationError(f'Jira API request failed: {str(e)}')
 
 
+async def fetch_jira_projects(client: httpx.AsyncClient) -> list[dict]:
+    """Fetch all Jira projects visible to the configured user, following pagination."""
+    projects = []
+    start_at = 0
+
+    while True:
+        data = await jira_request(
+            client,
+            method='GET',
+            endpoint='/rest/api/3/project/search',
+            params={
+                'startAt': start_at,
+                'maxResults': 100,
+            },
+        )
+        values = data.get('values') or []
+        projects.extend([
+            {'id': p['id'], 'key': p['key'], 'name': p['name']}
+            for p in values
+        ])
+
+        if data.get('isLast', True) or not values:
+            break
+
+        start_at = data.get('startAt', start_at) + len(values)
+
+    return projects
+
+
 async def search_existing_issues(client: httpx.AsyncClient, jira_project: str, issues: list) -> tuple[list, list]:
     """
     Search for existing Jira issues by finding labels.
@@ -240,11 +269,7 @@ class JiraExportViewSet(ProjectSubresourceMixin, ViewSetAsync):
         await sync_to_async(self.get_project)()
 
         async with httpx.AsyncClient() as client:
-            data = await jira_request(client, method='GET', endpoint='/rest/api/3/project/search')
-            projects = [
-                {'id': p['id'], 'key': p['key'], 'name': p['name']}
-                for p in data.get('values', [])
-            ]
+            projects = await fetch_jira_projects(client)
             return Response({'projects': projects})
         
     @action(detail=False, methods=['get'])

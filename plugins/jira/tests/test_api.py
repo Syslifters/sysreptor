@@ -18,15 +18,25 @@ URL_NAMESPACE = JiraExportPluginConfig.label
 
 
 @contextlib.contextmanager
-def mock_jira_request():
-    async def mock_jira_api(client, endpoint, json=None, **kwargs):
-        project_id = '00cb6224-9a41-48f8-a2c0-991b0fb376ca'
+def mock_jira_request(project_pages=None):
+    project_id = '00cb6224-9a41-48f8-a2c0-991b0fb376ca'
+    if project_pages is None:
+        project_pages = [{
+            'startAt': 0,
+            'maxResults': 100,
+            'isLast': True,
+            'values': [
+                {'id': project_id, 'key': 'PROJECT', 'name': 'Test Project'},
+            ],
+        }]
+
+    async def mock_jira_api(client, endpoint, json=None, params=None, **kwargs):
         if endpoint == '/rest/api/3/project/search':
-            return {
-                'values': [
-                    {'id': project_id, 'key': 'PROJECT', 'name': 'Test Project'},
-                ]
-            }
+            start_at = (params or {}).get('startAt', 0)
+            for page in project_pages:
+                if page.get('startAt', 0) == start_at:
+                    return page
+            raise Exception(f'Unhandled project search startAt={start_at}')
         elif endpoint == '/rest/api/3/project/PROJECT':
             return {
                 'id': project_id,
@@ -119,3 +129,38 @@ class TestJiraAPI:
             if expected:
                 assert len(res3.data['created']) == 1
                 assert len(res3.data['failed']) == 0 
+
+    def test_projects_pagination(self):
+        user = create_user(is_superuser=True, admin_permissions_enabled=True)
+        project = create_project(members=[user])
+        client = api_client(user)
+
+        project_pages = [
+            {
+                'startAt': 0,
+                'maxResults': 100,
+                'isLast': False,
+                'values': [
+                    {'id': '1', 'key': 'AAA', 'name': 'Project A'},
+                    {'id': '2', 'key': 'BBB', 'name': 'Project B'},
+                ],
+            },
+            {
+                'startAt': 2,
+                'maxResults': 100,
+                'isLast': True,
+                'values': [
+                    {'id': '3', 'key': 'ZZZ', 'name': 'Project Z'},
+                ],
+            },
+        ]
+
+        with mock_jira_request(project_pages=project_pages):
+            res = client.get(reverse(f'{URL_NAMESPACE}:jira-projects', kwargs={'project_pk': project.id}))
+
+        assert res.status_code == 200
+        assert res.data['projects'] == [
+            {'id': '1', 'key': 'AAA', 'name': 'Project A'},
+            {'id': '2', 'key': 'BBB', 'name': 'Project B'},
+            {'id': '3', 'key': 'ZZZ', 'name': 'Project Z'},
+        ]
