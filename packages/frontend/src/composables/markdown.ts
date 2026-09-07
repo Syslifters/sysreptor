@@ -691,7 +691,12 @@ export function jsonEditorDefaultExtensions() {
     bracketMatching(),
     json(),
     syntaxHighlighting(markdownHighlightStyle),
-    linter(jsonParseLinter()),
+    linter((view) => {
+      if (!view.state.doc.toString().trim()) {
+        return [];
+      }
+      return jsonParseLinter()(view);
+    }),
   ] as Extension[];
 }
 

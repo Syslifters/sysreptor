@@ -13,7 +13,7 @@
         v-model:focused="isFocused"
         :id="id.value"
         :dirty="isDirty.value"
-        :active="isDirty.value || isFocused"
+        :active="true"
         :disabled="isDisabled.value"
         :readonly="isReadonly.value"
         :error="isValid.value === false"
@@ -90,7 +90,7 @@ function computeValidation(value: string|null|undefined): true|string {
 const runValidation = debounce((value: string|null|undefined) => {
   validationResult.value = computeValidation(value);
   inputRef.value?.validate();
-}, 2000);
+}, 1000);
 
 watch(modelValue, (value) => {
   runValidation(value);
