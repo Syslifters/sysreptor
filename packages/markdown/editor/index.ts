@@ -9,6 +9,7 @@ export { syntaxHighlighting, syntaxTree, indentUnit } from '@codemirror/language
 export type { SyntaxNode, Tree } from '@lezer/common';
 export { vueLanguage } from '@codemirror/lang-vue';
 export { cssLanguage } from '@codemirror/lang-css';
+export { json, jsonLanguage, jsonParseLinter } from '@codemirror/lang-json';
 export { markdown, compareTree } from './language';
 export { createEditorExtensionToggler } from './utils';
 export { spellcheck, spellcheckTheme } from './spellcheck';
