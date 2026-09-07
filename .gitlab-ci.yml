@@ -265,7 +265,7 @@ release-prod:
 
     # Create archive with setup files
     - mkdir -p /tmp/sysreptor
-    - cp -r deploy update.sh upgrade_postgres.sh LICENSE INSTALL.md /tmp/sysreptor
+    - cp -r deploy update.sh upgrade_postgres.sh post_update.sh LICENSE INSTALL.md /tmp/sysreptor
     - tar -czf /tmp/setup.tar.gz -C /tmp --exclude=sysreptor/deploy/.gitignore sysreptor
     # Sign setup archive (upload bundle to GitHub release)
     - cosign sign-blob --yes --key env://COSIGN_PRIVATE_KEY --bundle /tmp/setup.tar.gz.sigstore.json /tmp/setup.tar.gz

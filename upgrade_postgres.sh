@@ -6,7 +6,27 @@ set -o pipefail  # fail pipeline if any command fails
 # This script migrates the PostgreSQL database to a new version
 
 # Default target version
-TARGET_VERSION="${1:-18}"
+TARGET_VERSION="18"
+NO_INPUT=0
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --no-input)
+            NO_INPUT=1
+            shift
+            ;;
+        -*)
+            echo "Error: unknown option $1" >&2
+            echo "Usage: $0 [TARGET_VERSION] [--no-input]" >&2
+            exit 1
+            ;;
+        *)
+            TARGET_VERSION="$1"
+            shift
+            ;;
+    esac
+done
+
 BACKUP_DIR="$(pwd)/upgrade_postgres_backup$(date -Iseconds | tr -d ':')"
 
 
@@ -41,13 +61,15 @@ echo "  2. Create a backup of your current database volume"
 echo "  3. Upgrade PostgreSQL volume"
 echo "  4. Restart SysReptor services"
 echo ""
-printf "Do you want to continue? [y/N]: "
-read -r CONFIRM
+if [ "$NO_INPUT" -eq 0 ]; then
+    printf "Do you want to continue? [y/N]: "
+    read -r CONFIRM
 
-if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
-    echo "Migration cancelled."
-    trap - EXIT  # disable error trap
-    exit 0
+    if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+        echo "Migration cancelled."
+        trap - EXIT  # disable error trap
+        exit 0
+    fi
 fi
 
 
