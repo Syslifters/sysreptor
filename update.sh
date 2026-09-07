@@ -161,9 +161,6 @@ if [ -f "${backup_copy}/deploy/caddy/Caddyfile" ]; then
     echo "Copying Caddyfile..."
     cp "${backup_copy}/deploy/caddy/Caddyfile" "${sysreptor_directory}/deploy/caddy/Caddyfile"
 fi
-echo "Launching SysReptor via docker compose..."
-echo "Downloading the Docker images may take a few minutes."
-
 # Remove deprecated docker-compose.override.yml which is there for legacy reasons
 rm "${sysreptor_directory}/deploy/docker-compose.override.yml" 2>/dev/null || true
 if grep "^LICENSE=" "${sysreptor_directory}/deploy/app.env" >/dev/null 2>&1
@@ -176,6 +173,14 @@ then
         sed -i "s#include:#include:\n$include_languagetool#" "${sysreptor_directory}/deploy/docker-compose.yml"
     fi
 fi
+
+if [ -x "${sysreptor_directory}/post_update.sh" ]; then
+    echo "Running post-update script..."
+    (cd "$sysreptor_directory" && ./post_update.sh)
+fi
+
+echo "Launching SysReptor via docker compose..."
+echo "Downloading the Docker images may take a few minutes."
 if
     cd "$sysreptor_directory"/deploy
     source .env

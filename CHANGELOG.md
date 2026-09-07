@@ -5,6 +5,7 @@
 * Rank project search results to prioritize name and tag matches over content
 * Harden shared note event filtering
 * Add design for OffSec OSAI certification
+* Run post-update tasks after updating SysReptor via `update.sh`
 * Markdown editor: Prevent browser from opening some links in markdown preview
 * Plugin `jira`: Follow API pagination to list all available projects
 

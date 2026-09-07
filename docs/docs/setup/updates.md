@@ -45,7 +45,14 @@ Copy the following files from your old installation to the new installation.
 
 Copy the contents of your `deploy/.env` file to the new installation. Make sure to keep the new version number intact and don't replace it by the old version number.
 
-`cd` to `sysreptor/deploy` and launch the containers:
+If the new release includes an executable `post_update.sh` in the SysReptor root directory, run it before launching the containers. This script performs host-level post-update tasks such as configuration or database upgrades:
+
+```shell
+cd sysreptor
+./post_update.sh
+```
+
+Then `cd` to `sysreptor/deploy` and launch the containers:
 
 ```shell
 docker compose up -d
