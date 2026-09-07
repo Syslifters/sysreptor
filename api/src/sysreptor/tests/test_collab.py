@@ -268,7 +268,7 @@ class TestCollaborativeTextEditing:
             self.user2 = create_user()
             self.project = create_project(
                 members=[self.user1, self.user2],
-                findings_kwargs=[{'data': {'field_markdown': 'AB', 'field_list': ['A', 'B']}}],
+                findings_kwargs=[{'data': {'field_markdown': 'AB', 'field_list': ['A', 'B'], 'field_json': '{}'}}],
                 comments=False,
             )
             self.finding = self.project.findings.all()[0]
@@ -354,6 +354,24 @@ class TestCollaborativeTextEditing:
 
         await self.refresh_data()
         assert self.finding.data['field_markdown'] == 'A1234B'
+
+    async def test_update_text_json_partial(self):
+        # Partial / invalid JSON is allowed for collaborative editing
+        event = {
+            'type': CollabEventType.UPDATE_TEXT,
+            'path': f'findings.{self.finding.finding_id}.data.field_json',
+            'updates': [{'changes': [1, [1], [0, '"a":']]}],
+            'version': self.client1.init['version'],
+        }
+        await self.client1.send_json_to(event)
+        await self.assert_event_received({
+            'type': CollabEventType.UPDATE_TEXT,
+            'path': f'findings.{self.finding.finding_id}.data.field_json',
+            'updates': [{'changes': [1, [1], [0, '"a":']]}],
+        })
+
+        await self.refresh_data()
+        assert self.finding.data['field_json'] == '{"a":'
 
     async def test_concurrent_list_updates(self):
         # Concurrent add list items
