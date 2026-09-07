@@ -32,8 +32,7 @@
     "lodash-es": "^4.17.21",
     "dompurify": "^3.1.6",
     "randomcolor": "^0.6.2",
-    "fabric": "^7.1.0",
-    "z-schema": "^12.4.5"
+    "fabric": "^7.1.0"
   },
   "devDependencies": {
     "@nuxt/test-utils": "^4.0",

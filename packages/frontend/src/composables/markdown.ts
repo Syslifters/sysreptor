@@ -4,12 +4,12 @@ import {
   type ViewUpdate,
   createEditorExtensionToggler,
   EditorState, EditorView,
-  forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets, 
+  forceLinting, highlightTodos, tooltips, scrollPastEnd, closeBrackets, closeBracketsKeymap,
   drawSelection, rectangularSelection, crosshairCursor, dropCursor,
-  history, historyKeymap, keymap, setDiagnostics,
+  history, historyKeymap, keymap, setDiagnostics, linter,
   spellcheck, spellcheckTheme,
-  lineNumbers, indentUnit, defaultKeymap, indentWithTab,
-  markdown,
+  lineNumbers, indentUnit, defaultKeymap, indentWithTab, bracketMatching,
+  markdown, json, jsonParseLinter, markdownHighlightStyle,
   Transaction,
   remoteSelection, setRemoteClients,
   commentsExtension, setComments,
@@ -22,6 +22,7 @@ import {
   searchKeymap,
   CustomizedSearchPanel,
   syntaxTree,
+  syntaxHighlighting,
   type SyntaxNode,
   type ChangeSpec,
 } from "@sysreptor/markdown/editor/index";
@@ -673,6 +674,25 @@ export function markdownEditorDefaultExtensions() {
       createPanel: (view) => new CustomizedSearchPanel(view),
     })
   ];
+}
+
+export function jsonEditorDefaultExtensions() {
+  return [
+    lineNumbers(),
+    drawSelection(),
+    EditorView.lineWrapping,
+    EditorState.tabSize.of(4),
+    indentUnit.of('    '),
+    keymap.of([
+      indentWithTab,
+      ...closeBracketsKeymap,
+    ]),
+    closeBrackets(),
+    bracketMatching(),
+    json(),
+    syntaxHighlighting(markdownHighlightStyle),
+    linter(jsonParseLinter()),
+  ] as Extension[];
 }
 
 export function markdownEditorTextFieldExtensions() {
