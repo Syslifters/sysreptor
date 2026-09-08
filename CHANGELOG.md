@@ -6,6 +6,7 @@
 * Harden shared note event filtering
 * Add design for OffSec OSAI certification
 * Run post-update tasks after updating SysReptor via `update.sh`
+* Fix broken check if `crontab` is available in `install.sh`
 * Markdown editor: Prevent browser from opening some links in markdown preview
 * Plugin `jira`: Follow API pagination to list all available projects
 
