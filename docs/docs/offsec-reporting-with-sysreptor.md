@@ -12,7 +12,7 @@ Our free cloud service to write your OffSec OSCP+, OSEP, OSWP, OSWA, OSWE, OSED,
 <br>
 <div style="text-align:center">
 
-[🚀 Sign Up (it's free)](https://offsec.sysreptor.com/oscp/signup/){ .md-button }
+[🚀 Sign Up (it's free)](https://offsec.sysreptor.com/offsec/signup/){ .md-button }
 
 Already have an account? [Login here.](https://labs.sysre.pt)
 
