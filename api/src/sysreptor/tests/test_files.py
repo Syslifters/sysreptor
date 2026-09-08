@@ -12,8 +12,10 @@ from django.test import override_settings
 from django.utils import timezone
 
 from sysreptor.pentests import storages as pentest_storages
+from sysreptor.pentests.file_references import extract_canonical_filenames, get_new_canonical_filenames
+from sysreptor.pentests.import_export import export_notes
 from sysreptor.pentests.models import UploadedAsset, UploadedImage
-from sysreptor.tests.mock import create_project, create_project_type, mock_time, update
+from sysreptor.tests.mock import create_project, create_project_type, create_projectnotebookpage, mock_time, update
 
 
 def file_exists(file) -> bool:
@@ -203,3 +205,117 @@ class TestCleanupFilesCommand:
         image_history.refresh_from_db()
         assert image_history.file == f.name
 
+
+
+@pytest.mark.django_db()
+class TestExactFileReferenceDetection:
+    """Exact canonical matching for is_file_referenced / referenced_filenames."""
+
+    @pytest.mark.parametrize(('text', 'expected'), [
+        ('', set()),
+        (None, set()),
+        ('no refs here', set()),
+        ('![](/images/name/a.png)', {'a.png'}),
+        ('[f](/files/name/doc.pdf)', {'doc.pdf'}),
+        ('![](/assets/name/logo.svg)', {'logo.svg'}),
+        ('![](/images/name/a.png) and [f](/files/name/b.pdf)', {'a.png', 'b.pdf'}),
+        # Prefix plant: longer name is extracted; short name is not a hit by itself
+        ('![](/images/name/secret.png.txt)', {'secret.png.txt'}),
+        ('see https://evil/images/name/secret.png.txt', {'secret.png.txt'}),
+        # Query string stripped at ?
+        ('![](/images/name/a.png?x=1)', {'a.png'}),
+        # Delimiters
+        ('[x](/files/name/a.pdf) more', {'a.pdf'}),
+        ('[x](/files/name/a.pdf" title)', {'a.pdf'}),
+    ])
+    def test_extract_canonical_filenames(self, text, expected):
+        assert extract_canonical_filenames(text) == expected
+
+    def test_get_new_canonical_filenames_diff(self):
+        old = '![](/images/name/old.png)'
+        new = '![](/images/name/old.png)\n![](/images/name/new.png)'
+        assert get_new_canonical_filenames(old, new) == {'new.png'}
+        assert get_new_canonical_filenames(old, old) == set()
+        assert get_new_canonical_filenames('', 'plain text') == set()
+
+    def test_get_new_canonical_filenames_assets(self):
+        # Fast-path must include /assets/name/ so asset-only edits are not skipped
+        assert get_new_canonical_filenames('', '![](/assets/name/logo.svg)') == {'logo.svg'}
+        assert get_new_canonical_filenames(
+            '![](/assets/name/old.svg)',
+            '![](/assets/name/old.svg)\n![](/assets/name/new.svg)',
+        ) == {'new.svg'}
+        # Asset refs in old_value must be extracted, or they look spuriously new
+        assert get_new_canonical_filenames(
+            '![](/assets/name/logo.svg)',
+            '![](/assets/name/logo.svg)\n![](/images/name/img.png)',
+        ) == {'img.png'}
+
+    def test_note_prefix_plant_does_not_match(self):
+        project = create_project(
+            notes_kwargs=[{'text': '![](/images/name/secret.png.txt)\n[f](/files/name/secret.pdf.extra)'}],
+            images_kwargs=[{'name': 'secret.png'}],
+            files_kwargs=[{'name': 'secret.pdf'}],
+        )
+        note = project.notes.first()
+        image = project.images.get(name='secret.png')
+        file = project.files.get(name='secret.pdf')
+        assert note.referenced_filenames == {'secret.png.txt', 'secret.pdf.extra'}
+        assert not note.is_file_referenced(image)
+        assert not note.is_file_referenced(file)
+        assert not project.is_file_referenced(image)
+        assert not project.is_file_referenced(file)
+
+    def test_note_exact_ref_matches(self):
+        project = create_project(
+            notes_kwargs=[{'text': '![](/images/name/secret.png)\n[f](/files/name/secret.pdf)'}],
+            images_kwargs=[{'name': 'secret.png'}],
+            files_kwargs=[{'name': 'secret.pdf'}],
+        )
+        note = project.notes.first()
+        image = project.images.get(name='secret.png')
+        file = project.files.get(name='secret.pdf')
+        assert note.is_file_referenced(image)
+        assert note.is_file_referenced(file)
+        assert project.is_file_referenced(image)
+        assert project.is_file_referenced(file)
+
+    def test_finding_prefix_plant_does_not_match(self):
+        project = create_project(
+            findings_kwargs=[{'data': {'description': '![](/images/name/secret.png.txt)'}}],
+            images_kwargs=[{'name': 'secret.png'}],
+            files_kwargs=[],
+        )
+        finding = project.findings.first()
+        image = project.images.get(name='secret.png')
+        assert finding.referenced_filenames == {'secret.png.txt'}
+        assert not finding.is_file_referenced(image)
+        assert not project.is_file_referenced(image, notes=False)
+
+    def test_section_exact_ref_matches(self):
+        project = create_project(
+            report_data={'field_markdown': '![](/images/name/image.png)'},
+            images_kwargs=[{'name': 'image.png'}],
+            files_kwargs=[],
+        )
+        image = project.images.get(name='image.png')
+        assert project.is_file_referenced(image, findings=False, notes=False)
+
+    def test_export_notes_excludes_prefix_plant(self):
+        project = create_project(
+            notes_kwargs=[],
+            images_kwargs=[{'name': 'secret.png'}, {'name': 'ok.png'}],
+            files_kwargs=[],
+        )
+        note = create_projectnotebookpage(
+            project=project,
+            text='![](/images/name/ok.png)\n![](/images/name/secret.png.txt)',
+        )
+        archive = b''.join(export_notes(project, notes=[note]))
+        exported_names = {
+            i.name for i in project.images.all()
+            if project.is_file_referenced(i, findings=False, sections=False, notes=True)
+        }
+        assert exported_names == {'ok.png'}
+        assert 'secret.png' not in exported_names
+        assert archive
