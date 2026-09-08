@@ -103,6 +103,7 @@ def test_check_empty():
     empty_fields = {
         'field_string': '',
         'field_markdown': '',
+        'field_json': '',
         'field_int': None,
         'field_date': None,
         'field_enum': None,
@@ -112,7 +113,7 @@ def test_check_empty():
         'field_list_objects': [{'nested1': ''}],
     }
     empty_field_paths = [
-        'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user',
+        'field_string', 'field_markdown', 'field_json', 'field_int', 'field_date', 'field_enum', 'field_user',
         'field_list', 'field_object.nested1', 'field_list_objects[0].nested1',
     ]
     project_type = create_project_type()
@@ -143,6 +144,7 @@ def test_check_empty_not_required():
     empty_fields = {
         'field_string': '',
         'field_markdown': '',
+        'field_json': '',
         'field_int': None,
         'field_date': None,
         'field_enum': None,
@@ -152,7 +154,7 @@ def test_check_empty_not_required():
         'field_list_objects': [{'nested1': ''}],
     }
     empty_field_paths = [
-        'field_string', 'field_markdown', 'field_int', 'field_date', 'field_enum', 'field_user',
+        'field_string', 'field_markdown', 'field_json', 'field_int', 'field_date', 'field_enum', 'field_user',
         'field_list', 'field_object.nested1', 'field_list_objects[0].nested1',
     ]
     project_type = create_project_type()
@@ -321,7 +323,7 @@ def test_check_number_range(kwargs, value, expected):
     (None, '{"invalid": "json', 'Invalid JSON'),
     ({'type': 'unknown'}, {'key': 'value'}, 'Invalid JSON schema'),
     ({'type': 'object', 'properties': 'invalid'}, {'key': 'value'}, 'Invalid JSON schema'),
-    ({'type': 'object', 'properties': {'key': {'type': 'string'}}}, {'key': None}, 'JSON data does not match schema'),
+    ({'type': 'object', 'properties': {'key': {'type': 'string'}}}, {'key': None}, 'Data does not match JSON schema'),
 ])
 def test_check_json_field(schema, value, message):
     if isinstance(value, dict):

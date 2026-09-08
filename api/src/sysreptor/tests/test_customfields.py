@@ -214,6 +214,7 @@ def test_api_serializer():
         'field_enum': 'enum1',
         'field_combobox': 'value2',
         'field_user': str(user.id),
+        'field_json': '{"key": "value"}',
         'field_list': ['test'],
         'field_object': {'nested1': 'val'},
     }

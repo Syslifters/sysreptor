@@ -508,6 +508,7 @@ class TestProjectAgentTools:
         ('field_date', '2024-12-31'),
         ('field_cvss', 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H'),
         ('field_cwe', 'CWE-79'),
+        ('field_json', '{"key": "value"}'),
         # Edge cases
         ('field_string', ''),
         # List field

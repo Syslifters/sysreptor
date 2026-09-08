@@ -64,6 +64,7 @@ class TestMarkdownFormatting:
                         {'id': 'field_bool', 'type': 'boolean', 'label': 'Boolean Field', 'default': False},
                         {'id': 'field_enum', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
                         {'id': 'field_combobox', 'type': 'combobox', 'label': 'Combobox Field', 'suggestions': ['value 1', 'value 2'], 'default': 'value1'},
+                        {'id': 'field_json', 'type': 'json', 'label': 'JSON Field', 'default': None},
                         {'id': 'field_list', 'type': 'list', 'label': 'List Field', 'items': {'type': 'string'}},
                     ],
                 },
@@ -103,6 +104,7 @@ class TestMarkdownFormatting:
             'field_bool': True,
             'field_enum': 'enum1',
             'field_combobox': 'value2',
+            'field_json': '{"key": "value", "items": [1, 2]}',
             'field_list': ['item1', 'item2', 'item3'],
         }, findings_kwargs=[
             {'data': {
@@ -195,6 +197,18 @@ class TestMarkdownFormatting:
         ### Combobox Field
 
         {p.data['field_combobox']}
+
+        ### JSON Field
+
+        ```json
+        {{
+          "key": "value",
+          "items": [
+            1,
+            2
+          ]
+        }}
+        ```
 
         ### List Field
 

@@ -757,6 +757,7 @@ class TestProjectReportingDbSync:
                 'field_user': None,
                 'field_string': 'ABC',
                 'field_markdown': 'ABC',
+                'field_json': 'ABC',
                 'field_list': ['ABC'],
                 'field_list_objects': [{'field_int': 1, 'field_string': 'ABC'}],
             }
@@ -810,6 +811,7 @@ class TestProjectReportingDbSync:
         ('data.field_list', ['a', 'b', 'c']),
         ('data.field_string', 'changed'),
         ('data.field_markdown', 'changed'),
+        ('data.field_json', '{"key": "value"}'),
     ])])
     async def test_update_key(self, obj_type, path, value):
         if obj_type == 'section':
@@ -843,6 +845,7 @@ class TestProjectReportingDbSync:
     @pytest.mark.parametrize(('obj_type', 'path'), list(itertools.product(['finding', 'section'], [
         'data.field_string',
         'data.field_markdown',
+        'data.field_json',
         'data.field_list.[0]',
         'data.field_list_objects.[0].field_string',
     ])))
