@@ -17,7 +17,10 @@ WORKDIR /languagetool
 # Add PostgreSQL support and build languagetool
 RUN sed -i '/^\s*<\/dataSource>/i<property name="driver.prepareThreshold" value="0"\/>' languagetool-server/src/main/resources/org/languagetool/server/mybatis-config.xml \
     && sed -i '/^\s*<\/dependencies>/i<dependency>\n<groupId>org.postgresql<\/groupId>\n<artifactId>postgresql<\/artifactId>\n<version>42.7.8<\/version>\n<\/dependency>' languagetool-server/pom.xml \
+    && sed -i '/<repositories>/,/<\/repositories>/d' pom.xml \
     && mvn --projects languagetool-standalone --also-make package -DskipTests \
+        -Daether.connector.connectTimeout=5000 \
+        -Daether.connector.requestTimeout=30000 \
     && unzip /languagetool/languagetool-standalone/target/LanguageTool-${LANGUAGETOOL_VERSION}.zip -d /dist \
     && mv /dist/LanguageTool-${LANGUAGETOOL_VERSION} /dist/LanguageTool
 
