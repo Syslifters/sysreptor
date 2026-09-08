@@ -681,8 +681,8 @@ export function jsonEditorDefaultExtensions() {
     lineNumbers(),
     drawSelection(),
     EditorView.lineWrapping,
-    EditorState.tabSize.of(4),
-    indentUnit.of('    '),
+    EditorState.tabSize.of(2),
+    indentUnit.of('  '),
     keymap.of([
       indentWithTab,
       ...closeBracketsKeymap,

@@ -75,8 +75,7 @@ defineExpose({
   .cm-content, .cm-gutter { min-height: 8em; }
 
   .cm-scroller {
-    overflow: auto;
-    max-height: 24em;
+    overflow: hidden;
   }
 }
 </style>
