@@ -103,7 +103,7 @@ hello@syslifters.com</p>
 </ul>
 <h4>Involved data processors:</h4>
 <ul>
-<li>Nebius Group N.V.. Schiphol Boulevard 165 1118 BG SCHIPHOL, Netherlands</li>
+<li>Lyceum Technology Germany GmbH, Alte Jakobstraße 86, 10179 Berlin, Germany</li>
 </ul>
 <h4>Additional information:</h4>
 <ul>
