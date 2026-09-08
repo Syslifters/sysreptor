@@ -85,8 +85,15 @@ class PentestUser(BaseModel, AbstractUser):
     def is_admin(self) -> bool:
         return self.is_active and self.is_superuser and getattr(self, 'admin_permissions_enabled', False)
 
+    @functools.cached_property
+    def referenced_filenames(self) -> set:
+        names = set()
+        for note in self.notes.all():
+            names |= note.referenced_filenames
+        return names
+
     def is_file_referenced(self, f) -> bool:
-        return any(map(lambda n: n.is_file_referenced(f), self.notes.all()))
+        return f.name in self.referenced_filenames
 
     def save(self, *args, **kwargs):
         # Convert empty string to None
