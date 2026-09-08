@@ -270,20 +270,25 @@ then
 fi
 
 # Auto-update setup
-if 
-    command -v crontab >/dev/null 2>&1
-    test -w ../..
+if test -w ../..
 then
-    CONFIRM_AUTOUPDATE=""
-    while [[ $CONFIRM_AUTOUPDATE != [yY] && $CONFIRM_AUTOUPDATE != [nN] ]]
-    do
-        read -p "Enable automatic updates? [y/n]: " CONFIRM_AUTOUPDATE
-    done
-    if [[ $CONFIRM_AUTOUPDATE == [yY] ]]
+    if command -v crontab >/dev/null 2>&1
     then
-        UPDATE_SH_PATH="$(realpath ../update.sh)"
-        (crontab -l 2>/dev/null; echo "0 0 * * * /bin/bash '$UPDATE_SH_PATH'") | crontab -
-        echo "Automatic updates enabled. SysReptor will update daily at midnight."
+        CONFIRM_AUTOUPDATE=""
+        while [[ $CONFIRM_AUTOUPDATE != [yY] && $CONFIRM_AUTOUPDATE != [nN] ]]
+        do
+            read -p "Enable automatic updates? [y/n]: " CONFIRM_AUTOUPDATE
+        done
+        if [[ $CONFIRM_AUTOUPDATE == [yY] ]]
+        then
+            UPDATE_SH_PATH="$(realpath ../update.sh)"
+            (crontab -l 2>/dev/null; echo "0 0 * * * /bin/bash '$UPDATE_SH_PATH'") | crontab -
+            echo "Automatic updates enabled. SysReptor will update daily at midnight."
+        fi
+    else
+        echo "Warning: cron is not installed. Skipping automatic updates."
+        echo "Install cron, or schedule updates manually:"
+        echo "See: https://docs.sysreptor.com/setup/updates"
     fi
 fi
 
