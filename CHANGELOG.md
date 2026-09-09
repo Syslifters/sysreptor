@@ -1,12 +1,15 @@
 # Changelog
 
 ## Upcoming
-* Allow image uploads in shared excalidraw notes
+* Add JSON field type
 * Rank project search results to prioritize name and tag matches over content
+* Allow image uploads in shared excalidraw notes
 * Harden shared note event filtering
 * Add design for OffSec OSAI certification
 * Run post-update tasks after updating SysReptor via `update.sh`
 * Fix broken check if `crontab` is available in `install.sh`
+* Fix emoji rendering in PDFs
+* UI: Add color indicators for all retest statuses
 * Markdown editor: Prevent browser from opening some links in markdown preview
 * Plugin `jira`: Follow API pagination to list all available projects
 
