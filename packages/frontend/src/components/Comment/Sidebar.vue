@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="h-100 d-flex flex-column">
     <div class="sidebar-header">
       <v-list-item class="pt-0 pb-0">
         <v-list-item-title class="text-title-large">
@@ -34,53 +34,66 @@
       <v-divider />
     </div>
 
-    <v-list-item v-if="!apiSettings.isProfessionalLicense">
-      Comments are available<br>
-      in SysReptor Professional.<br><br>
-      See <a href="https://sysreptor.com/pricing" target="_blank" class="text-primary">https://sysreptor.com/pricing</a>
-    </v-list-item>
-    <v-list-item v-else-if="commentsVisible.length === 0">
-      <v-list-item-title v-if="statusFilter === CommentStatus.OPEN">No open comments</v-list-item-title>
-      <v-list-item-title v-else>No comments found</v-list-item-title>
-    </v-list-item>
-    <v-list-item v-else v-for="locationGroup in commentDisplayGroups" :key="locationGroup.locationKey" class="pl-0 pr-0 pt-0">
-      <v-list-subheader
-        v-if="isProjectWide"
-        :tag="NuxtLink as any"
-        :to="locationGroup.url"
-        class="pl-2 mt-2 mb-1 text-title-medium location-subheader"
+    <div class="flex-grow-height overflow-y-auto">
+      <s-sidebar-empty-state
+        v-if="!apiSettings.isProfessionalLicense"
+        icon="mdi-comment-text-outline"
+        title="Comments require Professional"
+        text="Upgrade to SysReptor Professional to comment on findings and report sections."
       >
-        <span>{{ locationGroup.title }}</span>
-      </v-list-subheader>
-
-      <template v-for="fieldGroup in locationGroup.fieldGroups" :key="fieldGroup.path">
-        <v-list-subheader class="pl-2 mt-1 mb-1">
-          <span>{{ prettyFieldLabel(fieldGroup.path) }}</span>
-          <s-btn-icon
-            @click.stop="onCommentEvent({ type: 'create', comment: { path: fieldGroup.path } })"
-            :disabled="readonly"
-            icon="mdi-plus"
-            v-tooltip.top="'Add Comment'"
-            size="small"
-            variant="flat"
-            color="secondary"
-            density="compact"
-            class="ml-2"
+        <template #actions>
+          <v-btn
+            color="primary"
+            href="https://sysreptor.com/pricing"
+            target="_blank"
+            text="Upgrade to Professional"
           />
+        </template>
+      </s-sidebar-empty-state>
+      <s-sidebar-empty-state
+        v-else-if="commentsVisible.length === 0"
+        icon="mdi-comment-text-outline"
+        :title="statusFilter === CommentStatus.OPEN ? 'No open comments' : 'No comments found'"
+      />
+      <v-list-item v-else v-for="locationGroup in commentDisplayGroups" :key="locationGroup.locationKey" class="pl-0 pr-0 pt-0">
+        <v-list-subheader
+          v-if="isProjectWide"
+          :tag="NuxtLink as any"
+          :to="locationGroup.url"
+          class="pl-2 mt-2 mb-1 text-title-medium location-subheader"
+        >
+          <span>{{ locationGroup.title }}</span>
         </v-list-subheader>
 
-        <comment-detail
-          v-for="comment in fieldGroup.comments" :key="comment.id"
-          :comment="comment"
-          :project="props.project"
-          :selectable-users="props.selectableUsers"
-          @click="selectComment(comment, { focus: 'field' })"
-          :is-active="comment.id === selectedComment?.id"
-          :is-new="comment.id === commentNew?.id"
-        />
-        <v-divider class="mt-2" />
-      </template>
-    </v-list-item>
+        <template v-for="fieldGroup in locationGroup.fieldGroups" :key="fieldGroup.path">
+          <v-list-subheader class="pl-2 mt-1 mb-1">
+            <span>{{ prettyFieldLabel(fieldGroup.path) }}</span>
+            <s-btn-icon
+              @click.stop="onCommentEvent({ type: 'create', comment: { path: fieldGroup.path } })"
+              :disabled="readonly"
+              icon="mdi-plus"
+              v-tooltip.top="'Add Comment'"
+              size="small"
+              variant="flat"
+              color="secondary"
+              density="compact"
+              class="ml-2"
+            />
+          </v-list-subheader>
+
+          <comment-detail
+            v-for="comment in fieldGroup.comments" :key="comment.id"
+            :comment="comment"
+            :project="props.project"
+            :selectable-users="props.selectableUsers"
+            @click="selectComment(comment, { focus: 'field' })"
+            :is-active="comment.id === selectedComment?.id"
+            :is-new="comment.id === commentNew?.id"
+          />
+          <v-divider class="mt-2" />
+        </template>
+      </v-list-item>
+    </div>
   </div>
 </template>
 

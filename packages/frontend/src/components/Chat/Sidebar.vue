@@ -3,9 +3,7 @@
     <div class="sidebar-header">
       <v-list-item class="pt-0 pb-0">
         <v-list-item-title class="text-title-large">
-          <v-badge content="Beta" color="primary" :offset-y="4" :offset-x="-10">
-            AI Chat
-          </v-badge>
+          AI Chat
         </v-list-item-title>
         <template #append>
           <s-btn-icon
@@ -28,22 +26,38 @@
       v-mutate.sub.child.char="() => syncScroll()"
       @scroll="onScrollMessages()"
     >
-      <chat-message
-        v-for="(msg, idx) in agent.messageHistory.value"
-        :key="msg.id"
-        :msg="msg"
-        :project="props.project"
-        :is-streaming="msg.id === currentStreamingMessageId"
-        :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory.value, idx)"
+      <s-sidebar-empty-state
+        v-if="!hasModelsConfigured"
+        icon="mdi-creation-outline"
+        title="No LLM models configured"
+        text="Add LLM models in settings to use the AI Chat."
+        :action-text="auth.permissions.value.admin ? 'Open Settings' : undefined"
+        to="/settings/"
       />
-      <template v-if="agent.interrupts.value.length > 0 && !agent.inProgress.value">
-        <chat-interrupt-prompt
-          v-for="interrupt in agent.interrupts.value"
-          :key="interrupt.id"
-          :interrupt="interrupt"
-          @resume="agent.resume"
-          class="mb-2"
+      <s-sidebar-empty-state
+        v-else-if="agent.messageHistory.value.length === 0"
+        icon="mdi-creation-outline"
+        title="Start now with your AI chat"
+        text="Ask about findings, draft text, or review the report."
+      />
+      <template v-else>
+        <chat-message
+          v-for="(msg, idx) in agent.messageHistory.value"
+          :key="msg.id"
+          :msg="msg"
+          :project="props.project"
+          :is-streaming="msg.id === currentStreamingMessageId"
+          :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory.value, idx)"
         />
+        <template v-if="agent.interrupts.value.length > 0 && !agent.inProgress.value">
+          <chat-interrupt-prompt
+            v-for="interrupt in agent.interrupts.value"
+            :key="interrupt.id"
+            :interrupt="interrupt"
+            @resume="agent.resume"
+            class="mb-2"
+          />
+        </template>
       </template>
     </div>
     <div class="pa-2">
@@ -59,7 +73,7 @@
         <v-textarea
           ref="messageTextareaRef"
           v-model="form.message"
-          :readonly="agent.inProgress.value"
+          :readonly="!hasModelsConfigured || agent.inProgress.value"
           @keypress="onKeyPress"
           placeholder="Type a message..."
           variant="solo"
@@ -78,7 +92,7 @@
             <s-btn-icon
               v-if="!agent.inProgress.value"
               @click="sendMessage"
-              :disabled="!form.message.trim()"
+              :disabled="!hasModelsConfigured || !form.message.trim()"
               icon="mdi-send"
               size="small"
               density="compact"
@@ -115,10 +129,8 @@
                 class="select-agent"
               >
                 <template #selection="{ item }">
-                  <div class="d-flex align-center">
-                    <v-icon :icon="item.icon" size="x-small" class="mr-1" />
-                    <span class="text-body-medium">{{ item.title }}</span>
-                  </div>
+                  <v-icon :icon="item.icon" size="x-small" class="mr-1" />
+                  {{ item.title }}
                 </template>
                 <template #item="{ props: itemProps, item }">
                   <v-list-item 
@@ -145,14 +157,11 @@
                 density="compact"
                 variant="plain"
                 hide-details="auto"
+                placeholder="Model"
+                persistent-placeholder
+                no-data-text="No models available"
                 class="select-model"
-              >
-                <template #selection="{ item }">
-                  <div class="d-flex align-center">
-                    <span class="text-body-medium">{{ item.label }}</span>
-                  </div>
-                </template>
-              </v-select>
+              />
             </div>
           </template>
         </v-textarea>
@@ -180,9 +189,11 @@ const sidebarType = defineModel<ReportingSidebarType>('sidebarType', { required:
 
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+const auth = useAuth();
 const projectStore = useProjectStore();
 
 const agent = projectStore.useReportingAgent({ project: props.project });
+const hasModelsConfigured = computed(() => (apiSettings.settings?.ai_agent_models?.length || 0) > 0);
 
 const runChangedPages = computed(() => {
   const projectId = props.project.id;
@@ -273,6 +284,10 @@ const form = ref({
   message: '',
 });
 async function sendMessage() {
+  if (!hasModelsConfigured.value || !form.value.message.trim()) {
+    return;
+  }
+
   // Flush collab events such that the server/agent has the latest data
   await Promise.resolve(props.collabFlush?.());
 
@@ -321,7 +336,9 @@ async function syncScroll(options?: { force?: boolean }) {
 }
 onMounted(async () => {
   syncScroll({ force: true });
-  await agent.loadHistory();
+  if (hasModelsConfigured.value) {
+    await agent.loadHistory();
+  }
 });
 const onScrollMessages = throttle(() => {
   if (!messagesContainerRef.value) {
@@ -369,9 +386,14 @@ const onScrollMessages = throttle(() => {
 }
 
 .select-agent:deep(), .select-model:deep() {
+  min-width: 6rem;
+
   .v-field {
     --v-input-control-height: 24px;
     --v-input-padding-top: 0;
+  }
+  .v-field__input {
+    font-size: 0.875rem;
   }
 }
 .select-divider {

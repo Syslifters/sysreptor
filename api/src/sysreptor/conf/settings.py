@@ -930,7 +930,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
 
     BooleanField(
         id='AI_AGENT_ENABLED',
-        default=False,
+        default=True,
         extra_info={'group': 'ai_agent', 'professional_only': False},
         help_text='Enable/disable the AI Agent feature globally.'
                   'This feature requires an LLM model and API key to be configured.'),
