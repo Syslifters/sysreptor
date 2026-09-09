@@ -6,6 +6,10 @@ const sysreptorGreenDark = '#818b06'
 const themeLightTextColor = '#1E1E1E';
 const themeDarkTextColor = '#f0f0f0';
 
+const errorColor = '#FF5252';
+const warningColor = '#FFC107';
+const successColor = sysreptorGreen;
+
 const themeCommon = {
   colors: {
     primary: sysreptorGreen,
@@ -17,10 +21,10 @@ const themeCommon = {
 
     logo: sysreptorGreen,
 
-    error: '#FF5252',
+    error: errorColor,
     info: '#2196F3',
-    success: sysreptorGreen,
-    warning: '#FFC107',
+    success: successColor,
+    warning: warningColor,
     'on-warning': themeLightTextColor,
 
     'risk-info': '#14AE92',
@@ -29,12 +33,12 @@ const themeCommon = {
     'risk-high': '#F76226',
     'risk-critical': '#E83221',
 
-    'retest-open': '#ffffff00',
-    'retest-new': '#ffffff00',
-    'retest-changed': '#ffffff00',
-    'retest-resolved': sysreptorGreen,
-    'retest-accepted': sysreptorGreen,
-    'retest-partial': '#FFC107',
+    'retest-open': errorColor,
+    'retest-new': errorColor,
+    'retest-changed': errorColor,
+    'retest-partial': warningColor,
+    'retest-resolved': successColor,
+    'retest-accepted': successColor,
 
     'search-match': '#ffff00',
     'on-search-match': themeLightTextColor,
