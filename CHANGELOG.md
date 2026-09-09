@@ -9,6 +9,7 @@
 * Run post-update tasks after updating SysReptor via `update.sh`
 * Fix broken check if `crontab` is available in `install.sh`
 * Fix emoji rendering in PDFs
+* AI agent: Enable AI agent by default in settings
 * UI: Add color indicators for all retest statuses
 * Markdown editor: Prevent browser from opening some links in markdown preview
 * Plugin `jira`: Follow API pagination to list all available projects

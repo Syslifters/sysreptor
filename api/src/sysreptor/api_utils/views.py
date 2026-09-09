@@ -207,7 +207,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'permissions': license.is_professional(),
                 'backup': bool(settings.BACKUP_KEY and license.is_professional()),
                 'sharing': not configuration.DISABLE_SHARING,
-                'ai_agent': bool(configuration.AI_AGENT_ENABLED and ai_agent_models),
+                'ai_agent': bool(configuration.AI_AGENT_ENABLED),
             },
             'permissions': public_settings['permissions'] | {
                 'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
