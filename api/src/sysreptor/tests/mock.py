@@ -202,6 +202,7 @@ def create_project_type(assets_kwargs=None, **kwargs) -> ProjectType:
         {'id': 'field_enum', 'type': 'enum', 'label': 'Enum Field', 'choices': [{'value': 'enum1', 'label': 'Enum Value 1'}, {'value': 'enum2', 'label': 'Enum Value 2'}], 'default': 'enum2'},
         {'id': 'field_combobox', 'type': 'combobox', 'label': 'Combobox Field', 'suggestions': ['value 1', 'value 2'], 'default': 'value1'},
         {'id': 'field_user', 'type': 'user', 'label': 'User Field'},
+        {'id': 'field_json', 'type': 'json', 'label': 'JSON Field', 'default': None},
     ]
     additional_fields = additional_fields_simple + [
         {'id': 'field_object', 'type': 'object', 'label': 'Nested Object', 'properties': sorted([{'id': 'nested1', 'type': 'string', 'label': 'Nested Field'}] + additional_fields_simple, key=lambda f: f['id'])},

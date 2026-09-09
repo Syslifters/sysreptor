@@ -91,8 +91,10 @@ def format_field_value(value, definition, context=None):
             return '\n'.join('* ' + format_field_value(value=v, definition=definition.items, context=context) for v in value)
     elif definition.type == FieldDataType.JSON:
         try:
-            value = json.dumps(json.loads(value), indent=2)
-        except json.JSONDecodeError:
+            if isinstance(value, str):
+                value = json.loads(value)
+            value = json.dumps(value, indent=2)
+        except (json.JSONDecodeError, TypeError):
             pass
         return f'```json\n{value}\n```'
     elif definition.type == FieldDataType.CVSS:

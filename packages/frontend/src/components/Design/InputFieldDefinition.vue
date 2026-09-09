@@ -38,7 +38,7 @@
           <s-select
             :model-value="props.modelValue.type"
             @update:model-value="updateType($event)"
-            :items="Object.values(FieldDataType).filter(t => !([FieldDataType.JSON] as FieldDataType[]).includes(t))"
+            :items="Object.values(FieldDataType)"
             :disabled="!props.canChangeStructure"
             :readonly="props.readonly"
             label="Data Type"
@@ -61,7 +61,7 @@
       <s-select
         v-else
         :model-value="props.modelValue.type"
-        @update:model-value="updateProperty('type', $event)"
+        @update:model-value="updateType($event)"
         :items="Object.values(FieldDataType)"
         :disabled="!props.canChangeStructure"
         :readonly="props.readonly"
@@ -154,6 +154,16 @@
           <v-col />
         </template>
       </v-row>
+
+      <!-- JSON Schema -->
+      <markdown-json-field
+        v-if="props.modelValue.type === FieldDataType.JSON"
+        v-model="schemaText"
+        :readonly="props.readonly"
+        label="JSON Schema"
+        hint="Optional JSON Schema used to validate field values. Leave empty for no schema validation."
+        class="mt-2"
+      />
 
       <!-- Enum choices -->
       <v-list v-if="props.modelValue.type === FieldDataType.ENUM" class="bg-inherit">
@@ -364,7 +374,7 @@
 </template>
 
 <script setup lang="ts">
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, isEqual } from 'lodash-es';
 import Draggable from "vuedraggable";
 import { CvssVersion } from "@base/utils/cvss/base";
 import { FieldDataType, FieldOrigin } from "#imports";
@@ -434,17 +444,46 @@ const predefinedRegexPatterns = [
 function updateProperty(property: string, val: any) {
   emit('update:modelValue', { ...props.modelValue, [property]: val });
 }
+
+const schemaText = ref('');
+watch(() => props.modelValue.schema, (schema) => {
+  const next = !schema ? '' : JSON.stringify(schema, null, 2);
+  try {
+    if (isEqual(schemaText.value.trim() ? JSON.parse(schemaText.value) : null, schema ?? null)) {
+      return;
+    }
+    schemaText.value = next;
+  } catch { return; }
+}, { immediate: true });
+watch(schemaText, (text) => {
+  if (!text.trim()) {
+    if (props.modelValue.schema != null) {
+      updateProperty('schema', null);
+    }
+    return;
+  }
+  try {
+    const parsed = JSON.parse(text);
+    if (!isEqual(props.modelValue.schema, parsed)) {
+      updateProperty('schema', parsed);
+    }
+  } catch { 
+    // keep previous object|null schema while typing
+    return;
+  }
+});
+
 function updateType(type: FieldDataType) {
   const newObj = { ...props.modelValue, type };
 
   // if type changes, ensure that default has the correct data type or set to null
   const def = props.modelValue.default;
   if (
-    ([FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.CVSS, FieldDataType.COMBOBOX].includes(type) && !(def instanceof String)) ||
-        (type === FieldDataType.NUMBER && !(def instanceof Number)) ||
-        (type === FieldDataType.BOOLEAN && !(def instanceof Boolean)) ||
+    ([FieldDataType.STRING, FieldDataType.MARKDOWN, FieldDataType.CVSS, FieldDataType.COMBOBOX, FieldDataType.JSON].includes(type) && typeof def !== 'string') ||
+        (type === FieldDataType.NUMBER && typeof def !== 'number') ||
+        (type === FieldDataType.BOOLEAN && typeof def !== 'boolean') ||
         (type === FieldDataType.ENUM && !(newObj.choices || []).find(c => c.value === def)) ||
-        (type === FieldDataType.CWE && (!(def instanceof String) || !def.startsWith('CWE-'))) ||
+        (type === FieldDataType.CWE && (typeof def !== 'string' || !def.startsWith('CWE-'))) ||
         (type === FieldDataType.DATE) ||
         (type === FieldDataType.USER) ||
         (type === FieldDataType.LIST)
@@ -453,6 +492,7 @@ function updateType(type: FieldDataType) {
       newObj.default = null;
     }
   }
+
   emit('update:modelValue', newObj);
 }
 function updateEnumChoice(action: string, choiceIdx: number, val?: any) {
@@ -538,6 +578,10 @@ watch(() => props.modelValue.type, () => {
     updateProperty('items', { type: FieldDataType.STRING, default: null } as FieldDefinition['items']);
   } else if (props.modelValue.type === FieldDataType.OBJECT && !props.modelValue.properties) {
     updateProperty('properties', [{ id: 'nested_field', type: FieldDataType.STRING, label: 'Nested Field', default: null }] as FieldDefinition['properties']);
+  } else if (props.modelValue.type === FieldDataType.JSON) {
+    if (props.modelValue.schema != null && typeof props.modelValue.schema !== 'object') {
+      updateProperty('schema', null);
+    }
   }
 });
 

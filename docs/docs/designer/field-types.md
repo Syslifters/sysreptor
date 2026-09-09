@@ -203,3 +203,19 @@ List item by index: {{ report.field_list[0] }}
 Iterate over list items: <div v-for="item in report.field_list">{{ item }}</div>
 ```
 
+
+## JSON
+JSON fields are used to enter structured JSON data. In Vue templates, the value is parsed and available as a JavaScript object or array.
+
+Options:
+
+* JSON Schema: Optional [JSON Schema](https://json-schema.org/) used to validate field values. Leave empty for no schema validation. If the value is not valid JSON or does not match the schema, a warning message is generated before publishing the report.
+
+![JSON field](/images/fields_json.png)
+
+```html title="Usage in Vue templates"
+Value: {{ report.field_json }}
+Nested data: {{ report.field_json.key1 }}
+             {{ report.field_json.key2.length }}  
+             {{ report.field_json.key2[0] }}    
+```

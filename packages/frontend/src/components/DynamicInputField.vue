@@ -133,17 +133,15 @@
           </s-user-selection>
 
           <!-- JSON -->
-          <s-codeblock-field
+          <markdown-json-field
             v-else-if="definition.type === FieldDataType.JSON"
-            :model-value="formValue"
-            @update:model-value="emitUpdate($event)"
-            :rules="[(v: string) => validateJson(v)]"
-            @focus="collabFocus"
-            variant="outlined"
+            v-model="formValue"
+            :collab="props.collab"
+            :schema="definition.schema"
             v-bind="fieldAttrs"
           >
             <template #label v-if="$slots.label"><slot name="label" /></template>
-          </s-codeblock-field>
+          </markdown-json-field>
 
           <!-- Object -->
           <s-card v-else-if="definition.type === FieldDataType.OBJECT" class="field-nested">
@@ -449,7 +447,8 @@ const formValue = computed({
   set: val => emitUpdate(val, { 
     preventCollabEvent: [
       FieldDataType.MARKDOWN, 
-      FieldDataType.STRING, 
+      FieldDataType.STRING,
+      FieldDataType.JSON,
       FieldDataType.OBJECT,
       FieldDataType.LIST,
     ].includes(props.definition.type) 
@@ -498,21 +497,6 @@ async function validateRegexPattern(value: string) {
   } catch (e: any) {
     return e.message;
   }
-  return true;
-}
-
-// JSON validation
-function validateJson(v: string) {
-  if (props.definition.type !== FieldDataType.JSON || !v) {
-    return true;
-  }
-
-  try {
-    JSON.parse(v);
-  } catch (e: any) {
-    return `Invalid JSON: ${e.message}`;
-  }
-
   return true;
 }
 

@@ -46,7 +46,10 @@ class TestHtmlRendering:
             findings_kwargs=[],
             images_kwargs=[{'name': 'image.png'}],
             files_kwargs=[{'name': 'file.pdf'}],
-            report_data={'field_user': str(self.user.id)})
+            report_data={
+                'field_user': str(self.user.id),
+                'field_json': '{"key": "json-value"}',
+            })
         self.finding = create_finding(project=self.project, status=ReviewStatus.FINISHED)
 
         with override_settings(CELERY_TASK_ALWAYS_EAGER=True), \
@@ -82,6 +85,7 @@ class TestHtmlRendering:
         ('{{ report.field_string }}', lambda self: self.project.data['field_string']),
         ('{{ report.field_int }}', lambda self: str(self.project.data['field_int'])),
         ('{{ report.field_enum.value }}', lambda self: self.project.data['field_enum']),
+        ('{{ report.field_json.key }}', 'json-value'),
         ('{{ findings[0].cvss.vector }}', lambda self: self.finding.data['cvss']),
         ('{{ findings[0].cvss.score }}', lambda self: str(cvss.calculate_score(self.finding.data['cvss']))),
         ('{{ findings[0].created }}', lambda self: self.finding.created.isoformat()),

@@ -84,6 +84,19 @@
                 {
                     "properties": {
                         "type": {
+                            "const": "json"
+                        },
+                        "schema": {
+                            "type": ["object", "null"]
+                        },
+                        "default": {
+                            "type": ["string", "null"]
+                        }
+                    }
+                },
+                {
+                    "properties": {
+                        "type": {
                             "const": "date"
                         },
                         "default": {

@@ -268,7 +268,7 @@ class TestCollaborativeTextEditing:
             self.user2 = create_user()
             self.project = create_project(
                 members=[self.user1, self.user2],
-                findings_kwargs=[{'data': {'field_markdown': 'AB', 'field_list': ['A', 'B']}}],
+                findings_kwargs=[{'data': {'field_markdown': 'AB', 'field_list': ['A', 'B'], 'field_json': '{}'}}],
                 comments=False,
             )
             self.finding = self.project.findings.all()[0]
@@ -354,6 +354,24 @@ class TestCollaborativeTextEditing:
 
         await self.refresh_data()
         assert self.finding.data['field_markdown'] == 'A1234B'
+
+    async def test_update_text_json_partial(self):
+        # Partial / invalid JSON is allowed for collaborative editing
+        event = {
+            'type': CollabEventType.UPDATE_TEXT,
+            'path': f'findings.{self.finding.finding_id}.data.field_json',
+            'updates': [{'changes': [1, [1], [0, '"a":']]}],
+            'version': self.client1.init['version'],
+        }
+        await self.client1.send_json_to(event)
+        await self.assert_event_received({
+            'type': CollabEventType.UPDATE_TEXT,
+            'path': f'findings.{self.finding.finding_id}.data.field_json',
+            'updates': [{'changes': [1, [1], [0, '"a":']]}],
+        })
+
+        await self.refresh_data()
+        assert self.finding.data['field_json'] == '{"a":'
 
     async def test_concurrent_list_updates(self):
         # Concurrent add list items
@@ -739,6 +757,7 @@ class TestProjectReportingDbSync:
                 'field_user': None,
                 'field_string': 'ABC',
                 'field_markdown': 'ABC',
+                'field_json': 'ABC',
                 'field_list': ['ABC'],
                 'field_list_objects': [{'field_int': 1, 'field_string': 'ABC'}],
             }
@@ -792,6 +811,7 @@ class TestProjectReportingDbSync:
         ('data.field_list', ['a', 'b', 'c']),
         ('data.field_string', 'changed'),
         ('data.field_markdown', 'changed'),
+        ('data.field_json', '{"key": "value"}'),
     ])])
     async def test_update_key(self, obj_type, path, value):
         if obj_type == 'section':
@@ -825,6 +845,7 @@ class TestProjectReportingDbSync:
     @pytest.mark.parametrize(('obj_type', 'path'), list(itertools.product(['finding', 'section'], [
         'data.field_string',
         'data.field_markdown',
+        'data.field_json',
         'data.field_list.[0]',
         'data.field_list_objects.[0].field_string',
     ])))
