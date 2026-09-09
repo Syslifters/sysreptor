@@ -3,16 +3,27 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "types": ["node", "vite/client"],
     "strict": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "vue": ["./node_modules/vue/dist/vue.d.ts"]
+    }
   },
   "include": [
     "docs/.vitepress/**/*.ts",
+    "docs/.vitepress/**/*.mts",
     "docs/.vitepress/**/*.vue",
     "docs/.vitepress/**/*.d.ts",
     "docs/**/*.ts"
-  ]
+  ],
+  "vueCompilerOptions": {
+    "vitePressExtensions": [".md"]
+  }
 }

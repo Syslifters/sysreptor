@@ -1,5 +1,6 @@
 <template>
   <AskAiButton />
+  <ChatWidget />
   <DefaultTheme.Layout>
     <template #layout-bottom>
       <footer class="sysreptor-footer">
@@ -30,7 +31,7 @@
 import { onMounted, watch } from 'vue'
 import { useData, withBase } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
-import AskAiButton from './components/AskAiButton.vue'
+import { AskAiButton, ChatWidget } from './chat-widget'
 import { matchRedirect } from '../redirects/redirectRules'
 import rules from 'virtual:vitepress-redirects'
 
