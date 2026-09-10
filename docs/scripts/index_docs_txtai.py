@@ -1,40 +1,33 @@
 #!/usr/bin/env python3
-"""Index SysReptor VitePress docs into AnythingLLM.
+"""Index SysReptor VitePress docs into txtai-chat via the Index API.
 
 Local dry-run:
   cd docs
-  pip install -r requirements.txt -r hooks/requirements.txt
-  ANYTHINGLLM_API_KEY=... ANYTHINGLLM_WORKSPACE_SLUG=... \\
-    python hooks/index_docs_anythingllm.py \\
-      --sitemap docs/.vitepress/dist/sitemap.xml \\
-      --docs-dir docs \\
-      --dry-run
+  pip install -r requirements.txt
+  python scripts/index_docs_txtai.py \\
+    --sitemap docs/.vitepress/dist/sitemap.xml \\
+    --docs-dir docs \\
+    --dry-run
 """
 from __future__ import annotations
 
 import os
 import re
 import subprocess
-import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 import click
 import requests
 import yaml
 
-from anythingllm_common import (
-    DEFAULT_ANYTHINGLLM_BASE_URL,
-    SLEEP_S_DEFAULT,
-    TIMEOUT_S_DEFAULT,
-    AnythingLLMClient,
-    normalize_site_path,
-    site_url_to_path,
-)
-
 DEFAULT_BASE_URL = "https://docs.sysreptor.com"
-DEFAULT_UPLOAD_FOLDER = "sysreptor"
+DEFAULT_TXTAI_BASE_URL = "https://sysreptor-ai.internal.syslifters.com"
+DEFAULT_FOLDER = "sysreptor-docs"
+TIMEOUT_S_DEFAULT = 300.0
+BATCH_SIZE_DEFAULT = 5
 
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 _HEADING_RE = re.compile(r"^#\s+(.+)$", re.MULTILINE)
@@ -43,15 +36,113 @@ _HTML_HREF_RE = re.compile(r"""(href\s*=\s*)(["'])([^"']+)(\2)""", re.IGNORECASE
 _AUTODOC_PATH_RE = re.compile(r"python-library/(api|dataclasses)/")
 
 
+def normalize_base_url(url: str) -> str:
+    parsed = urlparse(url.strip())
+    scheme = parsed.scheme.lower() or "https"
+    netloc = parsed.netloc.lower()
+    path = parsed.path.rstrip("/") or ""
+    return f"{scheme}://{netloc}{path}"
+
+
+def normalize_site_path(path: str) -> str:
+    if not path:
+        return "/"
+    if not path.startswith("/"):
+        path = f"/{path}"
+    if path != "/":
+        path = path.rstrip("/")
+    if path.endswith(".md"):
+        path = path[:-3] or "/"
+    return path
+
+
+def site_url_to_path(url: str, base_url: str) -> str | None:
+    normalized_url = normalize_base_url(url)
+    normalized_base = normalize_base_url(base_url)
+    if not normalized_url.startswith(normalized_base):
+        return None
+    suffix = normalized_url[len(normalized_base) :]
+    return normalize_site_path(suffix)
+
+
 @dataclass(frozen=True)
 class PageDocument:
     url: str
     path: str
     markdown_path: Path
-    upload_filename: str
     title: str
     description: str | None
     content: str
+
+
+class TxtaiIndexClient:
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        api_token: str,
+        timeout_s: float,
+    ) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.timeout_s = timeout_s
+        self.session = requests.Session()
+        self.session.headers.update(
+            {
+                "Authorization": f"Bearer {api_token}",
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            }
+        )
+
+    def begin_reindex(self, folder: str) -> str:
+        response = self.session.post(
+            f"{self.base_url}/v1/index/folders/{folder}/reindex",
+            timeout=self.timeout_s,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        reindex_id = payload.get("reindex_id")
+        if not reindex_id:
+            raise RuntimeError(f"Missing reindex_id in begin response: {payload!r}")
+        return str(reindex_id)
+
+    def upsert_documents(
+        self,
+        *,
+        folder: str,
+        documents: list[dict[str, str]],
+        mode: str,
+        reindex_id: str | None = None,
+    ) -> dict:
+        body: dict = {
+            "folder": folder,
+            "mode": mode,
+            "documents": documents,
+        }
+        if reindex_id is not None:
+            body["reindex_id"] = reindex_id
+        response = self.session.post(
+            f"{self.base_url}/v1/index/documents",
+            json=body,
+            timeout=self.timeout_s,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def commit_reindex(self, folder: str, reindex_id: str) -> dict:
+        response = self.session.post(
+            f"{self.base_url}/v1/index/folders/{folder}/reindex/{reindex_id}/commit",
+            timeout=self.timeout_s,
+        )
+        response.raise_for_status()
+        return response.json() if response.content else {}
+
+    def abort_reindex(self, folder: str, reindex_id: str) -> None:
+        response = self.session.delete(
+            f"{self.base_url}/v1/index/folders/{folder}/reindex/{reindex_id}",
+            timeout=self.timeout_s,
+        )
+        response.raise_for_status()
 
 
 def _parse_sitemap_urls(sitemap_path: Path, base_url: str) -> list[str]:
@@ -130,15 +221,6 @@ def _derive_description(meta: dict) -> str | None:
     if isinstance(description, str) and description.strip():
         return description.strip()
     return None
-
-
-def _upload_filename(markdown_path: Path, docs_dir: Path) -> str:
-    rel = markdown_path.relative_to(docs_dir)
-    if rel.name == "index.md":
-        rel = rel.parent / (rel.parent.name or "index")
-    else:
-        rel = rel.with_suffix("")
-    return rel.as_posix()
 
 
 def _is_rewritable_href(href: str) -> bool:
@@ -228,7 +310,6 @@ def _expand_autodoc_content(content: str, autodoc_script: Path) -> str:
 def _document_from_markdown(
     markdown_path: Path,
     *,
-    docs_dir: Path,
     base_url: str,
     path: str,
 ) -> PageDocument:
@@ -239,7 +320,6 @@ def _document_from_markdown(
         url=canonical_url,
         path=path,
         markdown_path=markdown_path,
-        upload_filename=_upload_filename(markdown_path, docs_dir),
         title=_derive_title(markdown_path, meta, body),
         description=_derive_description(meta),
         content=raw,
@@ -262,7 +342,7 @@ def _build_documents(
             unmapped.append(url)
             continue
         documents.append(_document_from_markdown(
-            markdown_path, docs_dir=docs_dir, base_url=base_url, path=path
+            markdown_path, base_url=base_url, path=path
         ))
 
     return documents, unmapped
@@ -292,7 +372,7 @@ def _build_cli_documents(
             continue
         seen_urls.add(canonical_url)
         documents.append(_document_from_markdown(
-            markdown_path, docs_dir=docs_dir, base_url=base_url, path=path
+            markdown_path, base_url=base_url, path=path
         ))
 
     return documents
@@ -317,7 +397,6 @@ def _build_plugin_documents(
             url=url,
             path=f"/plugins/{plugin_slug}",
             markdown_path=markdown_path,
-            upload_filename=f"plugins/{plugin_slug}",
             title=_derive_title(markdown_path, meta, body),
             description=_derive_description(meta),
             content=raw,
@@ -344,7 +423,18 @@ def _merge_documents(
     return documents, unmapped
 
 
-@click.command(help="Index SysReptor VitePress markdown into AnythingLLM.")
+def _to_index_payload(document: PageDocument, autodoc_script: Path) -> dict[str, str]:
+    content = document.content
+    if _is_autodoc_page(document.markdown_path) and autodoc_script.is_file():
+        content = _expand_autodoc_content(content, autodoc_script)
+    return {
+        "id": document.url,
+        "text": _prepare_upload_content(content, document.url),
+        "source": document.url,
+    }
+
+
+@click.command(help="Index SysReptor VitePress markdown into txtai-chat via the Index API.")
 @click.option(
     "--sitemap",
     required=True,
@@ -378,31 +468,31 @@ def _merge_documents(
     help="Public base URL for canonical links",
 )
 @click.option(
-    "--anythingllm-base-url",
-    default=DEFAULT_ANYTHINGLLM_BASE_URL,
-    envvar="ANYTHINGLLM_BASE_URL",
+    "--txtai-base-url",
+    default=DEFAULT_TXTAI_BASE_URL,
+    envvar="TXTAI_BASE_URL",
     show_default=True,
-    help="AnythingLLM instance base URL",
+    help="txtai-chat server base URL",
 )
 @click.option(
-    "--workspace-slug",
-    default="",
-    envvar="ANYTHINGLLM_WORKSPACE_SLUG",
-    help="Target workspace slug for embedding",
+    "--folder",
+    default=DEFAULT_FOLDER,
+    envvar="TXTAI_INDEX_FOLDER",
+    show_default=True,
+    help="Index folder namespace for the full reindex",
 )
 @click.option(
-    "--upload-folder",
-    default=DEFAULT_UPLOAD_FOLDER,
-    envvar="ANYTHINGLLM_UPLOAD_FOLDER",
+    "--batch-size",
+    type=int,
+    default=BATCH_SIZE_DEFAULT,
     show_default=True,
-    help="AnythingLLM document folder for uploads",
+    help="Documents per POST /v1/index/documents request",
 )
 @click.option("--timeout-s", type=float, default=TIMEOUT_S_DEFAULT, show_default=True)
-@click.option("--sleep-s", type=float, default=SLEEP_S_DEFAULT, show_default=True)
 @click.option(
     "--dry-run",
     is_flag=True,
-    help="Print URL to markdown mappings without uploading.",
+    help="Print URL to markdown mappings without indexing.",
 )
 def main(
     sitemap: Path,
@@ -410,14 +500,17 @@ def main(
     plugins_dir: Path | None,
     plugins_github_base: str,
     base_url: str,
-    anythingllm_base_url: str,
-    workspace_slug: str,
-    upload_folder: str,
+    txtai_base_url: str,
+    folder: str,
+    batch_size: int,
     timeout_s: float,
-    sleep_s: float,
     dry_run: bool,
 ) -> None:
     base_url = base_url.rstrip("/")
+    if batch_size < 1:
+        click.echo("--batch-size must be >= 1.", err=True)
+        raise SystemExit(2)
+
     docs_dir = docs_dir.resolve()
     autodoc_script = docs_dir.parent / "scripts" / "python_autodoc.py"
 
@@ -441,59 +534,85 @@ def main(
             click.echo(f"{doc.url} -> {doc.markdown_path} ({doc.title})")
         return
 
-    api_key = os.environ.get("ANYTHINGLLM_API_KEY", "")
-    if not api_key:
-        click.echo("ANYTHINGLLM_API_KEY is required.", err=True)
-        raise SystemExit(2)
-    if not workspace_slug:
-        click.echo("ANYTHINGLLM_WORKSPACE_SLUG is required.", err=True)
+    api_token = os.environ.get("TXTAI_INDEX_API_TOKEN", "")
+    if not api_token:
+        click.echo("TXTAI_INDEX_API_TOKEN is required.", err=True)
         raise SystemExit(2)
 
-    client = AnythingLLMClient(
-        base_url=anythingllm_base_url,
-        api_key=api_key,
-        workspace_slug=workspace_slug,
-        upload_folder=upload_folder,
+    client = TxtaiIndexClient(
+        base_url=txtai_base_url,
+        api_token=api_token,
         timeout_s=timeout_s,
     )
 
-    click.echo("Purging previous documents...")
-    client.purge_upload_folder()
+    try:
+        reindex_id = client.begin_reindex(folder)
+    except requests.RequestException as exc:
+        click.echo(f"ERR begin reindex for folder {folder!r}: {exc}", err=True)
+        raise SystemExit(2) from exc
+
+    click.echo(f"Started full reindex for folder {folder!r} ({reindex_id}).")
 
     failures = 0
     total = len(documents)
-    for index, document in enumerate(documents, start=1):
+    indexed = 0
+    for start in range(0, total, batch_size):
+        batch = documents[start : start + batch_size]
+        batch_end = start + len(batch)
         try:
-            filename = document.upload_filename
-            content = document.content
-            if _is_autodoc_page(document.markdown_path) and autodoc_script.is_file():
-                content = _expand_autodoc_content(content, autodoc_script)
-            content = _prepare_upload_content(content, document.url)
-            client.upload_markdown(
-                filename=filename,
-                content=content,
-                url=document.url,
-                title=document.title,
-                description=document.description,
+            payload = [_to_index_payload(doc, autodoc_script) for doc in batch]
+            result = client.upsert_documents(
+                folder=folder,
+                documents=payload,
+                mode="full",
+                reindex_id=reindex_id,
             )
-            click.echo(f"Uploaded {index}/{total}: {document.url}")
-        except (requests.RequestException, RuntimeError, subprocess.SubprocessError) as exc:
-            failures += 1
+            count = int(result.get("count", len(batch)))
+            indexed += count
             click.echo(
-                f"ERR {index}/{total} {document.url} ({document.markdown_path}): {exc}",
+                f"Indexed {start + 1}-{batch_end}/{total}"
+                f" ({count} document(s) in batch)."
+            )
+        except (requests.RequestException, RuntimeError, subprocess.SubprocessError) as exc:
+            failures += len(batch)
+            click.echo(
+                f"ERR batch {start + 1}-{batch_end}/{total}: {exc}",
                 err=True,
             )
-        if sleep_s:
-            time.sleep(sleep_s)
 
     if failures:
+        try:
+            client.abort_reindex(folder, reindex_id)
+            click.echo(
+                f"Aborted reindex {reindex_id} (orphans not deleted).",
+                err=True,
+            )
+        except requests.RequestException as exc:
+            click.echo(f"ERR abort reindex {reindex_id}: {exc}", err=True)
         click.echo(
-            f"Failed to upload {failures}/{total} document(s).",
+            f"Failed to index {failures}/{total} document(s).",
             err=True,
         )
         raise SystemExit(2)
 
-    click.echo(f"Indexed {total} page(s) into AnythingLLM.")
+    try:
+        client.commit_reindex(folder, reindex_id)
+    except requests.RequestException as exc:
+        click.echo(f"ERR commit reindex {reindex_id}: {exc}", err=True)
+        try:
+            client.abort_reindex(folder, reindex_id)
+            click.echo(
+                f"Aborted reindex {reindex_id} after commit failure.",
+                err=True,
+            )
+        except requests.RequestException as abort_exc:
+            click.echo(f"ERR abort reindex {reindex_id}: {abort_exc}", err=True)
+        raise SystemExit(2) from exc
+
+    click.echo(
+        f"Committed full reindex for folder {folder!r}:"
+        f" {indexed} page(s) indexed, orphans removed."
+    )
 
 
 if __name__ == "__main__":

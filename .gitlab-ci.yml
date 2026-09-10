@@ -317,7 +317,7 @@ release-docs:
   allow_failure:
     exit_codes: 127
 
-index-internal-anythingllm:
+index-txtai:
   stage: release-docs
   rules:
     - if: $CI_COMMIT_TAG || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -333,22 +333,19 @@ index-internal-anythingllm:
   image: python:3.13
   variables:
     # Set in GitLab CI/CD variables (masked/protected):
-    # - ANYTHINGLLM_API_KEY: Bearer token for AnythingLLM Developer API
-    # - ANYTHINGLLM_WORKSPACE_SLUG: dedicated SysReptor workspace slug
+    # - TXTAI_INDEX_API_TOKEN: Bearer token for txtai-chat /v1/index/*
     # Optional:
-    # - ANYTHINGLLM_BASE_URL: defaults to "https://anythingllm.internal.syslifters.com"
+    # - TXTAI_BASE_URL: defaults to "https://sysreptor-ai.internal.syslifters.com"
     # - BASE_URL: defaults to "https://docs.sysreptor.com"
-    # - ANYTHINGLLM_UPLOAD_FOLDER: defaults to "sysreptor"
-    # - GITHUB_TOKEN: used for docs deploy/sync and public repo sync
-    ANYTHINGLLM_BASE_URL: "https://anythingllm.internal.syslifters.com"
+    # - TXTAI_INDEX_FOLDER: defaults to "sysreptor-docs"
+    TXTAI_BASE_URL: "https://sysreptor-ai.internal.syslifters.com"
     BASE_URL: "https://docs.sysreptor.com"
-    ANYTHINGLLM_UPLOAD_FOLDER: "sysreptor"
+    TXTAI_INDEX_FOLDER: "sysreptor-docs"
   script:
-    - test -n "$ANYTHINGLLM_API_KEY"
-    - test -n "$ANYTHINGLLM_WORKSPACE_SLUG"
+    - test -n "$TXTAI_INDEX_API_TOKEN"
     - test -f docs/docs/.vitepress/dist/sitemap.xml
     - pip install -r docs/requirements.txt
-    - python docs/scripts/index_docs_anythingllm.py
+    - python docs/scripts/index_docs_txtai.py
         --sitemap docs/docs/.vitepress/dist/sitemap.xml
         --docs-dir docs/docs
         --plugins-dir plugins
