@@ -1,37 +1,16 @@
 import copy
 import dataclasses
 import itertools
-import re
 import textwrap
-from collections.abc import Callable
 from typing import Annotated
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
 from deepagents.backends import CompositeBackend, StateBackend
-from deepagents.backends.protocol import (
-    FILE_NOT_FOUND,
-    PERMISSION_DENIED,
-    BackendProtocol,
-    EditResult,
-    FileData,
-    FileInfo,
-    FileUploadResponse,
-    GlobResult,
-    GrepResult,
-    LsResult,
-    ReadResult,
-    WriteResult,
-)
-from deepagents.backends.utils import (
-    InvalidGlobPatternError,
-    _glob_search_files,
-    create_file_data,
-    grep_matches_from_files,
-    slice_read_response,
-)
+from deepagents.backends.protocol import FILE_NOT_FOUND
 from deepagents.middleware._utils import append_to_system_message
 from deepagents.middleware.filesystem import FilesystemMiddleware
+from deepagents.middleware.skills import SkillsMiddleware
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
@@ -41,7 +20,6 @@ from langchain.agents.middleware import (
 )
 from langchain.messages import HumanMessage
 from langchain.tools import ToolRuntime
-from langgraph.runtime import Runtime, get_runtime
 from langgraph.types import interrupt
 from pydantic import Field
 from rest_framework.filters import search_smart_split
@@ -52,6 +30,7 @@ from sysreptor.ai.agents.base import (
     to_inline_context,
     to_yaml,
 )
+from sysreptor.ai.agents.filesystem import NotesSkillsBackend, ProjectFilesystemBackend
 from sysreptor.pentests.fielddefinition.sort import group_findings
 from sysreptor.pentests.models import (
     FindingTemplate,
@@ -648,199 +627,6 @@ def update_markdown_field(runtime: ToolRuntime[ProjectContext], file_path: str, 
     return 'Updated successfully'
 
 
-class LazyFileData(dict):
-    """FileData-compatible dict that loads content only when accessed."""
-
-    def __init__(self, loader: Callable[[], str], *, modified_at: str, encoding: str = 'utf-8'):
-        super().__init__()
-        self._loader = loader
-        self['encoding'] = encoding
-        self['modified_at'] = modified_at
-
-    def _ensure_content(self) -> str:
-        if 'content' not in dict.keys(self):
-            dict.__setitem__(self, 'content', self._loader())
-        return dict.__getitem__(self, 'content')
-
-    def __getitem__(self, key):
-        if key == 'content':
-            return self._ensure_content()
-        return super().__getitem__(key)
-
-    def get(self, key, default=None):
-        if key == 'content':
-            return self._ensure_content()
-        return super().get(key, default)
-
-
-class ProjectFilesystemBackend(BackendProtocol):
-    """
-    Read-only virtual filesystem mapping project data to files.
-    """
-    PROJECT_ROOT = '/project'
-    FILE_PATH_RE = re.compile(
-        r'^/(?:project\.yaml'
-        r'|reporting/findings/(?P<finding_id>[^/]+)\.yaml'
-        r'|reporting/sections/(?P<section_id>[^/]+)\.yaml'
-        r'|notes/(?P<note_id>[^/]+)\.yaml)$',
-    )
-
-    def __init__(self, runtime: Runtime[ProjectContext]|None = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.runtime = runtime
-
-    def _get_project(self, prefetch=True):
-        runtime = self.runtime or get_runtime(ProjectContext)
-        return get_project(project_id=str(runtime.context.project_id), prefetch=prefetch)
-
-    def _find_prefetched(self, project: PentestProject, relation: str, attr: str, value: str):
-        cache = getattr(project, '_prefetched_objects_cache', None)
-        if cache and relation in cache:
-            return next((obj for obj in cache[relation] if str(getattr(obj, attr)) == value), None)
-        return None
-
-    def _load_file_content(self, file_path: str, project=None) -> str | None:
-        try:
-            match = self.FILE_PATH_RE.match(file_path)
-            if not match:
-                return None
-
-            project = project or self._get_project(prefetch=False)
-            if file_path == '/project.yaml':
-                return format_project_overview(project)
-            elif finding_id := match.group('finding_id'):
-                finding = self._find_prefetched(project, 'findings', 'finding_id', finding_id) or \
-                    PentestFinding.objects.select_related('assignee').filter(project_id=project.id, finding_id=finding_id).first()
-                return format_finding_data(finding) if finding else None
-            elif section_id := match.group('section_id'):
-                section = self._find_prefetched(project, 'sections', 'section_id', section_id) or \
-                    ReportSection.objects.select_related('assignee').filter(project_id=project.id, section_id=section_id).first()
-                return format_section_data(section) if section else None
-            elif note_id := match.group('note_id'):
-                note = self._find_prefetched(project, 'notes', 'note_id', note_id) or \
-                    ProjectNotebookPage.objects.select_related('parent', 'assignee').filter(project_id=project.id, note_id=note_id).first()
-                return format_note_data(note) if note else None
-            return None
-        except ValidationError:
-            return None
-
-    def _lazy_file(self, file_path: str, modified_at: str, project=None) -> LazyFileData:
-        return LazyFileData(
-            loader=lambda fp=file_path: self._load_file_content(fp, project=project) or '',
-            modified_at=modified_at,
-        )
-
-    def _build_files(self, prefetch=True) -> dict[str, FileData]:
-        project = self._get_project(prefetch=prefetch)
-        files: dict[str, FileData] = {
-            '/project.yaml': self._lazy_file('/project.yaml', project.updated.isoformat(), project=project),
-        }
-        for finding in (project.findings.all() if prefetch else project.findings.only('finding_id', 'updated').all()):
-            path = f'/reporting/findings/{finding.finding_id}.yaml'
-            files[path] = self._lazy_file(path, finding.updated.isoformat(), project=project)
-        for section in (project.sections.all() if prefetch else project.sections.only('section_id', 'updated').all()):
-            path = f'/reporting/sections/{section.section_id}.yaml'
-            files[path] = self._lazy_file(path, section.updated.isoformat(), project=project)
-        for note in (project.notes.all() if prefetch else project.notes.only('note_id', 'updated').all()):
-            files[f'/notes/{note.note_id}.yaml'] = self._lazy_file(f'/notes/{note.note_id}.yaml', note.updated.isoformat(), project=project)
-        return files
-
-    def _readonly_error(self, file_path: str) -> str:
-        return (
-            f"Error: Cannot modify '{file_path}': the project filesystem is read-only. "
-            'To change project content use the dedicated tools instead: '
-            'update_field_value, update_markdown_field, or create_finding.'
-        )
-
-    def ls(self, path: str) -> LsResult:
-        files = self._build_files(prefetch=False)
-        normalized_path = '/' if path in ('', '/') else (path if path.endswith('/') else path + '/')
-
-        infos: list[FileInfo] = []
-        subdirs: set[str] = set()
-        for k, fd in files.items():
-            if not k.startswith(normalized_path):
-                continue
-            relative = k[len(normalized_path):]
-            if '/' in relative:
-                subdirs.add(normalized_path + relative.split('/')[0] + '/')
-                continue
-            infos.append(FileInfo(path=k, is_dir=False, modified_at=fd.get('modified_at', '')))
-
-        infos.extend(FileInfo(path=subdir, is_dir=True) for subdir in sorted(subdirs))
-        infos.sort(key=lambda x: x.get('path', ''))
-
-        if not infos:
-            return LsResult(error=FILE_NOT_FOUND)
-        return LsResult(entries=infos)
-
-    def read(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
-        content = self._load_file_content(file_path)
-        if content is None:
-            return ReadResult(error=FILE_NOT_FOUND)
-        file_data = create_file_data(content)
-        sliced = slice_read_response(file_data, offset, limit)
-        if isinstance(sliced, ReadResult):
-            return sliced
-        return ReadResult(file_data=FileData(
-            content=sliced,
-            encoding=file_data.get('encoding', 'utf-8'),
-            **{k: file_data[k] for k in ('created_at', 'modified_at') if k in file_data},
-        ))
-
-    def grep(self, pattern: str, path: str | None = None, glob: str | None = None) -> GrepResult:
-        return grep_matches_from_files(self._build_files(), pattern, path if path is not None else '/', glob)
-
-    def glob(self, pattern: str, path: str | None = None) -> GlobResult:
-        files = self._build_files(prefetch=False)
-        try:
-            result = _glob_search_files(files, pattern, path if path is not None else '/')
-        except InvalidGlobPatternError as exc:
-            return GlobResult(error=str(exc))
-        if result == 'No files found':
-            return GlobResult(matches=[])
-        infos: list[FileInfo] = []
-        for p in result.split('\n'):
-            fd = files.get(p)
-            infos.append(FileInfo(
-                path=p,
-                is_dir=False,
-                modified_at=(fd or {}).get('modified_at', ''),
-            ))
-        return GlobResult(matches=infos)
-
-    def write(self, file_path: str, content: str) -> WriteResult:
-        return WriteResult(error=self._readonly_error(file_path))
-
-    def edit(self, file_path: str, old_string: str, new_string: str, replace_all: bool = False) -> EditResult:
-        return EditResult(error=self._readonly_error(file_path))
-
-    def upload_files(self, files: list[tuple[str, bytes]]) -> list[FileUploadResponse]:
-        return [FileUploadResponse(path=path, error=PERMISSION_DENIED) for path, _ in files]
-
-    @sync_to_async
-    def aread(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
-        return self.read(file_path, offset=offset, limit=limit)
-
-    @sync_to_async
-    def als(self, path: str) -> LsResult:
-        return self.ls(path)
-
-    @sync_to_async
-    def agrep(self, pattern: str, path: str | None = None, glob: str | None = None) -> GrepResult:
-        return self.grep(pattern, path, glob)
-
-    @sync_to_async
-    def aglob(self, pattern: str, path: str | None = None) -> GlobResult:
-        return self.glob(pattern, path)
-
-    async def awrite(self, file_path: str, content: str) -> WriteResult:
-        return self.write(file_path, content)
-
-    async def aedit(self, file_path: str, old_string: str, new_string: str, replace_all: bool = False) -> EditResult:
-        return self.edit(file_path, old_string, new_string, replace_all=replace_all)
-
-
 class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]):
     """
     Inject context about the current project and section/finding into the agent.
@@ -1042,6 +828,15 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         system_prompt += '\n\n' + additional_system_prompt
     if configuration.AI_AGENT_SYSTEM_PROMPT:
         system_prompt += '\n\n' + configuration.AI_AGENT_SYSTEM_PROMPT
+
+    filesystem_backend = CompositeBackend(
+        default=StateBackend(),
+        routes={
+            ProjectFilesystemBackend.PROJECT_ROOT: ProjectFilesystemBackend(),
+            NotesSkillsBackend.SKILLS_ROOT: NotesSkillsBackend(),
+        },
+        artifacts_root='/scratch/',
+    )
     return create_sysreptor_agent(
         system_prompt=system_prompt,
         tools=[
@@ -1052,11 +847,8 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         ] + (additional_tools or []),
         middleware=[
             InjectProjectContextMiddleware(),
-            FilesystemMiddleware(backend=CompositeBackend(
-                default=StateBackend(),
-                routes={ProjectFilesystemBackend.PROJECT_ROOT: ProjectFilesystemBackend()},
-                artifacts_root='/scratch/',
-            )),
+            FilesystemMiddleware(backend=filesystem_backend),
+            SkillsMiddleware(backend=filesystem_backend, sources=[(NotesSkillsBackend.SKILLS_ROOT, 'Project')]),
         ],
         context_schema=ProjectContext,
     )
