@@ -8,14 +8,27 @@ const md = new MarkdownIt({
   typographer: false,
 })
 
+const DOCS_HOST = 'docs.sysreptor.com'
+
+function isDocsHref(href: string | null): boolean {
+  if (!href) return false
+  try {
+    return new URL(href, `https://${DOCS_HOST}/`).hostname === DOCS_HOST
+  } catch {
+    return false
+  }
+}
+
 const defaultLinkOpen =
   md.renderer.rules.link_open ||
   ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options))
 
 md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   const token = tokens[idx]
-  token.attrSet('target', '_blank')
-  token.attrSet('rel', 'noopener noreferrer')
+  if (!isDocsHref(token.attrGet('href'))) {
+    token.attrSet('target', '_blank')
+    token.attrSet('rel', 'noopener noreferrer')
+  }
   return defaultLinkOpen(tokens, idx, options, env, self)
 }
 
