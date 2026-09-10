@@ -23,7 +23,7 @@ from sysreptor.ai.agents.base import (
     init_chat_model,
 )
 from sysreptor.ai.agents.filesystem import (
-    NotesSkillsBackend,
+    NotesAgentsDirBackend,
     ProjectFilesystemBackend,
 )
 from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
@@ -1241,11 +1241,11 @@ def get_agent_system_prompt(project, user):
     ('café/test', 'cafétest'),
 ])
 def test_normalize_note_filename(title, expected):
-    assert NotesSkillsBackend.normalize_note_filename(title) == expected
+    assert NotesAgentsDirBackend.normalize_note_filename(title) == expected
 
 
 @pytest.mark.django_db()
-class TestNotesSkillsBackend:
+class TestNotesAgentsDirBackend:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
@@ -1254,30 +1254,48 @@ class TestNotesSkillsBackend:
             default=StateBackend(),
             routes={
                 ProjectFilesystemBackend.PROJECT_ROOT: ProjectFilesystemBackend(),
-                NotesSkillsBackend.SKILLS_ROOT: NotesSkillsBackend(),
+                NotesAgentsDirBackend.AGENTS_ROOT: NotesAgentsDirBackend(),
             },
         )
         with project_filesystem_runtime(self.project, self.user):
             yield
 
-    @pytest.mark.parametrize(('setup', 'expected_dirs'), [
-        (lambda p: None, []),
-        (create_nested_agents_skill, []),
-        (lambda p: create_skills_note_tree(p, {'incomplete': {'readme.md': 'no skill md'}}), []),
-        (lambda p: create_skills_note_tree(p, {'my/skill': {'SKILL.md': DEMO_SKILL_MD}}), ['/skills/myskill/']),
+    @pytest.mark.parametrize(('setup', 'ls_path', 'expected_dirs'), [
+        (lambda p: None, '/.agents/', []),
+        (create_nested_agents_skill, '/.agents/', []),
+        (lambda p: create_skills_note_tree(p, {'incomplete': {'readme.md': 'no skill md'}}),
+         '/.agents/skills/', ['/.agents/skills/incomplete/']),
+        (lambda p: create_skills_note_tree(p, {'my/skill': {'SKILL.md': DEMO_SKILL_MD}}),
+         '/.agents/skills/', ['/.agents/skills/myskill/']),
         (lambda p: create_skills_note_tree(p, {
                 'demo-skill': {'SKILL.md': DEMO_SKILL_MD},
                 'bad-skill': {'SKILL.md': 'not valid frontmatter'},  # present in FS; SkillsMiddleware skips parse failures
             }),
-            ['/skills/bad-skill/', '/skills/demo-skill/'],
+         '/.agents/skills/',
+         ['/.agents/skills/bad-skill/', '/.agents/skills/demo-skill/'],
         ),
     ])
-    def test_ls_root_lists_expected_skills(self, setup, expected_dirs):
+    def test_ls_lists_expected_dirs(self, setup, ls_path, expected_dirs):
         setup(self.project)
-        result = self.backend.ls('/skills/')
+        result = self.backend.ls(ls_path)
         assert result.error is None
         dir_paths = sorted(e['path'] for e in (result.entries or []) if e.get('is_dir'))
         assert dir_paths == sorted(expected_dirs)
+
+    def test_ls_and_read_non_skill_agents_content(self):
+        agents = create_projectnotebookpage(project=self.project, title='.agents', parent=None, order=1, text='', checked=None)
+        create_projectnotebookpage(project=self.project, title='instructions.md', parent=agents, order=1, text='# Hello agents', checked=None)
+        skills_root = create_projectnotebookpage(project=self.project, title='skills', parent=agents, order=2, text='', checked=None)
+        skill_dir = create_projectnotebookpage(project=self.project, title='demo-skill', parent=skills_root, order=1, text='', checked=None)
+        create_projectnotebookpage(project=self.project, title='SKILL.md', parent=skill_dir, order=1, text=DEMO_SKILL_MD, checked=None)
+
+        root_paths = [e['path'] for e in (self.backend.ls('/.agents/').entries or [])]
+        assert '/.agents/instructions.md' in root_paths
+        assert '/.agents/skills/' in root_paths
+
+        read = self.backend.read('/.agents/instructions.md')
+        assert read.error is None
+        assert 'Hello agents' in read.file_data['content']
 
     def test_ls_and_read_skill(self):
         create_skills_note_tree(self.project, {
@@ -1287,20 +1305,20 @@ class TestNotesSkillsBackend:
                 'references': {'api.md': '# API\nNested docs.'},
             },
         })
-        assert '/skills/demo-skill/' in [e['path'] for e in (self.backend.ls('/skills/').entries or [])]
+        assert '/.agents/skills/demo-skill/' in [e['path'] for e in (self.backend.ls('/.agents/skills/').entries or [])]
 
-        skill_paths = [e['path'] for e in (self.backend.ls('/skills/demo-skill/').entries or [])]
-        assert '/skills/demo-skill/SKILL.md' in skill_paths
-        assert '/skills/demo-skill/references.md' in skill_paths
-        assert '/skills/demo-skill/references/' in skill_paths  # nested dir
+        skill_paths = [e['path'] for e in (self.backend.ls('/.agents/skills/demo-skill/').entries or [])]
+        assert '/.agents/skills/demo-skill/SKILL.md' in skill_paths
+        assert '/.agents/skills/demo-skill/references.md' in skill_paths
+        assert '/.agents/skills/demo-skill/references/' in skill_paths  # nested dir
 
-        nested_paths = [e['path'] for e in (self.backend.ls('/skills/demo-skill/references/').entries or [])]
-        assert '/skills/demo-skill/references/api.md' in nested_paths
+        nested_paths = [e['path'] for e in (self.backend.ls('/.agents/skills/demo-skill/references/').entries or [])]
+        assert '/.agents/skills/demo-skill/references/api.md' in nested_paths
 
         for path, expected in [
-            ('/skills/demo-skill/SKILL.md', 'Always start findings'),
-            ('/skills/demo-skill/references.md', 'More detail.'),
-            ('/skills/demo-skill/references/api.md', 'Nested docs.'),
+            ('/.agents/skills/demo-skill/SKILL.md', 'Always start findings'),
+            ('/.agents/skills/demo-skill/references.md', 'More detail.'),
+            ('/.agents/skills/demo-skill/references/api.md', 'Nested docs.'),
         ]:
             read = self.backend.read(path)
             assert read.error is None
@@ -1308,7 +1326,7 @@ class TestNotesSkillsBackend:
 
     def test_download_files(self):
         create_skills_note_tree(self.project, {'demo-skill': {'SKILL.md': DEMO_SKILL_MD}})
-        responses = self.backend.download_files(['/skills/demo-skill/SKILL.md', '/skills/missing/SKILL.md'])
+        responses = self.backend.download_files(['/.agents/skills/demo-skill/SKILL.md', '/.agents/skills/missing/SKILL.md'])
         assert responses[0].error is None
         assert b'name: demo-skill' in responses[0].content
         assert responses[1].error == 'file_not_found'
@@ -1320,11 +1338,11 @@ class TestNotesSkillsBackend:
         empty_dir = create_projectnotebookpage(project=self.project, title='empty', parent=skill_dir, order=2, text='', checked=None)
         create_projectnotebookpage(project=self.project, title='diagram', parent=empty_dir, type=NoteType.EXCALIDRAW, order=1, checked=None)
 
-        result = self.backend.ls('/skills/demo-skill/empty/')
+        result = self.backend.ls('/.agents/skills/demo-skill/empty/')
         assert result.error is None
         assert result.entries == []
 
-        assert self.backend.ls('/skills/demo-skill/missing/').error == 'file_not_found'
+        assert self.backend.ls('/.agents/skills/demo-skill/missing/').error == 'file_not_found'
 
     def test_duplicate_titles_pick_highest_order(self):
         skills_root = create_skills_note_tree(self.project, {'demo-skill': {'SKILL.md': DEMO_SKILL_MD}})
@@ -1333,27 +1351,38 @@ class TestNotesSkillsBackend:
             project=self.project, title='SKILL.md', parent=second, order=1,
             text='---\nname: other\ndescription: last wins\n---\n# Other\n', checked=None,
         )
-        read = self.backend.read('/skills/demo-skill/SKILL.md')
+        read = self.backend.read('/.agents/skills/demo-skill/SKILL.md')
         assert read.error is None
         assert 'last wins' in read.file_data['content']
         assert 'name: demo-skill' not in read.file_data['content']
 
     def test_read_only_write(self):
         create_skills_note_tree(self.project, {'demo-skill': {'SKILL.md': DEMO_SKILL_MD}})
-        result = self.backend.write('/skills/demo-skill/SKILL.md', 'hacked')
+        result = self.backend.write('/.agents/skills/demo-skill/SKILL.md', 'hacked')
         assert result.error is not None
         assert 'read-only' in result.error.lower()
 
+    def test_download_agents_md(self):
+        agents = create_projectnotebookpage(project=self.project, title='.agents', parent=None, order=1, text='', checked=None)
+        create_projectnotebookpage(
+            project=self.project, title='AGENTS.md', parent=agents, order=1,
+            text='# Project memory\nPrefer short finding titles.', checked=None,
+        )
+        responses = self.backend.download_files(['/.agents/AGENTS.md', '/.agents/missing.md'])
+        assert responses[0].error is None
+        assert b'Prefer short finding titles' in responses[0].content
+        assert responses[1].error == 'file_not_found'
+
     def test_grep_and_glob(self):
         create_skills_note_tree(self.project, {'demo-skill': {'SKILL.md': DEMO_SKILL_MD}})
-        grep = self.backend.grep('Always start findings', path='/skills/')
+        grep = self.backend.grep('Always start findings', path='/.agents/skills/')
         assert any(m['path'].endswith('/SKILL.md') for m in (grep.matches or []))
-        glob = self.backend.glob('**/SKILL.md', path='/skills/')
+        glob = self.backend.glob('**/SKILL.md', path='/.agents/skills/')
         assert any(m['path'].endswith('/demo-skill/SKILL.md') for m in (glob.matches or []))
 
 
 @pytest.mark.django_db()
-class TestNotesSkillsAgent:
+class TestNotesAgentDirAgent:
     @pytest.mark.parametrize('with_skill', [
         True,
         False,
@@ -1365,7 +1394,7 @@ class TestNotesSkillsAgent:
             create_skills_note_tree(project, {'demo-skill': {'SKILL.md': DEMO_SKILL_MD}})
 
         content = get_agent_system_prompt(project, user)
-        skill_markers = ['demo-skill', 'writing demo finding summaries', '/skills/demo-skill/SKILL.md']
+        skill_markers = ['demo-skill', 'writing demo finding summaries', '/.agents/skills/demo-skill/SKILL.md']
         if with_skill:
             assert all(marker in content for marker in skill_markers)
         else:
@@ -1378,7 +1407,7 @@ class TestNotesSkillsAgent:
         client = api_client(user=user)
         llm_messages = [
             AIMessage(content='', tool_calls=[
-                ToolCall(id='tool_call_1', name='read_file', args={'file_path': '/skills/demo-skill/SKILL.md', 'limit': 1000}),
+                ToolCall(id='tool_call_1', name='read_file', args={'file_path': '/.agents/skills/demo-skill/SKILL.md', 'limit': 1000}),
             ]),
             AIMessage(content='Loaded the demo skill.'),
         ]
@@ -1395,3 +1424,20 @@ class TestNotesSkillsAgent:
             assert tool_status['content']['name'] == 'read_file'
             assert tool_status['content']['status'] == 'success'
             assert 'Always start findings' in tool_status['content']['content']
+
+    @pytest.mark.parametrize('with_agents_md', [True, False])
+    def test_agents_md_in_system_prompt(self, with_agents_md):
+        user = create_user()
+        project = create_project(members=[user], notes_kwargs=[])
+        memory_text = 'Prefer short finding titles for this engagement.'
+        if with_agents_md:
+            agents = create_projectnotebookpage(project=project, title='.agents', parent=None, order=1, text='', checked=None)
+            create_projectnotebookpage(project=project, title='AGENTS.md', parent=agents, order=1, text=memory_text, checked=None)
+
+        content = get_agent_system_prompt(project, user)
+        if with_agents_md:
+            assert '/.agents/AGENTS.md' in content
+            assert memory_text in content
+        else:
+            assert memory_text not in content
+            assert '(No memory loaded)' in content

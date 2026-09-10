@@ -10,6 +10,7 @@ from deepagents.backends import CompositeBackend, StateBackend
 from deepagents.backends.protocol import FILE_NOT_FOUND
 from deepagents.middleware._utils import append_to_system_message
 from deepagents.middleware.filesystem import FilesystemMiddleware
+from deepagents.middleware.memory import MemoryMiddleware
 from deepagents.middleware.skills import SkillsMiddleware
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -30,7 +31,7 @@ from sysreptor.ai.agents.base import (
     to_inline_context,
     to_yaml,
 )
-from sysreptor.ai.agents.filesystem import NotesSkillsBackend, ProjectFilesystemBackend
+from sysreptor.ai.agents.filesystem import NotesAgentsDirBackend, ProjectFilesystemBackend
 from sysreptor.pentests.fielddefinition.sort import group_findings
 from sysreptor.pentests.models import (
     FindingTemplate,
@@ -833,7 +834,7 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         default=StateBackend(),
         routes={
             ProjectFilesystemBackend.PROJECT_ROOT: ProjectFilesystemBackend(),
-            NotesSkillsBackend.SKILLS_ROOT: NotesSkillsBackend(),
+            NotesAgentsDirBackend.AGENTS_ROOT: NotesAgentsDirBackend(),
         },
         artifacts_root='/scratch/',
     )
@@ -848,7 +849,15 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         middleware=[
             InjectProjectContextMiddleware(),
             FilesystemMiddleware(backend=filesystem_backend),
-            SkillsMiddleware(backend=filesystem_backend, sources=[(NotesSkillsBackend.SKILLS_ROOT, 'Project')]),
+            SkillsMiddleware(
+                backend=filesystem_backend,
+                sources=[NotesAgentsDirBackend.SKILLS_ROOT],
+            ),
+            MemoryMiddleware(
+                backend=filesystem_backend,
+                sources=[NotesAgentsDirBackend.AGENTS_MD],
+                system_prompt=NotesAgentsDirBackend.READ_ONLY_AGENTS_MEMORY_PROMPT,
+            ),
         ],
         context_schema=ProjectContext,
     )
