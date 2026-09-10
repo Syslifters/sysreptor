@@ -19,7 +19,7 @@ Django server secret key (see https://docs.djangoproject.com/en/stable/ref/setti
 Make sure this key remains secret.
 
 ```shell title="Generate random secret key:"
-printf "SECRET_KEY=$(openssl rand -base64 64 | tr -d '\n=')\n"
+printf "SECRET_KEY=$(openssl rand -base64 64 | tr -d '\r\n=')\n"
 ```
 
 ```dotenv title="Example (regenerate this value!):"
@@ -39,7 +39,7 @@ All specified keys are used for decrypting stored data.
 Note that the `DEFAULT_ENCRYPTION_KEY_ID` must be part of `ENCRYPTION_KEYS`.
 
 ```shell  title="Generate random encryption keys:"
-KEY_ID=$(uuidgen) && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]\nDEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\"\n"
+KEY_ID=$(uuidgen | tr -d '\r\n') && printf "ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32 | tr -d '\r\n')\", \"cipher\": \"AES-GCM\", \"revoked\": false}]\nDEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\"\n"
 ```
 
 ```dotenv title="Example (regenerate these values!):"
@@ -185,7 +185,7 @@ The backup key is used for creating backups via the [web interface](/setup/backu
 Make sure this key remains secret.
 
 ```shell title="Generate random backup key:"
-printf "BACKUP_KEY=$(openssl rand -base64 25 | tr -d '\n=')\n"
+printf "BACKUP_KEY=$(openssl rand -base64 25 | tr -d '\r\n=')\n"
 ```
 
 ```dotenv title="Example (do not use this value!):"

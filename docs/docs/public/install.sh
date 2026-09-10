@@ -104,14 +104,14 @@ else
     cp app.env.example app.env
 
     echo "Generating Django secret key..."
-    secret_key="SECRET_KEY=\"$(openssl rand -base64 64 | tr -d '\n=')\""
+    secret_key="SECRET_KEY=\"$(openssl rand -base64 64 | tr -d '\r\n=')\""
     sed -i'' -e "s#.*SECRET_KEY=.*#$secret_key#" app.env
 
     if [[ $SYSREPTOR_ENCRYPT == [yY] ]]
     then
         echo "Generating data at rest encryption keys..."
-        KEY_ID=$(uuidgen)
-        encryption_keys="ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32)\", \"cipher\": \"AES-GCM\", \"revoked\": false}]"
+        KEY_ID=$(uuidgen | tr -d '\r\n')
+        encryption_keys="ENCRYPTION_KEYS=[{\"id\": \"${KEY_ID}\", \"key\": \"$(openssl rand -base64 32 | tr -d '\r\n')\", \"cipher\": \"AES-GCM\", \"revoked\": false}]"
         default_encryption_key_id="DEFAULT_ENCRYPTION_KEY_ID=\"${KEY_ID}\""
         sed -i'' -e "s#.*ENCRYPTION_KEYS=.*#$encryption_keys#" app.env
         sed -i'' -e "s#.*DEFAULT_ENCRYPTION_KEY_ID=.*#$default_encryption_key_id#" app.env
@@ -124,7 +124,7 @@ else
     echo "Generating database and Redis passwords..."
     for env_var in POSTGRES_PASSWORD REDIS_PASSWORD
     do
-        password="$(openssl rand -hex 32)"
+        password="$(openssl rand -hex 32 | tr -d '\r\n')"
         if grep -qE "^[[:space:]]*(#[[:space:]]*)?${env_var}=" .env
         then
             sed -i "s|^[[:space:]]*#\?[[:space:]]*${env_var}=.*|${env_var}=${password}|" .env
@@ -215,7 +215,7 @@ echo ""
 
 echo "Setting up initial data..."
 echo "Creating initial user..."
-password=$(openssl rand -base64 20 | tr -d '\n=')
+password=$(openssl rand -base64 20 | tr -d '\r\n=')
 echo '' | docker compose exec --no-TTY -e DJANGO_SUPERUSER_USERNAME="reptor" -e DJANGO_SUPERUSER_PASSWORD="$password" app python3 manage.py createsuperuser --noinput
 echo "Importing demo projects..."
 url="https://docs.sysreptor.com/assets/demo-projects.tar.gz"
