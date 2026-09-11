@@ -6,13 +6,28 @@ To be able to use the agent, enable it in applications settings and configure an
 
 ![AI agent](/images/ai-agent.png)
 
-The agent has access to project data through context and tools. It can read project structure, sections, findings, notes, and finding templates. The agent is scoped to the current project. It cannot access other projects.
+The agent has access to project data through context and tools.
+
+## Project scoping
+
+The SysReptor AI agent is bound to the **current pentest project** only.
+
+It **can**:
+
+* Read that project's structure, report sections, findings, notes, and the project's design field definitions
+* See which section, finding, or note you currently have open in the UI
+* Search **finding templates** in the instance knowledge base (templates are shared, not limited to one project)
+
+It **cannot**:
+
+* Read or edit **other projects**
+* Access other users' private data, instance admin settings, or findings and notes that belong to a different project
 
 
 ## Agent Mode
 
 - **Ask**: Read-only. The agent can view the project and answer questions or suggest text. It does not create or edit any data; you copy and apply suggestions yourself.
-- **Agent** (<BadgePro />): Full write access. In addition to everything in Ask mode, the agent can create findings and update fields.
+- **Agent** (<BadgePro />): Full write access in this project. In addition to everything in Ask mode, the agent can create findings and notes and update section, finding, and note fields.
 
 
 ## Asking clarifying questions
