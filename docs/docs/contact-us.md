@@ -70,7 +70,8 @@ Interested in SysReptor Professional? Book a Teams call with us and get your que
 </div>
 
 <div style="display: flex; align-items: center; margin-top: 1.3em; margin-bottom: 1.5em">
-  <img src="/images/Signal-Logo-Black.svg" width="30" style="margin-right:14px; margin-left:0;" alt="Signal Logo"> <a href="https://signal.me/#eu/69wmqfeZfGeyV9dq5pY8u6wRiCNEzyWyAR3VBNZEYDpRQCqhZyhKZLAHUUCj_rsJ" target="_blank">syslifters.01</a>
+  <span class="signal-logo" role="img" aria-label="Signal Logo"></span>
+  <a href="https://signal.me/#eu/69wmqfeZfGeyV9dq5pY8u6wRiCNEzyWyAR3VBNZEYDpRQCqhZyhKZLAHUUCj_rsJ" target="_blank">syslifters.01</a>
 </div>
 
 <div style="margin-top: 1.3em"><Icon icon="mdi:phone" style="transform: scale(2);margin-right:1em;margin-left:0.3em;" /> <a href="tel:+436609234060">+43 660 923 40 60</a></div>

@@ -193,6 +193,19 @@
   }
 }
 
+.vp-doc .signal-logo {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  margin-right: 14px;
+  margin-left: 0;
+  flex-shrink: 0;
+  background-color: currentColor;
+  mask: url(/images/Signal-Logo-Black.svg) center / contain no-repeat;
+  mask-mode: alpha;
+  -webkit-mask: url(/images/Signal-Logo-Black.svg) center / contain no-repeat;
+}
+
 /* Global styles */
 .vp-doc h1 {
   margin-bottom: 1em;
