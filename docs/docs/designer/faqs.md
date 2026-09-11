@@ -1,5 +1,8 @@
-# Frequently Asked Questions (FAQs)
+# Report Design FAQs
 
+<FaqExpandAll />
+
+<div class="faq-item">
 
 ::: details How to set solid color as page background?
 Set background color for all pages
@@ -17,6 +20,10 @@ Set background color only on the first page (cover page)
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to set a header background color?
 ```css
@@ -44,6 +51,10 @@ Set background color only on the first page (cover page)
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details Why are my font styles (e.g. italic or bold) not working?
 We provide some [preinstalled fonts](/designer/design-guides#fonts) that should work out of the box.
@@ -51,6 +62,10 @@ We provide some [preinstalled fonts](/designer/design-guides#fonts) that should 
 If you want to use custom font, make sure to [upload and include](/designer/design-guides#custom-fonts) them in your CSS.
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details Why are my images or markdown not rendered in the report?
 Your design may reference the variable incorrectly. Make sure to use this syntax:
@@ -59,6 +74,10 @@ Your design may reference the variable incorrectly. Make sure to use this syntax
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to format links like normal text?
 If you want all links to appear as normal text, use following CSS:
@@ -91,6 +110,10 @@ Markdown:
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to reference the filename in the report?
 This is not possible, unfortunately.
@@ -98,6 +121,10 @@ This is not possible, unfortunately.
 However, if you want to display your filename in your report, you might define a custom report field (or generate a dynamic filename like `report_{report.customer_name}_{report.title}.pdf`) and copy the filename from the preview to the filename textbox.
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to highlight parts of code blocks with custom style?
 Highlighting within code-blocks works with the attribute `highlight-manual` and the marker `§§` ([see also](/reporting/markdown-features#code-blocks)):
@@ -116,6 +143,10 @@ mark {
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to reduce the padding of code blocks?
 Add following rules to CSS
@@ -126,6 +157,10 @@ pre code {
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to increase the space between list marker and text in lists?
 Add following rules to CSS
@@ -141,6 +176,10 @@ ol > li::marker {
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to use landscape page orientation?
 SysReptor uses page orientation `portrait` by default. However, you can change that via CSS.
@@ -159,6 +198,10 @@ SysReptor uses page orientation `portrait` by default. However, you can change t
 ```
 :::
 
+</div>
+
+
+<div class="faq-item">
 
 ::: details How to add markdown headings to table of contents?
 SysReptor uses the CSS class `in-toc` to add headings to the table of contents. Optionally in combination with class `numbered` for chapter numbers.
@@ -183,10 +226,9 @@ If you want to automatically add all markdown headings to table of contents, add
 ```
 :::
 
+</div>
+
 
 ::: info <DocBadge icon="mdi:help-circle" class="lg middle" label="Further questions?" />
-Need help or have questions? Get support and connect with us and the SysReptor community.
-
-[Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a)
+Need help or have questions? Get support and [connect with us and the SysReptor community](https://github.com/Syslifters/sysreptor/discussions/).
 :::
-

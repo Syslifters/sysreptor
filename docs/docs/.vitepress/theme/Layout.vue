@@ -32,10 +32,14 @@ import { onMounted, watch } from 'vue'
 import { useData, withBase } from 'vitepress'
 import DefaultTheme from 'vitepress/theme'
 import { AskAiButton, ChatWidget } from './chat-widget'
+import { setupFaqFragments } from './faqFragments'
+import { setupTabFragments } from './tabFragments'
 import { matchRedirect } from '../redirects/redirectRules'
 import rules from 'virtual:vitepress-redirects'
 
 const { page } = useData()
+setupFaqFragments()
+setupTabFragments()
 
 function maybeRedirectNotFound() {
   if (!page.value.isNotFound) return

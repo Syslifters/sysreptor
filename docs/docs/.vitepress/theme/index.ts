@@ -6,6 +6,7 @@ import { Icon } from '@iconify/vue/offline'
 import './register-icons'
 import { enhanceAppWithTabs } from 'vitepress-plugin-tabs/client'
 import DocBadge from './components/DocBadge.vue'
+import FaqExpandAll from './components/FaqExpandAll.vue'
 import Layout from './Layout.vue'
 import './style.css'
 
@@ -14,6 +15,7 @@ export default {
   Layout,
   enhanceApp({ app }) {
     app.component('Icon', Icon)
+    app.component('FaqExpandAll', FaqExpandAll)
     enhanceAppWithTabs(app)
     registerDocBadges(app)
   },

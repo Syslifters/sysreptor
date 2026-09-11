@@ -91,7 +91,7 @@ export default defineConfig({
           { text: 'Formatting Utilities', link: '/designer/formatting-utils' },
           { text: 'Filenames', link: '/designer/filenames' },
           { text: 'Debugging', link: '/designer/debugging' },
-          { text: 'FAQs', link: '/designer/faqs' },
+          { text: 'Design FAQs', link: '/designer/faqs' },
         ],
       },
       {

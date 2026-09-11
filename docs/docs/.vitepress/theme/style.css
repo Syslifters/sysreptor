@@ -263,4 +263,34 @@
   vertical-align: middle !important;
 }
 
+/* FAQ accordion and tab fragment targets */
+.vp-doc .faq-item,
+.vp-doc .plugin-tabs {
+  scroll-margin-top: calc(var(--vp-nav-height) + 16px);
+}
+
+.vp-doc .faq-expand-all {
+  display: flex;
+  justify-content: flex-end;
+  margin: -0.5em 0 0.75em;
+}
+
+.vp-doc .faq-expand-all__button {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: var(--vp-c-text-2);
+  cursor: pointer;
+}
+
+.vp-doc .faq-expand-all__button:hover {
+  color: var(--vp-c-brand-1);
+}
+
 

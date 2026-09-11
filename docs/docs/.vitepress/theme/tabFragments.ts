@@ -67,6 +67,7 @@ function bindTabs() {
       if (id) setHash(id)
     })
     tablist.addEventListener('keydown', (event) => {
+      if (!(event instanceof KeyboardEvent)) return
       if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
       requestAnimationFrame(() => syncHashFromGroup(group))
     })
