@@ -68,7 +68,7 @@ __Pro tip:__ Most functionality included by Dradis Professional!
 
 <div style="text-align:center">
 
-[🚀 Sign Up to SysReptor](https://offsec.sysreptor.com/oscp/signup/){.md-button}
+[🚀 Sign Up to SysReptor](https://offsec.sysreptor.com/offsec/signup/){.md-button}
 
 </div>
 
