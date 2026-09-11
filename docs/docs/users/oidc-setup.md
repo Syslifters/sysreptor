@@ -1,7 +1,7 @@
 # SSO Setup with OIDC
 <BadgePro />
 
-1. Configure your Identity Provider (IDP) and add configuration details to your [application settings](/setup/configuration#single-sign-on-sso).
+1. Configure your Identity Provider (IDP) and add the OIDC client details (`OIDC_AUTHLIB_OAUTH_CLIENTS`) in **Settings → Authentication Settings**, or in `app.env`. See [application settings](/setup/configuration#single-sign-on-sso).
     * [Microsoft Entra ID](/users/oidc-entra-id)
     * [Google Workplace/Google Identity](/users/oidc-google)
     * [Keycloak](/users/oidc-keycloak)
