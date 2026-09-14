@@ -1139,11 +1139,27 @@ class TestSharedProjectNotesDbSync:
         res_api = await sync_to_async(self.api_client_public.post)(
             path=reverse('sharednote-list', kwargs={'shareinfo_pk': self.share_info.id}),
             data={'title': 'new', 'text': 'new', 'parent': self.note_shared.note_id})
-        # Create event
-        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None})
+        assert res_api.status_code == 201, res_api.data
+        for key in ('assignee', 'is_shared', 'has_pending_share_files'):
+            assert key not in res_api.data
+
+        # Create event (user gets full payload; public gets scrubbed PublicSerializer shape)
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'client_id': None}, user=True, public=None)
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None}, user=None, public=True)
         # Sort event (share root omitted for public consumers)
         event_sort = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
         assert {s['id'] for s in event_sort['sort']} == {str(self.childnote_shared.note_id), res_api.data['id']}
+
+    async def test_public_excludes_internal_fields(self):
+        for note in self.client_public.init['data']['notes'].values():
+            for key in ('assignee', 'is_shared', 'has_pending_share_files'):
+                assert key not in note
+
+        await sync_to_async(update)(self.childnote_shared, assignee=self.user)
+        await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.assignee', 'client_id': None}, user=True, public=False)
+
+        await sync_to_async(create_shareinfo)(projectnote=self.childnote_shared)
+        await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.is_shared', 'value': True, 'client_id': None}, user=True, public=False)
 
     async def test_delete_sync(self):
         await self.childnote_shared.adelete()
@@ -1339,11 +1355,24 @@ class TestSharedUserNotesDbSync:
         res_api = await sync_to_async(self.api_client_public.post)(
             path=reverse('sharednote-list', kwargs={'shareinfo_pk': self.share_info.id}),
             data={'title': 'new', 'text': 'new', 'parent': self.note_shared.note_id})
-        # Create event
-        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None})
+        assert res_api.status_code == 201, res_api.data
+        for key in ('is_shared', 'has_pending_share_files'):
+            assert key not in res_api.data
+
+        # Create event (user gets full payload; public gets scrubbed PublicSerializer shape)
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'client_id': None}, user=True, public=None)
+        await self.assert_event({'type': CollabEventType.CREATE, 'path': f'notes.{res_api.data["id"]}', 'value': res_api.data, 'client_id': None}, user=None, public=True)
         # Sort event (share root omitted for public consumers)
         event_sort = await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None})
         assert {s['id'] for s in event_sort['sort']} == {str(self.childnote_shared.note_id), res_api.data['id']}
+
+    async def test_public_excludes_internal_fields(self):
+        for note in self.client_public.init['data']['notes'].values():
+            for key in ('is_shared', 'has_pending_share_files'):
+                assert key not in note
+
+        await sync_to_async(create_shareinfo)(usernote=self.childnote_shared)
+        await self.assert_event({'type': CollabEventType.UPDATE_KEY, 'path': self.childnote_shared_path_prefix + '.is_shared', 'value': True, 'client_id': None}, user=True, public=False)
 
     async def test_delete_sync(self):
         await self.childnote_shared.adelete()
