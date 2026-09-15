@@ -163,7 +163,10 @@ We comply with all applicable US federal and state privacy laws, including but n
 <p>We may use or disclose personal information we collect for “business purposes” or “commercial purposes”, which are outlined in the general part of this privacy notice as purposes of processing.<br>
 We may use or disclose, and may have used or disclosed in the last twelve (12) months, the categories of personal information outlined for each purpose in the general part of this privacy notice for business or commercial purposes.</p>
 <h4>Sources of personal information</h4>
-<p>We obtain the categories of personal information listed in the general part of the privacy notice from the following categories of sources: directly from the person themselves (e.g. active input)</p>
+<p>We obtain the categories of personal information listed in the general part of the privacy notice from the following categories of sources:</p>
+<ul>
+<li>Directly from the individual (e.g., actively entering an email address).</li>
+</ul>
 <h3>Do not sell my personal information or share or process my personal information for targeted advertising</h3>
 <p>Residents of specific US states (e.g., California) may opt out of the “sale” of their personal information. Such residents may also opt out of the sharing or processing of their personal information for targeted advertising.<br>
 We may provide third parties information to recognize you across devices and enable marketing and delivery of targeted advertising to you. The disclosure of personal information for this purpose to third parties may be considered a “sale” of personal information under applicable law and is sharing of personal information and the processing of personal information for targeted advertising purposes.<br>
@@ -273,4 +276,4 @@ If you'd like to request more information under the California Shine the Light l
 This privacy notice is reviewed and updated at least once every 12 months as required by the CCPA or other similar applicable laws. You can find the date of the last update at the end of this privacy notice under "Changes to this privacy notice".</p>
 <h2>Changes to this privacy notice</h2>
 <p>We may update this privacy notice occasionally to reflect changes in our data processing practices, legal requirements, or other operational needs. Any modifications will be published on this page, and the "Date of publication" below will be updated accordingly. We encourage you to review this notice periodically to stay informed about how we protect your personal data.</p>
-<p>Date of publication of the current version: 07.07.2026</p>
+<p>Date of publication of the current version: 15.09.2026</p>
