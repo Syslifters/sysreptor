@@ -1,5 +1,4 @@
 # Plugins
-<BadgeExperimental />
 
 SysReptor provides a plugin system to extend the functionality of the application without modifying the SysReptor core code.
 Plugins can hook into the SysReptor core and provide additional features both in the API and the web UI.
