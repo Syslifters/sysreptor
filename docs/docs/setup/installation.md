@@ -6,10 +6,11 @@
 ### Server
 <BadgeSelfHosted />
 
-* Ubuntu[^1]
+* Ubuntu
 * 8GB RAM
 
-[^1]: It may also run on [Kali](https://emvee-nl.github.io/posts/SysReptor/), [MacOS](https://alive-club-f8d.notion.site/Sysreptor-Install-M2-Studio-12e1fd44f31080a28acae6de346c6a30), RHEL, and more as long as you take care of all dependencies. Our install and update procedures, however, focus on Ubuntu.
+Even though we officially support **Ubuntu** only, installation is technically possible on most UNIX-based target systems including Kali, Fedora, macOS or RHEL. Follow the [manual installation](#manual-installation) steps and adapt the commands to your system. If all dependencies are installed, [easy script installation](#easy-script-installation) might also work.  
+On Windows, use [WSL 2](https://learn.microsoft.com/en-us/windows/wsl/install) with an Ubuntu distribution.
 
 ### Client
 <BadgeCloud /> · <BadgeSelfHosted />
