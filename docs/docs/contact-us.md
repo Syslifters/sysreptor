@@ -20,6 +20,14 @@ Have ideas for new features? Share your suggestions to help us improving SysRept
 
 :::
 
+::: info <DocBadge icon="mdi:frequently-asked-questions" label="FAQs" />
+
+Looking for answers about labs.sysre.pt, self-hosted installs, SysReptor Cloud, or using the application?
+
+[Read the FAQs](/faq/){.doc-card__link}
+
+:::
+
 ::: info <DocBadge icon="mdi:help-circle-outline" label="Ask a question" />
 
 Need help or have questions? Get support and connect with us and the SysReptor community.
@@ -40,7 +48,7 @@ Discovered a security vulnerability? Report it responsibly through our vulnerabi
 
 Need to reach us privately? Send confidential messages about sensitive topics or business inquiries.
 
-**Signal: syslifters.01**
+[Signal: syslifters.01](https://signal.me/#eu/69wmqfeZfGeyV9dq5pY8u6wRiCNEzyWyAR3VBNZEYDpRQCqhZyhKZLAHUUCj_rsJ){.doc-card__link}
 
 :::
 
@@ -70,10 +78,11 @@ Interested in SysReptor Professional? Book a Teams call with us and get your que
 </div>
 
 <div style="display: flex; align-items: center; margin-top: 1.3em; margin-bottom: 1.5em">
-  <img src="/images/Signal-Logo-Black.svg" width="30" style="margin-right:14px; margin-left:0;" alt="Signal Logo"> syslifters.01
+  <span class="signal-logo" role="img" aria-label="Signal Logo"></span>
+  <a href="https://signal.me/#eu/69wmqfeZfGeyV9dq5pY8u6wRiCNEzyWyAR3VBNZEYDpRQCqhZyhKZLAHUUCj_rsJ" target="_blank">syslifters.01</a>
 </div>
 
-<div style="margin-top: 1.3em"><Icon icon="mdi:phone" style="transform: scale(2);margin-right:1em;margin-left:0.3em;" /> +43 660 923 40 60</div>
+<div style="margin-top: 1.3em"><Icon icon="mdi:phone" style="transform: scale(2);margin-right:1em;margin-left:0.3em;" /> <a href="tel:+436609234060">+43 660 923 40 60</a></div>
 
 <div style="margin-top: 1.3em"><Icon icon="mdi:linkedin" style="transform: scale(2);margin-right:1em;margin-left:0.3em;" /> <a href="https://www.linkedin.com/showcase/sysreptor/" target="_blank">LinkedIn</a></div>
 

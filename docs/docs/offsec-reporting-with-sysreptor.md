@@ -18,14 +18,16 @@ Already have an account? [Login here.](https://labs.sysre.pt)
 
 </div>
 
+Questions about labs.sysre.pt, account recovery, or data retention? See the [exam report FAQs](/faq/exam-reports).
+
 ## Prefer self-hosting?
 1. [Install](/setup/installation) SysReptor
-2. Import all OffSec Designs:
+2. Import OffSec Designs and demo projects:
 
 ```shell
 cd sysreptor/deploy
-url="https://docs.sysreptor.com/assets/offsec-designs.tar.gz"
-curl -s "$url" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design
+curl -s "https://docs.sysreptor.com/assets/offsec-designs.tar.gz" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=design
+curl -s "https://docs.sysreptor.com/assets/offsec-demo-projects.tar.gz" | docker compose exec --no-TTY app python3 manage.py importdemodata --type=project
 ```
 
 <br>

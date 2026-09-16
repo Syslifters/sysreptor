@@ -193,6 +193,19 @@
   }
 }
 
+.vp-doc .signal-logo {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  margin-right: 14px;
+  margin-left: 0;
+  flex-shrink: 0;
+  background-color: currentColor;
+  mask: url(/images/Signal-Logo-Black.svg) center / contain no-repeat;
+  mask-mode: alpha;
+  -webkit-mask: url(/images/Signal-Logo-Black.svg) center / contain no-repeat;
+}
+
 /* Global styles */
 .vp-doc h1 {
   margin-bottom: 1em;
@@ -250,140 +263,39 @@
   vertical-align: middle !important;
 }
 
-/*
- * AnythingLLM embed: outer wrapper is full-viewport (fixed inset-0) and steals
- * clicks. No official data-* to disable; pass events through the shell, keep them
- * on the actual panel. https://github.com/Mintplex-Labs/anythingllm-embed/blob/main/src/App.jsx
- */
-#anything-llm-embed-chat-container {
-  pointer-events: none;
+/* DocBadge in ::: info titles (e.g. FAQ "Further questions?") */
+.vp-doc .custom-block:has(> .custom-block-title .doc-badge) {
+  margin-top: 2.5rem;
 }
 
-#anything-llm-embed-chat-container img {
-  max-width: 120px !important;
+/* FAQ accordion and tab fragment targets */
+.vp-doc .faq-item,
+.vp-doc .plugin-tabs {
+  scroll-margin-top: calc(var(--vp-nav-height) + 16px);
 }
 
-#anything-llm-chat #anything-llm-header img {
-  max-width: 120px !important;
-  max-height: 28px !important;
-  width: auto !important;
-  height: auto !important;
+.vp-doc .faq-expand-all {
+  display: flex;
+  justify-content: flex-end;
+  margin: -0.5em 0 0.75em;
 }
 
-#anything-llm-chat {
-  pointer-events: auto;
-}
-
-#anything-llm-chat #send-message-button svg {
-  color: var(--vp-c-brand-1) !important;
-}
-
-#anything-llm-chat #anything-llm-header button {
-  color: var(--vp-c-brand-1) !important;
-}
-
-#anything-llm-chat #anything-llm-header button:hover {
-  background-color: var(--vp-c-brand-soft) !important;
-}
-
-#anything-llm-chat .msg-suggestion {
-  background-color: var(--vp-c-brand-1) !important;
-}
-
-#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > a,
-#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > button,
-#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > div {
-  color: var(--vp-c-brand-1) !important;
-}
-
-#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > a:hover,
-#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > button:hover,
-#anything-llm-chat [class*="allm-shadow-lg"].allm-absolute[class*="allm-flex-col"] > div:hover {
-  background-color: var(--vp-c-brand-soft) !important;
-}
-
-#anything-llm-chat .allm-flex.allm-justify-center.allm-gap-x-1 button {
-  color: var(--vp-c-brand-1) !important;
-}
-
-#anything-llm-chat #scroll-to-bottom-button {
-  color: var(--vp-c-brand-1) !important;
-}
-
-/* Nav bar Ask button — teleported into .VPNavBarSearch beside local search */
-.VPNavBarSearch {
-  gap: 8px;
-}
-
-.sysreptor-ask-ai {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+.vp-doc .faq-expand-all__button {
+  appearance: none;
   margin: 0;
-  margin-left: 8px;
-  padding: 0 10px;
-  height: 48px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 999px;
-  background-color: var(--vp-c-bg-alt);
-  color: var(--vp-c-text-1);
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
   font-size: 14px;
   font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
+  line-height: 24px;
+  color: var(--vp-c-text-2);
   cursor: pointer;
-  transition: border-color 0.25s, background-color 0.25s;
 }
 
-.sysreptor-ask-ai:hover {
-  border-color: var(--vp-c-brand-1);
-  background-color: var(--vp-c-bg-alt);
-}
-
-.sysreptor-ask-ai:focus-visible {
-  outline: 2px solid var(--vp-c-brand-1);
-  outline-offset: 2px;
-}
-
-.sysreptor-ask-ai-icon {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  display: block;
-}
-
-.sysreptor-ask-ai-icon-logo {
-  display: none;
-}
-
-.sysreptor-ask-ai-icon-magic {
-  display: block;
+.vp-doc .faq-expand-all__button:hover {
   color: var(--vp-c-brand-1);
-}
-
-.sysreptor-ask-ai-label {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .sysreptor-ask-ai {
-    padding: 0 14px;
-    height: 40px;
-  }
-
-  .sysreptor-ask-ai-icon-logo {
-    display: block;
-  }
-
-  .sysreptor-ask-ai-icon-magic {
-    display: none;
-  }
-
-  .sysreptor-ask-ai-label {
-    display: inline;
-  }
 }
 
 

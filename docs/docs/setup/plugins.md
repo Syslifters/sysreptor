@@ -329,8 +329,6 @@ Here are some notes to get you started:
 
 ::: info <DocBadge icon="mdi:help-circle" class="lg middle" label="Further questions?" />
 
-Need help or have questions? Get support and connect with us and the SysReptor community.
-
-[Get help](https://github.com/Syslifters/sysreptor/discussions/categories/q-a)
+Need help or have questions? Get support and [connect with us and the SysReptor community](https://github.com/Syslifters/sysreptor/discussions/).
 
 :::
