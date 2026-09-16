@@ -27,6 +27,15 @@ SysReptor installations with outbound connection to the Internet also receive up
 </div>
 
 
+<div class="faq-item" id="vdp">
+
+::: details Do you have a vulnerability disclosure process?
+Yes. See the [Syslifters vulnerability disclosure policy](https://handbook.syslifters.com/vulnerability-disclosure).
+:::
+
+</div>
+
+
 <div class="faq-item" id="docx">
 
 ::: details Can I export a SysReptor report as DOCX?

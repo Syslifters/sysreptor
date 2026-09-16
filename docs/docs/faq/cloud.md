@@ -245,15 +245,6 @@ Planned maintenance is also announced on the [SysReptor Cloud status page](https
 </div>
 
 
-<div class="faq-item" id="vdp">
-
-::: details Do you have a vulnerability disclosure process?
-Yes. See the [Syslifters vulnerability disclosure policy](https://handbook.syslifters.com/vulnerability-disclosure).
-:::
-
-</div>
-
-
 ::: info <DocBadge icon="mdi:help-circle" class="lg middle" label="Further questions?" />
 Need help or have questions? Get support and [connect with us and the SysReptor community](https://github.com/Syslifters/sysreptor/discussions/).
 :::
