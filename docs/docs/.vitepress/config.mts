@@ -245,6 +245,17 @@ export default defineConfig({
       { text: 'Demo Reports', link: '/demo-reports' },
       { text: 'Features and Pricing', link: 'https://sysreptor.com/pricing' },
       { text: 'Get Involved', link: '/get-involved' },
+      {
+        text: 'FAQs',
+        collapsed: true,
+        items: [
+          { text: 'Exam Reports', link: '/faq/exam-reports' },
+          { text: 'Self-Hosted', link: '/faq/self-hosted' },
+          { text: 'Cloud', link: '/faq/cloud' },
+          { text: 'Application', link: '/faq/application' },
+          { text: 'Report Design', link: '/designer/faqs' },
+        ],
+      },
       { text: 'Contact Us', link: '/contact-us' },
     ],
   },
