@@ -20,6 +20,14 @@ Have ideas for new features? Share your suggestions to help us improving SysRept
 
 :::
 
+::: info <DocBadge icon="mdi:frequently-asked-questions" label="FAQs" />
+
+Looking for answers about labs.sysre.pt, self-hosted installs, SysReptor Cloud, or using the application?
+
+[Read the FAQs](/faq/){.doc-card__link}
+
+:::
+
 ::: info <DocBadge icon="mdi:help-circle-outline" label="Ask a question" />
 
 Need help or have questions? Get support and connect with us and the SysReptor community.

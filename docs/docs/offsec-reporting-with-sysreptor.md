@@ -18,6 +18,8 @@ Already have an account? [Login here.](https://labs.sysre.pt)
 
 </div>
 
+Questions about labs.sysre.pt, account recovery, or data retention? See the [exam report FAQs](/faq/exam-reports).
+
 ## Prefer self-hosting?
 1. [Install](/setup/installation) SysReptor
 2. Import OffSec Designs and demo projects:

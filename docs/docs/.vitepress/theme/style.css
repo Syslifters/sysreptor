@@ -263,6 +263,11 @@
   vertical-align: middle !important;
 }
 
+/* DocBadge in ::: info titles (e.g. FAQ "Further questions?") */
+.vp-doc .custom-block:has(> .custom-block-title .doc-badge) {
+  margin-top: 2.5rem;
+}
+
 /* FAQ accordion and tab fragment targets */
 .vp-doc .faq-item,
 .vp-doc .plugin-tabs {
