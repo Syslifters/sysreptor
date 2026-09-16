@@ -1,5 +1,9 @@
 # Report Design FAQs
 
+These FAQs cover CSS and HTML for PDF report templates: page background, headers, fonts, markdown rendering, code blocks, and layout.
+
+Using SysReptor (permissions, designs in projects, licensing) is in the [application FAQs](/faq/application). Install and ops questions are in [self-hosted](/faq/self-hosted) or [cloud](/faq/cloud). Exam students: [exam report FAQs](/faq/exam-reports).
+
 <FaqExpandAll />
 
 <div class="faq-item">
