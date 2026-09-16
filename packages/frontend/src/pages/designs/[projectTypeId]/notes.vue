@@ -162,16 +162,28 @@ function deleteNote(note: NoteBase) {
     currentNote.value = null;
   }
 }
-async function importNotes(file: File) {
-  if (!file || readonly.value) {
+async function importNotes(files: File[]) {
+  if (readonly.value || files.length === 0) {
     return;
   }
   // Force save before performing server-side import
   await toolbarRef.value!.performSave();
 
-  const res = await uploadFileHelper<NoteBase[]>(`/api/v1/projecttypes/${projectType.value.id}/import-notes/`, file);
-  projectType.value.default_notes.push(...res);
-  currentNote.value = res.find(n => n.parent === null)!;
+  const results = await bulkAction(
+    files,
+    file => uploadFileHelper<NoteBase[]>(`/api/v1/projecttypes/${projectType.value.id}/import-notes/`, file),
+    f => `Import failed for "${f.name}"`,
+  );
+  for (const res of results) {
+    if (res) {
+      projectType.value.default_notes.push(...res);
+    }
+  }
+  const note = results.find(r => r)?.find(n => n.parent === null);
+  if (!note) {
+    return;
+  }
+  currentNote.value = note;
 
   toolbarRef.value?.resetComponent({ keepLock: true });
 }

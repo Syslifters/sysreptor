@@ -91,9 +91,16 @@ async function createNote(data?: Partial<NoteBase>) {
 async function performDelete(note: NoteBase) {
   return await userNotesStore.deleteNote(note as UserNote);
 }
-async function performImport(file: File) {
-  const res = await uploadFileHelper<UserNote[]>(`/api/v1/pentestusers/self/notes/import/`, file);
-  const note = res.find(n => n.parent === null)!;
+async function performImport(files: File[]) {
+  const results = await bulkAction(
+    files,
+    file => uploadFileHelper<UserNote[]>(`/api/v1/pentestusers/self/notes/import/`, file),
+    f => `Import failed for "${f.name}"`,
+  );
+  const note = results.find(r => r)?.find(n => n.parent === null);
+  if (!note) {
+    return;
+  }
   await navigateTo(`/notes/personal/${note.id}/`);
 }
 async function performCopy(note: NoteBase) {

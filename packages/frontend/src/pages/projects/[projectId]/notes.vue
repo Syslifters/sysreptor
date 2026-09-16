@@ -105,9 +105,16 @@ async function createNote(data?: Partial<NoteBase>) {
   })
   await navigateTo({ path: `/projects/${project.value.id}/notes/${obj.id}/`, hash: '#title' })
 }
-async function performImport(file: File) {
-  const res = await uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file);
-  const note = res.find(n => n.parent === null)!;
+async function performImport(files: File[]) {
+  const results = await bulkAction(
+    files,
+    file => uploadFileHelper<ProjectNote[]>(`/api/v1/pentestprojects/${project.value.id}/notes/import/`, file),
+    f => `Import failed for "${f.name}"`,
+  );
+  const note = results.find(r => r)?.find(n => n.parent === null);
+  if (!note) {
+    return;
+  }
   await navigateTo(`/projects/${project.value.id}/notes/${note.id}/`);
 }
 async function performDelete(note: NoteBase) {

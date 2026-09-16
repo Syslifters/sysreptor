@@ -14,6 +14,7 @@
       type="file"
       data-testid="import-input"
       accept=".tar.gz,application/gzip"
+      multiple
       @change="performImport(($event.target as HTMLInputElement)?.files)"
       class="d-none"
       :disabled="disabled || props.loading || importInProgress"
@@ -37,6 +38,7 @@
         ref="fileInput"
         type="file"
         accept=".tar.gz,application/gzip"
+        multiple
         @change="performImport(($event.target as HTMLInputElement)?.files)"
         class="d-none"
         :disabled="disabled || props.loading || importInProgress"
@@ -47,7 +49,7 @@
 
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-  import: (file: File) => Promise<void>;
+  import: (files: File[]) => Promise<void>;
   loading?: boolean;
   disabled?: boolean;
   buttonVariant?: 'icon' | 'list-item';
@@ -61,15 +63,15 @@ const importInProgress = ref(false);
 const fileInput = useTemplateRef('fileInput');
 
 async function performImport(files?: FileList|File[]|null) {
-  const file = Array.from(files || [])[0];
-  if (props.disabled || importInProgress.value || !file) {
+  const fileList = Array.from(files || []);
+  if (props.disabled || importInProgress.value || fileList.length === 0) {
     return;
   }
 
   try {
     importInProgress.value = true;
 
-    await props.import(file);
+    await props.import(fileList);
   } catch (error: any) {
     let message = 'Import failed';
     if (error?.status === 400 && error?.data?.format) {
