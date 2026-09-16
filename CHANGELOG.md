@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2026.75 - 2026-09-16
 * Add JSON field type
 * Rank project search results to prioritize name and tag matches over content
 * Allow image uploads in shared excalidraw notes
