@@ -639,7 +639,7 @@ Note: `allowed_next_statuses` is not enforced for [superusers with enabled admin
 
 
 ### Plugins
-Extend the functionality of SysReptor by enabling plugins. Plugins are disabled by default and need to be explicitly enabled.
+Extend the functionality of SysReptor by enabling plugins. The plugins `cyberchef`, `renderfindings`, and `scanimport` are enabled by default. All other plugins need to be explicitly enabled.
 
 Enable plugins in the application settings page in the web interface by ticking plugin enabled checkboxes.
 

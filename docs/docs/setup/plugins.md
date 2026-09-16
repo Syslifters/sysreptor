@@ -4,8 +4,8 @@
 SysReptor provides a plugin system to extend the functionality of the application without modifying the SysReptor core code.
 Plugins can hook into the SysReptor core and provide additional features both in the API and the web UI.
 
-All plugins are disabled by default.
-Enable plugins in the application settings web interface (https://sysreptor.example.com/settings/) by ticking plugin enabled checkboxes.
+The plugins `cyberchef`, `renderfindings`, and `scanimport` are enabled by default. All other plugins are disabled until you enable them.
+Enable or disable plugins in the application settings web interface (https://sysreptor.example.com/settings/) by ticking plugin enabled checkboxes.
 
 You can also enable plugins by setting [`ENABLED_PLUGINS`](/setup/configuration#plugins) in `app.env` (e.g. `ENABLED_PLUGINS=cyberchef,checkthehash`) and restarting your container (`docker compose up -d` from the `deploy` directory). If `ENABLED_PLUGINS` is set in `app.env`, it takes precedence and the Settings UI will be read-only for plugin enable/disable.
 
