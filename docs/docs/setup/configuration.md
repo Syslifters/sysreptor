@@ -380,7 +380,7 @@ AUTOMATICALLY_DELETE_PROJECTS_AFTER=730
 ### Single Sign-On (SSO)
 <BadgePro />
 
-Configuration for SSO via OIDC. Superusers can set this in **Settings → Authentication Settings** in the web interface, or in `app.env`. Find [detailed instructions](/setup/oidc-setup/).
+Configuration for SSO via OIDC. Superusers can set this in **Settings → Authentication Settings** in the web interface, or in `app.env`. Find [detailed instructions](/users/oidc-setup).
 
 ```dotenv title="OIDC example:"
 OIDC_AUTHLIB_OAUTH_CLIENTS='{
