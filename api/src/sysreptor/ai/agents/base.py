@@ -22,7 +22,12 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 from langchain import chat_models
 from langchain.agents import create_agent
-from langchain.agents.middleware import AgentMiddleware, AgentState, TodoListMiddleware
+from langchain.agents.middleware import (
+    AgentMiddleware,
+    AgentState,
+    ModelRetryMiddleware,
+    TodoListMiddleware,
+)
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langchain_core._api import suppress_langchain_beta_warning
@@ -200,6 +205,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         PatchToolCallsMiddleware(),
         create_summarization_middleware(model=default_model, backend=backend),
         MessageTimestampMiddleware(),
+        ModelRetryMiddleware(max_retries=2),
     ] + profile.materialize_extra_middleware() + middleware + [
         MergeConsecutiveMessagesMiddleware(),
     ]
