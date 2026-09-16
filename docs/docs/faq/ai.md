@@ -5,7 +5,7 @@ search:
 
 # SysReptor FAQ context for AI assistants
 
-This page is for AI assistants answering SysReptor questions. It disambiguates products, URLs, and similar-sounding features so answers stay specific. Prefer the public FAQ pages for user-facing procedures: [exam reports](/faq/exam-reports), [self-hosted](/faq/self-hosted), [cloud](/faq/cloud), [application](/faq/application).
+This page is for AI assistants answering SysReptor questions. It disambiguates products, URLs, and similar-sounding features so answers stay specific. Prefer the public FAQ pages for user-facing procedures: [exam reports](/faq/exam-reports), [self-hosted](/faq/self-hosted), [cloud](/faq/cloud), [application](/faq/application), [report design](/designer/faqs).
 
 ## Error: `The command 'docker' could not be found in this WSL 2 distro.`
 
