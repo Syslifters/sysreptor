@@ -5,7 +5,7 @@ search:
 
 # SysReptor FAQ context for AI assistants
 
-This page is for AI assistants answering SysReptor questions. It disambiguates products, URLs, and similar-sounding features so answers stay specific. Prefer the public FAQ pages for user-facing procedures: [exam reports](/faq/exam-reports), [self-hosted](/faq/self-hosted), [cloud](/faq/cloud), [application](/faq/application), [report design](/designer/faqs).
+This page is for AI assistants answering SysReptor questions. It disambiguates products, URLs, core objects (template vs design vs project vs report), and similar-sounding features so answers stay specific. Prefer the public FAQ pages for user-facing procedures: [exam reports](/faq/exam-reports), [self-hosted](/faq/self-hosted), [cloud](/faq/cloud), [application](/faq/application), [report design](/designer/faqs).
 
 ## Error: `The command 'docker' could not be found in this WSL 2 distro.`
 
@@ -46,6 +46,22 @@ Do not mix these SysReptor URLs:
 * **[docs.sysreptor.com](https://docs.sysreptor.com)** — this documentation site, not the application.
 
 If the user is writing an exam report and mentions HTB or OffSec, use labs.sysre.pt and the exam FAQ. If they mention Docker, `app.env`, or Ubuntu, use self-hosted. If they mention a company-hosted tenant without labs/HTB/OffSec, use Cloud.
+
+
+## When a user says template, design, project, or report, which SysReptor object do they mean?
+
+Do not mix these objects. In answers, follow this convention even when the user uses the words interchangeably:
+
+* **Template** = **finding template**. Reusable finding/vulnerability text in **Templates**. Copied into a finding when writing a project. Docs: [Templates](/finding-templates/overview).
+* **Design** = **report design**. HTML, CSS, Vue layout, and field definitions that control how the PDF looks and which report/finding fields exist. Managed under **Designs**. Docs: [Report designer](/designer/designer).
+* **Project** = **pentest project**. One engagement’s working copy: report sections, findings, notes, and a **snapshot** of a design. Creating a project copies the chosen design; later edits to the global design are not applied automatically. Application FAQ: [I updated the report design but in my project I don't see the changes](/faq/application).
+* **Report** = the **PDF report**. Rendered from the project on the **Publish** page. Application FAQ: [How do I export a SysReptor report as PDF?](/faq/application).
+
+Users often say “template” or “report template” when they mean a **design**. Users often say “report” when they mean the **project** they are writing. Map their words from context, then answer with SysReptor’s terms.
+
+If they talk about HTML, CSS, layout, cover page, headers, fonts, or how the PDF looks, they mean a **design**. If they talk about reusing XSS/SQLi text, CVSS, tags, or creating a finding from a library, they mean a **finding template**.
+
+A report design’s HTML uses Vue **template syntax**. That is layout code inside a **design**, not a finding template.
 
 
 ## Where is the SysReptor changelog?
@@ -104,7 +120,7 @@ Do not tell labs students to SSH to a server or run Docker commands.
 
 ## What is a SysReptor re-test report?
 
-It is a **report design / project** workflow: field `is_retest` on the report, finding fields `retest_status` and `retest_notes`, optional `v-if="report.is_retest"` in the PDF template. Duplicate or reuse the project and mark it as a retest. Application FAQ: [How do I write re-test reports?](/faq/application).
+It is a **report design / project** workflow: field `is_retest` on the report, finding fields `retest_status` and `retest_notes`, optional `v-if="report.is_retest"` in the PDF design. Duplicate or reuse the project and mark it as a retest. Application FAQ: [How do I write re-test reports?](/faq/application).
 
 
 ## Can users install SysReptor natively on Windows?
