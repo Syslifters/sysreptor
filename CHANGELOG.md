@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Support importing multiple files at once
+
+
 ## v2026.75 - 2026-09-16
 * Add JSON field type
 * Rank project search results to prioritize name and tag matches over content

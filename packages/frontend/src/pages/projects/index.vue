@@ -1,5 +1,5 @@
 <template>
-  <file-drop-area @drop="importBtn?.performImport($event)" class="h-100">
+  <file-drop-area multiple @drop="importBtn?.performImport($event)" class="h-100">
     <list-view
       url="/api/v1/pentestprojects/?readonly=false"
       v-model:ordering="localSettings.projectListOrdering"
@@ -120,9 +120,17 @@ const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 
 const importBtn = useTemplateRef('importBtn');
-async function performImport(file: File) {
-  const projects = await uploadFileHelper<PentestProject[]>('/api/v1/pentestprojects/import/', file);
-  await navigateTo(`/projects/${projects[0]!.id}/`);
+async function performImport(files: File[]) {
+  const results = await bulkAction(
+    files,
+    file => uploadFileHelper<PentestProject[]>('/api/v1/pentestprojects/import/', file),
+    f => `Import failed for "${f.name}"`,
+  );
+  const imported = results.find(r => r)?.[0];
+  if (!imported) {
+    return;
+  }
+  await navigateTo(`/projects/${imported.id}/`);
 }
 
 const listViewRef = useTemplateRef('listViewRef');

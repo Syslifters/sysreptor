@@ -24,9 +24,17 @@ const canImport = computed(() => {
   }
 });
 
-async function performImport(file: File) {
-  const designs = await uploadFileHelper<ProjectType[]>('/api/v1/projecttypes/import/', file, { scope: props.projectTypeScope });
-  await navigateTo(`/designs/${designs[0]!.id}/`)
+async function performImport(files: File[]) {
+  const results = await bulkAction(
+    files,
+    file => uploadFileHelper<ProjectType[]>('/api/v1/projecttypes/import/', file, { scope: props.projectTypeScope }),
+    f => `Import failed for "${f.name}"`,
+  );
+  const imported = results.find(r => r)?.[0];
+  if (!imported) {
+    return;
+  }
+  await navigateTo(`/designs/${imported.id}/`);
 }
 
 const importBtnRef = useTemplateRef('importBtnRef');

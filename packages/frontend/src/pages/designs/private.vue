@@ -1,5 +1,5 @@
 <template>
-  <file-drop-area @drop="importBtnRef?.performImport($event)" class="h-100">
+  <file-drop-area multiple @drop="importBtnRef?.performImport($event)" class="h-100">
     <list-view
       ref="listViewRef"
       url="/api/v1/projecttypes/?scope=private"

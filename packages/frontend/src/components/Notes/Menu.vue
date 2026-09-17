@@ -1,5 +1,6 @@
 <template>
   <file-drop-area 
+    multiple
     @drop="importBtnRef?.performImport($event)"
     :disabled="props.readonly || !props.performImport" 
     class="h-100"
@@ -132,7 +133,7 @@ const props = defineProps<{
   exportName?: string;
   exportPdfUrl?: string;
   selectedNotes?: NoteBase[];
-  performImport?: (file: File) => Promise<void>;
+  performImport?: (files: File[]) => Promise<void>;
   performDelete?: (note: NoteBase) => (Promise<void>|void);
   performCopy?: (note: NoteBase) => (Promise<void>);
   preventCreateExcalidraw?: boolean;

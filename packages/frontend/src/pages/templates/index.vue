@@ -1,5 +1,5 @@
 <template>
-  <file-drop-area @drop="importBtnRef?.performImport($event)" class="h-100">
+  <file-drop-area multiple @drop="importBtnRef?.performImport($event)" class="h-100">
     <list-view 
       ref="listViewRef" 
       url="/api/v1/findingtemplates/"
@@ -107,9 +107,17 @@ const currentLanguage = computed({
 });
 
 const importBtnRef = useTemplateRef('importBtnRef');
-async function performImport(file: File) {
-  const templates = await uploadFileHelper<FindingTemplate[]>('/api/v1/findingtemplates/import/', file);
-  await navigateTo(`/templates/${templates[0]!.id}/`)
+async function performImport(files: File[]) {
+  const results = await bulkAction(
+    files,
+    file => uploadFileHelper<FindingTemplate[]>('/api/v1/findingtemplates/import/', file),
+    f => `Import failed for "${f.name}"`,
+  );
+  const imported = results.find(r => r)?.[0];
+  if (!imported) {
+    return;
+  }
+  await navigateTo(`/templates/${imported.id}/`);
 }
 
 const performCreateInProgress = ref(false);
