@@ -15,6 +15,8 @@
             <a href="/data-privacy">Data Privacy</a>
             |
             <a href="/contact-us">Contact</a>
+            |
+            <a href="/get-involved#merch">Merch</a>
           </p>
           <p class="sysreptor-footer__copyright">
             The FFG is the central national funding organization and strengthens Austria's innovative power.<br />

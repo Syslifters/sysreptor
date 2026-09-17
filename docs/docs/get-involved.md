@@ -64,3 +64,7 @@ by contributing directly to SysReptor.
 </div>
 
 We'll try to help you spreading your contributions. Please [contact us](/contact-us#get-support-report-issues) if you have questions.
+
+## <Icon icon="mdi:tshirt-crew" /> Merch {#merch}
+
+ Grab SysReptor merch from our shops in [North America](https://sysreptor.myspreadshop.com) and [internationally](https://sysreptor.myspreadshop.net/).
