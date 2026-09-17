@@ -59,7 +59,17 @@ build-docs:
     - VERSION_NUMBER=$(python3 -c "from packaging.version import Version;print(Version('${VERSION_NUMBER_LEADING_ZEROS}'))")
     - echo "$VERSION_NUMBER" > docs/public/latest.version
     # Pack demo data archives
-    - for archive_dir in ../demo_data/*; do reptor packarchive "$archive_dir" -o "docs/public/assets/${archive_dir##*/}.tar.gz"; done
+    - |
+      for archive_dir in ../demo_data/*; do
+        name="${archive_dir##*/}"
+        if [ "$name" = "notes" ]; then
+          for note_file in "$archive_dir"/*; do
+            reptor packarchive "$note_file" -o "docs/public/assets/$(basename "${note_file%.*}").tar.gz"
+          done
+        else
+          reptor packarchive "$archive_dir" -o "docs/public/assets/${name}.tar.gz"
+        fi
+      done
     # Fetch remote docs from reptor CLI
     - rm -rf docs/cli && mkdir -p docs/cli && cd docs/cli
     - git init && git remote add -f origin https://github.com/Syslifters/reptor.git

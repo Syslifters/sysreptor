@@ -2,6 +2,6 @@
 # Also install reptor in the same environment
 griffe>=2.0
 PyYAML>=6.0
-reptor>=0.34
+reptor>=0.38
 click>=8.4
 requests>=2.34

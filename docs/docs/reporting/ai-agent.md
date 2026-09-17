@@ -50,6 +50,8 @@ The full contents of `AGENTS.md` are loaded into the agent's system message at t
 
 For specialized, on-demand workflows you can add [Agent Skills](https://agentskills.io/specification) under the same `.agents` tree. Skills differ from `AGENTS.md`: only a short catalog is always visible; full instructions are loaded later, and only if the model decides a skill fits the task. See the agentskills.io guides on [writing skills](https://agentskills.io/skill-creation/best-practices) and [optimizing descriptions](https://agentskills.io/skill-creation/optimizing-descriptions) for how to structure effective skills.
 
+You can import the [report-writing skill](/assets/agent-skills.tar.gz) into project notes as a starting point.
+
 ![Agent skills](/images/agent-skills.png)
 
 Each skill is a folder note under `skills` with a child note titled exactly `SKILL.md`. Put the skill frontmatter and instructions in the `SKILL.md` note body (markdown), for example:
