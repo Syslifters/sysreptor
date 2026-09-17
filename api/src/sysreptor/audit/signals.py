@@ -1,13 +1,20 @@
+import logging
+
+from django.apps import apps
+from django.conf import settings
 from django.contrib.auth.signals import user_logged_in, user_logged_out
+from django.db import connections
 from django.db.models import signals
 from django.dispatch import receiver
 
 from sysreptor import signals as sysreptor_signals
 from sysreptor.api_utils.models import BackupLog, BackupLogType
-from sysreptor.audit.models import AuditLogTypes
+from sysreptor.audit.models import AuditLogEntry, AuditLogTypes
 from sysreptor.pentests.models import PentestProject, ProjectMemberInfo, ShareInfo
+from sysreptor.tasks.models import LicenseActivationInfo
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, PentestUser
 from sysreptor.utils.audit import audit_log
+from sysreptor.utils.license import get_database_version
 from sysreptor.utils.models import disable_for_loaddata
 from sysreptor.utils.utils import copy_keys
 
@@ -164,6 +171,21 @@ def audit_backup_log(sender, instance, **kwargs):
     audit_log(type=instance.type, user=instance.user, related=instance)
 
 
+@receiver(sysreptor_signals.post_create, sender=LicenseActivationInfo)
+def audit_license_changed(sender, instance, **kwargs):
+    audit_log(
+        type=AuditLogTypes.LICENSE_CHANGED,
+        related=instance,
+        data={
+            'related_name': instance.license_type,
+            'license': {
+                'type': instance.license_type,
+                'hash': instance.license_hash,
+            },
+        },
+    )
+
+
 @receiver(sysreptor_signals.post_create, sender=ShareInfo)
 def audit_note_share_create(sender, instance, **kwargs):
     data = {
@@ -202,3 +224,24 @@ def audit_note_share_create(sender, instance, **kwargs):
     else:
         return
     audit_log(type=AuditLogTypes.NOTE_SHARE_CREATED, user=instance.shared_by, related=note, data=data)
+
+
+@receiver(signals.post_migrate, sender=apps.get_app_config('audit'))
+def audit_migration_run(sender, plan=None, using='default', **kwargs):
+    if not plan:
+        return
+    # Skip when the audit table was removed (e.g. reverse migrate audit to zero)
+    # or is not created yet. Never let audit logging fail the migrate command.
+    if AuditLogEntry._meta.db_table not in connections[using].introspection.table_names():
+        return
+    try:
+        audit_log(type=AuditLogTypes.MIGRATION, data={
+            'software_version': settings.VERSION,
+            'database_version': get_database_version(),
+            'migrations': [
+                {'app': migration.app_label, 'name': migration.name, 'backwards': backwards}
+                for migration, backwards in plan
+            ],
+        })
+    except Exception:
+        logging.exception('Failed to write migration audit log entry')

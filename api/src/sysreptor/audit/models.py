@@ -27,10 +27,12 @@ class AuditLogTypes(enum.StrEnum):
     API_TOKEN_CREATED = 'api_token_created'  # noqa: S105
     PROJECT_MEMBER_ADDED = 'project_member_added'
     PROJECT_MEMBER_REMOVED = 'project_member_removed'
-    SETTINGS_CHANGED = 'settings_changed'
+    NOTE_SHARE_CREATED = 'note_share_created'
     BACKUP_STARTED = 'backup_started'
     RESTORE = 'restore'
-    NOTE_SHARE_CREATED = 'note_share_created'
+    SETTINGS_CHANGED = 'settings_changed'
+    LICENSE_CHANGED = 'license_changed'
+    MIGRATION = 'migration'
 
 
 class AuditLogEntry(BaseModel):
