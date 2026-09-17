@@ -51,7 +51,7 @@
             ref="otherTextareaRef"
             :model-value="otherText"
             @update:model-value="onOtherTextUpdate"
-            @keydown.enter.prevent
+            @keydown.enter.exact.prevent="submit"
             :readonly="selection !== OTHER_VALUE"
             placeholder="Other..."
             variant="plain"

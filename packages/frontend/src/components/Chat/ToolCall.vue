@@ -81,12 +81,8 @@
       </nuxt-link>
     </template>
     <template v-else-if="props.value.name === 'ask_user'">
-      <template v-if="props.value.status === ToolCallStatus.PENDING">
-        <chat-tool-call-status :status="props.value.status" />
-        Asking user
-      </template>
       <s-card
-        v-else
+        v-if="props.value.status !== ToolCallStatus.PENDING"
         prepend-icon="mdi-comment-question-outline"
         :title="props.value.args.question"
         density="compact"
