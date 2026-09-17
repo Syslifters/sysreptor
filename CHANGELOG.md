@@ -1,6 +1,9 @@
 # Changelog
 
 ## Upcoming
+* AI agent: support skills (https://docs.sysreptor.com/reporting/ai-agent#skills)
+* AI agent: support `AGENTS.md` in projects (https://docs.sysreptor.com/reporting/ai-agent#agents-md)
+* AI agent: retry failed LLM requests
 * Support importing multiple files at once
 
 

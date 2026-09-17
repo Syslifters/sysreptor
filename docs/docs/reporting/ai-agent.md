@@ -35,6 +35,49 @@ It **cannot**:
 When information is missing or there are multiple valid approaches, the agent can pause and ask you a multiple-choice question. Pick an option (or type your own answer) to continue, or send a new message to skip the question.
 
 
+## AGENTS.md
+
+You can give the agent reusable instructions with an `AGENTS.md` note:
+
+![`AGENTS.md` in project notes](/images/agent-agentsmd.png)
+
+Place a `.agents` folder note at the root of the project notes tree, then add a child note titled `AGENTS.md`. Put your guidance in the note text as markdown e.g. tone, conventions, what to prioritize, and other project-specific instructions.
+
+The full contents of `AGENTS.md` are loaded into the agent's system message at the start of every chat. Edits may not apply until you start a new chat. Edit the note in the notes UI.
+
+
+## Skills
+
+For specialized, on-demand workflows you can add [Agent Skills](https://agentskills.io/specification) under the same `.agents` tree. Skills differ from `AGENTS.md`: only a short catalog is always visible; full instructions are loaded later, and only if the model decides a skill fits the task. See the agentskills.io guides on [writing skills](https://agentskills.io/skill-creation/best-practices) and [optimizing descriptions](https://agentskills.io/skill-creation/optimizing-descriptions) for how to structure effective skills.
+
+![Agent skills](/images/agent-skills.png)
+
+Each skill is a folder note under `skills` with a child note titled exactly `SKILL.md`. Put the skill frontmatter and instructions in the `SKILL.md` note body (markdown), for example:
+
+````md
+---
+name: my-skill
+description: >
+  Tells the agent when to use this skill. 
+  This is how the agent decides whether to activate it.
+---
+
+# My skill
+
+Instructions the agent follows when the skill activates
+````
+
+At the start of a chat the agent only sees each skill's name and description (from the catalog). It reads the full `SKILL.md` (and any supporting notes) only when it chooses to use that skill. A skill might not be picked up even if it would help. The LLM decides based on the description and the user's request.
+
+::: tip How to improve skill descriptions
+See [Optimizing skill descriptions](https://agentskills.io/skill-creation/optimizing-descriptions).
+:::
+
+Optional sibling notes and nested notes under the skill folder are available as markdown files the agent can read (for example `references.md` or `references/api.md`). Scripts, binaries, and other non-note resources are not supported.
+
+The skill catalog is loaded when the thread starts; new or changed skills may not appear until you start a new chat. Skill notes are normal notes: edit them in the notes UI.
+
+
 ## Example Use Cases
 
 - Generate executive summary from findings

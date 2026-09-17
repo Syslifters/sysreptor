@@ -45,7 +45,7 @@
     </div>
   </div>
   <chat-tool-call
-    v-else-if="props.msg.role === MessageRole.TOOL && props.msg.tool_call"
+    v-else-if="props.msg.role === MessageRole.TOOL && props.msg.tool_call && props.msg.tool_call.name"
     :value="props.msg.tool_call"
     :project="props.project"
     :is-streaming="props.isStreaming"
