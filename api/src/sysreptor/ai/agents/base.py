@@ -353,7 +353,9 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                             }
 
                         for c in ai_message.tool_calls:
-                            if c.get('name') == 'task' and c.get('id') and isinstance(c.get('args'), dict):
+                            if not c.get('id'):
+                                continue
+                            if c.get('name') == 'task' and isinstance(c.get('args'), dict):
                                 pending_tool_call_ids.append(c['id'])
                             yield {
                                 'type': 'tool_call',

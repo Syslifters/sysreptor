@@ -4,6 +4,7 @@
 * AI agent: support skills (https://docs.sysreptor.com/reporting/ai-agent#skills)
 * AI agent: support `AGENTS.md` in projects (https://docs.sysreptor.com/reporting/ai-agent#agents-md)
 * AI agent: retry failed LLM requests
+* AI agent: improve ask_user UI
 * Support importing multiple files at once
 
 
