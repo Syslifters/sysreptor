@@ -1,0 +1,79 @@
+id = "1b663dcd-c53e-4c79-86ec-28257b48a7d0"
+images = []
+files = []
+format = "notes/v1"
+
+[[notes]]
+file = "./agent-skills.toml"
+
+[[notes]]
+title = "Scoping"
+id = "15d66916-dac3-40c0-a978-9a6a6767d554"
+type = "text"
+order = 1
+icon_emoji = "🧐"
+text = """
+# Meeting
+Add your meeting notes here...
+
+# Contact Persons
+Add the contact persons here...
+
+"""
+
+[[notes]]
+title = "Q&A"
+id = "db726a99-a517-4f52-9a0a-eab764db9f66"
+type = "text"
+order = 2
+icon_emoji = "❓"
+text = """
+Collect questions for the client arising during the pentest...
+
+"""
+
+[[notes]]
+title = "Cleanup"
+id = "d802f45d-539b-4113-a056-6f22e9f78fb8"
+type = "text"
+order = 3
+icon_emoji = "🧹"
+text = """
+Document things to clean up at the end of the pentest...
+
+"""
+
+[[notes]]
+title = "To Do's"
+id = "3b938551-6f06-406c-b073-0194bede363e"
+type = "text"
+order = 4
+icon_emoji = "✔️"
+text = ""
+
+[[notes]]
+title = "To Do X"
+id = "ba12128e-bad6-427c-8017-dd98b75aeb8c"
+type = "text"
+parent = "3b938551-6f06-406c-b073-0194bede363e"
+order = 1
+checked = false
+text = ""
+
+[[notes]]
+title = "Findings"
+id = "1f5694d6-48e6-4066-8db8-5315fdbd6ae7"
+type = "text"
+order = 5
+icon_emoji = "🔥"
+text = ""
+
+[[notes]]
+title = "Finding X"
+id = "2dfde206-ce7a-4b0c-a898-def03659d038"
+type = "text"
+parent = "1f5694d6-48e6-4066-8db8-5315fdbd6ae7"
+order = 1
+checked = false
+text = ""
+
