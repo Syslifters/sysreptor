@@ -4,6 +4,16 @@ Pytest configuration for SysReptor API and plugin tests.
 
 from pathlib import Path
 
+import pytest
+
+
+@pytest.fixture(scope='session')
+def django_db_setup(django_db_setup, django_db_blocker):
+    # Drop audit rows created in post_migrate so tests start from a clean audit baseline
+    with django_db_blocker.unblock():
+        from sysreptor.audit.models import AuditLogEntry
+        AuditLogEntry.objects.all().delete()
+
 
 def pytest_configure(config):
     """

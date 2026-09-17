@@ -18,6 +18,7 @@ from django.urls import reverse
 
 from sysreptor.api_utils.backup_utils import destroy_database
 from sysreptor.api_utils.models import BackupLog, BackupLogType, DbConfigurationEntry
+from sysreptor.audit.models import AuditLogEntry
 from sysreptor.management.commands import restorebackup
 from sysreptor.notifications.models import RemoteNotificationSpec
 from sysreptor.pentests.models import NoteType, UploadedImage
@@ -46,6 +47,7 @@ class TestBackup:
     def setUp(self):
         self.backup_key = 'a' * 30
         self.configuration_value = 'b' * 30
+        AuditLogEntry.objects.all().delete()
         with override_settings(
             BACKUP_KEY=self.backup_key,
             ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},
@@ -214,6 +216,7 @@ class TestBackupRestore:
         self.backup_key = 'a' * 30
         self.backup_encryption_key = b'b' * 32
         self.configuration_value = 'c' * 30
+        AuditLogEntry.objects.all().delete()
         with override_settings(
             BACKUP_KEY=self.backup_key,
             ENCRYPTION_KEYS={'test-key': crypto.EncryptionKey(id='test-key', key=b'a' * 32)},

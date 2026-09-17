@@ -92,6 +92,7 @@ INSTALLED_APPS = [
     'sysreptor.tasks',
     'sysreptor.conf.admin.AdminConfig',
     'sysreptor.api_utils',
+    'sysreptor.audit',
     'sysreptor.ai',
 ]
 

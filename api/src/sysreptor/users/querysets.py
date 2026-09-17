@@ -156,11 +156,15 @@ class MFAMethodManager(models.Manager.from_queryset(MFAMethodQuerySet)):
             out.save()
         return out
 
-    def get_fido2_user_credentials(self, user):
+    def get_fido2_methods_with_credentials(self, user):
         from sysreptor.users.models import MFAMethodType
-        fido2_methods = self.filter(user=user) \
-            .filter(method_type=MFAMethodType.FIDO2)
-        return [AttestedCredentialData(websafe_decode(m.data['device'])) for m in fido2_methods]
+        methods = list(self.filter(user=user).filter(method_type=MFAMethodType.FIDO2))
+        credentials = [AttestedCredentialData(websafe_decode(m.data['device'])) for m in methods]
+        return methods, credentials
+
+    def get_fido2_user_credentials(self, user):
+        _, credentials = self.get_fido2_methods_with_credentials(user)
+        return credentials
 
     def create_fido2_begin(self, user, **kwargs):
         from sysreptor.users.models import MFAMethod, MFAMethodType

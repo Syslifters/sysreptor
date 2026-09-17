@@ -5,6 +5,7 @@
 * AI agent: support `AGENTS.md` in projects (https://docs.sysreptor.com/reporting/ai-agent#agents-md)
 * AI agent: retry failed LLM requests
 * AI agent: improve ask_user UI
+* Audit Trail for Sensitive Actions
 * Support importing multiple files at once
 
 
