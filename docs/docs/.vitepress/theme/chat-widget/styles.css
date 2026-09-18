@@ -360,24 +360,28 @@ html.dark,
   padding-top: 2px;
 }
 
-.sys-chat-status-dots i {
+.sys-chat-status-dot {
   display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background-color: var(--sys-chat-brand);
-  animation: sys-chat-dot 1s ease-in-out infinite both;
+  animation-name: sys-chat-dot;
+  animation-duration: 1s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-fill-mode: both;
 }
 
-.sys-chat-status-dots i:nth-child(1) {
+.sys-chat-status-dot:nth-child(1) {
   animation-delay: 0s;
 }
 
-.sys-chat-status-dots i:nth-child(2) {
+.sys-chat-status-dot:nth-child(2) {
   animation-delay: 0.15s;
 }
 
-.sys-chat-status-dots i:nth-child(3) {
+.sys-chat-status-dot:nth-child(3) {
   animation-delay: 0.3s;
 }
 
@@ -395,25 +399,31 @@ html.dark,
 }
 
 /*
- * Some hosts (e.g. VitePress base.css) force animation-duration: 1ms when
- * prefers-reduced-motion is on. Keep the status dots visible.
+ * VitePress 2 puts `animation-duration: 1ms !important` on `*` inside
+ * `@layer __vitepress_base` when prefers-reduced-motion is on. Important
+ * rules in a named layer beat unlayered !important (layer order is
+ * reversed for !important), which is why the public VitePress 1 widget
+ * animates and this one did not. Re-declare in the same layer so
+ * specificity (.sys-chat-status-dot vs *) wins.
  */
-@media (prefers-reduced-motion: reduce) {
-  .sys-chat-status-dots i {
-    animation: sys-chat-dot 1s ease-in-out infinite both !important;
+@layer __vitepress_base {
+  .sys-chat-status-dot {
+    animation-name: sys-chat-dot !important;
     animation-duration: 1s !important;
+    animation-timing-function: ease-in-out !important;
     animation-iteration-count: infinite !important;
+    animation-fill-mode: both !important;
   }
 
-  .sys-chat-status-dots i:nth-child(1) {
+  .sys-chat-status-dot:nth-child(1) {
     animation-delay: 0s !important;
   }
 
-  .sys-chat-status-dots i:nth-child(2) {
+  .sys-chat-status-dot:nth-child(2) {
     animation-delay: 0.15s !important;
   }
 
-  .sys-chat-status-dots i:nth-child(3) {
+  .sys-chat-status-dot:nth-child(3) {
     animation-delay: 0.3s !important;
   }
 }
