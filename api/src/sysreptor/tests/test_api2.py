@@ -7,10 +7,13 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from django.utils import timezone
 
+from sysreptor.pentests.collab.text_transformations import SelectionRange
 from sysreptor.pentests.cvss import CVSSLevel
 from sysreptor.pentests.import_export import export_project_types
 from sysreptor.pentests.models import (
     DELETE_DATE_NEVER,
+    Comment,
+    CommentStatus,
     FindingTemplate,
     FindingTemplateTranslation,
     Language,
@@ -24,6 +27,7 @@ from sysreptor.pentests.models.files import UploadedImage, UploadedProjectFile
 from sysreptor.pentests.tasks import update_project_search_index
 from sysreptor.tests.mock import (
     api_client,
+    create_comment,
     create_gif_file,
     create_jpg_file,
     create_png_file,
@@ -253,6 +257,34 @@ class TestProjectApi:
             {"search": "ACME", "ordering": "-name"},
             [p_name_b, p_name_a, p_content],
         )
+
+    def test_comment(self):
+        author = create_user()
+        project = create_project(members=[author, self.user])
+        comment = create_comment(
+            finding=project.findings.first(),
+            user=author,
+            path='data.description',
+            text='initial',
+            text_range=SelectionRange(anchor=0, head=5),
+            answers_kwargs=[],
+        )
+        kwargs = {'project_pk': project.id, 'pk': comment.id}
+
+        assert self.client.patch(reverse('comment-detail', kwargs=kwargs), data={'status': CommentStatus.RESOLVED}).status_code == 403
+        assert self.client.post(reverse('comment-resolve', kwargs=kwargs), data={
+            'status': CommentStatus.RESOLVED,
+            'text': 'changed',
+            'text_range': None,
+        }).status_code == 200
+        comment.refresh_from_db()
+        assert comment.status == CommentStatus.RESOLVED
+        assert comment.text == 'initial'
+        assert (comment.text_range_from, comment.text_range_to) == (0, 5)
+
+        assert self.client.delete(reverse('comment-detail', kwargs=kwargs)).status_code == 204
+        assert not Comment.objects.filter(pk=comment.pk).exists()
+
 
 @pytest.mark.django_db()
 class TestProjectTypeApi:

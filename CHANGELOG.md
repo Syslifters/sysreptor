@@ -7,6 +7,8 @@
 * AI agent: improve ask_user UI
 * Audit Trail for Sensitive Actions
 * Support importing multiple files at once
+* Fix CSP not applied in excalidraw iframe
+* Prevent updating `comment.text_range` during comment resolve
 
 
 ## v2026.75 - 2026-09-16
