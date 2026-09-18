@@ -38,7 +38,7 @@
     "@codemirror/lang-yaml": "~6.1",
     "@codemirror/lang-json": "~6.0",
 
-    "mermaid": "^11.1.0",
+    "mermaid": "^12.0.0",
     "katex": "^0.18",
     "z-schema": "^12.4.5"
   }

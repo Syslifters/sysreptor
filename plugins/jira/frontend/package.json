@@ -20,7 +20,7 @@
   "devDependencies": {
     "@nuxt/test-utils": "^4.0",
     "@vue/test-utils": "^2.4.6",
-    "vitest": "^4.0",
+    "vitest": "^5.0",
     "@cfworker/json-schema": "^4.1.1"
   },
   "overrides": {

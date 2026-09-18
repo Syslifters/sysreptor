@@ -1,6 +1,6 @@
 import path from 'path'
 import type { Plugin } from 'vite'
-import { matchRedirect, redirectsFromMap, type RedirectRule, type RedirectsMap } from './redirectRules'
+import { matchRedirect, redirectsFromMap, type RedirectRule, type RedirectsMap } from './redirectRules.ts'
 
 const VIRTUAL_ID = 'virtual:vitepress-redirects'
 const RESOLVED_VIRTUAL_ID = '\0' + VIRTUAL_ID
