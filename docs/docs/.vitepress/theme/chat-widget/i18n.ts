@@ -35,6 +35,7 @@ const en: ChatStrings = {
     retrieving: 'Retrieving context',
     thinking: 'Thinking',
     searching: 'Searching',
+    paginating: 'Reading source',
   },
   copy: 'Copy',
   copied: 'Copied',

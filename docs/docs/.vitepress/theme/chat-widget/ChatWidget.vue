@@ -351,7 +351,9 @@ function resetChat() {
               >
                 <span class="sys-chat-status-label">{{ statusTextFor(msg) }}</span>
                 <span class="sys-chat-status-dots" aria-hidden="true">
-                  <i></i><i></i><i></i>
+                  <span class="sys-chat-status-dot"></span>
+                  <span class="sys-chat-status-dot"></span>
+                  <span class="sys-chat-status-dot"></span>
                 </span>
               </div>
               <div
