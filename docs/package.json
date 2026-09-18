@@ -16,7 +16,7 @@
     "@iconify/vue": "^5.0.1",
     "dompurify": "^3.4.12",
     "js-sha256": "^1.0.0",
-    "markdown-it": "^14.3.0"
+    "markdown-it": "^15.0"
   },
   "devDependencies": {
     "@types/dompurify": "^3.0.5",
@@ -27,7 +27,7 @@
     "markdown-it-attrs": "^5.0",
     "markdown-it-container": "^4.0.0",
     "markdown-it-footnote": "^4.0.0",
-    "typescript": "^5.9.2",
+    "typescript": "^7.0",
     "vitepress": "^2.0.0-alpha.18",
     "vitepress-plugin-llms": "^1.12.0",
     "vitepress-plugin-tabs": "^0.9.0",

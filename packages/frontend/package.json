@@ -20,7 +20,7 @@
     "pinia": "^4.0",
 
     "sass-embedded": "^1.79.5",
-    "@vueuse/nuxt": "^14.0.0",
+    "@vueuse/nuxt": "^15.0.0",
     "monaco-editor": "^0.56.0",
     "vuedraggable": "^4.1.0",
     "@he-tree/vue": "^2.9.4",
@@ -41,10 +41,10 @@
     "@types/dompurify": "^3.0.5",
     "@types/randomcolor": "^0.5.9",
     "eslint": "^10.0",
-    "vitest": "^4.0",
+    "vitest": "^5.0",
     "happy-dom": "^20.0.0",
     "vue-tsc": "^3.0.4",
-    "@playwright/test": "1.62.1"
+    "@playwright/test": "1.63.0"
   },
   "overrides": {
     "vue": "latest"

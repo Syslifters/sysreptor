@@ -1,4 +1,4 @@
-import type { RedirectsMap } from './redirectRules'
+import type { RedirectsMap } from './redirectRules.ts'
 
 declare module 'vitepress' {
   interface UserConfig {

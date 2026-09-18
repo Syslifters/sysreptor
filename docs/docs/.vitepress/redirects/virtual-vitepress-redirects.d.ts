@@ -1,5 +1,5 @@
 declare module 'virtual:vitepress-redirects' {
-  const rules: import('./redirectRules').RedirectRule[]
+  const rules: import('./redirectRules.ts').RedirectRule[]
   export default rules
   export { rules }
 }

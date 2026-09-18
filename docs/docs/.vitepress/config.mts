@@ -3,8 +3,8 @@ import markdownItAttrs from 'markdown-it-attrs'
 import markdownItFootnote from 'markdown-it-footnote'
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
 import llmstxt from 'vitepress-plugin-llms'
-import { vitepressRedirectsPlugin } from './redirects/viteRedirectsPlugin'
-import { pythonAutodocPlugin } from './plugins/pythonAutodoc'
+import { vitepressRedirectsPlugin } from './redirects/viteRedirectsPlugin.ts'
+import { pythonAutodocPlugin } from './plugins/pythonAutodoc.ts'
 
 const env = (globalThis as any).process?.env as Record<string, string | undefined> | undefined
 const sitemapHostname = env?.VITEPRESS_SITEMAP_HOSTNAME ?? 'https://docs.sysreptor.com'
