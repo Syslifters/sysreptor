@@ -13,7 +13,39 @@ from sysreptor.pentests.views import ProjectSubresourceMixin
 from sysreptor.plugins import configuration
 from sysreptor.utils.api import ViewSetAsync
 
-from .serializers import JiraExportSerializer, quote_jql_string, validate_jira_project_id_or_key
+from .serializers import (
+    JiraExportSerializer,
+    quote_jql_string,
+    validate_jira_project_id_or_key,
+)
+
+
+def format_jira_errors(data: dict | None) -> str | None:
+    """
+    Extract messages from a Jira ErrorCollection or bulk error response.
+    """
+    if not isinstance(data, dict):
+        return None
+    msgs = []
+    if data.get('errorMessages'):
+        msgs = [str(m) for m in data.get('errorMessages') if m]
+    elif data.get('errors'):
+        errors = data.get('errors')
+        if isinstance(errors, dict):
+            msgs = [str(v) for v in errors.values() if v]
+        elif isinstance(errors, list):
+            msgs = list(dict.fromkeys(
+                m for err in errors
+                if (m := format_jira_errors(err.get('elementErrors')))
+            ))
+    return ', '.join(msgs) or None
+
+
+def format_validation_error(e: ValidationError) -> str:
+    detail = e.detail
+    if isinstance(detail, list) and detail:
+        return str(detail[0])
+    return str(detail)
 
 
 async def jira_request(client: httpx.AsyncClient, method: str, endpoint: str, **kwargs) -> dict:
@@ -41,8 +73,14 @@ async def jira_request(client: httpx.AsyncClient, method: str, endpoint: str, **
         )
         response.raise_for_status()
         return None if response.status_code in [204] else response.json()
+    except httpx.HTTPStatusError as e:
+        try:
+            body = e.response.json()
+        except ValueError:
+            body = None
+        raise ValidationError(format_jira_errors(body) or f'Jira API request failed: {e}') from e
     except httpx.HTTPError as e:
-        raise ValidationError(f'Jira API request failed: {str(e)}')
+        raise ValidationError(f'Jira API request failed: {e}') from e
 
 
 async def fetch_jira_projects(client: httpx.AsyncClient) -> list[dict]:
@@ -159,7 +197,7 @@ async def update_jira_issues(client: httpx.AsyncClient, existing_issues: list) -
             except ValidationError as e:
                 failed_issues.append({
                     'finding': existing_issue['finding'].finding_id,
-                    'error': f'Failed to update: {str(e)}',
+                    'error': format_validation_error(e),
                 })
         else:
             # Issue is already up to date
@@ -220,17 +258,17 @@ async def create_jira_issues(client: httpx.AsyncClient, issues_to_create: list, 
             for error in result.get('errors', []):
                 # Error contains 'failedElementNumber' (0-indexed) and 'elementErrors'
                 failed_idx = error.get('failedElementNumber', 0)
-                error_messages = error.get('elementErrors', {}).get('errorMessages', [])
                 failed_issues.append({
                     'finding': batch[failed_idx]['finding'].finding_id if failed_idx < len(batch) else None,
-                    'error': ', '.join(error_messages) if error_messages else 'Unknown error',
+                    'error': format_jira_errors(error.get('elementErrors')) or 'Unknown error',
                 })
         except ValidationError as e:
             # Entire batch failed
+            error = format_validation_error(e)
             for issue_data in batch:
                 failed_issues.append({
                     'finding': issue_data['finding'].finding_id,
-                    'error': str(e),
+                    'error': error,
                 })
     
     # Upload attachments for created issues
@@ -254,7 +292,7 @@ async def create_jira_issues(client: httpx.AsyncClient, issues_to_create: list, 
                         'file': (image.name, image.file.open('rb'), 'application/octet-stream'),
                     },
                 )
-            except httpx.HTTPError:
+            except ValidationError:
                 pass
     
     return created_issues, failed_issues
