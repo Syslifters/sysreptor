@@ -1,15 +1,16 @@
 # Changelog
 
 ## Upcoming
-* AI agent: support skills (https://docs.sysreptor.com/reporting/ai-agent#skills)
-* AI agent: support `AGENTS.md` in projects (https://docs.sysreptor.com/reporting/ai-agent#agents-md)
-* AI agent: retry failed LLM requests
-* AI agent: improve ask_user UI
+* AI agent: Support skills (https://docs.sysreptor.com/reporting/ai-agent#skills)
+* AI agent: Support `AGENTS.md` in projects (https://docs.sysreptor.com/reporting/ai-agent#agents-md)
+* AI agent: Retry failed LLM requests
+* AI agent: Improve ask_user UI
 * Audit Trail for Sensitive Actions
 * Support importing multiple files at once
 * Fix CSP not applied in excalidraw iframe
 * Prevent updating `comment.text_range` during comment resolve
 * Require websocket for writable shared notes
+* Plugin `jira`: Improve error messages
 
 
 ## v2026.75 - 2026-09-16
