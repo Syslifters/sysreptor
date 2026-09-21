@@ -1,0 +1,1729 @@
+format = "notes/v1"
+id = "47c9c8ee-fd7d-4893-97c9-58ad06251ae7"
+images = []
+files = []
+
+[[notes]]
+title = ".agents"
+id = "0354dfc5-1229-4413-8fcc-a8639a9200e8"
+type = "text"
+order = 1
+text = ""
+
+[[notes]]
+title = "AGENTS.md"
+id = "e664796f-68ac-4fc2-b943-e91eeda2f401"
+type = "text"
+parent = "0354dfc5-1229-4413-8fcc-a8639a9200e8"
+order = 1
+text = ""
+
+[[notes]]
+title = "skills"
+id = "4930a425-87e0-418b-802d-553f781869aa"
+type = "text"
+parent = "0354dfc5-1229-4413-8fcc-a8639a9200e8"
+order = 2
+text = ""
+
+[[notes]]
+title = "report-writing"
+id = "2872ea30-0429-4654-bcd3-ca261d23a05d"
+type = "text"
+parent = "4930a425-87e0-418b-802d-553f781869aa"
+order = 1
+text = ""
+
+[[notes]]
+title = "SKILL.md"
+id = "eb4297ae-66c6-4195-b150-c113362b8588"
+type = "text"
+parent = "2872ea30-0429-4654-bcd3-ca261d23a05d"
+order = 1
+text = """---
+name: report-writing
+description: >
+  Structure, register, and field defaults for penetration-test reports. Use when
+  drafting, rewriting, or reviewing any finding or report-section field — title,
+  summary, description, recommendation, cvss, affected_components, scope,
+  executive_summary, retest — including empty fields, tester notes turned into
+  prose, and requests to "draft" or "improve" a field without naming it. Applies
+  when the user is working inside a finding or report section even if they never
+  say "pentest" or "report". Examples are English (en-US); German (de-*) reports
+  additionally use the German overlay.
+license: MIT
+metadata:
+    version: "1.0"
+    author: SysReptor Team
+---
+
+# Report writing
+
+These references teach **how a strong penetration-test report should read**:
+field goals, lengths, defaults, register, and content integrity, so you can
+**write a field from scratch** or **rewrite one field at a time**. The user may
+be inside a finding or section, or asking for a new field, finding, or report
+section.
+
+Examples in this skill are **English**. Draft English reports from them
+directly. For German reports (`language: de-*` or German source prose), keep the
+field structure here and apply `references/german.md` — do not paste English
+example sentences into German fields.
+
+## How to use
+
+1. **Identify the fields** to write, and **read each field’s resource from the
+   index below before drafting it**. Write only the fields asked for. A new
+   finding, unless scoped narrower, is `title`, `summary`, `description`,
+   `cvss`, `recommendation`, `affected_components`, plus the retest fields when
+   this is a retest. Do not assemble a full report unless asked.
+2. **Pick the mode per field** (see *Two modes*). Source prose in the field →
+   rewrite. Empty field, notes only, or an explicit draft request → from
+   scratch. Mixed requests apply per field.
+3. If the report is German, also read `references/german.md`.
+4. Apply the field’s resource plus the always-on rules below: content
+   integrity, impact and certainty, and register.
+
+## Field index
+
+Read the resource for the field you are writing.
+
+| Field | Resource |
+| --- | --- |
+| Report `title`, `customer`, dates, `is_retest`, `lead_pentester`, `language` | `references/report-metadata.md` |
+| `scope` (with approach and duration) | `references/scope-and-methodology.md` |
+| `executive_summary` | `references/executive-summary.md` |
+| `document_history` | `references/document-history.md` |
+| Finding `title` | `references/finding-titles.md` |
+| Finding `summary` (non-technical, for management) | `references/finding-summaries.md` |
+| Finding `description` (technical body, repro steps) | `references/finding-descriptions.md` |
+| `cvss` and severity words | `references/cvss-scoring.md` |
+| `recommendation` | `references/recommendations.md` |
+| `affected_components` | `references/affected-components.md` |
+| `retest_status`, `retest_notes` | `references/retest-fields.md` |
+
+Cross-cutting resources, used alongside a field resource:
+
+| Topic | Resource |
+| --- | --- |
+| Screenshots, `[TODO IMAGE]` placeholders, PoC blocks, appendix pointers | `references/evidence-and-poc.md` |
+| Finding cross-links, external references, footnotes | `references/references-and-crosslinks.md` |
+| Markdown dialect: headings, emphasis, lists, figures, tables, fences | `references/markdown-syntax.md` |
+| German (`language: de-*`) register and phrasing deltas | `references/german.md` |
+
+The report design owns the field inventory: write the fields it has, and do not
+invent a field it does not have.
+
+## Two modes
+
+Only these two terms are used, here and in every field resource.
+
+* **From scratch** — empty field, tester notes, evidence, a new finding, or an
+  explicit “draft / write the summary”. Compose the field’s target shape from
+  available facts.
+  - Facts come from the user, tester notes, evidence, and other fields already
+    in the report. Do not invent hosts, scores, findings, or polarity.
+  - If a **required** fact is missing, ask. Optional slots stay omitted.
+  - Use this skill’s defaults (language, typography, the markup defaults below,
+    inclusion checklists, executive close) and the structure the field resource
+    describes: numbered steps, sub-headings for distinct sub-issues, bullets,
+    finding links.
+  - A `Rewrite:` tag never applies. Those tags preserve existing text; they do
+    not forbid structure the field is supposed to have, and they are not a
+    reason to leave a field incomplete.
+* **Rewrite** — existing source prose in that field. Restyle in place: wording,
+  tense, register, paragraphing, list structure, and headings may change.
+  - Facts, hedges, claim strength, verbatim technical strings, and field
+    boundaries stay.
+  - Keep source order, list markers, and spacing unless the field resource says
+    to restore a structure (flattened lists → bullets).
+  - Improving means making the text read like a strong report, not
+    reconstructing a known twin.
+
+## Markup defaults
+
+Enough to write a prose field without opening another file. The dialect,
+its examples, and everything not listed here — tables and their captions,
+manual highlighting inside a fence, mermaid, attribute braces, inline HTML —
+are in `references/markdown-syntax.md`.
+
+* **Headings:** never `#`, `##`, or `###` inside a field; the design owns those
+  levels. `####` and `#####` structure a long PoC.
+* **Lists:** `*` or `-`, one marker per field, no blank lines between adjacent
+  bullets, alternatives nested under their parent. `1.` `2.` `3.` when order
+  matters. A single item is a plain sentence with no marker.
+* **Inline:** backticks for endpoints, parameters, files, commands, status
+  codes, and field values. Bold sparingly, for a critical identifier or count —
+  never a whole sentence. No underline, and no strikethrough to mark a fixed
+  issue.
+* **Figures:** `![Caption](file.png)` — the alt text renders as the caption and
+  is never empty. `[TODO IMAGE]` where the screenshot is still missing. Either
+  form sits on its own line with a blank line around it, directly after the
+  sentence it proves.
+* **Fences:** every code block carries its language (`http`, `sql`, …).
+
+## Content integrity
+
+Style may change; facts and claim strength may not. This holds for every prose
+field in both modes. The following may not change relative to the **available
+source** — existing field text, other report fields, tester notes, evidence,
+user-supplied facts:
+
+- **Facts:** hosts, URLs, counts, names, versions, dates, CVSS vectors,
+  severities, and which findings exist. Do not invent any of them.
+- **Claim strength:** a hedged claim stays hedged; a demonstrated claim stays
+  demonstrated. Do not upgrade a possibility to a completed tester action
+  because another field later proves a related step.
+- **Genuine uncertainty** already in the source: client-stated facts, inference
+  markers, residual possibilities, limitations we could not close.
+- **Verbatim technical strings:** group names, error messages, field values,
+  paths, and quoted UI labels, even when they look like typos.
+- **Recommendation optionality:** a real optional / trade-off hedge stays
+  optional; do not promote it to a hard must.
+- **Field boundaries:** do not move a duration comment from `scope` into
+  `executive_summary`, a caveat from `summary` into the management overview, or
+  a fix list from `recommendation` into `description`.
+
+If a fact required by the field is missing, ask the user. Do not reconstruct a
+known twin or fill gaps from general knowledge of the stack.
+
+Avoid:
+
+- Inventing hosts, scores, findings, or a polarity the available facts do not
+  support.
+- Unifying hedges or modals across fields “for consistency”.
+- Grammar-only passes that change a finite-verb choice the source already used
+  (rewrite only).
+
+## Impact and certainty
+
+Impact, exploitability, and certainty are distributed across `title`, `summary`,
+`description`, and `executive_summary`. Keep that wording consistent in both
+modes. German hedges and grades: `references/german.md`.
+
+- **Demonstrated outcomes** — past indicative, first person, concrete object:
+  “we obtained access to the invoice database”, “we were able to take over 12
+  customer accounts”.
+- **Potential outcomes** — conditional: “attackers could …”, “would be
+  possible”. Never state potential impact as fact.
+- **One precise certainty marker**, chosen from the evidence:
+  - “according to the client” / “the client stated” — client-stated
+  - “presumably” / “apparently” — our inference
+  - “could” / “it is conceivable that” — not demonstrated
+
+  Evidence-backed facts carry no hedge. Say when we could not determine
+  something, and do not add filler hedges.
+- **Preconditions travel with the impact** when they change who can exploit it.
+  Drop only a tautology that restates the same sentence. Keep extra constraints
+  (VPN access, known password, valid URL before the victim).
+- **Do not tack a vague sequel onto a concrete consequence** — keep the concrete
+  effect; drop an empty “far-reaching consequences” tail.
+- **Grade exploitability with matching vocabulary:**
+  - trivial: “no specialized expertise required”
+  - involved: “technically demanding”, “in near real time”
+  - unreliable: “was not reliably reproducible”
+  - blocked / limited: “practical exploitation was severely limited”
+- **Business consequences** are plausible operational risks, never certain
+  events. Do not claim fines, reputational damage, or compliance breaches:
+  they were not in scope and not evidenced. This holds in every field.
+- **Chains** state the demonstrated step and what the chain *would* enable, with
+  a single cross-link. Do not rewrite a hedged `summary` into a demonstrated
+  past because `description` later proves a related step.
+- **Mechanism vs undemonstrated step.** Observed configuration and capability
+  given a precondition → present indicative. Attacker steps we did not perform →
+  conditional. Do not flatten both to present, and do not upgrade an
+  undemonstrated step to an executed one.
+- **Caveats keep their scope.** A limitation on one sub-issue is not merged onto
+  every account or endpoint in the finding.
+- Screenshots that show a fact make *that* fact unhedged; interpretation of
+  unevaluated contents may stay hedged.
+- **Hedges stay with their facts, per field.** Rewrite: keep content hedges and
+  drop filler stacks; do not add a hedge the field did not use. Conflicting
+  qualifiers or modals across fields of one finding stay independent. Do not
+  copy a finding hedge onto an `executive_summary` sentence that already stated
+  the fact unhedged — unless a client-stated fact appears in the executive text
+  *for the first time*, in which case it keeps the finding’s hedge.
+
+Examples:
+
+- Demonstrated + potential + precondition:
+
+  > Unauthenticated users could view a list of invoice PDFs at a guessed URL.
+  > Knowing the object ID is required; we found no systematic enumeration.
+
+- Graded exploitability:
+
+  > Exploitation is only conceivable in near real time because the session URL
+  > expires after a few minutes. That strongly reduces the risk.
+
+Avoid:
+
+- Double filler hedges; hedging verified facts.
+- Severity adjectives in prose (“very dangerous vulnerability”).
+- Speculating about motives or why a setting exists.
+
+## English register
+
+`references/report-metadata.md` owns the `language` default; do not mix locales
+inside a field.
+
+* Past tense and active voice for what testers did (“We identified …”, “we
+  determined”). Present tense for lasting mechanisms. Conditional for potential
+  impact (“could”, “would be possible”). Prefer a finite verb over a
+  nominalization (“we signed in”, not “we performed a login”).
+* First-person plural for tester actions (`we` / `us`). The client is third
+  person. Unwrap agentless tester passives (“It was determined that …” → “We
+  determined that …”). A stable mechanism does not need that frame.
+* Hedging uses the certainty markers above. Drop filler wrappers; keep content
+  adverbs.
+* Severity words are Critical, High, Medium, and Low, derived from the score
+  (`references/cvss-scoring.md`). Impact dimensions (confidentiality,
+  integrity, availability) belong in prose when they explain a rating.
+* Typography: “e.g.”, “i.e.”; thousands with a comma (“1,250 invoices”); “…”
+  for UI labels; backticks for technical identifiers. Do not use em-dashes
+  (`—`); prefer a comma, period, colon, or parentheses. Rewrite: replace source
+  em-dashes the same way unless they sit inside a verbatim technical string.
+  Keep the source’s spacing and quote characters on that sentence.
+* Keep established English security terms (CSRF, JWT, MFA, PoC).
+"""
+
+[[notes]]
+title = "references"
+id = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+type = "text"
+parent = "2872ea30-0429-4654-bcd3-ca261d23a05d"
+order = 2
+text = ""
+
+[[notes]]
+title = "affected-components.md"
+id = "70290d5b-3d61-41ce-922b-98f086358b14"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 1
+text = """# Affected components
+
+## Purpose
+
+How `affected_components` should read: a short, machine-usable list of what to
+fix or retest. Complements the where / host / path requirement in
+`references/finding-descriptions.md`.
+
+## Applies to
+
+`affected_components` of every finding.
+
+## Rules
+
+- **A list of strings**, typically 1–7 entries, one component per entry. Never
+  a comma-joined sentence, never prose.
+- **Each entry is a concrete pointer:**
+  - Web: full URL with host and path. Prefix the method when the issue is
+    method-specific (`PUT https://shop.example.com/api/basket/item`).
+  - Path parameters: `{Name}` or `:name` — pick one style per report.
+  - Infrastructure: hostname, GPO name, AD object, subnet, or the named
+    mechanism (`VPN concentrator`, `domain controller`).
+  - When there is no URL: a descriptive pointer
+    (`VPN login without a second factor`, `email field on the login form`).
+  - Bulk evidence: an appendix pointer, `See appendix: <file>`
+    (`references/evidence-and-poc.md`). Rewrite: keep the source prefix.
+- List every primary endpoint or named mechanism from `description`; one
+  concrete pointer per entry.
+- **Frozen when rewriting**, including spelling that disagrees with finding
+  prose. The list is a pointer, not a synonym to unify.
+- **Consistency:** every listed component appears in (or is clearly implied by)
+  `description`; every primary endpoint in `description` appears here. No
+  duplicates. Staging and production each get their own host entry.
+
+## Examples
+
+- Web: `https://shop.example.com/login`,
+  `https://shop.example.com/api/invoices/{invoiceId}`
+- Infra: `GPO: Desktop firewall`, `vpn.example.com`
+- Appendix: `See appendix: leaked-credentials.csv`
+
+## Avoid
+
+- Bare domains when a path is known, unless the whole site is affected.
+- Vague entries (“the application”, “various endpoints”).
+- Components mentioned nowhere in `description`, or primary endpoints missing
+  here.
+- Prose inside an entry (“… and also …”).
+- Rewriting list spelling to match finding prose.
+"""
+
+[[notes]]
+title = "cvss-scoring.md"
+id = "5a7cd6c5-2e2d-4c17-b50c-6228531176e2"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 2
+text = """# CVSS scoring
+
+## Purpose
+
+Rules for `cvss`. One final rating per finding, the severity word it maps to,
+and the rationale in prose.
+
+## Applies to
+
+`cvss` of every finding, and scoring rationale in `summary` or `retest_notes`.
+
+## Rules
+
+- **Exactly one CVSS v3.1 vector** per finding, starting `CVSS:3.1/`. No bare
+  numeric score as the rating, no second competing score, no CVSS v4.0.
+- **Base metrics complete, canonical order:** `AV`, `AC`, `PR`, `UI`, `S`,
+  `C`, `I`, `A`.
+- **Temporal / environmental metrics only when they reflect the finding**
+  (functional exploit `E:H`, unproven `E:U`, official fix `RL:O`, confidence
+  `RC:R` / `RC:U`, lowered requirements `CR:L` / `IR:L`). Default: base only.
+  Do not append extras to deflate a score.
+- **Severity words come from the score**, so prose and vector cannot disagree:
+  - `0.1–3.9` → Low
+  - `4.0–6.9` → Medium
+  - `7.0–8.9` → High
+  - `9.0–10.0` → Critical
+
+  German equivalents are in `references/german.md`. Use the word, not the
+  number, in prose; the number lives in the vector.
+- **Score what was demonstrated, on the demonstrated chain.** Produce one v3.1
+  vector from those facts, and ask if a metric cannot be determined. Do not
+  invent temporal metrics.
+  - Preconditions → `PR` (what the attacker needs), not what they would need
+    to *discover* the endpoint.
+  - Unreliable exploitation (entropy, short windows) → `AC:H` **and** name it
+    in `summary`.
+  - Client-side execution across a trust boundary (XSS in the browser) → `S:C`.
+- **Rationale lives in prose, not in the vector.** Downgrades and mitigations
+  belong in `summary` or `retest_notes` (“we downgraded this finding”, “this
+  was reflected in the rating”). Do not quote metric definitions in the report.
+- On retest, an updated vector is documented in `retest_notes`
+  (`references/retest-fields.md`).
+- The titled impact must stay compatible with C/I/A (`references/finding-titles.md`).
+
+## Examples
+
+- Base: `CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N` — 8.8, High
+  (authenticated SQLi on the account API, read and write access to account
+  data).
+- With temporal metrics for known issues in outdated software:
+  `CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:N/E:U/RL:O/RC:U`
+
+## Avoid
+
+- “CVSS 7.5” without a vector; pasting the vector into `summary`.
+- Two ratings (prose severity that contradicts the vector or its band).
+- Inventing temporal metrics that are not evidenced.
+"""
+
+[[notes]]
+title = "document-history.md"
+id = "a9e9a497-9873-4ae7-9310-c7e7fde97178"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 3
+text = """# Document history
+
+## Purpose
+
+How `document_history` entries should read: a few words per version, not prose.
+German labels: `references/german.md`.
+
+## Applies to
+
+`document_history`, where the report design has it. Its entries usually consist
+of `description`, `authors`, `date`, and `version`.
+
+## Rules
+
+- **The design owns the field inventory.** `document_history` may carry a
+  different set of sub-fields in another design, or may not exist at all. Write
+  the sub-fields the design actually has, leave out the ones it does not, and do
+  not add the field to a report whose design has no history. Ask if you cannot
+  tell which sub-fields exist.
+- One entry per version, **earliest first** (retest status blocks run the other
+  way — newest first, `references/retest-fields.md`).
+- **`description`:** a few words, not a sentence. Typical vocabulary: `Draft`;
+  `Release` / `Review & release` / `Initial creation and release`; `Retest` /
+  `Further retest`.
+- **`version`:** draft `0.1` / `0.9`; initial release `1.0`; retests as a minor
+  bump (`1.1`) or a major bump (`2.0`) when the engagement treated it as a new
+  major version. Do not skip stages without a corresponding event.
+- **`authors`:** one person per array item (no “and” inside
+  an item). Comma-separate in non-array string fields.
+- **`date`:** ISO `YYYY-MM-DD`. The newest release date matches `report_date`
+  (or `retest_date`). Ask for authors or dates if unknown.
+  From scratch: draft + release at minimum, plus a retest entry when this is a
+  retest. Rewrite: leave an existing mismatch frozen
+  (`references/report-metadata.md`).
+
+## Examples
+
+- `0.1` / Draft — John Doe, Jane Doe.
+- `1.0` / Review & release — Juanita Doe.
+- `1.1` / Retest — Jane Doe.
+
+## Avoid
+
+- Paragraph-length descriptions.
+- Inventing a review entry nobody performed.
+- Reordering dates; “fixing” an existing `report_date` / history mismatch.
+- Switching author token types to match an example in another skill.
+"""
+
+[[notes]]
+title = "evidence-and-poc.md"
+id = "38bd150f-4636-471f-b02c-5130a91f96fd"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 4
+text = """# Evidence and PoC
+
+## Purpose
+
+How evidence reads inside prose fields: screenshot placement, the two image
+forms, fenced PoCs, and when bulk evidence moves to an appendix. Markdown
+syntax for all of it is in `references/markdown-syntax.md`.
+
+## Applies to
+
+`description`, `retest_notes`, and rarely `scope` — anywhere images, fenced
+code, or an appendix pointer appears.
+
+## Rules
+
+### The two image forms
+
+- **A real screenshot** is a markdown image whose alt text renders as the figure
+  caption: `![Caption](screenshot.png)`. The caption names what the figure
+  shows; alt text is never empty.
+- **`[TODO IMAGE]`** marks a screenshot the pentester still has to insert. Use
+  it when the walkthrough needs evidence at that point but the file is not
+  available to you. It carries no caption and no number.
+- Both forms sit **on their own line**, never inside a sentence, with a blank
+  line before and after. Rewrite: keep the source’s spacing, including a
+  leading space on the line if it has one.
+
+### Placement
+
+- **Directly after the sentence it proves.** That sentence states the claim; the
+  figure caption names the artifact. Neither is a “see screenshot:” pointer.
+- One claim sentence per figure. Typical density is 1–6 figures in a field; long
+  PoCs may carry one per step. Two or three consecutive figures are fine when
+  they belong to one statement — pair them in one side-by-side figure when they
+  are two halves of the same artifact (`references/markdown-syntax.md`).
+- Never cluster the figures at the end of the field.
+- An ellipsis may continue a sentence across a figure:
+
+  ```
+  The error message contained the first rows of the user table...
+
+  ![Database error with the first rows of the user table](sqli-error-1.png)
+
+  ... including email addresses and password hashes.
+
+  ![Email addresses and password hashes in the same response](sqli-error-2.png)
+  ```
+
+  Rewrite: keep the source’s blank-line vs flush layout. From scratch: use the
+  blank-line-before-and-after default.
+
+### PoC requests and code blocks
+
+- Introduce every block with a sentence saying what it shows, and follow it with
+  what it proves.
+- Payloads and URLs belong in fences or backticks, never as bare prose.
+- Fences are tagged and may highlight the part that matters
+  (`references/markdown-syntax.md`). Rewrite: an untagged fence whose first line
+  names the language stays as it is.
+- Naming a tool once (`sqlmap`, `nmap`) is enough.
+- **Verbatim strings in evidence are frozen** (quoted groups, errors, field
+  values), even if they look like typos. Open-prose typos may be fixed when the
+  sentence is already being rewritten (content integrity). Do not redact
+  secrets — the pentester owns redaction of text and screenshots.
+
+### Appendix pointers
+
+- Evidence that would bury the field — credential dumps, full host or subdomain
+  inventories, scan exports, long console output — goes to an appendix file, and
+  the field points at it instead of reproducing it.
+- The pointer is short and names the file: `See appendix: leaked-credentials.csv`.
+  It can stand in prose or as an `affected_components` entry
+  (`references/affected-components.md`). German prefixes are in
+  `references/german.md`.
+- Point at an appendix only when there is one. The finding still has to stand on
+  its own: the walkthrough, the decisive evidence, and the impact stay in the
+  field.
+
+## Examples
+
+- Claim sentence, then captioned evidence:
+
+  > The invoice was then retrievable without authentication at
+  > `/invoices/<ID>`:
+  >
+  > ![Invoice PDF retrieved without a session cookie](invoice-unauth.png)
+
+- Evidence not yet available:
+
+  > We reset the password of an unrelated account and signed in with it.
+  >
+  > [TODO IMAGE]
+
+- HTTP PoC:
+
+  ```http
+  POST /login HTTP/1.1
+  Host: shop.example.com
+
+  user=admin'--&password=x
+  ```
+
+## Avoid
+
+- All figures clustered at the end; a figure inside a sentence.
+- `![](file.png)` with no caption, or a caption that only repeats the claim
+  sentence.
+- Long console dumps when one request proves the point, or when the dump belongs
+  in an appendix.
+- An appendix pointer that replaces the walkthrough instead of relieving it.
+"""
+
+[[notes]]
+title = "executive-summary.md"
+id = "4c7a836e-3cd1-4ff8-94e3-0ef5bfd2a2bc"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 5
+text = """# Executive summary
+
+## Purpose
+
+How `executive_summary` should read: the management-level picture of the whole
+engagement. Per-finding `summary` is `references/finding-summaries.md`. German
+close formula: `references/german.md`.
+
+## Applies to
+
+`executive_summary` only.
+
+## Rules
+
+- **Length: 3–7 short paragraphs, roughly 150–450 words** — an opener, one
+  paragraph per important finding or chain, a collapsed leftovers sentence, and
+  the close. A small engagement with one or two findings may land at two
+  paragraphs plus the close. Rewrite: do not pad a short summary up to this
+  range by adding findings it never covered.
+- **Open with one intro on the overall state of the application or the
+  organizational risk** — not a recap of finding 1, not a semicolon list of
+  titles, not `title` of the report. Default: **one sentence** (up to a short
+  paragraph). Name the impact objects (accounts, tenants, VPN, customer data),
+  not endpoint paths.
+  - **Derive the opener from the findings.** If testers demonstrated tenant
+    takeover and live account compromise, say that. If the work is mostly
+    hardening leftovers, say that. Do **not** invent a rosy polarity
+    (“solid login process”, “robust security impression”) or a damning one
+    (“not state of the art”) the findings do not support.
+  - An attack *chain* that the findings actually form may be named as one
+    organizational risk. Do not paste a chain sentence onto an unrelated
+    finding list.
+- **Then short business-impact paragraphs** for the important findings or
+  chains — what an attacker gains, in management language. When the report
+  uses finding links (`[](#<id>)`, `(Finding [](#<id>))`), link each important
+  finding or chain. Rewrite: keep the source’s linking — do not add a link the
+  sentence never had, and do not strip links that are already there.
+- **Do not restyle this field into a table of finding summaries.** Skip
+  scoring caveats, payload detail, and exploitability footnotes that only live
+  in the finding unless they belong in the executive picture. Quantify when the
+  number is already a report fact. Rewrite: keep such details only if the
+  executive text already used them.
+- **Collapse true leftovers** (outdated components, scan hardening) into one
+  closing sentence. A distinct, listed issue (for example session enumeration
+  that enables account discovery) gets its **own** paragraph — do not hide it
+  inside “outdated software”.
+- **Coverage of findings:** cover every important finding or chain, collapse
+  true leftovers, and do not pad with every low finding. Rewrite: do not insert
+  findings this summary never covered just because they exist in the finding
+  list — expanding named items is restyle; adding an unnamed finding is a new
+  fact.
+- **Positive observations** (MFA that worked, rate limiting) are welcome when
+  they calibrate the picture and the facts support them. Rewrite: include them
+  only if the source already has them — do not invent controls from general
+  knowledge of the stack.
+- **Close clearly:** timely fix of critical and high risk; prioritize the rest
+  (often as a continuous improvement process). Default wording:
+
+  > We recommend remediating critical and high-severity findings first. All
+  > other findings should be prioritized by effort and addressed as part of a
+  > continuous improvement process.
+
+  (`prioritised` if `language` is `en-GB`.) Variants that keep both elements
+  (urgent high/critical + prioritized remainder) are fine. If the last listed
+  item is only a low-risk leftover, the close may fold into that paragraph
+  instead of repeating the critical/high formula. Always include a two-element
+  close unless the leftover-fold applies. Rewrite: if the summary has **no**
+  close, insert the default two-element close — that is style, not a new
+  verdict.
+- **Optional blocks, only when they belong:**
+  - Future-test advice — do not seed it from a dropped duration hedge in
+    `scope`.
+  - Retest vs initial-test headings — when writing a *new* retest summary, or
+    when the source already has them. Preserve the source’s date style.
+    Rewrite: do not build those headings from `retest_notes` if the executive
+    text never had a retest narrative.
+  - Discussion topics from a review meeting — only if they were recorded;
+    do not invent discussion topics.
+- **Management register:** no CVSS vectors, no CVE numbers, no payloads, no
+  tool syntax, no URL paths. Component names in business terms are expected
+  (“VPN”, “customer portal”, “domain controller”).
+
+## Examples
+
+- Opener from demonstrated high impact:
+
+  > During the penetration test we identified weaknesses through which an
+  > attacker could fully take over the customer portal and read invoices stored
+  > for all tenants.
+
+- Then a finding paragraph:
+
+  > Through SQL injection in the login form we obtained access to the user
+  > database. That made takeover of arbitrary customer accounts possible.
+  > (Finding [](#…))
+
+- Weak opener (finding recap, no overall state):
+
+  > SQL injection in login; missing MFA on the VPN; outdated libraries.
+
+## Avoid
+
+- Opening on a mechanism recap or a title list.
+- Inventing polarity adjectives the findings do not earn.
+- Importing finding-only caveats, hosts, or counts that do not belong in the
+  executive picture. Rewrite: also do not import ones this summary never had.
+- Padding with every low finding.
+- Parameter names, status codes, or payloads.
+- Dropping the closing prioritization line. Rewrite: adding a retest section
+  the source never wrote.
+"""
+
+[[notes]]
+title = "finding-descriptions.md"
+id = "5b25a22c-b29f-4306-8dfc-03ef38574f2b"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 6
+text = """# Finding descriptions
+
+## Purpose
+
+Rules for finding `description`. Observation → conclusion; numbered steps;
+background when the stack is unfamiliar; limitations.
+
+## Applies to
+
+Finding `description`.
+
+## Rules
+
+- **Narrative walkthrough**, not a pile of facts. A standard finding is about
+  3–12 sentences; multi-part findings and PoCs run longer via structure, not
+  via walls of text.
+- **Open with where and what.** A short temporal frame is fine (“During
+  testing …”). Throat-clearing is not (“The following vulnerability describes
+  …”, “Regarding area X …”).
+- **Walk the reader to the conclusion:** entry point → our action → response →
+  what an attacker with the same preconditions could do. Chain links in order.
+- **Evidence after the claim it supports.** Each figure sits on its own line
+  immediately after the sentence it proves, with one claim sentence per figure
+  (`references/evidence-and-poc.md`). Do not cluster screenshots at the end.
+  Where a screenshot is needed but not available to you, leave a
+  `[TODO IMAGE]` placeholder for the pentesters to replace.
+  Rewrite: if the source already attached several images to one statement, do
+  not invent claim sentences to split the cluster. From scratch: consecutive
+  figures are fine when they belong to one statement.
+- **Numbered repro / PoC when there are steps.** Preconditions, exact URLs or
+  commands, payloads, expected result. Short recipes use `1.` `2.` `3.` as
+  first-person sentences. Long walkthroughs may use
+  `#### Proof-of-Concept: <goal>` and `##### n. <step>` when there are
+  distinct PoCs or named steps (heading depth and `{.in-toc .numbered}`:
+  `references/markdown-syntax.md`). Name each PoC by its goal. Rewrite: copy
+  the source’s heading wording; do not paraphrase a labeled PoC into a
+  different title.
+- **Sub-headings only for distinct sub-issues** (different control or impact
+  path), typically bold. Sequential techniques that prove *one* issue stay as
+  paragraphs + figures, without invented cluster titles. Rewrite: restore a
+  heading the source still names; do not add headings a sequential description
+  never had.
+  - Distinct access vectors may be a numbered list with bold names
+    (`1. **Reading other tenants’ invoices**: …`).
+  - A sequential hijack walkthrough stays bare numbered sentences, not
+    `1. **Label**:`.
+- Order sub-parts by severity (worst path first). Positive context follows the
+  weakness it contextualizes, it does not bury it.
+- **Flattened inventories become lists.** Domain→account-type maps, library
+  inventories, and attribute lists belong in bullets, not run-on prose.
+  Component inventories may use a short bold class label plus where we saw them.
+- **Technical notation:** backticks for endpoints, parameters, files, and
+  commands; status codes with their reason phrase (`` `401 Unauthorized` ``);
+  error text quoted verbatim; full URLs when the path matters. Markup details
+  are in `references/markdown-syntax.md`.
+- **Mechanism in one or two sentences** — why the behavior is exploitable.
+  Vulnerability-class tutorials belong behind a footnote, not in the body.
+- **Background** when the finding needs niche stack knowledge: two to three
+  sentences before the walkthrough (what the technology is and how it is used
+  here). Not product documentation.
+- **Systems, not people.** Attribute issues to missing controls,
+  misconfigurations, or code. Prefer roles over employee names. No blame
+  language and no speculation about why someone chose a setting.
+- **Close with real limitations** (“We cannot rule out that …”, “The named
+  endpoints are exemplary”). Drop a completeness disclaimer that only repeats
+  an already-stated “sampled / spot-checked” note.
+- Tester observation of a missing control → “We determined that …”.
+  Stable mechanism → the content verb. Client-stated facts keep their marker
+  (`SKILL.md`, impact and certainty).
+- Keep a short bridge sentence where testers ran PoCs to show criticality;
+  strip only fluff tails. Rewrite: keep the source’s finite-verb choice.
+- Restate technical impact once after the evidence. Remediation belongs in
+  `recommendation`: no fix list here, and a one-line pointer to the control
+  pattern is enough if the walkthrough needs it. Rewrite: a short de-hedged
+  hint already in the source may stay, never a fix list.
+
+## Examples
+
+- Observation → response → implication:
+
+  > The login form at `https://shop.example.com/login` evaluated the `user`
+  > parameter in a SQL query. We submitted a classic injection in the username;
+  > the server responded with a database error and then with rows from the user
+  > table.
+  >
+  > ![Database error followed by rows from the user table](sqli-user-table.png)
+  >
+  > That allowed us to take over arbitrary customer accounts.
+
+- Limitation: “We cannot rule out that further endpoints share the same missing
+  object check. The named paths are exemplary.”
+
+## Avoid
+
+- Theory dumps; walls of more than ~5 sentences without a break, figure, or list.
+- Steps without numbers when order matters.
+- Conclusions without the path; figures without a claim sentence.
+- Copying `recommendation` bullets into `description`.
+- Blame language or employee names.
+- Inventing bold sub-headings on a sequential walkthrough, or flattening a
+  named multi-vector list into “Additionally … Furthermore …” prose.
+"""
+
+[[notes]]
+title = "finding-summaries.md"
+id = "d1f9d1eb-3e86-446c-a95e-2463c421ae47"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 7
+text = """# Finding summaries
+
+## Purpose
+
+Rules for finding `summary`. Management audience; impact first; plain
+language; verified outcomes; requirements and limitations.
+
+## Applies to
+
+Finding `summary`.
+
+## Rules
+
+- **1–5 sentences** (rarely a sixth for a hard chain), usually one paragraph;
+  a second short paragraph is for caveats, mitigations, or a chain link. Roughly
+  25–130 words. Cover impact, actor, how, and limitations in that range. Never
+  pad, and do not merge distinct claims to hit a paragraph cap. A simple scan
+  leftover may be one sentence.
+- **Impact and actor first**, in language a manager can use. Opening shapes:
+  - “We identified / determined / obtained …”
+  - “Unauthenticated / arbitrary users could …”
+  - “The application implemented no … that would prevent …”
+  Pick the shape that matches the evidence; do not paste an example that does
+  not fit the facts. Rewrite: restore the source’s finite verb rather than
+  swapping in an example opener.
+- **Then, briefly:** how, in business terms (mechanism as a side-note, not a
+  payload); **who can exploit it**; **limitations** that change prioritization.
+- **Caveats and scoring rationale when they change the reading.** If
+  exploitation is hard, say so and, when it moved the rating, say that too
+  (“The risk is reduced because …. This was reflected in the rating.” / “… we
+  downgraded this finding.”). Do not hide a real precondition.
+- **No dump of URLs, payloads, status codes, or CVSS vectors.** Reproduction
+  belongs in `description`. Name a field or control when *it is* the object at
+  risk. Rewrite: do not strip a name the original already used, and do not add
+  paths the summary never had.
+- **Quantify** exposure with counts and data types when known. Keep the
+  field’s own qualifier (do not unify wording across `summary` and
+  `description`).
+- **One general-explanation sentence** is allowed on a hardening finding
+  (why attackers care about the missing control). Keep it to one sentence.
+- **Aggregation stays aggregated:** how much, top risk. Exemplars and
+  inventories live in `description`. Do not import a description-only caveat
+  into `summary`.
+- A chain-level impact that only the worst sub-issue justifies may close the
+  summary, with the modal the evidence supports. Rewrite: keep the original
+  modal — a hedge stays hedged.
+- Keep the impact-consequence sentence after a mechanism lead; strip only
+  fluff wrappers around it (content integrity).
+- Present tense is right for a missing control that is a stable property
+  (“The endpoint does not validate whether …”).
+- Cross-link chained findings once, inline (`references/references-and-crosslinks.md`).
+- Expand the title for a management reader; do not repeat it word for word.
+
+## Examples
+
+- Impact + actor + caveat:
+
+  > Any shop user could change other accounts’ passwords, including the
+  > administrator’s. During the test we took over the administrator account that
+  > way and saw all orders. A valid customer login is required; unauthenticated
+  > attackers cannot use the path.
+
+- Scoring mitigation:
+
+  > The risk is reduced because file URLs have a short validity window. That
+  > makes targeted abuse harder and was reflected in the rating.
+
+- Too technical:
+
+  > The application stores `userId` without integrity protection. We sent
+  > `GET /admin` and received HTTP 200. CVSS 8.8.
+
+## Avoid
+
+- Opening on the vulnerability class or the vector.
+- Unqualified worst cases beyond what was tested.
+- Dropping a real exploitability caveat.
+- A summary that could apply to any client — name the system, data, and roles.
+- Reproduction steps, payloads, or a URL list.
+- Repeating the title word for word.
+"""
+
+[[notes]]
+title = "finding-titles.md"
+id = "f8070c07-84d0-4a46-80dd-3c952b47cf72"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 8
+text = """# Finding titles
+
+## Purpose
+
+Rules for finding `title`. What / who / how as needed; impact-first; sentence
+case; most severe verified impact. German title connectors:
+`references/german.md`.
+
+## Applies to
+
+Finding `title`.
+
+## Rules
+
+- **Impact first, concrete, short.** About 4–9 words. Sentence case: first word,
+  proper nouns, and acronyms only. No trailing period, no severity adjective,
+  no CVE/CWE. Severity lives in `cvss`.
+  - Weak: `Critical issues in outdated software`
+  - Better: `Issues in outdated software`
+- **Do not title a vulnerability class when the impact is known.**
+  `SQL Injection`, `Information disclosure`, `IDOR` tell the reader nothing
+  about why they should care. Name the demonstrated outcome, then attach the
+  path.
+- **Who / what / how as needed.** Recurring English shapes:
+  - `<Impact> by <actor> (<cause>)` — “Admin takeover by authenticated users (stored XSS)”
+  - `<Impact> via <path>` — “Account takeover via stored XSS”
+  - `<Component> without <control> enables <impact>`
+  - `<Actor> access to <object>`
+  - `<Object> in <location>`
+  - `<Component> without <control>`
+- Parentheses may hold the cause after the impact, or a qualifier the reader
+  needs (“(staging only)”). Do not use parentheses only to dump a class name
+  with no impact.
+- **Most severe verified impact.** If the chain is local admin → domain users →
+  all clients, title the end state, not a compound of every hop. Join two
+  impacts with “and” only when they are co-equal and neither subsumes the other.
+- Title **what was demonstrated**. If testers only showed that an attack is
+  *possible*, title the risk (“Risk from shared helpdesk credentials”), not an
+  unexecuted theft. Never ship a class-only title.
+- **Compatible with the finding’s C/I/A.** Do not title a confidentiality
+  compromise when the vector is `C:N`. Low (`C:L`) can still match a limited
+  account takeover. Downstream effects that `cvss` does not score stay in
+  `summary` / `description`.
+- Aggregation findings title the shared impact **or** the missing control —
+  prefer the impact when one dominates. A slash joining two classes
+  (`Open Redirect / HTML Injection`) is not a title; rewrite to the outcome.
+- Prefer a **clear two-line title** over a meaningless one-liner. If what /
+  who / how cannot all fit, keep the impact and leave the rest off.
+- English class names stay English where they are standard (CSRF, XSS, SQLi).
+- Related findings in one report should use parallel construction.
+- Rewrite: leave a title that already satisfies these rules unchanged. Fix only
+  missing impact, class-only wording, severity labels, throat-clearing, or
+  broken grammar at the end of an otherwise good title.
+
+## Examples
+
+- Weak → better:
+  - `Cross-Site Scripting` → `Admin takeover of shop administrators (stored XSS)`
+  - `Information disclosure` → `Public configuration file exposes the database password`
+  - `Missing MFA` → `Missing MFA on the VPN enables takeover of remote access`
+  - `Command Injection` → `Application server takeover by command injection`
+
+## Avoid
+
+- Class-only titles.
+- Titling an impact the vector does not score.
+- Copying a title from another engagement because it “sounds like” this finding.
+"""
+
+[[notes]]
+title = "german.md"
+id = "be554f7b-303c-4e35-b346-ba7c362435f8"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 9
+text = """# German report language
+
+## Purpose
+
+German (de-*) overlay — register, hedges, typography, and the few phrasing
+deltas that differ from the English field resources. Field structure, lengths,
+and content integrity stay there. This file is **not** a second field manual —
+apply it after the matching English field resource, then write German.
+Applies to both writing modes: new German prose and rewriting German source.
+
+## Applies to
+
+Every prose field when the report is German (`language: de-*`, the user asks
+for German or Deutsch, or existing or new prose is German).
+
+## Rules
+
+- **Locale.** `language` is any `de-*` locale; `references/report-metadata.md`
+  owns the default (`de-DE` when German is asked for without a variant).
+  Rewrite: keep the source’s variant.
+- Keep established English security terms (CSRF, JWT, MFA, PoC, Finding, Scope,
+  Race Condition). Do not paste English example sentences from this skill into
+  German fields.
+
+### Register
+
+- **Past tense + active voice for what testers did.** “Wir identifizierten …”,
+  “Wir konnten … auslesen”, “stellten wir fest”. Prefer a finite verb over a
+  nominalization (“wir konnten uns anmelden”, not “wir konnten eine Anmeldung
+  durchführen”).
+- **Conditional for potential impact.** Demonstrated: past indicative
+  (“erhielten wir Zugriff”). Attacker *could* reach: “könnte”, “könnten
+  Angreifer”, “wäre … möglich”.
+- **First person plural:** “wir” / “uns”. Client is third person. Never “man”
+  as the subject of test actions; never second person outside recommendations.
+  - Unwrap agentless tester passives: “Es wurde festgestellt, dass …” →
+    “Wir stellten fest, dass …”.
+  - A stable mechanism does not need that frame.
+  - Customer-side provisioning may stay impersonal when that is the source
+    stem; tester registration stays first person.
+- **Hedges:** `auskunftsgemäß` / `laut Auskunft` (client-stated);
+  `vermutlich` / `offenbar` / `schien` (inference); `könnte` / `wäre denkbar`
+  (not demonstrated). `denkbar, dass … könnten` is one hedge, not a stack.
+  Do not upgrade “könnte” to “konnten wir”. A real `denkbar` / trade-off
+  `könnte` in recommendations stays optional. Keep content adverbs (`jedoch`,
+  `jedenfalls`, `ggfs.`).
+- **Severity:** kritisch, hoch, mittel, niedrig. Dimensions: Vertraulichkeit,
+  Integrität, Verfügbarkeit.
+- **Typography:** “z. B.”, “bzw.”, “ggf.”; thousands with a dot
+  (“1.250 Rechnungen”); quotes „…“ for UI labels. Rewrite: keep the source’s
+  spacing and quote characters on that sentence.
+- **Same term, one spelling inside a field.** From scratch: prefer hyphenated
+  Duden forms (`SSH-Port`). Leave grammar-driven variants alone.
+- Finite-verb choice is not a typo (“sendeten wir” stays): pick the finite verb
+  the evidence supports. Rewrite: no grammar-only pass.
+
+### Deltas from English field files
+
+Structure, lengths, and content integrity still come from the English field
+resource named in each heading. Only these realizations change.
+
+#### Titles (`references/finding-titles.md`)
+
+- Weave the cause in with `durch` / `über` / `bei`, or with a verb. German does
+  not take the English parentheses-for-the-class shape (`Kontoübernahme (XSS)`).
+- Parentheses only for a qualifier (“(nur Staging)”).
+- Join co-equal impacts with “und”. Unexecuted risk: “Risiko durch …”.
+- Shapes: `<Auswirkung> durch <Ursache>`, `<Auswirkung> über <Weg>`,
+  `<Komponente> ermöglicht <Auswirkung>`, `<Komponente> ohne <Kontrolle>`.
+
+#### Recommendations (`references/recommendations.md`)
+
+- Concrete change → ihr-imperative (“Stellt sicher, dass …”, “Deaktiviert …”,
+  “Erzwingt MFA am VPN”). Never “Sie sollten …”.
+- Process advice → “Wir empfehlen …”. Hard requirement → “müssen” / “soll”.
+- Keep `nach Möglichkeit` on the restyled imperative. Rewrite: a source
+  `sollte` may stay.
+
+#### Exploitability grades (`SKILL.md`, impact and certainty)
+
+- “kein besonderes Fachwissen notwendig”; “technisch anspruchsvoll” / “in
+  nahezu Echtzeit”; “war nicht zuverlässig reproduzierbar”; “die praktische
+  Ausnutzung war stark eingeschränkt”.
+
+#### Scoring rationale (`references/cvss-scoring.md`)
+
+- “haben wir dieses Finding heruntergestuft” / “wurde in der Bewertung
+  berücksichtigt.”
+
+#### Executive close (`references/executive-summary.md`)
+
+> Wir empfehlen, Schwachstellen mit kritischem und hohem Schweregrad
+> priorisiert zu beheben. Alle anderen Schwachstellen sollten nach Aufwand
+> priorisiert und im Rahmen eines kontinuierlichen Verbesserungsprozesses
+> adressiert werden.
+
+#### Retest formulas (`references/retest-fields.md`)
+
+- Resolved: “Im Retest nicht mehr reproduzierbar.”
+- Dated status block: `**Status 08.05.2026:**` — German date style, newest
+  first.
+
+#### History and duration labels (`references/document-history.md`)
+
+- History `description`: `Entwurf`, `Freigabe` / `Review & Freigabe`, `Retest` /
+  `Weiterer Retest`.
+- Duration in `scope`: “X Personentage”, optionally “inklusive
+  Berichtserstellung”.
+
+#### Cross-links and appendix (`references/references-and-crosslinks.md`, `references/evidence-and-poc.md`)
+
+- Cross-link: “(Finding [](#id))” / “(siehe Finding: _[](#id)_)”.
+- Appendix pointer: `Siehe Anhang: …` / `Anhang: …`. Rewrite: keep the source
+  prefix.
+- Knowledge base: “Weitere Informationen zu dieser Schwachstelle sind in
+  unserer Wissensdatenbank dokumentiert.”
+
+## Examples
+
+- Observation: “Wir riefen den Password-Reset wiederholt auf; die Anwendung
+  versandte jedes Mal eine E-Mail ohne erkennbare Limitierung.”
+- Mechanism: “Die VPN-Anmeldung prüfte nur Benutzername und Passwort; ein
+  zweiter Faktor fehlte.”
+- Potential: “Ohne MFA könnten Angreifer gestohlene VPN-Zugangsdaten direkt
+  verwenden.”
+- Client-stated: “Auskunftsgemäß handelt es sich um das zentrale
+  Abrechnungssystem.”
+- Title: `Übernahme von Shop-Administratoren durch gespeichertes XSS` — not
+  `Kontoübernahme (XSS)`.
+- Recommendation pair: “Erzwingt Multifaktor-Authentifizierung für alle
+  VPN-Anmeldungen.” / “Wir empfehlen, privilegierte Fernzugänge zusätzlich an
+  verwaltete Geräte zu binden.”
+
+## Avoid
+
+- English prose in any field (embedded English terms are fine).
+- Copying English title parentheses, “Ensure …”, or “person-days” into German.
+- Present or future tense for test actions.
+- Double filler hedges (“könnte möglicherweise eventuell”).
+- Agentless passive for our own steps (“Es wurde versucht, …”).
+- Blame language (“nachlässig konfiguriert”).
+- Re-stating field lengths, CVSS order, or PoC placement — those stay in the
+  matching English field resource.
+"""
+
+[[notes]]
+title = "markdown-syntax.md"
+id = "b68ff715-68fb-436a-806f-bf063672e7a1"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 10
+text = """# Markdown syntax
+
+## Purpose
+
+The markdown dialect the reports render with: CommonMark plus the extensions
+this renderer adds (figures from images, table captions, manual highlighting in
+code blocks, inline footnotes, attribute braces).
+
+`SKILL.md` carries the handful of markup defaults needed on every prose field —
+heading depth, list markers, backticks and bold, the two figure forms, tagged
+fences. This file explains and exemplifies those, and is the only place that
+covers the rest. Read it when a field needs a table, a highlighted request, a
+diagram, an attribute, or raw HTML, or when the defaults leave a question open.
+
+This file owns **how** to write a construct. **When** to use one stays with the
+field: evidence placement in `references/evidence-and-poc.md`, list structure in
+`references/recommendations.md`, sub-headings in
+`references/finding-descriptions.md`, links in
+`references/references-and-crosslinks.md`.
+
+## Applies to
+
+Every markdown-bearing prose field: `description`, `summary`,
+`recommendation`, `retest_notes`, `scope`, `executive_summary`.
+
+## Rules
+
+### Headings
+
+- The design supplies the report and finding headings, so field prose starts no
+  higher than `####`. Inside a `description`, `#### Proof-of-Concept: <goal>`
+  with `##### n. <step>` beneath it is the deepest structure that is normally
+  needed (`references/finding-descriptions.md`).
+- Never `#`, `##`, or `###` inside a field — they collide with the design’s own
+  levels.
+- `{.in-toc .numbered}` on a heading puts it in the table of contents and
+  numbers it. Add it on `####` headings that a reader would navigate to:
+  named Proof-of-Concept blocks and distinct sub-issues. Skip it on `#####`
+  step headings and on any heading that would only clutter the ToC. Rewrite:
+  keep the flag where it is; add it when a navigable `####` is missing it;
+  do not strip it.
+
+### Emphasis
+
+- `**bold**` sparingly, for a critical identifier or count — never a whole
+  sentence.
+- `_italic_` for the cross-link form the reports use (`_[](#<id>)_`) and for a
+  rare emphasis; do not italicize technical strings, which take backticks.
+- Backticks for endpoints, parameters, files, commands, status codes, and field
+  values.
+- `~~strikethrough~~` is not how a fixed issue is marked. Retest state belongs
+  in `retest_status` / `retest_notes` (`references/retest-fields.md`).
+- Markdown has no underline; it needs `<u>…</u>`. Do not use it — underlined
+  text reads as a broken link.
+
+### Lists
+
+- `*` or `-` for bullets, **one marker per field**, adjacent bullets with no
+  blank lines between them. Nested items are indented under their parent.
+- `1.` `2.` `3.` for anything where order matters (repro steps, PoC stages).
+- A single item is written as a plain sentence, without a marker.
+
+### Images and figures
+
+- An image is standard markdown and renders as a figure whose **caption is the
+  alt text**: `![Caption](screenshot.png)`. Alt text is mandatory —
+  `![](screenshot.png)` renders a figure with an empty caption.
+- Optional sizing goes in attribute braces: `![Caption](screenshot.png){width="50%"}`.
+- `[TODO IMAGE]` is the placeholder for a screenshot the pentester still has to
+  insert. It is not markdown, carries no caption, and is replaced by a real
+  image reference later.
+- Two screenshots that prove one statement may be paired in one figure:
+
+  ```html
+  <figure class="figure-side-by-side">
+    <img src="request.png" />
+    <img src="response.png" />
+    <figcaption>Request and response of the forged password change</figcaption>
+  </figure>
+  ```
+
+- Placement, density, and what the surrounding prose must say are in
+  `references/evidence-and-poc.md`.
+
+### Tables
+
+- GFM syntax, plus a caption on the line after the table, introduced with `: `.
+  Give every table a caption.
+- Cells hold short values. The syntax supports no rowspan, colspan, or
+  multiline cells — fall back to inline HTML only when one of those is really
+  needed.
+- A client-supplied HTML table (IP and interface inventories, for example) stays
+  as supplied; do not tidy its markup into markdown
+  (`references/scope-and-methodology.md`).
+
+### Code blocks
+
+- Fence every block and tag it with its language (`http`, `sql`, `shell`,
+  `json`, …). Preserve an existing info string rather than replacing it.
+- To point at the part that matters, add `highlight-manual` to the info string
+  and wrap that part in `§§…§§`. Use it for the injected parameter or the
+  telling response header, not for whole blocks.
+- If the payload itself contains `§`, choose another escape character:
+  `http highlight-manual="|"`, then wrap with `|…|`.
+- Preserve highlight markers the source already has; do not invent them for a
+  block that never had any.
+
+### Footnotes
+
+- Inline, at the mention: `LDAP signing^[<https://…>]`. When to footnote versus
+  cross-link is in `references/references-and-crosslinks.md`.
+
+### Mermaid
+
+- A fenced `mermaid` block renders as a captioned figure. Its info string
+  carries the caption:
+
+  ~~~
+  ```mermaid caption="Attack chain from the VPN to the domain controller"
+  flowchart LR
+    VPN --> Workstation --> DomainController
+  ```
+  ~~~
+- Worth it only for an attack chain or an architecture the prose cannot carry.
+  Always caption it, never decorate with it, and never draw a step the evidence
+  does not support.
+
+### Math
+
+- `$…$` and `$$…$$` render formulas. Do not typeset CVSS arithmetic. Use only
+  if necessary.
+
+### Attribute braces and inline HTML
+
+- Braces set attributes directly after the element:
+  `{#id .class width="50%"}`. Use `width` where an image needs sizing. On
+  headings, `{.in-toc .numbered}` is the allowed exception (see Headings
+  above). Do not invent other ids or classes; they belong to a design you
+  cannot see. Keep attributes the source already carries.
+- Inline HTML is the escape hatch for what markdown cannot express (side-by-side
+  figures, complex tables, `<u>`). Markdown embedded inside an HTML block needs
+  a blank line separating it from the surrounding tags.
+
+## Examples
+
+- Highlighted PoC request:
+
+  ```http highlight-manual
+  POST /api/users/change-password HTTP/1.1
+  Host: shop.example.com
+  Content-Type: application/x-www-form-urlencoded
+
+  §§user=4711§§&password=Sommer2026
+  ```
+
+- Captioned evidence after the sentence it proves:
+
+  > The response contained the first rows of the user table:
+  >
+  > ![Database error revealing user table rows](sqli-error.png)
+
+- Table with a caption:
+
+  ```
+  | Host                  | Environment |
+  | --------------------- | ----------- |
+  | shop.example.com      | production  |
+  | staging.example.com   | staging     |
+
+  : Tested hosts and their environments
+  ```
+
+## Avoid
+
+- `#`, `##`, or `###` inside a field; underline; strikethrough as a fix marker.
+- `![](file.png)` with no alt text, or an image reference inside a sentence.
+- Untagged fences; invented highlight markers; a fence used for a single
+  identifier that belongs in backticks.
+- Mixing `*` and `-` inside one field.
+- Uncaptioned tables and mermaid figures.
+- Invented ids and classes, KaTeX formulas if unneeded, and HTML where markdown would do.
+"""
+
+[[notes]]
+title = "recommendations.md"
+id = "5e732cea-ad7f-481a-97a5-62859b30f60e"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 11
+text = """# Recommendations
+
+## Purpose
+
+Rules for `recommendation`. Control patterns, not patch specs; bullets;
+imperative main actions; skip already-implemented controls; trade-offs;
+root-cause-first. German verb forms: `references/german.md`.
+
+## Applies to
+
+Finding `recommendation`, and follow-up advice inside `retest_notes`.
+
+## Rules
+
+- **Actionable bullets, one action each**, complete sentences. Typically 1–6
+  points (often 2–4). A **single** recommendation is one plain sentence,
+  **no** bullet marker. Sub-bullets hold alternatives or extra hardening under
+  their parent. One list marker per field
+  (`references/markdown-syntax.md`); rewrite keeps the field’s existing marker.
+- **Verb forms by role.** Imperative is the default for an important action;
+  keep one dominant style per finding, and mixing inside a finding is fine when
+  the *roles* differ:
+  - **Concrete config / system change** → imperative (“Ensure that …”,
+    “Reset …”, “Disable …”, “Validate … against an allow-list”, “Enforce MFA
+    on the VPN”).
+  - **Process or program advice** → “We recommend …”
+    (“We recommend regularly monitoring leaked credentials.”).
+  - **Hard requirements** may use must / shall.
+  - Do not default to should. Rewrite: a **system-oriented should** the source
+    already uses is legitimate — do not mass-convert should → imperative, or
+    the reverse.
+- **Keep real optionality.** Trailing “conceivable”, trade-off “could”, and
+  nested alternatives stay optional. Do **not** turn optional hardening into a
+  hard must. “Where possible” is a content qualifier: keep it on the restyled
+  imperative.
+- A **sibling concrete control** whose only hedge is a degraded wrapper
+  restyles to imperative. That is not the optional-hardening freeze.
+- **Restyle degraded wrappers**, keep the action:
+  - “It is recommended that …” / “It should be ensured that …”
+    → imperative or “We recommend …”, by role above.
+  - Drop whole extra bullets that are only fluff (“best practices should be
+    considered”, “a holistic review appears advisable”).
+- **Order:** root-cause fix, then defense in depth, then optional hardening.
+  Urgent containment first or flagged in the bullet.
+- **Name the control pattern** in plain language. A concrete endpoint may be
+  named for precision; no patch-spec walkthrough.
+- One short explainer sentence inside a bullet is allowed (what MFA is);
+  do not grow it into a tutorial.
+- Trade-offs inline when the fix is disruptive.
+- Cross-link another finding’s recommendations instead of repeating them
+  (`references/references-and-crosslinks.md`).
+- **Do not recommend controls already verified as working.** If a related
+  control is present but incomplete, recommend only the missing part.
+- Compensating controls (WAF, rate limiting, network segmentation) are
+  **interim**; the primary bullet still names the root-cause fix.
+- Prefer natural control language over stiff policy phrasing (“check that the
+  logged-in user may change this account”, not “derive the authenticated user
+  from the server-side session”).
+- Multi-part findings: recommendations per sub-part, mirroring distinct
+  description headings.
+- Restore flattened prose to bullets, one bullet per distinct action, and
+  restore parent/child nesting. Rewrite: do not lift alternatives into extra
+  mains, and do not split one source bullet that is action + continuation.
+
+## Examples
+
+- Concrete + process + optional (missing MFA on VPN):
+
+  ```
+  - Enforce multi-factor authentication for all VPN logins.
+  - We recommend also binding privileged remote access to managed devices.
+      - Until that is possible, restricting access to the office network is
+        conceivable.
+  ```
+
+- Single recommendation, no bullet: “Validate available payment methods
+  server-side and enforce them.”
+
+- Too much like a patch: extract the user ID exclusively from the session and
+  compare it with the `user` parameter of `POST /api/users/change-password`.
+  Better: “Authorize every password change: the logged-in user may change only
+  their own account.”
+
+## Avoid
+
+- Numbered how-to / parameter-level specs (that is `description`).
+- Second-person “you should” / “you must” as the main voice.
+- Fragment bullets (“Rate limiting.”).
+- Generic filler (“implement security best practices”).
+- Promoting optional / trade-off hedges to a must.
+- Recommending what already works.
+- Symptom-only compensating controls with no root-cause fix.
+- Marker wars or copying another finding’s `*` vs `-`.
+"""
+
+[[notes]]
+title = "references-and-crosslinks.md"
+id = "d2a45bee-b0cd-49db-b3f0-1c4f211be906"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 12
+text = """# References and crosslinks
+
+## Purpose
+
+How to point at other findings and external resources. There is no dedicated
+`references` field — links live in prose. Link and footnote syntax is in
+`references/markdown-syntax.md`.
+
+## Applies to
+
+`summary`, `description`, `recommendation`, `retest_notes`, `scope`,
+`executive_summary`.
+
+## Rules
+
+- **Finding cross-links** use the target id: `[](#<id>)`. Valid shapes:
+  - “([](#<id>))”
+  - “(Finding [](#<id>))”, “(see finding: _[](#<id>)_)”
+  - inline: “via the path described in [sensitive data in GET requests](#<id>) …”
+- **Link the chain where it is first explained**, once per field. Use real
+  finding ids from the report; never invent one. Recommendations may point at
+  another finding’s advice: “(see recommendations of finding: _[](#<id>)_)”.
+  Rewrite: keep the links the source already has, and do not add a link to a
+  sentence that never had one just because siblings are linked.
+- **External references:** a footnote on the mention
+  (`LDAP signing^[<https://…>]`) or an inline markdown URL that says
+  what it is. Plain URL lists belong in `scope` only.
+- **No CVE, CWE, or OWASP-category lists** unless the user asks. Software
+  may be described as having “known vulnerabilities”; do not enumerate
+  CVE-IDs in `title`, `summary`, or `description`.
+- Footnotes sit at the end of a description or on the recommending bullet —
+  not in their own section. Put the footnote on its own line at the end of the
+  field or bullet. Rewrite: keep the source’s line wrap on the closing `]`.
+
+## Examples
+
+- Chain in a summary: combined with the missing object check ([](#<id>)),
+  knowing the invoice ID is enough.
+- Footnoted vendor doc: “Enforce LDAP signing on the domain controllers.^[…]”
+
+## Avoid
+
+- Referring to “the finding above” without a link, in *new* writing.
+- Bare URLs dropped into a sentence.
+- Footnotes that point nowhere.
+- CVE/CWE/OWASP-Top-10 inventories as decoration.
+"""
+
+[[notes]]
+title = "report-metadata.md"
+id = "75ebd6a8-068a-4174-b35c-c34a3bb21a60"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 13
+text = """# Report metadata
+
+## Purpose
+
+How the short identifying fields of the report should read, and the single
+source for the `language` default. Prose fields are
+`references/scope-and-methodology.md` and
+`references/executive-summary.md`; history is
+`references/document-history.md`.
+
+## Applies to
+
+`title` (report), `customer`, `report_date`, `start_date`, `end_date`,
+`retest_date`, `is_retest`, `lead_pentester`, `language` — whichever of them the
+report design has.
+
+## Rules
+
+- **Report `title` names the tested target**, not the document type. Short
+  (about 2–8 words), no dates, no “penetration test” prefix, no severity or
+  verdict. Join multiple targets with `/` or `&` when that is how the
+  engagement was scoped.
+  Rewrite: leave a compliant target title alone; do not expand it with “web
+  application” and do not swap a working joiner.
+- **Dates are ISO `YYYY-MM-DD`.** `report_date` is the release date; `start_date`
+  / `end_date` are the test window; `retest_date` only when a retest happened.
+  Ask if a required date is unknown; do not invent one.
+  From scratch: `report_date` matches the newest `document_history` release.
+  Rewrite: **do not “correct” an existing mismatch** between `report_date` and
+  history — dates are facts.
+- **`is_retest`** is set only for retest engagements. Initial-only reports omit
+  it. Finding-level retest fields belong with `references/retest-fields.md`.
+  From scratch on a retest: `scope` and `executive_summary` describe the retest.
+  Rewrite: the flag does not license rewriting those fields into a retest
+  narrative the source never had.
+- **Duration** (person-days, optionally including report writing) lives in
+  `scope`, not here.
+- **`lead_pentester`** carries `email`, `name`, `phone` as placeholders
+  (`<EMAIL-1>@example.com`, an existing person token, `<PHONE-1>`).
+- **`language`** is `en-US` for English reports, `en-GB` where that is the
+  locale in use, and any `de-*` locale for German (`de-DE` when German is asked
+  for without a variant). This is the default other files defer to: an English
+  report is `en-US` unless the user or the source says otherwise, and a German
+  report keeps its `de-*` locale and the overlay in `references/german.md`.
+  Rewrite: do not change an existing `language` value, and do not rewrite a
+  German report into English or the reverse because a skill example used the
+  other language.
+
+## Examples
+
+- Report titles, weak → better:
+  - `Penetration test report 2026` → `Customer portal (login flow)`
+  - `Critical issues in the webshop` → `Shop & accounting`
+  - Multiple targets in one engagement: `Active Directory / internal infrastructure`
+- Dates for an initial test released the day after it ended:
+
+  ```
+  start_date  = 2026-04-13
+  end_date    = 2026-04-17
+  report_date = 2026-04-18
+  ```
+
+- Retest metadata: `is_retest = true` with `retest_date = 2026-05-08`, and the
+  matching `Retest` entry in `document_history`.
+
+## Avoid
+
+- Verdict language or “pentest report” in the report `title`.
+- Non-ISO dates; inventing `retest_date` without a retest.
+- Un-anonymized customer or pentester values.
+- Using `is_retest` to fabricate retest prose in other fields.
+"""
+
+[[notes]]
+title = "retest-fields.md"
+id = "53c187e2-9bad-4fc1-b24a-faff852eb69b"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 14
+text = """# Retest fields
+
+## Purpose
+
+How `retest_status` and `retest_notes` should read, and how retest information
+stays out of the original finding body. German status formulas:
+`references/german.md`.
+
+## Applies to
+
+`retest_status`, `retest_notes`. Used together with `is_retest`
+(`references/report-metadata.md`).
+
+## Rules
+
+- In a retest report, **every original finding** gets `retest_status`. Findings
+  first reported at retest omit both fields. Reports without a retest omit them
+  everywhere.
+- **`retest_status` values** (exact strings):
+  - `resolved` — fully fixed
+  - `partial` — some sub-parts fixed
+  - `changed` — behavior changed, issue remains in a new form
+  - `open` — not fixed
+- **`retest_notes` length follows the status:**
+  - `resolved` — one sentence, or an empty string.
+  - `open` — one to three sentences: what we retested and that the behavior is
+    unchanged.
+  - `partial` / `changed` — substantive, about 2–8 sentences or a bullet per
+    residual issue, naming every part that remains and every part that is fixed.
+  - Rewrite: if the notes field is **absent**, leave it absent — do not invent
+    `""` or a placeholder sentence.
+- **Never rewrite the original finding’s facts** into the retest state.
+  Observations, counts, hedges, verbatim strings, figures, `cvss`, and implied
+  severity of the original stay. Style of that original prose may still be
+  improved (content integrity). New evidence, new residual issues, and updated
+  assessment go in `retest_notes`. A changed severity updates `cvss` and is
+  explained here (`references/cvss-scoring.md`).
+- **Useful structures** (combine as needed):
+  - Temporal frame: “At the time of the pentest in <Month Year> …” then what
+    we re-verified, with fresh figures.
+  - Dated status blocks, **newest first** — the opposite of `document_history`,
+    which runs earliest first (`references/document-history.md`):
+    `**Status 2026-05-08:** This finding is now resolved.`
+  - Per-sub-part breakdown that repeats the description’s distinct headings,
+    each with its own status line and evidence.
+  - Bullet list of what remains, one residual issue each; follow-up advice
+    uses `references/recommendations.md`.
+- Content: what we retested and how, what changed, evidence, updated
+  assessment. PoC detail for newly found residuals belongs here, not in the
+  frozen `description`. Figures follow `references/evidence-and-poc.md`.
+- A retest engagement also adds a `document_history` entry and `retest_date`
+  (`references/document-history.md`, `references/report-metadata.md`).
+
+## Examples
+
+- Partial: “The SQL injection in the login form is closed. Unauthenticated
+  export via `/api/export` is still possible. We consider the finding partially
+  resolved.”
+- Dated, newest first:
+
+  > **Status 2026-05-08:** This finding is now resolved.
+  >
+  > **Status 2026-04-16:** The payment method was still selectable.
+  >
+  > ![Disabled payment method still selectable at checkout](retest-payment.png)
+
+- Resolved one-liner: “No longer reproducible on retest.”
+
+## Avoid
+
+- Mutating original `summary` / `description` to describe the retest.
+- `partial` / `changed` without saying which parts remain.
+- Claiming a fix with no verification, when we did verify — or the reverse:
+  claim a fix we could not check.
+- Retest fields on findings that were never in the original test; omitting
+  them on original findings in a retest report.
+- Inserting notes on an `open` finding that shipped without them.
+"""
+
+[[notes]]
+title = "scope-and-methodology.md"
+id = "e0932fc0-a46f-42e1-9a90-61cf35af7574"
+type = "text"
+parent = "6241e3a4-26dc-4f7f-9bfc-3d695aea9393"
+order = 15
+text = """# Scope and methodology
+
+## Purpose
+
+What `scope` must make clear. There is no separate methodology field: approach,
+access, and duration live here.
+
+## Applies to
+
+`scope` only.
+
+## Rules
+
+- **Clear and complete**, usually 1–6 short paragraphs plus lists. Prose first;
+  lists for enumerations. No findings, no impact statements, no fix lists other
+  than deprovisioning.
+- Cover the slots that apply — an inclusion checklist, not a forced order.
+  Check the notes if target, duration, or access is unknown; if still unknown,
+  ask. Rewrite: keep the source order and **do not invent a slot the source
+  never had.**
+
+  1. **Target** — what was tested, named concretely (application, forest, realm,
+     linked systems). State out-of-scope or untested parts, including time
+     limits (“we could not test this due to time constraints”).
+  2. **Approach** — only if the engagement actually named one (grey-box,
+     white-box, assumed-compromised, …). Access evidence (provided accounts, a
+     test environment) is **not** a license to infer a label. First person is
+     the default for tester actions. Rewrite: an already impersonal approach
+     sentence may stay impersonal; do not rewrite a labeled first-person
+     approach into a generic agentless formula.
+  3. **Duration** — person-days, with an optional clause such as “including
+     report writing”; include that clause when person-days cover report
+     writing. Drop filler about the window being “rather tight”; keep the
+     number. Do not move that comment into `executive_summary`. Rewrite: keep
+     the source’s wording of that clause.
+  4. **Where** — tested URLs or hosts as a list when they are not already under
+     the target sentence. Keep environment labels as written (`staging`, `test
+     system`, `production`).
+  5. **Access** — accounts or clients, grouped by role when roles are known.
+     Split provided vs self-registered when that is how the accounts were
+     obtained. Rewrite: keep that split **only when the source already splits
+     them** — a mixed list stays mixed; do not invent which account was whose.
+  6. **Deprovisioning** — last or near-last when accounts or clients were used:
+     recommend deactivating or deleting test identities. Rewrite: restyle fluff
+     to a clear recommendation and keep the source’s action wording.
+
+- **Retest:** a new retest `scope` describes the retest window. Rewrite:
+  restyle the existing `scope`; `is_retest` does not mean rewriting an
+  initial-test scope into “The retest covered …”.
+- Optional when they apply: priority tiers, tester source IPs, a note that
+  production data was touched and the client must verify. A client-supplied
+  HTML table of IPs/interfaces stays as supplied — do not tidy markup into
+  markdown (`references/markdown-syntax.md`).
+
+## Examples
+
+- Target + duration + approach:
+
+  > The pentest covered the customer portal and the related VPN login. The test
+  > window was 6 person-days including report writing.
+  >
+  > We performed the test as a grey-box engagement. The client provided
+  > credentials and a test environment.
+
+- Unlabeled approach (do not invent grey-box):
+
+  > The scope covered the internal time-tracking system over 5 person-days. The
+  > following accounts were provided or self-registered for the test: …
+
+- Deprovisioning: “At the end of the pentest we recommend deactivating or
+  deleting the provided user accounts.”
+
+## Avoid
+
+- Naming the target but omitting duration or access when those existed.
+- Inventing grey-box / white-box / assumed-compromised because credentials
+  appear in the list.
+- Testing narrative (“First we scanned …”) — that belongs in `description`.
+- Forgetting deprovisioning when test accounts were used.
+- Splitting a mixed account list into invented provided vs self-registered
+  groups.
+"""
