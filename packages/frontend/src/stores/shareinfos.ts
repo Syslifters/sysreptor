@@ -27,6 +27,7 @@ export const useShareInfoStore = defineStore('shareinfo', {
             apiPath: `/api/public/ws/shareinfos/${shareId}/notes/`,
             initialData: { notes: {} as Record<string, NoteBase> },
             initialPath: 'notes',
+            httpFallbackReadonly: true,
             handleAdditionalWebSocketMessages: (msgData: any, collabState) => {
               if (msgData.type === CollabEventType.SORT && msgData.path === 'notes') {
                 if (msgData.sort.some((sn: NoteBase) => !Object.values(collabState.data.notes).map(dn => dn.id).includes(sn.id))) {

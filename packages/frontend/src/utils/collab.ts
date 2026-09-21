@@ -100,6 +100,7 @@ export type CollabStoreState<T> = {
   apiPath: string;
   connection?: CollabConnectionInfo;
   handleAdditionalWebSocketMessages?: (event: CollabEvent, collabState: CollabStoreState<T>) => boolean;
+  httpFallbackReadonly?: boolean;
   perPathState: Map<string, {
     pendingEvents: CollabEvent[];
     unconfirmedTextUpdates: TextUpdate[];
@@ -120,12 +121,14 @@ export function makeCollabStoreState<T>(options: {
     comments?: Record<string, Comment>
   },
   initialPath?: string,
+  httpFallbackReadonly?: boolean,
   handleAdditionalWebSocketMessages?: (event: CollabEvent, storeState: CollabStoreState<T>) => boolean
 }): CollabStoreState<T> {
   return {
     data: options.initialData,
     apiPath: options.apiPath,
     handleAdditionalWebSocketMessages: options.handleAdditionalWebSocketMessages,
+    httpFallbackReadonly: options.httpFallbackReadonly,
     perPathState: new Map(),
     awareness: {
       self: {
@@ -340,7 +343,7 @@ export function connectionHttpFallback<T = any>(storeState: CollabStoreState<T>,
     } catch (error) {
       // Disconnect on error
       connectionInfo.connectionError = { error };
-      disconnect();
+      await disconnect();
     }
   }
 
@@ -357,9 +360,10 @@ export function connectionHttpReadonly<T = any>(storeState: CollabStoreState<T>,
       throttleInterval: HTTP_THROTTLE_INTERVAL,
     },
     connect,
-    disconnect: () => Promise.resolve(),
+    disconnect,
     send: () => {},
   });
+  const fetchInterval = useIntervalFn(() => refreshData(), HTTP_FALLBACK_INTERVAL, { immediate: false });
 
   async function connect() {
     connectionInfo.connectionState = CollabConnectionState.CONNECTING;
@@ -367,10 +371,26 @@ export function connectionHttpReadonly<T = any>(storeState: CollabStoreState<T>,
       const res = await $fetch<CollabEvent>(httpUrl, { method: 'GET' });
       onReceiveMessage(res);
       connectionInfo.connectionState = CollabConnectionState.OPEN;
+      fetchInterval.resume();
     } catch (e) {
       connectionInfo.connectionError = { error: e };
       connectionInfo.connectionState = CollabConnectionState.CLOSED;
       throw e;
+    }
+  }
+
+  async function disconnect() {
+    fetchInterval.pause();
+    connectionInfo.connectionState = CollabConnectionState.CLOSED;
+  }
+
+  async function refreshData() {
+    try {
+      const res = await $fetch<CollabEvent>(httpUrl, { method: 'GET' });
+      onReceiveMessage(res);
+    } catch (error) {
+      connectionInfo.connectionError = { error };
+      await disconnect();
     }
   }
 
@@ -454,8 +474,10 @@ export function useCollab<T = any>(storeState: CollabStoreState<T>) {
         }
       }
 
-      // Fallback to HTTP polling
-      const fallbackConnection = connectionHttpFallback(storeState, onReceiveMessage);
+      // Fallback to HTTP polling (readonly for shared notes)
+      const fallbackConnection = storeState.httpFallbackReadonly
+        ? connectionHttpReadonly(storeState, onReceiveMessage)
+        : connectionHttpFallback(storeState, onReceiveMessage);
       try {
         return await connectTo(fallbackConnection);
       } catch (e) {
