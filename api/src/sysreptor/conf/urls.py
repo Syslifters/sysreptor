@@ -21,7 +21,7 @@ from sysreptor.api_utils.views import (
 )
 from sysreptor.conf import plugins
 from sysreptor.notifications.views import UserNotificationViewSet
-from sysreptor.pentests.collab.fallback import ConsumerHttpFallbackView
+from sysreptor.pentests.collab.fallback import ConsumerHttpFallbackView, ReadonlyConsumerHttpFallbackView
 from sysreptor.pentests.consumers import (
     ProjectNoteExcalidrawConsumer,
     ProjectNotesConsumer,
@@ -188,7 +188,7 @@ urlpatterns = [
     path('api/ws/pentestprojects/<uuid:project_pk>/reporting/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectReportingConsumer), name='projectreporting-fallback'),
     path('api/ws/pentestprojects/<uuid:project_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=ProjectNotesConsumer), name='projectnotebookpage-fallback'),
     path('api/ws/pentestusers/<str:pentestuser_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=UserNotesConsumer), name='usernotebookpage-fallback'),
-    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/fallback/', ConsumerHttpFallbackView.as_view(consumer_class=SharedNotesPublicConsumer), name='sharednote-fallback'),
+    path('api/public/ws/shareinfos/<uuid:shareinfo_pk>/notes/fallback/', ReadonlyConsumerHttpFallbackView.as_view(consumer_class=SharedNotesPublicConsumer), name='sharednote-fallback'),
 
     # Static files
     path('robots.txt', lambda *args, **kwargs: HttpResponse("User-Agent: *\nDisallow: /\n", content_type="text/plain")),

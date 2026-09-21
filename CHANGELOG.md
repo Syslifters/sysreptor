@@ -9,6 +9,7 @@
 * Support importing multiple files at once
 * Fix CSP not applied in excalidraw iframe
 * Prevent updating `comment.text_range` during comment resolve
+* Require websocket for writable shared notes
 
 
 ## v2026.75 - 2026-09-16

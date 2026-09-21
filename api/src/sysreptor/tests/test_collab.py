@@ -5,7 +5,6 @@ import itertools
 import json
 from datetime import timedelta
 from unittest.mock import patch
-from uuid import uuid4
 
 import pytest
 import pytest_asyncio
@@ -28,7 +27,6 @@ from sysreptor.pentests.collab.text_transformations import (
 from sysreptor.pentests.import_export import export_notes
 from sysreptor.pentests.models import (
     CollabClientInfo,
-    CollabEvent,
     CollabEventType,
     NoteType,
     PentestFinding,
@@ -1205,27 +1203,13 @@ class TestSharedProjectNotesDbSync:
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data}, user=True, public=None)
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': [o for o in res.data if o['id'] != str(self.note_shared.note_id)]}, user=None, public=True)
 
-    async def test_fallback_skips_events_before_share_created(self):
-        old_note_id = uuid4()
-        old_version = self.share_info.created.timestamp() - 60
-        await CollabEvent.objects.acreate(
-            related_id=self.project.id,
-            type=CollabEventType.DELETE,
-            path=f'notes.{old_note_id}',
-            created=self.share_info.created - timedelta(seconds=60),
-            version=old_version,
-            data={},
-        )
-        res = await sync_to_async(self.api_client_public.post)(
-            reverse('sharednote-fallback', kwargs={'shareinfo_pk': self.share_info.id}),
-            data={'version': 0, 'client_id': 'anonymous/aaaaaaaa', 'messages': []},
-        )
+    async def test_fallback_readonly(self):
+        url = reverse('sharednote-fallback', kwargs={'shareinfo_pk': self.share_info.id})
+        res = await sync_to_async(self.api_client_public.get)(url)
         assert res.status_code == 200
-        assert not any(m.get('path') == f'notes.{old_note_id}' for m in res.data['messages'])
-        assert all(
-            m.get('version', 0) >= self.share_info.created.timestamp()
-            for m in res.data['messages']
-        )
+        assert res.data['permissions']['write'] is False
+        res = await sync_to_async(self.api_client_public.post)(url, data={'version': 0, 'client_id': 'anonymous/aaaaaaaa', 'messages': []})
+        assert res.status_code == 403
 
     async def test_omit_clients_and_awareness(self):
         # Public share must not receive a list of other clients in init
@@ -1418,27 +1402,13 @@ class TestSharedUserNotesDbSync:
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': res.data}, user=True, public=None)
         await self.assert_event({'type': CollabEventType.SORT, 'path': 'notes', 'client_id': None, 'sort': [o for o in res.data if o['id'] != str(self.note_shared.note_id)]}, user=None, public=True)
 
-    async def test_fallback_skips_events_before_share_created(self):
-        old_note_id = uuid4()
-        old_version = self.share_info.created.timestamp() - 60
-        await CollabEvent.objects.acreate(
-            related_id=self.user.id,
-            type=CollabEventType.DELETE,
-            path=f'notes.{old_note_id}',
-            created=self.share_info.created - timedelta(seconds=60),
-            version=old_version,
-            data={},
-        )
-        res = await sync_to_async(self.api_client_public.post)(
-            reverse('sharednote-fallback', kwargs={'shareinfo_pk': self.share_info.id}),
-            data={'version': 0, 'client_id': 'anonymous/aaaaaaaa', 'messages': []},
-        )
+    async def test_fallback_readonly(self):
+        url = reverse('sharednote-fallback', kwargs={'shareinfo_pk': self.share_info.id})
+        res = await sync_to_async(self.api_client_public.get)(url)
         assert res.status_code == 200
-        assert not any(m.get('path') == f'notes.{old_note_id}' for m in res.data['messages'])
-        assert all(
-            m.get('version', 0) >= self.share_info.created.timestamp()
-            for m in res.data['messages']
-        )
+        assert res.data['permissions']['write'] is False
+        res = await sync_to_async(self.api_client_public.post)(url, data={'version': 0, 'client_id': 'anonymous/aaaaaaaa', 'messages': []})
+        assert res.status_code == 403
 
     async def test_omit_clients_and_awareness(self):
         # Public share must not receive a list of other clients in init
@@ -1597,9 +1567,8 @@ class TestConsumerPermissions:
         client = api_client()
         res = await sync_to_async(client.get)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code == (200 if expected_read else 403)
-        client_id = res.data.get('client_id', 'anonymous/asdf')
-        res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-        assert res.status_code == (200 if expected_write else 403)
+        res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': res.data.get('client_id', 'anonymous/asdf'), 'messages': []})
+        assert res.status_code == 403
 
         res = await sync_to_async(client.get)(reverse('sharednote-list', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
@@ -1631,9 +1600,8 @@ class TestConsumerPermissions:
         client = api_client()
         res = await sync_to_async(client.get)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code == (200 if expected_read else 403)
-        client_id = res.data.get('client_id', 'anonymous/asdf')
-        res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-        assert res.status_code == (200 if expected_write else 403)
+        res = await sync_to_async(client.post)(reverse('sharednote-fallback', kwargs={'shareinfo_pk': share_info.id}), data={'version': 1, 'client_id': res.data.get('client_id', 'anonymous/asdf'), 'messages': []})
+        assert res.status_code == 403
 
         res = await sync_to_async(client.get)(reverse('sharednote-list', kwargs={'shareinfo_pk': share_info.id}))
         assert res.status_code in ([200] if expected_read else [403, 404])
