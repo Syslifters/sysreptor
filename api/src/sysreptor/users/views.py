@@ -7,7 +7,7 @@ from authlib.integrations.django_client import OAuthError
 from django.conf import settings
 from django.contrib.auth import SESSION_KEY, login, logout
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import ProtectedError
+from django.db.models import Prefetch, ProtectedError
 from django.forms import model_to_dict
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -266,7 +266,15 @@ class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [APITokenViewSetPermissions]
 
     def get_queryset(self):
-        return self.get_user().api_tokens.all()
+        from sysreptor.pentests.models import PentestProject
+
+        return self.get_user().api_tokens.prefetch_related(
+            Prefetch('projects', queryset=PentestProject.objects.only('id')),
+            Prefetch(
+                'projects', queryset=PentestProject.objects.only_permitted(self.request.user).only('id', 'name'),
+                to_attr='visible_projects',
+            ),
+        )
 
     def get_serializer_class(self):
         if self.action == 'create':

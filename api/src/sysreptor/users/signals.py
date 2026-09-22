@@ -61,6 +61,9 @@ def api_token_license_limit(sender, instance, *args, **kwargs):
     if license.is_professional() or not instance._state.adding:
         return
 
+    if instance.is_project_restricted:
+        raise license.LicenseError('Project-restricted API tokens require a Professional license.')
+
     current_apitoken_count = APIToken.objects \
         .filter(user=instance.user) \
         .only_active() \

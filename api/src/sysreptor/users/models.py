@@ -123,9 +123,24 @@ class APIToken(BaseModel):
     expire_date = models.DateField(null=True, blank=True)
     last_used = models.DateTimeField(null=True, blank=True, editable=False)
     admin_permissions_enabled = models.BooleanField(default=False)
+    is_project_restricted = models.BooleanField(default=False, editable=False)
+    projects = models.ManyToManyField('pentests.PentestProject', related_name='api_tokens', blank=True)
+    read_only = models.BooleanField(default=False)
     token_plaintext = None
 
     objects = querysets.APITokenManager()
+
+    class Meta(BaseModel.Meta):
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(is_project_restricted=False) | models.Q(admin_permissions_enabled=False),
+                name='apitoken_project_no_admin',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(read_only=False) | models.Q(is_project_restricted=True),
+                name='apitoken_read_only_project',
+            ),
+        ]
 
     def save(self, *args, **kwargs):
         from sysreptor.users.auth import UnsaltedSHA3_256PasswordHasher

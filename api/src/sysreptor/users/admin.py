@@ -52,7 +52,7 @@ class AuthIdentityAdmin(BaseAdmin):
 
 @admin.register(APIToken)
 class APITokenAdmin(BaseAdmin):
-    list_display = ['id', 'user', 'name', 'expire_date', 'admin_permissions_enabled', 'created']
+    list_display = ['id', 'user', 'name', 'expire_date', 'admin_permissions_enabled', 'is_project_restricted', 'read_only', 'created']
 
 
 @admin.register(Session)

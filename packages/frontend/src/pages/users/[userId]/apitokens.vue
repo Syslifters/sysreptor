@@ -10,6 +10,7 @@
         >
           <v-list-item-title>
             {{ apiToken.name }}
+            <api-token-scope :token="apiToken" />
             <v-chip
               v-if="apiToken.admin_permissions_enabled"
               size="small"

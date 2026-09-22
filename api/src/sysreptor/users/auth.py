@@ -82,9 +82,17 @@ class APITokenAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed('User disabled or deleted.')
         if token.expire_date and token.expire_date < timezone.now().date():
             raise exceptions.AuthenticationFailed('API token expired')
+        if token.is_project_restricted and not license.is_professional():
+            raise exceptions.AuthenticationFailed('Project-restricted API tokens require a Professional license.')
         license.validate_login_allowed(token.user)
 
-        if token.user.is_superuser and token.admin_permissions_enabled:
+        token.user.api_token = token
+        if token.is_project_restricted:
+            from sysreptor.users.token_permissions import check_project_token_permissions
+
+            token.user.admin_permissions_enabled = False
+            check_project_token_permissions(request, token)
+        elif token.user.is_superuser and token.admin_permissions_enabled:
             token.user.admin_permissions_enabled = True
 
         # Update API token last used date. Throttle updates on frequent requests.

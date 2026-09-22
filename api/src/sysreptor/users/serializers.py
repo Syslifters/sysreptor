@@ -1,3 +1,4 @@
+import calendar
 import functools
 import json
 import logging
@@ -14,11 +15,13 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema_field
+from drf_spectacular.utils import OpenApiTypes, extend_schema_field
 from rest_framework import serializers
 
+from sysreptor import signals as sysreptor_signals
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
 from sysreptor.users.roles import Permission, get_all_roles
+from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.mail import send_mail
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
@@ -445,10 +448,34 @@ class AuthIdentitySerializer(serializers.ModelSerializer):
         return super().create(validated_data | {'user': self.context['user']})
 
 
+@extend_schema_field(OpenApiTypes.UUID)
+class APITokenProjectField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        from sysreptor.pentests.models import PentestProject
+
+        # Tokens never inherit the browser session's elevated admin mode.
+        user = PentestUser.objects.get(pk=self.context['request'].user.pk)
+        return PentestProject.objects.only_permitted(user)
+
+
 class APITokenSerializer(serializers.ModelSerializer):
+    projects = APITokenProjectField(many=True, required=False)
+    project_details = serializers.SerializerMethodField()
+
     class Meta:
         model = APIToken
-        fields = ['id', 'created', 'updated', 'name', 'expire_date', 'last_used', 'admin_permissions_enabled']
+        fields = [
+            'id', 'created', 'updated', 'name', 'expire_date', 'last_used', 'admin_permissions_enabled',
+            'is_project_restricted', 'projects', 'project_details', 'read_only',
+        ]
+        read_only_fields = ['is_project_restricted']
+
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
+    def get_project_details(self, instance):
+        projects = getattr(instance, 'visible_projects', None)
+        if projects is None:
+            projects = instance.projects.only_permitted(self.context['request'].user)
+        return [{'id': str(p.id), 'name': p.name} for p in projects]
 
     def validate_expire_date(self, value):
         if value and value < timezone.now().date():
@@ -467,6 +494,33 @@ class APITokenCreateSerializer(APITokenSerializer):
             raise serializers.ValidationError('Cannot create API tokens with admin permissions enabled.')
         return value
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        restricted = bool(attrs.get('projects'))
+        attrs['is_project_restricted'] = restricted
+        if restricted:
+            if not license.is_professional():
+                raise license.LicenseError('Project-restricted API tokens require a Professional license.')
+            if attrs.get('admin_permissions_enabled'):
+                raise serializers.ValidationError({'admin_permissions_enabled': 'Project-restricted tokens cannot enable admin permissions.'})
+            attrs.setdefault('read_only', True)
+            if 'expire_date' not in attrs:
+                today = timezone.now().date()
+                year, month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
+                attrs['expire_date'] = today.replace(year=year, month=month, day=min(today.day, calendar.monthrange(year, month)[1]))
+        elif attrs.get('read_only'):
+            raise serializers.ValidationError({'read_only': 'Read-only access requires a project restriction.'})
+        return attrs
+
+    @transaction.atomic
     def create(self, validated_data):
-        return super().create(validated_data | {'user': self.context['user']})
+        projects = validated_data.pop('projects', [])
+        instance = APIToken(**validated_data, user=self.context['user'])
+        # Publish creation after the M2M is saved so auditing sees the complete scope.
+        instance.skip_post_create_signal = True
+        instance.save()
+        instance.projects.set(projects)
+        instance.skip_post_create_signal = False
+        sysreptor_signals.post_create.send(sender=APIToken, instance=instance)
+        return instance
 

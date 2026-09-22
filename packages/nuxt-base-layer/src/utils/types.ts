@@ -234,6 +234,10 @@ export type ApiToken = BaseModel & {
   expire_date: string|null;
   last_used: string|null;
   admin_permissions_enabled: boolean;
+  is_project_restricted: boolean;
+  projects: string[];
+  project_details: { id: string; name: string }[];
+  read_only: boolean;
   token?: string;
 }
 
