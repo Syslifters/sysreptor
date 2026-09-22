@@ -350,6 +350,8 @@ class NotesAgentsDirBackend(ReadOnlyBackend):
         files, dirs = self._build_index()
         normalized = '/' if path in ('', '/') else (path if path.endswith('/') else path + '/')
         if normalized != '/' and normalized[:-1] not in dirs:
+            if normalized.rstrip('/') == '/skills' and '/skills' not in files:
+                return LsResult(entries=[])
             return LsResult(error=FILE_NOT_FOUND)
 
         def is_direct_child(p: str) -> bool:

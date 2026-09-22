@@ -713,6 +713,11 @@ LOGGING = {
             'handlers': logging_handlers,
             'propagate': False,
         },
+        'httpx2': {
+            'level': 'WARNING',
+            'handlers': logging_handlers,
+            'propagate': False,
+        },
         'elasticapm.errors': {
             'level': 'ERROR',
             'handlers': ['console'],
