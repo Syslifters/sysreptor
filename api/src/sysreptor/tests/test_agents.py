@@ -1212,6 +1212,11 @@ def create_nested_agents_skill(project):
     create_projectnotebookpage(project=project, title='SKILL.md', parent=skill_dir, order=1, text=DEMO_SKILL_MD, checked=None)
 
 
+def create_agents_md_only(project):
+    agents = create_projectnotebookpage(project=project, title='.agents', parent=None, order=1, text='', checked=None)
+    create_projectnotebookpage(project=project, title='AGENTS.md', parent=agents, order=1, text='Prefer short titles.', checked=None)
+
+
 def get_agent_system_prompt(project, user):
     """Run a chat request and return the system prompt handed to the model."""
     model = FakeChatModel(messages=iter([AIMessage(content='ok')]))
@@ -1262,6 +1267,8 @@ class TestNotesAgentsDirBackend:
 
     @pytest.mark.parametrize(('setup', 'ls_path', 'expected_dirs'), [
         (lambda p: None, '/.agents/', []),
+        (lambda p: None, '/.agents/skills/', []),
+        (create_agents_md_only, '/.agents/skills/', []),
         (create_nested_agents_skill, '/.agents/', []),
         (lambda p: create_skills_note_tree(p, {'incomplete': {'readme.md': 'no skill md'}}),
          '/.agents/skills/', ['/.agents/skills/incomplete/']),
@@ -1399,6 +1406,8 @@ class TestNotesAgentDirAgent:
             assert all(marker in content for marker in skill_markers)
         else:
             assert not any(marker in content for marker in skill_markers)
+            assert 'Cannot load skills' not in content
+            assert 'Skills load errors' not in content
 
     def test_agent_read_skill_file(self):
         user = create_user()
