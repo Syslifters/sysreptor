@@ -7,6 +7,7 @@ import regex
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.deconstruct import deconstructible
+from referencing import Registry
 
 from sysreptor.utils.fielddefinition.types import (
     BaseField,
@@ -22,6 +23,14 @@ from sysreptor.utils.utils import is_json_string
 @functools.cache
 def get_field_definition_schema():
     return jsonschema.Draft202012Validator(schema=json.loads((Path(__file__).parent / 'fielddefinition.schema.json').read_text()))
+
+
+def validate_json_schema(instance, schema):
+    return jsonschema.validate(
+        instance=instance,
+        schema=schema,
+        registry=Registry(),
+    )
 
 
 @deconstructible
@@ -145,7 +154,7 @@ class JsonSchemaValidator:
                 raise ValidationError('Invalid data: Not a valid JSON object') from ex
 
         try:
-            jsonschema.validate(value, self.schema)
+            validate_json_schema(instance=value, schema=self.schema)
         except jsonschema.ValidationError as ex:
             raise ValidationError(f'Invalid data: does not match JSON schema: {ex}') from ex
         except (jsonschema.SchemaError, Exception) as ex:
