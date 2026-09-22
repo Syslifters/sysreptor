@@ -323,6 +323,7 @@ def test_check_number_range(kwargs, value, expected):
     (None, '{"invalid": "json', 'Invalid JSON'),
     ({'type': 'unknown'}, {'key': 'value'}, 'Invalid JSON schema'),
     ({'type': 'object', 'properties': 'invalid'}, {'key': 'value'}, 'Invalid JSON schema'),
+    ({'$ref': 'https://example.invalid/schema.json'}, {'key': 'value'}, 'Invalid JSON schema'),
     ({'type': 'object', 'properties': {'key': {'type': 'string'}}}, {'key': None}, 'Data does not match JSON schema'),
 ])
 def test_check_json_field(schema, value, message):
