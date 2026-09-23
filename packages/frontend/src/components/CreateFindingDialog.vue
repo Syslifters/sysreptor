@@ -38,8 +38,11 @@
               </template>
               <template #item="{item: template, props: itemProps}">
                 <v-list-item v-bind="itemProps" title="">
-                  <template #prepend="{ isSelected }">
-                    <v-checkbox-btn :model-value="isSelected" />
+                  <template #prepend="{ isSelected, select }">
+                    <v-checkbox-btn
+                      :model-value="isSelected"
+                      @update:model-value="select"
+                    />
                   </template>
                   <template-select-item :template="template" :language="displayLanguage" />
                 </v-list-item>
