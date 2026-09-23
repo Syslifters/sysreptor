@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-const modelValue = defineModel<ReportingSidebarType>();
+const modelValue = defineModel<ReportingSidebarType>({ required: true });
 const apiSettings = useApiSettings();
 
 function toggleChatSidebar() {

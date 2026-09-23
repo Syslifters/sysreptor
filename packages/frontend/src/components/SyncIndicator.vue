@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { SyncState } from '#imports';
-const modelValue = defineModel<SyncState>();
+const modelValue = defineModel<SyncState|null>({ default: null });
 
 </script>
 

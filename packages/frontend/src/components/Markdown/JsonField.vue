@@ -45,7 +45,7 @@ defineOptions({
   inheritAttrs: false,
 });
 
-const modelValue = defineModel<string|null>();
+const modelValue = defineModel<string|null>({ default: null });
 const props = defineProps<MarkdownProps & {
   schema?: Record<string, any>|null;
 }>();

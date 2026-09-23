@@ -52,7 +52,7 @@
 import type { VTextField } from "vuetify/lib/components/index.mjs";
 import zxcvbn from 'zxcvbn';
 
-const modelValue = defineModel<string|null>();
+const modelValue = defineModel<string|null>({ default: null });
 const props = withDefaults(defineProps<{
   label?: string,
   variant?: string,

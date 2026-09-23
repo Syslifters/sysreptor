@@ -124,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-const search = defineModel<string|null>('search');
+const search = defineModel<string|null|undefined>('search', { default: undefined });
 const props = defineProps<{
   title?: string;
   readonly?: boolean;

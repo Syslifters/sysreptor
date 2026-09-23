@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-const modelValue = defineModel<OrderingOption|null>();
+const modelValue = defineModel<OrderingOption|null>({ default: null });
 const props = defineProps<{
   orderingOptions?: OrderingOption[];
 }>();
