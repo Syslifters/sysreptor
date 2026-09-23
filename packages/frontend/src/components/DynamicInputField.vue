@@ -22,6 +22,8 @@
             v-model="formValue"
             :collab="props.collab"
             v-bind="fieldAttrs"
+            :enable-ai-fill="showAiFieldBtn"
+            @ai-prefill="emit('ai-prefill', $event)"
           >
             <template #label v-if="$slots.label"><slot name="label" /></template>
             <template v-if="$slots['markdown-context-menu']" #context-menu="slotData">
@@ -304,12 +306,25 @@
             {{ definition }}
           </div>
         </div>
-        <comment-btn
-          v-if="props.collab?.comments && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type as any)"
-          ref="commentBtnRef"
-          v-bind="commentBtnAttrs"
+        <div
+          v-if="(props.collab?.comments || showAiFieldBtn) && ![FieldDataType.MARKDOWN, FieldDataType.LIST, FieldDataType.OBJECT].includes(definition.type as any)"
+          class="d-flex flex-column align-center field-action-btns"
           v-show="!mobile"
-        />
+        >
+          <comment-btn
+            v-if="props.collab?.comments"
+            ref="commentBtnRef"
+            size="default"
+            density="compact"
+            v-bind="commentBtnAttrs"
+          />
+          <chat-ai-field-btn
+            v-if="showAiFieldBtn"
+            size="default"
+            density="compact"
+            v-bind="aiFieldBtnAttrs"
+          />
+        </div>
       </div>
     </template>
   </v-hover>
@@ -342,11 +357,13 @@ const props = defineProps<MarkdownProps & {
   disableValidation?: boolean;
   nestingLevel?: number;
   errorMessages?: any;
+  enableAiFill?: boolean;
 }>();
 const emit = defineEmits<{
   'update:modelValue': [value: any];
   'collab': [value: any];
   'comment': [value: any];
+  'ai-prefill': [value: any];
   'search': [value: string];
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
@@ -355,6 +372,7 @@ defineSlots();
 
 
 const { mobile } = useVDisplay();
+const apiSettings = useApiSettings();
 
 
 function getInitialValue(fieldDef: FieldDefinition, useDefault = true): any {
@@ -590,6 +608,18 @@ const commentBtnAttrs = computed(() => ({
   disabled: props.disabled || props.readonly,
 }));
 const commentBtnRef = useTemplateRef('commentBtnRef');
+
+const showAiFieldBtn = computed(() => (
+  !!props.enableAiFill
+  && !!apiSettings.settings?.features?.ai_agent
+  && (props.nestingLevel || 0) === 0
+));
+const aiFieldBtnAttrs = computed(() => ({
+  collabPath: props.collab?.path || '',
+  isHovering: isHovering.value,
+  disabled: props.disabled || props.readonly,
+  onAiPrefill: (v: any) => emit('ai-prefill', v),
+}));
 </script>
 
 <style lang="scss" scoped>
@@ -613,5 +643,11 @@ const commentBtnRef = useTemplateRef('commentBtnRef');
   &.v-list > div > .v-list-item:deep(> .v-list-item__content) {
     overflow: initial;
   }
+}
+
+.field-action-btns {
+  align-self: center;
+  padding-left: 0.2rem;
+  padding-right: 0.2rem;
 }
 </style>

@@ -2,6 +2,7 @@
   <s-btn-icon
     v-if="props.comments.length > 0"
     @click="emit('comment', {type: 'select', comment: props.comments[0], openSidebar: true})"
+    v-tooltip.top="'Show comments'"
   >
     <v-badge 
       :content="props.comments.length" 
@@ -18,6 +19,7 @@
     @click="createComment"
     :disabled="props.disabled"
     icon="mdi-comment-plus-outline"
+    v-tooltip.top="'Comment'"
     :style="{ opacity: props.isHovering ? 1 : 0 }"
   />
 </template>

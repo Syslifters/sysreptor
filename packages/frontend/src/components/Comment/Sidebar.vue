@@ -67,7 +67,7 @@
 
         <template v-for="fieldGroup in locationGroup.fieldGroups" :key="fieldGroup.path">
           <v-list-subheader class="pl-2 mt-1 mb-1">
-            <span>{{ prettyFieldLabel(fieldGroup.path) }}</span>
+            <span>{{ prettyFieldLabel(fieldGroup.path, props.projectType) }}</span>
             <s-btn-icon
               @click.stop="onCommentEvent({ type: 'create', comment: { path: fieldGroup.path } })"
               :disabled="readonly"
@@ -99,13 +99,12 @@
 
 <script setup lang="ts">
 import { NuxtLink } from '#components';
-import { CollabEventType, CommentStatus, ReportingSidebarType, type Comment, type FieldDefinition } from '#imports';
+import { CollabEventType, CommentStatus, ReportingSidebarType, type Comment } from '#imports';
 import {
-  commentFieldDefinitions,
   commentLocationUrl,
   groupCommentsByLocation,
   isOnCommentLocationRoute,
-  parseCommentLocation,
+  prettyFieldLabel,
 } from '~/utils/comments';
 
 const props = defineProps<{
@@ -147,34 +146,6 @@ const commentDisplayGroups = computed(() => groupCommentsByLocation(commentsVisi
 }));
 const selectedComment = ref<Comment|null>(null);
 const readonly = computed(() => props.readonly || !apiSettings.isProfessionalLicense);
-
-function prettyFieldLabel(path: string) {
-  const location = parseCommentLocation(path);
-  if (!location) {
-    return '';
-  }
-  let definition: FieldDefinition[]|FieldDefinition|undefined = commentFieldDefinitions(props.projectType, location);
-  const pathParts = path.split('.').slice(3);
-  const pathLabels = [];
-  for (const pp of pathParts) {
-    let label = null;
-    if (Array.isArray(definition)) {
-      definition = definition.find(f => f.id === pp);
-    } else if (pp.startsWith('[') && pp.endsWith(']') && definition?.items) {
-      definition = definition?.items;
-      label = pp;
-    } else if (definition?.properties) {
-      definition = definition.properties.find(f => f.id === pp);
-    }
-
-    label = label || definition?.label;
-    if (label) {
-      pathLabels.push(label);
-    }
-  }
-
-  return pathLabels.join(' / ');
-}
 
 async function waitForElement(getElement: () => HTMLElement|null, maxAttempts = 20): Promise<HTMLElement|null> {
   for (let i = 0; i < maxAttempts; i++) {

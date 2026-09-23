@@ -103,9 +103,9 @@ const inheritedDiffAttrs = computed(() => {
   const copyFields = [
     'disabled', 'readonly', 'lang', 'spellcheckEnabled', 'markdownEditorMode', 
     'uploadFile', 'selectableUsers', 'referenceItems', 'rewriteFileUrlMap',
-    'fieldValueSuggestions',
+    'fieldValueSuggestions', 'enableAiFill',
     'onUpdate:markdownEditorMode', 'onUpdate:spellcheckEnabled', 
-    'collab', 'onCollab', 'onComment', 'onSearch',
+    'collab', 'onCollab', 'onComment', 'onAiPrefill', 'onSearch',
   ];
   return {
     ...attrs,

@@ -64,7 +64,7 @@
       <markdown-toolbar-button @click="codemirrorAction(undo)" title="Undo" icon="mdi-undo" :disabled="props.disabled || !canUndo" />
       <markdown-toolbar-button @click="codemirrorAction(redo)" title="Redo" icon="mdi-redo" :disabled="props.disabled || !canRedo" />
       <span class="separator" />
-      <template v-if="props.spellcheckSupported || props.collab?.comments">
+      <template v-if="props.spellcheckSupported || props.collab?.comments || props.enableAiFill">
         <markdown-toolbar-button
           v-if="props.spellcheckSupported && apiSettings.isProfessionalLicense"
           @click="toggleSpellcheck"
@@ -88,6 +88,13 @@
           title="Comment (Ctrl+Alt+M)"
           icon="mdi-comment-plus-outline"
           :disabled="props.disabled || !editorState"
+        />
+        <markdown-toolbar-button
+          v-if="props.enableAiFill"
+          @click="emitAiPrefill"
+          title="Fill with AI"
+          icon="mdi-creation-outline"
+          :disabled="props.disabled || !props.collab?.path"
         />
         <span class="separator" />
       </template>
@@ -168,11 +175,13 @@ const props = defineProps<{
   uploadFiles?: (files: FileList) => Promise<void>;
   fileUploadInProgress?: boolean;
   hideSplitMode?: boolean;
+  enableAiFill?: boolean;
 }>();
 const emit = defineEmits<{
   'update:spellcheckEnabled': [value: boolean];
   'update:markdownEditorMode': [value: MarkdownEditorMode];
   'comment': [value: any];
+  'ai-prefill': [value: any];
 }>();
 
 const apiSettings = useApiSettings();
@@ -287,6 +296,13 @@ function emitCreateComment() {
       text_range: selectionRange.empty ? null : { from: selectionRange.from, to: selectionRange.to },
     }
   })
+}
+
+function emitAiPrefill() {
+  if (!props.enableAiFill || !props.collab?.path || props.disabled) {
+    return;
+  }
+  emit('ai-prefill', { type: 'fill_field', collabPath: props.collab.path });
 }
 
 const referenceItemSearch = ref('');

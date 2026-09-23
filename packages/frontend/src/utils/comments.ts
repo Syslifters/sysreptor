@@ -47,6 +47,34 @@ export function commentFieldDefinitions(projectType: ProjectType, location: Comm
     [];
 }
 
+export function prettyFieldLabel(path: string, projectType: ProjectType): string {
+  const location = parseCommentLocation(path);
+  if (!location) {
+    return '';
+  }
+  let definition: FieldDefinition[]|FieldDefinition|undefined = commentFieldDefinitions(projectType, location);
+  const pathParts = path.split('.').slice(3);
+  const pathLabels = [];
+  for (const pp of pathParts) {
+    let label = null;
+    if (Array.isArray(definition)) {
+      definition = definition.find(f => f.id === pp);
+    } else if (pp.startsWith('[') && pp.endsWith(']') && definition?.items) {
+      definition = definition?.items;
+      label = pp;
+    } else if (definition?.properties) {
+      definition = definition.properties.find(f => f.id === pp);
+    }
+
+    label = label || definition?.label;
+    if (label) {
+      pathLabels.push(label);
+    }
+  }
+
+  return pathLabels.join(' / ');
+}
+
 function fieldOrderIndex(path: string, projectType: ProjectType): number {
   const loc = parseCommentLocation(path);
   if (!loc || !loc.dataPath) {
