@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## v2026.82 - 2026-09-23
 * AI agent: Support skills (https://docs.sysreptor.com/reporting/ai-agent#skills)
 * AI agent: Support `AGENTS.md` in projects (https://docs.sysreptor.com/reporting/ai-agent#agents-md)
 * AI agent: Retry failed LLM requests
