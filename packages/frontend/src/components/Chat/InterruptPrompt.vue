@@ -11,6 +11,7 @@
       <v-list
         v-model:selected="selected"
         select-strategy="single-leaf"
+        mandatory
         density="compact"
         :lines="false"
         class="pa-0"
@@ -21,9 +22,10 @@
           :value="index"
           class="pa-0"
         >
-          <template #prepend="{ isSelected }">
+          <template #prepend="{ isSelected, select }">
             <v-checkbox-btn
               :model-value="isSelected"
+              @update:model-value="select"
               true-icon="$radioOn"
               false-icon="$radioOff"
               density="compact"
@@ -39,9 +41,10 @@
           @click="focusOtherTextarea"
           class="pa-0 ask-user-other-item"
         >
-          <template #prepend="{ isSelected }">
+          <template #prepend="{ isSelected, select }">
             <v-checkbox-btn
               :model-value="isSelected"
+              @update:model-value="select"
               true-icon="$radioOn"
               false-icon="$radioOff"
               density="compact"
