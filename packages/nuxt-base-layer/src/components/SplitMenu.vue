@@ -36,7 +36,7 @@
 const router = useRouter();
 
 const menuWidth = defineModel<number>({ default: 300 });
-const sidebarWidth = defineModel<number>('sidebarWidth', { required: false });
+const sidebarWidth = defineModel<number|undefined>('sidebarWidth', { default: undefined });
 const props = defineProps<{
   contentProps?: Record<string, any>;
 }>();

@@ -119,7 +119,7 @@ import type { FilterProperties, FilterValue } from '@base/utils/types';
 import { addFilter as addFilterUtil, filtersToQueryParams, parseFiltersFromQuery } from '@base/utils/filter';
 import { useListSelection } from '@base/composables/listselection';
 
-const orderingModel = defineModel<string|null>('ordering');
+const orderingModel = defineModel<string|null>('ordering', { default: null });
 const props = defineProps<{
   url: string|null;
   orderingOptions?: OrderingOption[];
@@ -127,7 +127,7 @@ const props = defineProps<{
   selectable?: boolean;
 }>();
 
-const pinnedFilters = defineModel<FilterValue[]>('pinnedFilters');
+const pinnedFilters = defineModel<FilterValue[]|null>('pinnedFilters', { default: null });
 const activeFilters = ref<FilterValue[]>([]);
 
 const ordering = computed(() => {

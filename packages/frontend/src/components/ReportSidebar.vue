@@ -293,7 +293,7 @@ import { groupFindings, type FindingGroup } from '@base/utils/project';
 
 const search = defineModel<string|null|undefined>('search', { default: undefined });
 const overrideFindingOrder = defineModel<boolean|undefined>('overrideFindingOrder', { default: undefined });
-const selected = defineModel<string|null>('selected');
+const selected = defineModel<string|null|undefined>('selected', { default: undefined });
 const props = defineProps<{
   sections: ReportSection[];
   findings: PentestFinding[];

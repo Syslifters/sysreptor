@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { type Comment, ReportingSidebarType } from '#imports';
 
-const modelValue = defineModel<ReportingSidebarType>();
+const modelValue = defineModel<ReportingSidebarType>({ required: true });
 const props = defineProps<{
   comments: Comment[];
 }>();

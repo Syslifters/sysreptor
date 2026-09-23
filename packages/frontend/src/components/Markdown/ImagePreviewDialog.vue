@@ -171,7 +171,7 @@
 <script setup lang="ts">
 import { useAbortController } from '@base/utils/helpers';
 
-const modelValue = defineModel<PreviewImage|null>();
+const modelValue = defineModel<PreviewImage|null>({ default: null });
 const props = defineProps<{
   images: PreviewImage[];
   readonly?: boolean;

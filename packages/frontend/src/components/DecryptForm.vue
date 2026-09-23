@@ -50,7 +50,7 @@
 <script lang="ts" setup>
 import { sampleSize } from 'lodash-es';
 
-const modelValue = defineModel<string>();
+const modelValue = defineModel<string>({ required: true });
 const props = defineProps<{
   encryptedData: string;
   errorMessages?: string[]|null;

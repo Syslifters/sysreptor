@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { FieldDataType, type FindingOrderingDefinition, SortOrder } from '#imports';
 
-const modelValue = defineModel<FindingOrderingDefinition[]|null>();
+const modelValue = defineModel<FindingOrderingDefinition[]|null>({ default: null });
 
 const props = defineProps<{
   projectType: ProjectType;

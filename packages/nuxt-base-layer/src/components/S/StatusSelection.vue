@@ -29,7 +29,7 @@
 import { VSelect } from "vuetify/lib/components/index.mjs";
 import { ReviewStatus, type ReviewStatusDefinition } from "#imports";
 
-const modelValue = defineModel<string|null>();
+const modelValue = defineModel<string|null>({ default: null });
 const props = withDefaults(defineProps<{
   includeDeprecated?: boolean;
   variant?: VSelect['variant'];

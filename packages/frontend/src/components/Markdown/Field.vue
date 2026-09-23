@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import type { MarkdownProps } from "@/composables/markdown";
 
-const modelValue = defineModel<string|null>();
+const modelValue = defineModel<string|null>({ default: null });
 const props = defineProps<MarkdownProps>();
 
 const markdownRef = useTemplateRef('markdownRef');

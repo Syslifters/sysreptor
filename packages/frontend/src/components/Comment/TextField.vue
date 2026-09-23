@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-const modelValue = defineModel<string|null>();
+const modelValue = defineModel<string|null>({ default: null });
 const props = defineProps<{
   selectableUsers?: UserShortInfo[];
 }>();
