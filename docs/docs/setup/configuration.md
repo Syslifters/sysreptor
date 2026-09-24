@@ -544,6 +544,20 @@ The `deepseek` provider has nothing to do with the Deepseek LLM vendor.
 }
 ```
 
+**OpenAI-compatible Responses API** (e.g. LiteLLM, OpenRouter, OpenAI, Azure OpenAI). Set `store: false` when supported to disable provider-side retention of chat history (often enabled by default).
+```json
+{
+  "id": "glm-5.3",
+  "label": "GLM 5.3",
+  "provider": "openai",
+  "model": "zai-org/GLM-5.3",
+  "api_key": "...",
+  "base_url": "https://llm.example.com:4000/",
+  "use_responses_api": true,
+  "store": false
+}
+```
+
 **OpenAI**
 ```json
 {
