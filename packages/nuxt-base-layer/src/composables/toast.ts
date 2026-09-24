@@ -57,9 +57,10 @@ export function useToast() {
 
 // Helper functions (use module-level state so they work from anywhere)
 
-export function requestErrorToast({ error, message }: { error: any; message?: string }) {
-  // eslint-disable-next-line no-console
-  console.log("Request error", { error, message }, error?.data);
+export function formatRequestError({ error, message }: { error: any; message?: string }): string | null {
+  if (error?.options?.signal?.aborted) {
+    return null;
+  }
 
   if (!message) {
     if (error.reason) {
@@ -93,10 +94,18 @@ export function requestErrorToast({ error, message }: { error: any; message?: st
       .filter((v) => Array.isArray(v))
       .flat();
     message += ": " + entries.join(", ");
-  } else if (error?.options?.signal?.aborted) {
-    return; // Do not show toast for aborted requests
   }
-  errorToast(message);
+  return message;
+}
+
+export function requestErrorToast({ error, message }: { error: any; message?: string }) {
+  // eslint-disable-next-line no-console
+  console.log("Request error", { error, message }, error?.data);
+
+  const formatted = formatRequestError({ error, message });
+  if (formatted) {
+    errorToast(formatted);
+  }
 }
 
 export function successToast(message: string) {

@@ -31,6 +31,7 @@ from langchain.agents.middleware import (
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langchain_core._api import suppress_langchain_beta_warning
+from langchain_core.exceptions import LangChainException
 from langgraph.config import get_config
 from langgraph.errors import GraphInterrupt
 from langgraph.stream import UpdatesTransformer
@@ -205,7 +206,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         PatchToolCallsMiddleware(),
         create_summarization_middleware(model=default_model, backend=backend),
         MessageTimestampMiddleware(),
-        ModelRetryMiddleware(max_retries=2),
+        ModelRetryMiddleware(max_retries=2, on_failure='error'),
     ] + profile.materialize_extra_middleware() + middleware + [
         MergeConsecutiveMessagesMiddleware(),
     ]
@@ -384,9 +385,16 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                                 }
     except Exception as ex:
         logging.exception(ex)
+        msg = 'Internal server error'
+        if isinstance(ex, LangChainException):
+            body = getattr(ex, 'body', None)
+            if isinstance(body, dict) and isinstance(body.get('message'), str):
+                msg = body['message']
+            elif getattr(ex, 'message', None):
+                msg = ex.message
         yield {
             'type': 'error',
-            'content': 'Internal server error',
+            'content': msg,
         }
         raise ex
 

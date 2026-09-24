@@ -185,6 +185,26 @@ describe('agentStreaming', () => {
 
       expect(messageHistory.some(m => m.id === 'sub-asst')).toBe(false);
     });
+
+    it('returns the error event content and does not append to history', async () => {
+      mockChatStream([
+        { type: StreamEventType.METADATA, content: { thread_id: 'thread-err' } },
+        { type: StreamEventType.ERROR, content: 'Incorrect API key provided' },
+      ]);
+
+      const messageHistory: ChatHistoryEntry[] = [
+        { id: 'u1', role: MessageRole.USER, text: 'hello' },
+      ];
+      const result = await submitMessageStreamed({
+        body: { agent: 'project_ask' },
+        messageHistory,
+      });
+
+      expect(result.error).toBe('Incorrect API key provided');
+      expect(result.metadata.thread_id).toBe('thread-err');
+      expect(messageHistory).toHaveLength(1);
+      expect(messageHistory[0].role).toBe(MessageRole.USER);
+    });
   });
 });
 
