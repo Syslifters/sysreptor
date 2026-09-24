@@ -80,6 +80,11 @@
         {{ getNoteTitle(props.value.output?.id, props.value.output?.title) }}
       </nuxt-link>
     </template>
+    <template v-else-if="props.value.name === 'analyze_image'">
+      <chat-tool-call-status :status="props.value.status" />
+      <!-- TODO: link to image: open image preview dialog ??? -->
+      Analyze image {{ props.value.args.image }}
+    </template>
     <template v-else-if="props.value.name === 'ask_user'">
       <s-card
         v-if="props.value.status !== ToolCallStatus.PENDING"
@@ -152,7 +157,7 @@
     </template>
     <template v-else-if="['read_file', 'write_file', 'edit_file'].includes(props.value.name)">
       <chat-tool-call-status :status="props.value.status" />
-      {{ props.value.name }} {{ props.value.args.file_path }}
+      {{ capitalize(props.value.name.split('_')[0]) }} {{ props.value.args.file_path }}
     </template>
     <template v-else-if="['glob', 'grep'].includes(props.value.name)">
       <chat-tool-call-status :status="props.value.status" />
@@ -167,6 +172,7 @@
 
 <script setup lang="ts">
 import { getPageTitle, parseProjectFilePath, ToolCallStatus } from '@/utils/agent';
+import { capitalize } from 'lodash-es';
 
 const props = defineProps<{
   value: ToolCall;

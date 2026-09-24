@@ -73,6 +73,7 @@ CONFIGURATION_DEFINITION_CORE['AI_AGENT_MODELS'].default = [json.dumps({
     'model': 'fake-model',
     'api_key': 'fake-api-key',
     'base_url': 'https://llm.example.com/',
+    'vision_model': True,
 })]
 
 

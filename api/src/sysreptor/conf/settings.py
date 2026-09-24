@@ -727,6 +727,18 @@ LOGGING = {
 }
 
 
+def validate_ai_agent_models(models_json: list) -> bool:
+    models = [json.loads(m) for m in models_json]
+    model_ids = [m['id'] for m in models]
+    if not is_unique(model_ids):
+        return False
+    for m in models:
+        vision_model = m.get('vision_model')
+        if isinstance(vision_model, str) and vision_model not in model_ids:
+            return False
+    return True
+
+
 CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
     ENABLED_PLUGINS_FIELD,
     BooleanField(
@@ -955,17 +967,24 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                     'model': {'type': 'string', 'minLength': 1},
                     'api_key': {'type': 'string'},
                     'base_url': {'type': 'string'},
+                    'vision_model': {
+                        'oneOf': [
+                            {'type': 'boolean'},
+                            {'type': 'string', 'minLength': 1},
+                        ],
+                    },
                 },
                 'additionalProperties': True,
             },
             label='LLM model config',
-            help_text='Example: {"id": "gpt-oss-120b", "label": "GPT OSS 120B", "model": "gpt-oss-120b", "api_key": "...", "base_url": "https://llm.example.com/"}'),
+            help_text='Example: {"id": "gpt-oss-120b", "label": "GPT OSS 120B", "model": "gpt-oss-120b", "api_key": "...", "base_url": "https://llm.example.com/"}',
+        ),
         extra_info={
             'group': 'ai_agent',
             'professional_only': False,
             'secret': True,
             'load_from_env': lambda e: [json.dumps(c) if isinstance(c, dict) else c for c in json.loads(e)],
-            'validate': lambda l: is_unique([json.loads(m)['id'] for m in l]),
+            'validate': validate_ai_agent_models,
         },
         help_text='List of LLM model configurations. Supports OpenAI-compatible LLM providers, anthropic and mistrail. '
             'See https://docs.sysreptor.com/configuration/#llm-provider for details.'),

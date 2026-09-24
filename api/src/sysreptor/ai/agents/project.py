@@ -1,7 +1,11 @@
 import copy
 import dataclasses
 import itertools
+import logging
+import mimetypes
+import re
 import textwrap
+from base64 import b64encode
 from typing import Annotated
 from uuid import UUID
 
@@ -19,8 +23,9 @@ from langchain.agents.middleware import (
     AgentMiddleware,
     AgentState,
 )
-from langchain.messages import HumanMessage
+from langchain.messages import HumanMessage, SystemMessage
 from langchain.tools import ToolRuntime
+from langchain_core.exceptions import LangChainException
 from langgraph.types import interrupt
 from pydantic import Field
 from rest_framework.filters import search_smart_split
@@ -28,6 +33,9 @@ from rest_framework.filters import search_smart_split
 from sysreptor.ai.agents.base import (
     agent_tool,
     create_sysreptor_agent,
+    get_default_model_id,
+    get_model_configs,
+    init_chat_model,
     to_inline_context,
     to_yaml,
 )
@@ -301,6 +309,102 @@ def list_notes(runtime: ToolRuntime[ProjectContext]) -> str:
         return out
 
     return '\n'.join(format_note_tree(notes_tree))
+
+
+@agent_tool(parse_docstring=True)
+async def analyze_image(
+    runtime: ToolRuntime[ProjectContext],
+    image: str,
+    prompt: str = '',
+) -> tuple[str, dict]:
+    """
+    Analyze a project screenshot or image with a vision model and return a text summary.
+
+    Call this when markdown contains an image like ![](/images/name/image.png) and you
+    need to read what is shown (UI text, errors, URLs, parameters, highlighted areas,
+    or scene context) before writing evidence, reproduction steps, or PoC text.
+    Do not guess image contents from the filename or surrounding text alone.
+
+    Do not call again for the same image if this tool reports that image analysis is
+    disabled or the model does not support image input; continue from surrounding
+    text only.
+
+    Returns a concise factual summary of visible text, highlights, and scene context.
+    Use prompt when you need a specific detail answered.
+
+    Args:
+        image: Project image path from markdown, e.g. /images/name/image.png
+        prompt: Optional focus question for the vision model.
+            If omitted, returns a general evidence-oriented summary.
+    """
+    system_prompt = textwrap.dedent("""\
+        You analyze pentest screenshots for report writing.
+        Return a concise factual summary of visible text (errors, URLs, params, labels),
+        highlighted/annotated areas, and scene context useful for evidence or reproduction.
+        Quote text faithfully; do not invent unread content. Prefer short bullets. No preamble.
+        If a focus question is given, answer it while still capturing important visible details.
+        """)
+    default_user_prompt = 'Analyze this screenshot for pentest evidence and reproduction details.'
+
+    @sync_to_async
+    def prepare():
+        # Resolve vision model. Use current model if not configured.
+        active_model_id = runtime.context.model or get_default_model_id()
+        configs = get_model_configs()
+        active_config = next((c for c in configs if c.get('id') == active_model_id), None) or {}
+        vision_setting = active_config.get('vision_model')
+        if vision_setting is True or 'vision_model' not in active_config:
+            vision_model_id = active_model_id
+        elif isinstance(vision_setting, str) and vision_setting:
+            if not any(c.get('id') == vision_setting for c in configs):
+                raise ValidationError(f'Image analysis failed: vision_model "{vision_setting}" is not configured.')
+            vision_model_id = vision_setting
+        else:
+            raise ValidationError('Image analysis is disabled for the configured model.')
+
+        # Load image
+        filename = image.strip()
+        if match := re.search(r'/images/name/([^)\s{]+)', filename):
+            filename = match.group(1)
+        if not filename or '/' in filename:
+            raise ValidationError('Invalid image reference. Pass a path like /images/name/image.png')
+
+        uploaded = get_project(runtime.context.project_id).images.filter_name(filename).get()
+        with uploaded.file.open('rb') as f:
+            image_bytes = f.read()
+
+        mime_type, _ = mimetypes.guess_file_type(uploaded.name)
+        if not mime_type or not mime_type.startswith('image/'):
+            mime_type = 'image/png'
+
+        prompt_text = (prompt or '').strip() or default_user_prompt
+        llm = init_chat_model(vision_model_id)
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=[
+                {'type': 'text', 'text': prompt_text},
+                {'type': 'image', 'base64': b64encode(image_bytes).decode('ascii'), 'mime_type': mime_type},
+            ]),
+        ]
+        return llm, messages, filename, vision_model_id
+
+    llm, messages, filename, vision_model_id = await prepare()
+    try:
+        response = await llm.ainvoke(messages)
+    except Exception as ex:
+        logging.exception('analyze_image failed for %s with model %s', filename, vision_model_id)
+        detail = str(ex)
+        if isinstance(ex, LangChainException):
+            if (body := getattr(ex, 'body', None)) and isinstance(body, dict) and isinstance(body.get('message'), str):
+                detail = body['message']
+            elif getattr(ex, 'message', None):
+                detail = str(ex.message)
+        raise ValidationError(f'Image analysis failed. Maybe the model does not support images. {detail}') from ex
+
+    output = (response.text or '').strip()
+    if not output:
+        raise ValidationError('Image analysis failed: empty model response.')
+    return output, {'image': filename, 'model': vision_model_id}
 
 
 @agent_tool(parse_docstring=True)
@@ -769,6 +873,9 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
            and field paths shown in file contents (e.g. file="/project/reporting/findings/<id>.yaml", field="data.title").
         4. **Templates**: Use list_templates and read_template to search and inspect
            templates before creating findings from them.
+        5. **Images**: Screenshots appear as ![](/images/name/<filename>) in markdown.
+           Use analyze_image when you need to see what is in an image before writing
+           evidence or PoC text.
 
         For multi-step or non-trivial tasks, use the write_todos tool to track progress. For
         simple questions or single edits, complete the task directly without todos.
@@ -776,6 +883,7 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         ## Capabilities
         - Answer questions about the project, findings, sections, and notes
         - Review and give feedback on finding and section content
+        - Analyze project screenshots/images with analyze_image when needed
         - Search and recommend templates; create findings from templates or from scratch
           (when in Agent mode)
         - Create notes and edit section, finding and note fields (when in Agent mode)
@@ -845,6 +953,7 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
             list_notes,
             list_templates,
             read_template,
+            analyze_image,
         ] + (additional_tools or []),
         middleware=[
             InjectProjectContextMiddleware(),
@@ -893,4 +1002,3 @@ def init_agent_project_agent():
             create_note,
         ],
     )
-

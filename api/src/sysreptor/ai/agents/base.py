@@ -157,7 +157,7 @@ def init_chat_model(model: str):
     return chat_models.init_chat_model(
         model=config.get('model'),
         model_provider=config.get('provider', 'deepseek'),
-        **omit_keys(config, ['id', 'label', 'provider', 'model']),
+        **omit_keys(config, ['id', 'label', 'provider', 'model', 'vision_model']),
     )
 
 
