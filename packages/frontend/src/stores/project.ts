@@ -181,6 +181,7 @@ export const useProjectStore = defineStore('project', {
             threadId: null,
             messageHistory: [],
             interrupts: [],
+            error: null,
             currentRequest: null,
             changesState: {
               sessionStartIndex: 0,

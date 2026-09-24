@@ -59,6 +59,14 @@
           />
         </template>
       </template>
+      <v-alert
+        v-if="agent.error.value"
+        type="error"
+        variant="tonal"
+        density="compact"
+        class="mt-2 mb-2"
+        :text="agent.error.value"
+      />
     </div>
     <div class="pa-2">
       <s-card density="compact" variant="tonal" class="chat-compose-card">

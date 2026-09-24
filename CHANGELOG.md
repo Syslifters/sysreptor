@@ -2,6 +2,7 @@
 
 ## Upcoming
 * AI agent: fix ask_user UI selection bugs
+* AI agent: show detailed LLM errors
 
 
 ## v2026.82 - 2026-09-23
