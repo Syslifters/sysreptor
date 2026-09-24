@@ -438,7 +438,7 @@ affected_components = [
 ]
 short_recommendation = "Make sure that the configuration of all sensitive cookies is hardened and thus important cookie attributes like HttpOnly or Secure are set."
 
-[notes]
+[[notes]]
 file = "../notes/demo-notes.toml"
 
 [project_type]

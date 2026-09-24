@@ -442,7 +442,7 @@ affected_components = [
     "example.com",
 ]
 
-[notes]
+[[notes]]
 file = "../notes/demo-notes.toml"
 
 [project_type]
