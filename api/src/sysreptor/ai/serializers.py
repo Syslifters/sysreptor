@@ -51,7 +51,7 @@ class LLMAgentSerializer(serializers.Serializer):
 
         # Resolve model
         model = attrs.get('model', None)
-        if model and not any(m['id'] == model for m in get_model_configs()):
+        if model and not any(m['id'] == model for m in get_model_configs(include_hidden=False)):
             raise serializers.ValidationError('Invalid model')
 
         # Set agent parameters

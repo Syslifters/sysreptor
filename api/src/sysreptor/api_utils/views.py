@@ -192,7 +192,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
         from sysreptor.ai.agents.base import get_model_configs
         ai_agent_models = [
             {'id': m.get('id'), 'label': m.get('label', m.get('id'))}
-            for m in get_model_configs()
+            for m in get_model_configs(include_hidden=False)
         ]
         return Response(public_settings | {
             'statuses': ReviewStatus.get_definitions(),

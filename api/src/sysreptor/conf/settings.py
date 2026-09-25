@@ -973,6 +973,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                             {'type': 'string', 'minLength': 1},
                         ],
                     },
+                    'hidden': {'type': 'boolean'},
                 },
                 'additionalProperties': True,
             },

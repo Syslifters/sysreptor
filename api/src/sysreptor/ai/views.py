@@ -30,7 +30,7 @@ class ChatThreadPermissions(BasePermission):
         if not configuration.AI_AGENT_ENABLED:
             raise PermissionDenied('AI agent chat is disabled in settings')
         from sysreptor.ai.agents.base import get_model_configs
-        if not get_model_configs():
+        if not get_model_configs(include_hidden=False):
             raise PermissionDenied('No LLM models configured in settings')
         return True
 
