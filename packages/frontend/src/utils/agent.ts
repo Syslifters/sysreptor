@@ -122,7 +122,7 @@ export function findToolCall(
     if (m.role === MessageRole.TOOL && m.tool_call?.id === toolCallId) {
       return m.tool_call;
     }
-    if (m.role === MessageRole.TOOL && m.tool_call?.name === 'task' && m.tool_call.subagentMessages) {
+    if (m.role === MessageRole.TOOL && m.tool_call?.subagentMessages) {
       const toolCall = findToolCall(m.tool_call.subagentMessages, toolCallId);
       if (toolCall) { 
         return toolCall;
@@ -652,7 +652,7 @@ function walkToolCalls(messages: ChatHistoryEntry[], callback: (tool: ToolCall) 
       continue;
     }
     callback(m.tool_call);
-    if (m.tool_call.name === 'task' && m.tool_call.subagentMessages?.length) {
+    if (m.tool_call.subagentMessages?.length) {
       walkToolCalls(m.tool_call.subagentMessages, callback);
     }
   }

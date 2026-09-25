@@ -19,11 +19,12 @@ from deepagents.middleware.skills import SkillsMiddleware
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
+from langchain.agents import create_agent
 from langchain.agents.middleware import (
     AgentMiddleware,
     AgentState,
 )
-from langchain.messages import HumanMessage, SystemMessage
+from langchain.messages import AIMessage, HumanMessage
 from langchain.tools import ToolRuntime
 from langchain_core.exceptions import LangChainException
 from langgraph.types import interrupt
@@ -379,18 +380,21 @@ async def analyze_image(
 
         prompt_text = (prompt or '').strip() or default_user_prompt
         llm = init_chat_model(vision_model_id)
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=[
-                {'type': 'text', 'text': prompt_text},
-                {'type': 'image', 'base64': b64encode(image_bytes).decode('ascii'), 'mime_type': mime_type},
-            ]),
-        ]
-        return llm, messages, filename, vision_model_id
+        human_message = HumanMessage(content=[
+            {'type': 'text', 'text': prompt_text},
+            {'type': 'image', 'base64': b64encode(image_bytes).decode('ascii'), 'mime_type': mime_type},
+        ])
+        return llm, human_message, filename, vision_model_id
 
-    llm, messages, filename, vision_model_id = await prepare()
+    llm, human_message, filename, vision_model_id = await prepare()
     try:
-        response = await llm.ainvoke(messages)
+        # Nested agent so astream_events assigns a non-empty namespace (like task subagents).
+        vision_agent = create_agent(
+            model=llm,
+            system_prompt=system_prompt,
+            tools=[],
+        )
+        result = await vision_agent.ainvoke({'messages': [human_message]})
     except Exception as ex:
         logging.exception('analyze_image failed for %s with model %s', filename, vision_model_id)
         detail = str(ex)
@@ -401,7 +405,8 @@ async def analyze_image(
                 detail = str(ex.message)
         raise ValidationError(f'Image analysis failed. Maybe the model does not support images. {detail}') from ex
 
-    output = (response.text or '').strip()
+    ai_messages = [m for m in (result.get('messages') or []) if isinstance(m, AIMessage)]
+    output = ((ai_messages[-1].text if ai_messages else '') or '').strip()
     if not output:
         raise ValidationError('Image analysis failed: empty model response.')
     return output, {'image': filename, 'model': vision_model_id}

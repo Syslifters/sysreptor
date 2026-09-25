@@ -80,11 +80,6 @@
         {{ getNoteTitle(props.value.output?.id, props.value.output?.title) }}
       </nuxt-link>
     </template>
-    <template v-else-if="props.value.name === 'analyze_image'">
-      <chat-tool-call-status :status="props.value.status" />
-      <!-- TODO: link to image: open image preview dialog ??? -->
-      Analyze image {{ props.value.args.image }}
-    </template>
     <template v-else-if="props.value.name === 'ask_user'">
       <s-card
         v-if="props.value.status !== ToolCallStatus.PENDING"
@@ -120,7 +115,7 @@
         </v-list-item>
       </v-list>
     </template>
-    <template v-else-if="props.value.name === 'task'">
+    <template v-else-if="['task', 'analyze_image'].includes(props.value.name)">
       <chat-reasoning-panel
         :is-streaming="props.isStreaming"
         max-height-streaming="15em"
@@ -129,7 +124,13 @@
         <template #title>
           <v-expansion-panel-title class="text-body-medium text-disabled">
             <chat-tool-call-status :status="props.value.status" class="mr-1" />
-            Running subagent {{ props.value.args.subagent_type }}
+            <template v-if="props.value.name === 'task'">
+              Running subagent {{ props.value.args.subagent_type }}
+            </template>
+            <template v-else-if="props.value.name === 'analyze_image'">
+              <!-- TODO: link to image: open image preview dialog ??? -->
+              Analyzing image {{ props.value.args.image }}
+            </template>
           </v-expansion-panel-title>
         </template>
         <template #default>
@@ -142,7 +143,7 @@
             />
           </template>
           <markdown-preview
-            v-if="props.value.content"
+            v-else-if="props.value.content"
             :value="props.value.content"
             :readonly="true"
             :throttle-ms="100"
