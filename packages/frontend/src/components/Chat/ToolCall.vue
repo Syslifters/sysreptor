@@ -1,5 +1,8 @@
 <template>
-  <div class="text-body-medium text-disabled mt-2">
+  <component
+    :is="isPendingLine ? ChatThinkingPlaceholder : 'div'"
+    class="text-body-medium text-disabled mt-2"
+  >
     <template v-if="props.value.name === 'read_file' && props.project && projectFileRef">
       <chat-tool-call-status :status="props.value.status" />
       Read
@@ -118,28 +121,27 @@
     <template v-else-if="['task', 'analyze_image'].includes(props.value.name)">
       <chat-reasoning-panel
         :is-streaming="props.isStreaming"
+        :expand-while-streaming="true"
         max-height-streaming="15em"
         class="subagent-messages border-l"
       >
         <template #title>
-          <v-expansion-panel-title class="text-body-medium text-disabled">
-            <chat-tool-call-status :status="props.value.status" class="mr-1" />
-            <template v-if="props.value.name === 'task'">
-              Running subagent {{ props.value.args.subagent_type }}
-            </template>
-            <template v-else-if="props.value.name === 'analyze_image'">
-              Analyzing image&nbsp;
-              <a
-                v-if="analyzeImagePreview"
-                href="#"
-                class="analyze-image-link"
-                @click.stop.prevent="analyzeImagePreviewModel = analyzeImagePreview"
-              >
-                {{ props.value.args.image }}
-              </a>
-              <template v-else>{{ props.value.args.image }}</template>
-            </template>
-          </v-expansion-panel-title>
+          <chat-tool-call-status :status="props.value.status" class="mr-1" />
+          <template v-if="props.value.name === 'task'">
+            Running subagent {{ props.value.args.subagent_type }}
+          </template>
+          <template v-else-if="props.value.name === 'analyze_image'">
+            Analyzing image&nbsp;
+            <a
+              v-if="analyzeImagePreview"
+              href="#"
+              class="analyze-image-link"
+              @click.stop.prevent="analyzeImagePreviewModel = analyzeImagePreview"
+            >
+              {{ props.value.args.image }}
+            </a>
+            <span v-else>{{ props.value.args.image }}</span>
+          </template>
         </template>
         <template #default>
           <template v-if="props.value.subagentMessages?.length">
@@ -147,7 +149,10 @@
               v-for="msg, idx in props.value.subagentMessages" :key="msg.id"
               :msg="msg"
               :project="props.project"
-              :is-streaming="props.isStreaming && idx === props.value.subagentMessages!.length - 1"
+              :is-streaming="isChatMessageStreaming(msg, {
+                inProgress: props.isStreaming,
+                isLastMessage: idx === props.value.subagentMessages!.length - 1,
+              })"
             />
           </template>
           <markdown-preview
@@ -182,11 +187,12 @@
       <chat-tool-call-status :status="props.value.status" />
       {{ props.value.name }}
     </template>
-  </div>
+  </component>
 </template>
 
 <script setup lang="ts">
-import { getPageTitle, parseProjectFilePath, parseProjectImageName, ToolCallStatus } from '@/utils/agent';
+import ChatThinkingPlaceholder from '@/components/Chat/ThinkingPlaceholder.vue';
+import { getPageTitle, isChatMessageStreaming, parseProjectFilePath, parseProjectImageName, ToolCallStatus } from '@/utils/agent';
 import { absoluteApiUrl } from '#imports';
 import { capitalize } from 'lodash-es';
 
@@ -198,6 +204,9 @@ const props = defineProps<{
 
 const projectStore = useProjectStore();
 
+const isPendingLine = computed(() =>
+  props.isStreaming && !['task', 'analyze_image', 'ask_user'].includes(props.value.name),
+);
 const projectFileRef = computed(() => {
   if (!['read_file', 'update_field_value', 'update_markdown_field'].includes(props.value.name)) {
     return null;

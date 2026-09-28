@@ -2,7 +2,6 @@
   <div v-if="props.msg.role === MessageRole.ASSISTANT" class="assistant-message">
     <chat-reasoning-panel
       v-if="props.msg.reasoning"
-      title="Reasoning..."
       :is-streaming="props.isStreaming && !props.msg.text"
     >
       <template #default>
