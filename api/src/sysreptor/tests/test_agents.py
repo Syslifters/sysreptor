@@ -327,6 +327,55 @@ class TestProjectAgent:
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[3].content}}),
         ])
 
+    def test_subagent_error_does_not_abort_main_agent(self):
+        subagent_tool_call_id = 'subagent_tool_call_fail'
+        task_call = ToolCall(
+            id=subagent_tool_call_id,
+            name='task',
+            args={'subagent_type': 'general-purpose', 'description': 'Failing subagent'},
+        )
+
+        class FailThenContinueMessages:
+            """Main task call, then ModelRetryMiddleware attempts raise, then main continues."""
+
+            def __init__(self):
+                self._items = iter([
+                    AIMessage(content='', tool_calls=[task_call]),
+                    'fail',
+                    'fail',
+                    'fail',
+                    AIMessage(content='Continued after subagent error.'),
+                ])
+
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                item = next(self._items)
+                if item == 'fail':
+                    raise RuntimeError('Simulated subagent LLM failure')
+                return item
+
+        with (
+            mock.patch('langchain.agents.middleware.model_retry.calculate_delay', return_value=0),
+            mock_llm_response(messages=FailThenContinueMessages()),
+        ):
+            events = self.send_message('Use a failing subagent')
+
+        assert not any(e['type'] == 'error' for e in events)
+        task_status = next(
+            e for e in events
+            if e['type'] == 'tool_call_status' and e['content'].get('id') == subagent_tool_call_id
+        )
+        assert task_status['content']['status'] == 'error'
+        assert task_status['content']['content'] == 'Error: Internal server error'
+        assert_events_equal(events, [
+            {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+            {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
+            {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'error'}},
+            *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': 'Continued after subagent error.'}}),
+        ])
+
 
 @pytest.mark.django_db()
 class TestAskUserInterrupts:

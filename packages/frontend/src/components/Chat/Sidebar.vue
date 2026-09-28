@@ -46,7 +46,10 @@
           :key="msg.id"
           :msg="msg"
           :project="props.project"
-          :is-streaming="msg.id === currentStreamingMessageId"
+          :is-streaming="isChatMessageStreaming(msg, {
+            inProgress: agent.inProgress.value,
+            isLastMessage: idx === agent.messageHistory.value.length - 1,
+          })"
           :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory.value, idx)"
         />
         <template v-if="agent.interrupts.value.length > 0 && !agent.inProgress.value">
@@ -59,6 +62,11 @@
           />
         </template>
       </template>
+      <chat-reasoning-panel
+        v-if="agent.inProgress.value && agent.messageHistory.value.at(-1)?.role === MessageRole.USER"
+        :is-streaming="true"
+      />
+
       <v-alert
         v-if="agent.error.value"
         type="error"
@@ -106,7 +114,7 @@
               density="compact"
               v-tooltip="'Send message (Enter)'"
             />
-            <div v-else class="btn-stop" style="position: relative; display: inline-flex;">
+            <div v-else class="btn-stop">
               <v-progress-circular
                 indeterminate
                 :size="24"
@@ -184,7 +192,7 @@
 
 <script setup lang="ts">
 import { pick, throttle } from 'lodash-es';
-import { getPageTitle, parseProjectFilePath, type AgentChangedPage } from '@/utils/agent';
+import { getPageTitle, parseProjectFilePath, MessageRole, isChatMessageStreaming, isLastAssistantMessageInTurn, type AgentChangedPage } from '@/utils/agent';
 
 const props = defineProps<{
   project: PentestProject;
@@ -275,12 +283,6 @@ async function onRevertPage(page: AgentChangedPage) {
   }
 }
 
-const currentStreamingMessageId = computed(() => {
-  if (!agent.inProgress.value) {
-    return null;
-  }
-  return agent.messageHistory.value.at(-1)?.id ?? null;
-});
 const messagesContainerRef = useTemplateRef('messagesContainerRef');
 const isScrolledToBottom = ref(true);
 
@@ -365,7 +367,7 @@ const onScrollMessages = throttle(() => {
   word-break: break-word;
 }
 .btn-stop {
-  position: inherit;
+  position: relative;
   display: inline-flex;
 
   & > .v-progress-circular {

@@ -58,6 +58,22 @@ export function isLastAssistantMessageInTurn(
   return !next || next.role === MessageRole.USER;
 }
 
+export function isChatMessageStreaming(
+  msg: ChatHistoryEntry,
+  options: { inProgress: boolean; isLastMessage: boolean },
+): boolean {
+  if (!options.inProgress) {
+    return false;
+  }
+  if (msg.role === MessageRole.TOOL) {
+    return msg.tool_call?.status === ToolCallStatus.PENDING;
+  }
+  if (msg.role === MessageRole.ASSISTANT) {
+    return options.isLastMessage;
+  }
+  return false;
+}
+
 export enum StreamEventType {
   METADATA = 'metadata',
   TEXT = 'text',
