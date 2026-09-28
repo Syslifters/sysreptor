@@ -7,6 +7,7 @@ import {
   buildChangedFiles,
   getToolFilePath,
   parseProjectFilePath,
+  parseProjectImageName,
   submitMessageStreamed,
   type ChatHistoryEntry,
   type StreamEvent, type ToolCall 
@@ -186,6 +187,59 @@ describe('agentStreaming', () => {
       expect(messageHistory.some(m => m.id === 'sub-asst')).toBe(false);
     });
 
+    it('routes analyze_image subagent events into the parent tool call subagentMessages', async () => {
+      const analyzeId = 'analyze-image-1';
+
+      mockChatStream([
+        { type: StreamEventType.METADATA, content: { thread_id: 'thread-1' } },
+        {
+          type: StreamEventType.TOOL_CALL,
+          content: {
+            id: analyzeId,
+            name: 'analyze_image',
+            args: { image: 'file0.png' },
+            status: ToolCallStatus.PENDING,
+            timestamp: '2026-01-01T10:00:00+00:00',
+            output: null,
+          },
+          subagent: null,
+        },
+        {
+          type: StreamEventType.TEXT,
+          content: { id: 'vision-asst', role: MessageRole.ASSISTANT, text: 'SQL error visible' },
+          subagent: analyzeId,
+        },
+        {
+          type: StreamEventType.TOOL_CALL_STATUS,
+          content: {
+            id: analyzeId,
+            name: 'analyze_image',
+            status: ToolCallStatus.SUCCESS,
+            content: 'SQL error visible',
+            output: { image: 'file0.png', model: 'vision-model' },
+            timestamp: '2026-01-01T10:00:01+00:00',
+          },
+        },
+      ]);
+
+      const messageHistory: ChatHistoryEntry[] = [];
+      await submitMessageStreamed({
+        body: { agent: 'project_agent' },
+        messageHistory,
+      });
+
+      expect(messageHistory).toHaveLength(1);
+      expect(messageHistory[0].role).toBe(MessageRole.TOOL);
+      expect(messageHistory[0].tool_call?.name).toBe('analyze_image');
+      expect(messageHistory[0].tool_call?.status).toBe(ToolCallStatus.SUCCESS);
+      expect(messageHistory[0].tool_call?.content).toBe('SQL error visible');
+
+      const subagentMessages = messageHistory[0].tool_call?.subagentMessages ?? [];
+      expect(subagentMessages).toHaveLength(1);
+      expect(subagentMessages[0].text).toBe('SQL error visible');
+      expect(messageHistory.some(m => m.id === 'vision-asst')).toBe(false);
+    });
+
     it('returns the error event content and does not append to history', async () => {
       mockChatStream([
         { type: StreamEventType.METADATA, content: { thread_id: 'thread-err' } },
@@ -251,6 +305,22 @@ describe('agentChanges', () => {
       expect(parseProjectFilePath('/project/reporting/findings/f1.yaml')).toEqual({ type: 'finding', id: 'f1' });
       expect(parseProjectFilePath('/project/reporting/sections/s1.yaml')).toEqual({ type: 'section', id: 's1' });
       expect(parseProjectFilePath('/project/notes/n1.yaml')).toEqual({ type: 'note', id: 'n1' });
+    });
+  });
+
+  describe('parseProjectImageName', () => {
+    it('parses bare names, paths, and markdown image refs', () => {
+      expect(parseProjectImageName('image.png')).toBe('image.png');
+      expect(parseProjectImageName('/images/name/image.png')).toBe('image.png');
+      expect(parseProjectImageName('![shot](/images/name/image.png)')).toBe('image.png');
+      expect(parseProjectImageName('![shot](/images/name/image.png){width="auto"}')).toBe('image.png');
+    });
+
+    it('rejects invalid image refs', () => {
+      expect(parseProjectImageName('')).toBeNull();
+      expect(parseProjectImageName('/images/name/missing/path.png')).toBeNull();
+      expect(parseProjectImageName('folder/image.png')).toBeNull();
+      expect(parseProjectImageName(null)).toBeNull();
     });
   });
 

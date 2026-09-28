@@ -29,6 +29,7 @@ from sysreptor.ai.agents.filesystem import (
 from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
 from sysreptor.ai.agents.project import (
     ProjectContext,
+    analyze_image,
     create_finding,
     create_note,
     list_notes,
@@ -39,6 +40,7 @@ from sysreptor.ai.agents.project import (
 )
 from sysreptor.ai.models import ChatThread, LangchainCheckpoint
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints
+from sysreptor.conf.settings import validate_ai_agent_models
 from sysreptor.pentests.models import NoteType
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
@@ -431,18 +433,28 @@ class TestProjectAgentTools:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
-        self.project = create_project(members=[self.user], report_data={
-            'field_list': ['first', 'second'],
-        })
+        self.project = create_project(
+            members=[self.user],
+            images_kwargs=[{'name': 'image.png'}],
+            report_data={
+                'field_list': ['first', 'second'],
+            })
         self.client = api_client(user=self.user)
 
         with override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False):
             yield
 
-    def run_tool(self, tool, **kwargs):
+    def run_tool(self, tool, model=None, **kwargs):
+        return self.run_tool_message(tool, model=model, **kwargs).content
+
+    def run_tool_message(self, tool, model=None, **kwargs):
         runtime = ToolRuntime(
             tool_call_id='tool_call_id_1',
-            context=ProjectContext(user_id=str(self.user.id), project_id=str(self.project.id)),
+            context=ProjectContext(
+                user_id=str(self.user.id),
+                project_id=str(self.project.id),
+                model=model,
+            ),
             state=None,
             config={},
             store=None,
@@ -453,7 +465,7 @@ class TestProjectAgentTools:
                 'runtime': runtime,
             },
         )
-        return res.update['messages'][0].content
+        return res.update['messages'][0]
 
     def test_tool_list_notes(self):
         contains_infos = [
@@ -782,6 +794,32 @@ class TestProjectAgentTools:
         sibling.refresh_from_db()
         assert sibling.order == 2
 
+    @pytest.mark.parametrize(('image_ref', 'expected'), [
+        ('image.png', True),
+        ('/images/name/image.png', True),
+        ('![shot](/images/name/image.png)', True),
+        ('![shot](/images/name/image.png){width="auto"}', True),
+        ('missing.png', False),
+        ('/images/name/missing.png', False),
+    ])
+    def test_tool_analyze_image_success(self, image_ref, expected):
+        fake_agent = mock.Mock()
+        fake_agent.ainvoke = mock.AsyncMock(return_value={
+            'messages': [AIMessage(content='Screenshot shows SQL error on login form')],
+        })
+        with mock.patch('sysreptor.ai.agents.project.create_agent', return_value=fake_agent):
+            msg = self.run_tool_message(analyze_image, image=image_ref, prompt='What error is shown?')
+
+        if expected:
+            assert msg.status == 'success'
+            assert msg.content == 'Screenshot shows SQL error on login form'
+            assert msg.additional_kwargs['output'] == {
+                'image': 'image.png',
+                'model': 'test:fake-model',
+            }
+        else:
+            assert msg.status == 'error'
+
 
 @pytest.mark.django_db()
 class TestAgentPermissions:
@@ -930,6 +968,71 @@ class TestLLMConfig:
             {'id': 'model-b', 'label': 'model-b'},
         ]
 
+    @pytest.mark.parametrize(('vision_model', 'expected'), [
+        (True, 'main-model'),
+        ('vision-model', 'vision-model'),
+        (False, False),
+        (None, False),
+        ('missing-vision', False),
+    ])
+    def test_vision_model_config(self, vision_model, expected):
+        models = [
+            {'id': 'main-model', 'provider': 'test', 'model': 'main-model', 'api_key': 'k', 'vision_model': vision_model},
+            {'id': 'vision-model', 'provider': 'test', 'model': 'vision-model', 'api_key': 'k', 'hidden': True},
+        ]
+        assert validate_ai_agent_models([json.dumps(m) for m in models]) is (
+            not isinstance(vision_model, str) or vision_model in {m['id'] for m in models}
+        )
+
+        user = create_user()
+        project = create_project(members=[user])
+        fake_agent = mock.Mock(ainvoke=mock.AsyncMock(return_value={'messages': [AIMessage(content='ok')]}))
+        with (
+            mock.patch('sysreptor.ai.agents.project.get_model_configs', return_value=models),
+            mock.patch('sysreptor.ai.agents.project.init_chat_model', return_value=mock.Mock()) as init_mock,
+            mock.patch('sysreptor.ai.agents.project.create_agent', return_value=fake_agent),
+        ):
+            msg = async_to_sync(analyze_image.ainvoke)({
+                'image': 'file0.png',
+                'runtime': ToolRuntime(
+                    tool_call_id='t1',
+                    context=ProjectContext(user_id=str(user.id), project_id=str(project.id), model='main-model'),
+                    state=None, config={}, store=None, stream_writer=None,
+                ),
+            }).update['messages'][0]
+
+        if expected:
+            assert msg.status == 'success'
+            assert init_mock.call_args.args == (expected,)
+            assert msg.additional_kwargs['output']['model'] == expected
+        else:
+            assert msg.status == 'error'
+
+    @override_configuration(AI_AGENT_MODELS=[
+        json.dumps({
+            'id': 'vision-only',
+            'provider': 'test',
+            'model': 'vision-only',
+            'api_key': 'k',
+            'hidden': True,
+        }),
+        json.dumps({
+            'id': 'main-model',
+            'label': 'Main Model',
+            'provider': 'test',
+            'model': 'main-model',
+            'api_key': 'k',
+            'vision_model': 'vision-only',
+        }),
+    ])
+    def test_hidden_models(self):
+        assert len(get_model_configs()) == 2
+        assert len(get_model_configs(include_hidden=False)) == 1
+        assert get_default_model_id() == 'main-model'
+        assert api_client(create_user()).get(reverse('publicutils-settings')).data['ai_agent_models'] == [
+            {'id': 'main-model', 'label': 'Main Model'},
+        ]
+
 
 @pytest.mark.django_db()
 class TestLLMModelSelection:
@@ -956,10 +1059,12 @@ class TestLLMModelSelection:
         ('model-a', True),
         (None, True), # Use default model
         ('unknown', False),
+        ('hidden-model', False),
     ])
     @override_configuration(AI_AGENT_MODELS=[
         json.dumps({'id': 'model-a', 'provider': 'test', 'model': 'model-a', 'api_key': 'fake-key'}),
         json.dumps({'id': 'model-b', 'provider': 'test', 'model': 'model-b', 'api_key': 'fake-key'}),
+        json.dumps({'id': 'hidden-model', 'provider': 'test', 'model': 'hidden-model', 'api_key': 'fake-key', 'hidden': True}),
     ])
     def test_model_selection(self, model, expected):
         with mock_llm_response(messages=[AIMessage(content='Hello')]):

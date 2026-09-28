@@ -16,6 +16,7 @@ It **can**:
 
 * Read that project's structure, report sections, findings, notes, and the project's design field definitions
 * See which section, finding, or note you currently have open in the UI
+* Analyze screenshots and images referenced in markdown texts (when a vision-capable LLM is configured)
 * Search **finding templates** in the instance knowledge base (templates are shared, not limited to one project)
 
 It **cannot**:
@@ -83,6 +84,7 @@ The skill catalog is loaded when the thread starts; new or changed skills may no
 ## Example Use Cases
 
 - Generate executive summary from findings
+- Write findings based on brief notes and screenshots using report writing skills
 - Generate finding recommendation from technical description
 - Review texts for grammar and spelling
 - Create findings from notes

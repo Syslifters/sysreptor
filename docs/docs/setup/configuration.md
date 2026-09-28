@@ -519,6 +519,9 @@ Model IDs and labels are exposed to all authenticated users; API keys and other 
 | `api_key` | API key for the provider |
 | `base_url` | API base URL (for OpenAI-compatible or custom endpoints) |
 | `label` | Display name in the UI (defaults to `id`) |
+| `use_responses_api` | Optional. When `true`, use the OpenAI Responses API instead of Chat Completions API. |
+| `vision_model` | Controls image analysis (`analyze_image`). Omitted or `true`: use this model (default; the model must support image input). A model `id`: use that entry for vision. `false`: disable |
+| `hidden` | Optional. When `true`, the model is not shown in LLM model selection and not returned from the API. It can only be used by referencing its `id` in another model's `vision_model` |
 | *other* | Additional model-specific LangChain parameters (e.g. `temperature`, `reasoning_effort`, etc.) |
 
 

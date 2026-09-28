@@ -123,7 +123,7 @@ def is_in_subagent() -> bool:
         return False
 
 
-def get_model_configs() -> list:
+def get_model_configs(*, include_hidden: bool = True) -> list:
     try:
         out = [json.loads(c) for c in configuration.AI_AGENT_MODELS or []]
     except Exception:
@@ -140,11 +140,13 @@ def get_model_configs() -> list:
             'base_url': config(f'{env_prefix}_BASE_URL', default=config(f'{env_prefix}_API_BASE', default=config(f'{env_prefix}_HOST', default=None))),
         }]
 
+    if not include_hidden:
+        out = [c for c in out if not c.get('hidden')]
     return out
 
 
 def get_default_model_id() -> str:
-    default_model = next(iter(get_model_configs()), None)
+    default_model = next(iter(get_model_configs(include_hidden=False)), None)
     if not default_model:
         raise ValueError('No LLM model configured')
     return default_model.get('id')
@@ -157,7 +159,7 @@ def init_chat_model(model: str):
     return chat_models.init_chat_model(
         model=config.get('model'),
         model_provider=config.get('provider', 'deepseek'),
-        **omit_keys(config, ['id', 'label', 'provider', 'model']),
+        **omit_keys(config, ['id', 'label', 'provider', 'model', 'vision_model', 'hidden']),
     )
 
 
@@ -356,7 +358,7 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                         for c in ai_message.tool_calls:
                             if not c.get('id'):
                                 continue
-                            if c.get('name') == 'task' and isinstance(c.get('args'), dict):
+                            if c.get('name') in ['task', 'analyze_image'] and isinstance(c.get('args'), dict):
                                 pending_tool_call_ids.append(c['id'])
                             yield {
                                 'type': 'tool_call',

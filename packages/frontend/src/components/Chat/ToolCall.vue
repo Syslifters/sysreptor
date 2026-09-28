@@ -115,7 +115,7 @@
         </v-list-item>
       </v-list>
     </template>
-    <template v-else-if="props.value.name === 'task'">
+    <template v-else-if="['task', 'analyze_image'].includes(props.value.name)">
       <chat-reasoning-panel
         :is-streaming="props.isStreaming"
         max-height-streaming="15em"
@@ -124,7 +124,21 @@
         <template #title>
           <v-expansion-panel-title class="text-body-medium text-disabled">
             <chat-tool-call-status :status="props.value.status" class="mr-1" />
-            Running subagent {{ props.value.args.subagent_type }}
+            <template v-if="props.value.name === 'task'">
+              Running subagent {{ props.value.args.subagent_type }}
+            </template>
+            <template v-else-if="props.value.name === 'analyze_image'">
+              Analyzing image&nbsp;
+              <a
+                v-if="analyzeImagePreview"
+                href="#"
+                class="analyze-image-link"
+                @click.stop.prevent="analyzeImagePreviewModel = analyzeImagePreview"
+              >
+                {{ props.value.args.image }}
+              </a>
+              <template v-else>{{ props.value.args.image }}</template>
+            </template>
           </v-expansion-panel-title>
         </template>
         <template #default>
@@ -137,7 +151,7 @@
             />
           </template>
           <markdown-preview
-            v-if="props.value.content"
+            v-else-if="props.value.content"
             :value="props.value.content"
             :readonly="true"
             :throttle-ms="100"
@@ -145,6 +159,12 @@
           />
         </template>
       </chat-reasoning-panel>
+      <markdown-image-preview-dialog
+        v-if="analyzeImagePreview"
+        v-model="analyzeImagePreviewModel"
+        :images="[analyzeImagePreview]"
+        :readonly="true"
+      />
     </template>
     <template v-else-if="props.value.name === 'ls'">
       <chat-tool-call-status :status="props.value.status" />
@@ -152,7 +172,7 @@
     </template>
     <template v-else-if="['read_file', 'write_file', 'edit_file'].includes(props.value.name)">
       <chat-tool-call-status :status="props.value.status" />
-      {{ props.value.name }} {{ props.value.args.file_path }}
+      {{ capitalize(props.value.name.split('_')[0]) }} {{ props.value.args.file_path }}
     </template>
     <template v-else-if="['glob', 'grep'].includes(props.value.name)">
       <chat-tool-call-status :status="props.value.status" />
@@ -166,7 +186,9 @@
 </template>
 
 <script setup lang="ts">
-import { getPageTitle, parseProjectFilePath, ToolCallStatus } from '@/utils/agent';
+import { getPageTitle, parseProjectFilePath, parseProjectImageName, ToolCallStatus } from '@/utils/agent';
+import { absoluteApiUrl } from '#imports';
+import { capitalize } from 'lodash-es';
 
 const props = defineProps<{
   value: ToolCall;
@@ -223,12 +245,33 @@ const writeTodosList = computed(() => {
   }));
 });
 
+const analyzeImagePreview = computed((): PreviewImage | null => {
+  if (props.value.name !== 'analyze_image' || !props.project) {
+    return null;
+  }
+  const filename = parseProjectImageName(props.value.output?.image)
+    || parseProjectImageName(props.value.args?.image);
+  if (!filename) {
+    return null;
+  }
+  return {
+    src: absoluteApiUrl(`/api/v1/pentestprojects/${props.project.id}/images/name/${encodeURIComponent(filename)}/`),
+    markdown: `![](/images/name/${filename})`,
+  };
+});
+const analyzeImagePreviewModel = ref<PreviewImage | null>(null);
+
 </script>
 
 <style lang="scss" scoped>
 a {
   text-decoration: none;
   color: rgb(var(--v-theme-primary));
+}
+
+.analyze-image-link {
+  position: relative;
+  z-index: 1;
 }
 
 .list-todos:deep() {

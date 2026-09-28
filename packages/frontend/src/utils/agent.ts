@@ -122,7 +122,7 @@ export function findToolCall(
     if (m.role === MessageRole.TOOL && m.tool_call?.id === toolCallId) {
       return m.tool_call;
     }
-    if (m.role === MessageRole.TOOL && m.tool_call?.name === 'task' && m.tool_call.subagentMessages) {
+    if (m.role === MessageRole.TOOL && m.tool_call?.subagentMessages) {
       const toolCall = findToolCall(m.tool_call.subagentMessages, toolCallId);
       if (toolCall) { 
         return toolCall;
@@ -605,6 +605,21 @@ export function parseProjectFilePath(filePath: string) {
   return null;
 }
 
+export function parseProjectImageName(imageRef: string | null | undefined): string | null {
+  if (!imageRef || typeof imageRef !== 'string') {
+    return null;
+  }
+  let filename = imageRef.trim();
+  const match = filename.match(/\/images\/name\/([^)\s{]+)/);
+  if (match?.[1]) {
+    filename = match[1];
+  }
+  if (!filename || filename.includes('/')) {
+    return null;
+  }
+  return filename;
+}
+
 export function getChangedPagePath(projectId: string, page: AgentChangedPage): string|undefined {
   let basePath;
   if (page.type === 'finding') {
@@ -652,7 +667,7 @@ function walkToolCalls(messages: ChatHistoryEntry[], callback: (tool: ToolCall) 
       continue;
     }
     callback(m.tool_call);
-    if (m.tool_call.name === 'task' && m.tool_call.subagentMessages?.length) {
+    if (m.tool_call.subagentMessages?.length) {
       walkToolCalls(m.tool_call.subagentMessages, callback);
     }
   }
