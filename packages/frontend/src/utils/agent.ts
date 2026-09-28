@@ -605,6 +605,21 @@ export function parseProjectFilePath(filePath: string) {
   return null;
 }
 
+export function parseProjectImageName(imageRef: string | null | undefined): string | null {
+  if (!imageRef || typeof imageRef !== 'string') {
+    return null;
+  }
+  let filename = imageRef.trim();
+  const match = filename.match(/\/images\/name\/([^)\s{]+)/);
+  if (match?.[1]) {
+    filename = match[1];
+  }
+  if (!filename || filename.includes('/')) {
+    return null;
+  }
+  return filename;
+}
+
 export function getChangedPagePath(projectId: string, page: AgentChangedPage): string|undefined {
   let basePath;
   if (page.type === 'finding') {

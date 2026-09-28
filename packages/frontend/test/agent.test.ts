@@ -7,6 +7,7 @@ import {
   buildChangedFiles,
   getToolFilePath,
   parseProjectFilePath,
+  parseProjectImageName,
   submitMessageStreamed,
   type ChatHistoryEntry,
   type StreamEvent, type ToolCall 
@@ -304,6 +305,22 @@ describe('agentChanges', () => {
       expect(parseProjectFilePath('/project/reporting/findings/f1.yaml')).toEqual({ type: 'finding', id: 'f1' });
       expect(parseProjectFilePath('/project/reporting/sections/s1.yaml')).toEqual({ type: 'section', id: 's1' });
       expect(parseProjectFilePath('/project/notes/n1.yaml')).toEqual({ type: 'note', id: 'n1' });
+    });
+  });
+
+  describe('parseProjectImageName', () => {
+    it('parses bare names, paths, and markdown image refs', () => {
+      expect(parseProjectImageName('image.png')).toBe('image.png');
+      expect(parseProjectImageName('/images/name/image.png')).toBe('image.png');
+      expect(parseProjectImageName('![shot](/images/name/image.png)')).toBe('image.png');
+      expect(parseProjectImageName('![shot](/images/name/image.png){width="auto"}')).toBe('image.png');
+    });
+
+    it('rejects invalid image refs', () => {
+      expect(parseProjectImageName('')).toBeNull();
+      expect(parseProjectImageName('/images/name/missing/path.png')).toBeNull();
+      expect(parseProjectImageName('folder/image.png')).toBeNull();
+      expect(parseProjectImageName(null)).toBeNull();
     });
   });
 
