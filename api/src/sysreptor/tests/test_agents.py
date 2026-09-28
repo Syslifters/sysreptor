@@ -333,7 +333,7 @@ class TestAskUserInterrupts:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
-        self.project = create_project(members=[self.user], images=[{'name': 'image.png'}])
+        self.project = create_project(members=[self.user])
         self.client = api_client(user=self.user)
 
     def send_message(self, message: str, thread_id: str = None):
@@ -433,9 +433,12 @@ class TestProjectAgentTools:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user = create_user()
-        self.project = create_project(members=[self.user], report_data={
-            'field_list': ['first', 'second'],
-        })
+        self.project = create_project(
+            members=[self.user],
+            images_kwargs=[{'name': 'image.png'}],
+            report_data={
+                'field_list': ['first', 'second'],
+            })
         self.client = api_client(user=self.user)
 
         with override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False):
@@ -811,7 +814,7 @@ class TestProjectAgentTools:
             assert msg.status == 'success'
             assert msg.content == 'Screenshot shows SQL error on login form'
             assert msg.additional_kwargs['output'] == {
-                'image': 'file0.png',
+                'image': 'image.png',
                 'model': 'test:fake-model',
             }
         else:

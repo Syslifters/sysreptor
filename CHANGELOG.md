@@ -1,8 +1,9 @@
 # Changelog
 
 ## Upcoming
-* AI agent: fix ask_user UI selection bugs
-* AI agent: show detailed LLM errors
+* AI agent: Add `analyze_image` tool
+* AI agent: Fix ask_user UI selection bugs
+* AI agent: Show detailed LLM errors
 
 
 ## v2026.82 - 2026-09-23
