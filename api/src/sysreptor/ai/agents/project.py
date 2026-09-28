@@ -26,7 +26,6 @@ from langchain.agents.middleware import (
 )
 from langchain.messages import AIMessage, HumanMessage
 from langchain.tools import ToolRuntime
-from langchain_core.exceptions import LangChainException
 from langgraph.types import interrupt
 from pydantic import Field
 from rest_framework.filters import search_smart_split
@@ -34,6 +33,7 @@ from rest_framework.filters import search_smart_split
 from sysreptor.ai.agents.base import (
     agent_tool,
     create_sysreptor_agent,
+    format_agent_error,
     get_default_model_id,
     get_model_configs,
     init_chat_model,
@@ -397,12 +397,7 @@ async def analyze_image(
         result = await vision_agent.ainvoke({'messages': [human_message]})
     except Exception as ex:
         logging.exception('analyze_image failed for %s with model %s', filename, vision_model_id)
-        detail = str(ex)
-        if isinstance(ex, LangChainException):
-            if (body := getattr(ex, 'body', None)) and isinstance(body, dict) and isinstance(body.get('message'), str):
-                detail = body['message']
-            elif getattr(ex, 'message', None):
-                detail = str(ex.message)
+        detail = format_agent_error(ex).removeprefix('Error: ')
         raise ValidationError(f'Image analysis failed. Maybe the model does not support images. {detail}') from ex
 
     ai_messages = [m for m in (result.get('messages') or []) if isinstance(m, AIMessage)]

@@ -27,6 +27,7 @@ from langchain.agents.middleware import (
     AgentState,
     ModelRetryMiddleware,
     TodoListMiddleware,
+    ToolErrorMiddleware,
 )
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
@@ -44,6 +45,20 @@ from sysreptor.ai.models import ChatThread, LangchainCheckpoint
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.history import history_context
 from sysreptor.utils.utils import copy_keys, omit_keys
+
+
+def format_agent_error(ex: Exception, generic_msg: str | None = 'Error: Internal server error') -> str:
+    if isinstance(ex, ObjectDoesNotExist):
+        return 'Error: Object not found'
+    elif isinstance(ex, ValidationError | DRFValidationError):
+        return f'Error: {ex}'
+    elif isinstance(ex, LangChainException):
+        body = getattr(ex, 'body', None)
+        if isinstance(body, dict) and isinstance(body.get('message'), str):
+            return f'Error: {body["message"]}'
+        if getattr(ex, 'message', None):
+            return f'Error: {ex.message}'
+    return generic_msg
 
 
 def to_yaml(data: Any) -> str:
@@ -96,15 +111,13 @@ def agent_tool(metadata=None, **kwargs):
                 out.content = res_content
                 out.additional_kwargs['output'] = res_output or {}
                 out.status = 'success'
-            except ObjectDoesNotExist:
-                out.content = 'Error: Object not found'
-            except (ValidationError, DRFValidationError) as ex:
-                out.content = f'Error: {ex}'
             except GraphInterrupt:
                 raise
             except Exception as ex:
-                logging.exception(ex)
-                out.content = 'Error: Unexpected error'
+                out.content = format_agent_error(ex, generic_msg=None)
+                if not out.content:
+                    logging.exception(ex)
+                    out.content = 'Error: Unexpected error'
             return Command(update={
                 'messages': [out],
             })
@@ -209,6 +222,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         create_summarization_middleware(model=default_model, backend=backend),
         MessageTimestampMiddleware(),
         ModelRetryMiddleware(max_retries=2, on_failure='error'),
+        ToolErrorMiddleware(on_error=lambda ex, request: format_agent_error(ex)),
     ] + profile.materialize_extra_middleware() + middleware + [
         MergeConsecutiveMessagesMiddleware(),
     ]
@@ -387,13 +401,7 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                                 }
     except Exception as ex:
         logging.exception(ex)
-        msg = 'Internal server error'
-        if isinstance(ex, LangChainException):
-            body = getattr(ex, 'body', None)
-            if isinstance(body, dict) and isinstance(body.get('message'), str):
-                msg = body['message']
-            elif getattr(ex, 'message', None):
-                msg = ex.message
+        msg = format_agent_error(ex)
         yield {
             'type': 'error',
             'content': msg,

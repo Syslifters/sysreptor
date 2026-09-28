@@ -4,6 +4,7 @@
 * AI agent: Add `analyze_image` tool
 * AI agent: Fix ask_user UI selection bugs
 * AI agent: Show detailed LLM errors
+* AI agent: Prevent subagent errors from aborting the main agent
 
 
 ## v2026.82 - 2026-09-23
