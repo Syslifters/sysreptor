@@ -163,6 +163,7 @@ export async function useProjectHistory<T>(options: {
   const projectUrlHistoric = computed(() => `/api/v1/pentestprojects/${route.params.projectId}/history/${route.params.historyDate}/`);
 
   const fetchState = await useAsyncDataE(async () => {
+    // @ts-ignore Nitro $fetch MatchedRoutes recursion on dynamic string URLs (TS2321)
     const [projectCurrent, projectHistoric, dataHistoric] = await Promise.all([
       projectStore.getById(route.params.projectId as string),
       $fetch<PentestProject>(projectUrlHistoric.value, { method: 'GET' }),

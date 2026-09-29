@@ -315,7 +315,7 @@ async function performLock(forceLock = false) {
   }
 }
 
-function performUnlockRequest(options?: { keepalive?: boolean }) {
+function performUnlockRequest(options?: { keepalive?: boolean }): Promise<T> {
   return $fetch<T>(props.unlockUrl!, {
     method: 'POST',
     body: {},

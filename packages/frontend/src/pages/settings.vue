@@ -264,7 +264,7 @@ const errorMessages = ref<any|null>(null);
 
 async function performSave(data: Record<string, any>) {
   try {
-    configurationValues.value = await $fetch('/api/v1/utils/configuration/', {
+    configurationValues.value = await $fetch<Record<string, any>>('/api/v1/utils/configuration/', {
       method: 'PATCH',
       body: data,
     });

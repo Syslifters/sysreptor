@@ -11,7 +11,7 @@ const route = useRoute();
 const auth = useAuth();
 useLazyAsyncData(async () => {
   try {
-    auth.store.user = await $fetch('/api/v1/pentestusers/self/admin/disable/', {
+    auth.store.user = await $fetch<User>('/api/v1/pentestusers/self/admin/disable/', {
       method: 'POST',
       body: {}
     });
