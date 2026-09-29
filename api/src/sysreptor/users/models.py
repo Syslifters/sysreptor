@@ -144,13 +144,20 @@ class APIToken(BaseModel):
 
 
 
-class Session(AbstractBaseSession):
+class Session(BaseModel, AbstractBaseSession):
     session_key = EncryptedField(base_field=models.CharField(_("session key"), max_length=40))
     session_data = EncryptedField(base_field=models.TextField(_("session data")))
 
-    session_key_hash = models.BinaryField(max_length=32, primary_key=True)
+    session_key_hash = models.BinaryField(max_length=32, unique=True)
+    user = models.ForeignKey(to=PentestUser, on_delete=models.CASCADE, null=True, blank=True, related_name='sessions')
 
     objects = querysets.SessionManager()
+
+    class Meta(BaseModel.Meta, AbstractBaseSession.Meta):
+        pass
+
+    def __str__(self) -> str:
+        return f'Session {self.id}'
 
     def save(self, *args, **kwargs) -> None:
         self.session_key_hash = self.hash_session_key(self.session_key)

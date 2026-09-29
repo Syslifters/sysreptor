@@ -7,6 +7,7 @@ from uuid import UUID
 from asgiref.sync import async_to_sync
 from authlib.integrations.django_client import OAuth
 from django.conf import settings
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
@@ -16,7 +17,7 @@ from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
+from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.mail import send_mail_in_background
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
@@ -159,9 +160,23 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.set_password(validated_data.pop('password'))
-        return super().update(instance, {
+        instance = super().update(instance, {
             'must_change_password': False,
         } | validated_data)
+
+        request = self.context.get('request')
+        keep_session_key = None
+        if (
+            request
+            and getattr(request, 'user', None) == instance
+            and getattr(request, 'session', None)
+            and request.session.session_key
+        ):
+            update_session_auth_hash(request, instance)
+            keep_session_key = request.session.session_key
+
+        Session.objects.clear_for_user(instance, keep_session_key=keep_session_key)
+        return instance
 
 
 class ResetPasswordSerializer(ChangePasswordSerializer):
