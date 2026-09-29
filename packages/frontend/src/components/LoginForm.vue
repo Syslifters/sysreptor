@@ -246,7 +246,7 @@ async function loginUsername() {
       errorMessage.value = 'Username and password are required';
       return null;
     }
-    return await $fetch('/api/v1/auth/login/', { method: 'POST', body: formUsername.value });
+    return await $fetch<LoginResponse>('/api/v1/auth/login/', { method: 'POST', body: formUsername.value });
   });
 }
 
@@ -262,7 +262,7 @@ async function beginMfaLogin(mfaMethod: MfaMethod) {
     await loginStep(async () => {
       const options = await $fetch<any>('/api/v1/auth/login/fido2/begin/', { method: 'POST', body: {} });
       const fido2Response = await navigatorCredentialsGet(parseRequestOptionsFromJSON(options));
-      return await $fetch('/api/v1/auth/login/fido2/complete/', { method: 'POST', body: fido2Response });
+      return await $fetch<LoginResponse>('/api/v1/auth/login/fido2/complete/', { method: 'POST', body: fido2Response });
     });
   } else {
     // Autofocus OTP input
@@ -273,7 +273,7 @@ async function beginMfaLogin(mfaMethod: MfaMethod) {
 
 async function loginCode() {
   await loginStep(async () => {
-    return await $fetch('/api/v1/auth/login/code/', {
+    return await $fetch<LoginResponse>('/api/v1/auth/login/code/', {
       method: 'POST',
       body: {
         id: currentMfaMethod.value!.id,
@@ -285,7 +285,7 @@ async function loginCode() {
 
 async function changePassword() {
   await loginStep(async () => {
-    return await $fetch('/api/v1/auth/login/change-password/', {
+    return await $fetch<LoginResponse>('/api/v1/auth/login/change-password/', {
       method: 'POST',
       body: {
         password: formChangePassword.value.password,

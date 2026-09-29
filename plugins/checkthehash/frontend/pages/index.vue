@@ -5,13 +5,9 @@ import prototypes from '../data/converted-prototypes.json';
 import type HashInfo from '~~/domain/hashinfo';
 
 const hash = ref("");
-const noResults = ref(false); // Flag for showing no results message
 
-const results = computed(() => {
-  const possibleHashes: HashInfo[] = CheckTheHash(hash.value, prototypes);
-  noResults.value = possibleHashes.length === 0 && hash.value.trim() !== ""; // Show message if no results
-  return possibleHashes;
-});
+const results = computed(() => CheckTheHash(hash.value, prototypes) as HashInfo[]);
+const noResults = computed(() => results.value.length === 0 && hash.value.trim() !== "");
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => {
@@ -34,29 +30,45 @@ export default {
     <div class="content-wrapper">
       <v-container class="pt-5">
         <!-- Text input triggers renderHash on input automatically -->
-        <v-text-field v-model="hash" label="Paste The Hash" variant="underlined" spellcheck="false" hide-details="auto"
-          autofocus class="mt-0 mb-2" style="width: 100%;" />
+        <v-text-field 
+          v-model="hash"
+          label="Paste The Hash"
+          variant="underlined"
+          spellcheck="false"
+          hide-details="auto"
+          autofocus
+          class="mt-0 mb-2"
+          style="width: 100%;"
+        />
 
         <v-subheader v-if="noResults" class="text-headline-small text-error mb-4">No matching hash mode found.</v-subheader>
         <v-subheader v-if="results.length" class="text-headline-small mb-4">Possible Hash Modes:</v-subheader>
         <v-list v-if="results.length" v-model:opened="open">
           <template v-for="({ name, hashcat, john }, index) in results" :key="index">
             <v-list-group v-if="hashcat != null || john != null">
-              <template v-slot:activator="{ props }">
+              <template #activator="{ props }">
                 <v-list-item v-bind="props" :title="name"></v-list-item>
               </template>
               <v-list-item v-if="hashcat != null">
                 <v-code class="code-container">
-                  <v-icon size="small" class="copy-icon"
-                    @click="copyToClipboard(`hashcat --hash-type=${hashcat} ${hash}`)" icon="mdi-content-copy" />
+                  <v-icon 
+                    size="small" 
+                    class="copy-icon"
+                    @click="copyToClipboard(`hashcat --hash-type=${hashcat} ${hash}`)" 
+                    icon="mdi-content-copy" 
+                  />
                   <span class="command"> hashcat --hash-type={{ hashcat }} {{ hash }}</span>
                 </v-code>
               </v-list-item>
               <v-list-item v-if="john != null">
                 <v-code class="code-container">
-                  <v-icon size="small" class="copy-icon"
-                    @click="copyToClipboard(`john --format=${john} <(echo '${hash}')`)" icon="mdi-content-copy" />
-                  <span class="command"> john --format={{ john }} <(echo '{{ hash }}')</span>
+                  <v-icon 
+                    size="small" 
+                    class="copy-icon"
+                    @click="copyToClipboard(`john --format=${john} <(echo '${hash}')`)" 
+                    icon="mdi-content-copy" 
+                  />
+                  <span class="command">{{ `john --format=${john} <(echo '${hash}')` }}</span>
                 </v-code>
               </v-list-item>
             </v-list-group>

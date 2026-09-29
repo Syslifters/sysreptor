@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { uploadFileHelper, type NoteGroup, type PentestFinding, type ProjectNote } from "#imports";
+import { uploadFileHelper, type NoteGroup, type ProjectNote } from "#imports";
 import type { ParsedPentestFinding } from "~~/utils/types";
 
 const appConfig = useAppConfig();

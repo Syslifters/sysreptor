@@ -21,6 +21,9 @@ export default withNuxt({
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-dynamic-delete": "off",
         "@typescript-eslint/unified-signatures": "off",
+        "@typescript-eslint/ban-ts-comment": ["error", {
+          "ts-ignore": false,
+        }],
         
         // "no-unused-vars": "warn",
         "@typescript-eslint/no-unused-vars": "warn",

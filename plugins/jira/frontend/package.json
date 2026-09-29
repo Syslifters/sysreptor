@@ -1,12 +1,16 @@
 {
   "name": "@sysreptor/plugin-jira-frontend",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "test": "vitest run"
+    "test": "vitest run",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxi typecheck",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
@@ -21,7 +25,10 @@
     "@nuxt/test-utils": "^4.0",
     "@vue/test-utils": "^2.4.6",
     "vitest": "^5.0",
-    "@cfworker/json-schema": "^4.1.1"
+    "@cfworker/json-schema": "^4.1.1",
+    "eslint": "^10.0",
+    "vue-tsc": "^3.0.4",
+    "typescript": "^6.0"
   },
   "overrides": {
     "vue": "latest"

@@ -1,11 +1,14 @@
 {
   "name": "@sysreptor/plugin-renderfindings-frontend",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxi typecheck",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
@@ -14,6 +17,11 @@
     "nuxt": "~4.5",
     "vuetify": "~4.2",
     "pinia": "^4.0"
+  },
+  "devDependencies": {
+    "eslint": "^10.0",
+    "vue-tsc": "^3.0.4",
+    "typescript": "^6.0"
   },
   "overrides": {
     "vue": "latest"

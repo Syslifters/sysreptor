@@ -7,12 +7,13 @@
   >
     <v-list-item 
       v-for="finding in props.findings"
+      :key="finding.id"
       :value="finding.id"
       @click="onClickFinding($event, finding)"
       density="compact"
       :class="'finding-level-' + riskLevel(finding)"
     >
-      <template v-slot:prepend="{ isSelected }">
+      <template #prepend="{ isSelected }">
         <v-list-item-action start>
           <v-checkbox-btn 
             :model-value="isSelected" 
@@ -56,8 +57,8 @@ const props = defineProps<{
   findings: ParsedPentestFinding[];
 }>();
 
-const selectedFindingIdsModel = defineModel<string[]>('selectedFindingIds', { default: [] });
-const selectedIds = ref<string[]>(selectedFindingIdsModel);
+const selectedFindingIdsModel = defineModel<string[]>('selectedFindingIds', { default: () => [] });
+const selectedIds = ref<string[]>(selectedFindingIdsModel.value);
 watch(selectedFindingIdsModel, (newValue) => {
   if (!isEqual(newValue, selectedIds.value)) {
     selectedIds.value = [...(newValue || [])];
@@ -92,10 +93,9 @@ function selectFinding(finding: PentestFinding, value: boolean = true) {
 }
 
 function onClickFinding(event: MouseEvent|KeyboardEvent, finding: PentestFinding) {
-  console.log('onClickFinding', event, finding, lastSelectedId.value);
   if (event.shiftKey) {
     // Select all findings between the last selected finding and the current one.
-    const idxSelectionStart = props.findings.findIndex(f => f.id === (lastSelectedId.value || props.findings[0]?.value));
+    const idxSelectionStart = props.findings.findIndex(f => f.id === (lastSelectedId.value || props.findings[0]?.id));
     const idxSelectionEnd = props.findings.findIndex(f => f.id === finding.id);
 
     if (idxSelectionStart === -1 || idxSelectionEnd === -1) {

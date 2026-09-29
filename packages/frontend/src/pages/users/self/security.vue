@@ -466,7 +466,7 @@ async function editWizardSave() {
       method: 'PATCH',
       body: editWizard.value.form!,
     });
-    mfaMethods.value = await $fetch(`/api/v1/pentestusers/self/mfa/`, { method: 'GET' });
+    mfaMethods.value = await $fetch<MfaMethod[]>(`/api/v1/pentestusers/self/mfa/`, { method: 'GET' });
     editWizard.value.visible = false;
   });
 }

@@ -24,8 +24,8 @@ export async function useAsyncDataE<T>(handler: () => Promise<T>, options?: { de
   return dataRef;
 }
 
-export async function useFetchE<T>(url: string, options: Parameters<typeof $fetch<T>>[1] & { deep?: boolean }): Promise<Ref<T>> {
-  return useAsyncDataE(() => $fetch(url, options), options);
+export async function useFetchE<T>(url: string, options: Parameters<typeof $fetch>[1] & { deep?: boolean }): Promise<Ref<T>> {
+  return useAsyncDataE(() => $fetch<T>(url, options), options);
 }
 
 export function useCursorPaginationFetcher<T>({ baseURL, query }: { baseURL: string|null, query?: object }) {

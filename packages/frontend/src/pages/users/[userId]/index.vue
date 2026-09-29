@@ -99,7 +99,7 @@ const auth = useAuth();
 const apiSettings = useApiSettings();
 
 const apiUrl = `/api/v1/pentestusers/${route.params.userId}/`
-const user = await useAsyncDataE<User>(async () => await $fetch(apiUrl, { method: 'GET' }), { deep: true });
+const user = await useAsyncDataE<User>(async () => await $fetch<User>(apiUrl, { method: 'GET' }), { deep: true });
 
 const serverErrors = ref<any|null>(null);
 const canEdit = computed(() => !user.value.is_system_user && (
@@ -112,7 +112,7 @@ const form = useTemplateRef('form');
 
 async function performSave(data: User) {
   try {
-    await $fetch(apiUrl, {
+    await $fetch<User>(apiUrl, {
       method: 'PATCH',
       body: data
     });

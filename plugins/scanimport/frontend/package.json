@@ -1,10 +1,13 @@
 {
   "name": "@sysreptor/plugin-scanimport-frontend",
+  "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "generate": "nuxt generate",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxi typecheck",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
@@ -14,7 +17,14 @@
     "vuetify": "~4.2",
     "pinia": "^4.0",
 
-    "@he-tree/vue": "^2.9.4"
+    "@he-tree/vue": "^2.9.4",
+    "lodash-es": "^4.17"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17",
+    "eslint": "^10.0",
+    "vue-tsc": "^3.0.4",
+    "typescript": "^6.0"
   },
   "overrides": {
     "vue": "latest"
