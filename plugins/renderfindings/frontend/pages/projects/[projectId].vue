@@ -87,7 +87,8 @@
               <v-list-item-title class="text-body-medium">{{ finding.data.title }}</v-list-item-title>
             </template>
           </v-list-item>
-          <v-list-item v-if="project.findings.length === 0"
+          <v-list-item 
+            v-if="project.findings.length === 0"
             title="No findings yet"
           />
         </v-list>
@@ -132,10 +133,11 @@ function refreshPdfPreview() {
 }
 
 async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }): Promise<PdfResponse> {
-  let findingIds = selectedFindings.value.map(f => f.id);
+  const findingIds = selectedFindings.value.map(f => f.id);
   if (findingIds.length === 0) {
     return {
       pdf: null,
+      filename: null,
       messages: [{
         level: MessageLevel.INFO,
         message: 'Select one or more findings.',

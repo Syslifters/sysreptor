@@ -56,7 +56,7 @@ const props = defineProps<{
 }>();
 
 // Local reactive variable synced to model
-const selectedNoteIdsModel = defineModel<string[]>('selectedNoteIds', { default: [] });
+const selectedNoteIdsModel = defineModel<string[]>('selectedNoteIds', { default: () => [] });
 const selectedNoteIds = ref<string[]>([]);
 watch(selectedNoteIdsModel, (newValue) => {
   if (!isEqual(newValue, selectedNoteIds.value)) {
@@ -124,7 +124,6 @@ function getNoteGroupById(id?: string|null, group?: NoteGroup<NoteBase>): NoteGr
 }
 function selectNote(note?: NoteBase|null, value: boolean = true) {
   const group = getNoteGroupById(note?.id);
-  console.log('selectNote', value, note, group)
   if (!note || !group) {
     return;
   }
@@ -152,7 +151,6 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: an
   if (!note || !stat) {
     return;
   }
-  console.log('onClickNote', event, note, stat)
 
   if (event.shiftKey) {
     // Select all leaf notes between the last selected note and the current one.
@@ -166,7 +164,7 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: an
       const notesToSelect = draggableRef.value?.statsFlat
         .slice(Math.min(idxSelectionStart, idxSelectionEnd), Math.max(idxSelectionStart, idxSelectionEnd) + 1)
         .map((s: any) => (s.data as NoteGroup<NoteBase>[0]|null)?.note)
-        .filter(n => !!n);
+        .filter(n => !!n) ?? [];
       const allSelected = notesToSelect.every(s => s && selectedNoteIds.value.includes(s.id));
       notesToSelect.forEach(s => selectNote(s, !allSelected));
     }

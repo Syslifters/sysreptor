@@ -1,5 +1,4 @@
-import { markdownParser } from '@sysreptor/markdown';
-import remarkParse from 'remark-parse';
+import { markdownParser, remarkParse } from '@sysreptor/markdown';
 
 
 export interface ADFNode {
@@ -117,7 +116,7 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
         content: convertChildren(node, originalMarkdown, true),
       };
 
-    case 'tableCell':
+    case 'tableCell': {
       const rawCellContent = convertChildren(node, originalMarkdown, true);
       // Wrap content in paragraph if not already
       const wrappedContent = rawCellContent.length === 0 
@@ -131,18 +130,20 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
         attrs: {},
         content: wrappedContent,
       };
+    }
 
     case 'attributes':
       // Ignore
       return [];
 
-    default:
+    default: {
       // For unsupported node types, use position-based slicing if available
       const text = getNodeText(node, originalMarkdown);
       if (blockContext) {
         return { type: 'paragraph', content: [{ type: 'text', text }] };
       }
       return { type: 'text', text };
+    }
   }
 }
 
@@ -225,6 +226,7 @@ export function markdownToADF(markdown: string): ADFDocument {
     const mdast = parser.parse(markdown);
     return mdastToADF(mdast, markdown);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Failed to convert markdown to ADF:', error);
     // Fallback: return markdown as plain text paragraph
     return {

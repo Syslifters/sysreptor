@@ -105,7 +105,8 @@
               <v-list-item-title class="text-body-medium">{{ section.name }}</v-list-item-title>
             </template>
           </v-list-item>
-          <v-list-item v-if="!loadingSections && sections.length === 0"
+          <v-list-item 
+            v-if="!loadingSections && sections.length === 0"
             title="No sections yet"
           />
         </v-list>
@@ -117,7 +118,7 @@
 <script setup lang="ts">
 import { useFetchE, type PentestProject, type PentestFinding, type PdfResponse, MessageLevel, type ErrorMessage } from '#imports';
 import type { PdfPreview } from '#components';
-import { base64decode, fileDownload, generateRandomPassword } from '@base/utils/helpers';
+import { base64decode, fileDownload } from '@base/utils/helpers';
 
 enum RenderSectionsMode {
   COMBINED = 'combined',
@@ -160,7 +161,7 @@ function refreshPdfPreview() {
 }
 
 async function fetchPreviewPdf(fetchOptions: { signal: AbortSignal }, allowEncrypt: boolean = false): Promise<PdfResponse> {
-  let sectionIds = selectedSections.value.map(f => f.id);
+  const sectionIds = selectedSections.value.map(f => f.id);
   if (sectionIds.length === 0) {
     return {
       pdf: null,
