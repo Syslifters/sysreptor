@@ -12,7 +12,11 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   if (apmRumConfig) {
     const router = useRouter();
     nuxtApp.vueApp.use(ApmVuePlugin, {
-      config: apmRumConfig,
+      config: {
+        ...apmRumConfig,
+        pageLoadTransactionName: window.location.pathname.replace(/\/+$/, '') || '/',
+        ignoreTransactions: [/^\/login(\/|$)/],
+      },
       captureErrors: true,
       router,
     });
