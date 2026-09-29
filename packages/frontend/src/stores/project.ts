@@ -486,6 +486,15 @@ export const useProjectStore = defineStore('project', {
         eventBusComment.emit(event);
       }
 
+      async function onAiPrefillField(event: { type: string; collabPath: string }) {
+        const localSettings = useLocalSettings();
+
+        localSettings.reportingSidebarType = ReportingSidebarType.AICHAT;
+        await nextTick();
+
+        useEventBus('ai:prefillPrompt').emit(event);
+      }
+
       return {
         ...collab,
         collabProps,
@@ -494,6 +503,7 @@ export const useProjectStore = defineStore('project', {
         readonly: computed(() => collab.readonly.value || !hasLock.value),
         connect,
         onCommentEvent,
+        onAiPrefillField,
       };
     },
     useReportingAgent(options: { project: MaybeRefOrGetter<PentestProject> }) {

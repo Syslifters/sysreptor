@@ -11,10 +11,12 @@ export type DiffFieldProps = {
   collab?: CollabPropType;
   readonly?: boolean;
   selectableUsers?: UserShortInfo[];
+  enableAiFill?: boolean;
   'onUpdate:markdownEditorMode'?: (val: MarkdownEditorMode) => void;
   'onUpdate:spellcheckEnabled'?: (val: boolean) => void;
   'onCollab'?: (val: any) => void;
   'onComment'?: (val: any) => void;
+  'onAiPrefill'?: (val: any) => void;
   'onSearch'?: (val: string) => void;
 } & MarkdownProps;
 
@@ -23,6 +25,10 @@ export type DynamicInputFieldDiffProps = {
   nestingLevel?: number;
   historic: DiffFieldProps;
   current: DiffFieldProps;
+}
+
+function emitHandlerName(name: string) {
+  return 'on' + name.split('-').map(p => p.charAt(0).toUpperCase() + p.slice(1)).join('');
 }
 
 export function useMarkdownDiff(options: {
@@ -44,11 +50,11 @@ export function useMarkdownDiff(options: {
       modelValue: options.props.value.current.value,
       ...pick(options.props.value.current, [
         'collab', 'lang', 'readonly', 'disabled', 'markdownEditorMode', 'spellcheckSupported', 'spellcheckEnabled', 
-        'referenceItems', 'rewriteFileUrlMap', 'uploadFile',
+        'referenceItems', 'rewriteFileUrlMap', 'uploadFile', 'enableAiFill',
       ]),
     })),
     emit: (name: string, value: any) => {
-      const emit = (options.props.value.current as any)['on' + name.charAt(0).toUpperCase() + name.slice(1)];
+      const emit = (options.props.value.current as any)[emitHandlerName(name)];
       if (typeof emit === 'function') {
         emit(value);
       }
@@ -64,7 +70,7 @@ export function useMarkdownDiff(options: {
       ...pick(options.props.value.historic, ['lang', 'markdownEditorMode', 'referenceItems', 'rewriteFileUrlMap']),
     })),
     emit: (name: string, value: any) => {
-      const emit = (options.props.value.historic as any)['on' + name.charAt(0).toUpperCase() + name.slice(1)];
+      const emit = (options.props.value.historic as any)[emitHandlerName(name)];
       if (typeof emit === 'function') {
         emit(value);
       }
@@ -201,7 +207,9 @@ export async function useProjectHistory<T>(options: {
     collab: collab.collabProps.value,
     onCollab: collab.onCollabEvent,
     onComment: collab.onCommentEvent,
+    onAiPrefill: collab.onAiPrefillField,
     onSearch: (value: string) => { collab.search.value = value },
+    enableAiFill: true,
   }));
   const fieldAttrsHistoric = computed(() => ({
     ...projectEditBaseHistoric.inputFieldAttrs.value,

@@ -193,9 +193,11 @@
 <script setup lang="ts">
 import { pick, throttle } from 'lodash-es';
 import { getPageTitle, parseProjectFilePath, MessageRole, isChatMessageStreaming, isLastAssistantMessageInTurn, type AgentChangedPage } from '@/utils/agent';
+import { parseCommentLocation, prettyFieldLabel } from '~/utils/comments';
 
 const props = defineProps<{
   project: PentestProject;
+  projectType?: ProjectType;
   context: Record<string, string|undefined>;
   collabFlush?: (() => void|Promise<void>);
   readonly?: boolean;
@@ -293,6 +295,13 @@ const aiAgentModel = computed({
 const form = ref({
   message: '',
 });
+
+watch(() => [localSettings.reportingChatAgent, apiSettings.isProfessionalLicense], () => {
+  if (localSettings.reportingChatAgent === 'project_agent' && !apiSettings.isProfessionalLicense) {
+    localSettings.reportingChatAgent = 'project_ask';
+  }
+}, { immediate: true });
+
 async function sendMessage() {
   if (!hasModelsConfigured.value || !form.value.message.trim()) {
     return;
@@ -358,6 +367,59 @@ const onScrollMessages = throttle(() => {
   // Consider "at bottom" if within 100px of the bottom to account for rounding errors
   isScrolledToBottom.value = scrollHeight - scrollTop - clientHeight < 50;
 }, 100);
+
+async function onPrefillPrompt(event: any) {
+  if (!hasModelsConfigured.value || agent.inProgress.value) {
+    return;
+  }
+
+  let text = '';
+  if (event.type === 'fill_field' && event.collabPath && props.projectType) {
+    const relativePath = event.collabPath.split('/').at(-1) || event.collabPath;
+    const location = parseCommentLocation(relativePath);
+    const fieldId = location?.dataPath.replaceAll('.[', '[') || '';
+    const fieldLabel = prettyFieldLabel(relativePath, props.projectType) || fieldId;
+
+    let entityKind: string | undefined;
+    let title: string | undefined;
+    if (location?.type === 'findings') {
+      entityKind = 'finding';
+      const finding = projectStore.findings(props.project.id).find(f => f.id === location.id);
+      title = finding?.data?.title || location.id;
+    } else if (location?.type === 'sections') {
+      entityKind = 'section';
+      const section = projectStore.sections(props.project.id).find(s => s.id === location.id);
+      title = section?.label || location.id;
+    }
+
+    if (entityKind && location) {
+      text = `Draft or rewrite the "${fieldLabel}" (${fieldId}) field in ${entityKind} "${title}" (ID ${location.id}). ` + 
+        `Base the text on other fields in this ${entityKind} and project notes; do not invent facts. ` + 
+        'Ask the user if required information is missing. ' + 
+        'Update only this field.';
+    }
+  }
+  if (!text) {
+    return;
+  }
+
+  if (form.value.message.trim()) {
+    text = form.value.message.trimEnd() + '\n\n' + text;
+  }
+  form.value.message = text;
+
+  if (localSettings.reportingChatAgent !== 'project_agent' && apiSettings.isProfessionalLicense) {
+    localSettings.reportingChatAgent = 'project_agent';
+  }
+
+  await nextTick();
+  messageTextareaRef.value?.focus();
+}
+const eventBusPrefillPrompt = useEventBus('ai:prefillPrompt');
+eventBusPrefillPrompt.on(onPrefillPrompt);
+onBeforeUnmount(() => {
+  eventBusPrefillPrompt.off(onPrefillPrompt);
+});
 
 </script>
 

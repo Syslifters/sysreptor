@@ -49,6 +49,7 @@ export type MarkdownProps = {
   collab?: CollabPropType;
   uploadFile?: (file: File, body?: Record<string, any>) => Promise<string>;
   rewriteFileUrlMap?: Record<string, string>;
+  enableAiFill?: boolean;
 }
 
 export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean } = { spellcheckSupportedDefault: true }) {
@@ -97,6 +98,10 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
       type: Function as PropType<MarkdownProps['uploadFile']>,
       default: undefined,
     },
+    enableAiFill: {
+      type: Boolean,
+      default: false,
+    },
     isFocussed: {
       type: Boolean,
       default: undefined,
@@ -104,7 +109,7 @@ export function makeMarkdownProps(options: { spellcheckSupportedDefault: boolean
   }
 }
 export function makeMarkdownEmits() {
-  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'comment', 'focus', 'blur'];
+  return ['update:modelValue', 'update:spellcheckEnabled', 'update:markdownEditorMode', 'collab', 'comment', 'ai-prefill', 'focus', 'blur'];
 }
 
 export function useMarkdownEditorBase(options: {
@@ -578,6 +583,8 @@ export function useMarkdownEditorBase(options: {
     referenceItems: options.props.value.referenceItems,
     collab: options.props.value.collab,
     onComment: (value: any) => options.emit('comment', value),
+    enableAiFill: options.props.value.enableAiFill,
+    onAiPrefill: (value: any) => options.emit('ai-prefill', value),
     spellcheckSupported: options.props.value.spellcheckSupported,
     spellcheckEnabled: options.props.value.spellcheckEnabled,
     'onUpdate:spellcheckEnabled': (val: boolean) => options.emit('update:spellcheckEnabled', val),

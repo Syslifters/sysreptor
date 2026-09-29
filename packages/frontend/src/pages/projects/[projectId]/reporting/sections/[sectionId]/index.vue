@@ -35,11 +35,13 @@
         :collab="reportingCollab.collabSubpathProps.value[`data.${fieldDefinition.id}`]"
         @collab="reportingCollab.onCollabEvent"
         @comment="reportingCollab.onCommentEvent"
+        @ai-prefill="reportingCollab.onAiPrefillField"
         @search="reportingCollab.search.value = $event"
         :readonly="readonly"
         :id="fieldDefinition.id"
         :definition="fieldDefinition"
         v-bind="inputFieldAttrs"
+        :enable-ai-fill="true"
       />
     </v-container>
   </div>
