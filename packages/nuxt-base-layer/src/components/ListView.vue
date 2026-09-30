@@ -247,6 +247,7 @@ async function refresh() {
   selection.clearSelection({ onlyVisible: false });
   items.reset({
     query: {
+      ...route.query,
       ordering: ordering.value?.value,
     },
   });

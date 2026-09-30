@@ -1,5 +1,6 @@
 import pyotp
 from django.conf import settings
+from django.contrib.auth import SESSION_KEY
 from django.contrib.auth.models import UserManager
 from django.contrib.sessions.base_session import BaseSessionManager
 from django.db import models
@@ -13,12 +14,20 @@ from sysreptor.utils.configuration import configuration
 
 
 class SessionQueryset(models.QuerySet):
-    def filter(self, **kwargs):
+    def filter(self, *args, **kwargs):
         from sysreptor.users.models import Session
         if 'session_key' in kwargs:
             kwargs['session_key_hash'] = Session.hash_session_key(kwargs['session_key'])
             del kwargs['session_key']
-        return super().filter(**kwargs)
+        return super().filter(*args, **kwargs)
+
+    def clear_for_user(self, user, *, keep_session_key=None):
+        from sysreptor.users.models import Session
+
+        qs = self.filter(user=user)
+        if keep_session_key:
+            qs = qs.exclude(session_key_hash=Session.hash_session_key(keep_session_key))
+        return qs.delete()
 
 
 class SessionManager(BaseSessionManager, models.Manager.from_queryset(SessionQueryset)):
@@ -27,15 +36,22 @@ class SessionManager(BaseSessionManager, models.Manager.from_queryset(SessionQue
     def save(self, session_key, session_dict, expire_date):
         from sysreptor.users.models import Session
 
+        existing = self.filter(session_key=session_key).first()
         s = Session(
             session_key=session_key,
             session_data=self.encode(session_dict),
             expire_date=expire_date,
+            user_id=session_dict.get(SESSION_KEY) or None,
         )
+        if existing:
+            s.pk = existing.pk
+            s.created = existing.created
+
         if session_dict:
             s.save()
-        else:
-            s.delete()  # Clear sessions with no data.
+        elif existing:
+            # Clear sessions with no data.
+            existing.delete()
         return s
 
 

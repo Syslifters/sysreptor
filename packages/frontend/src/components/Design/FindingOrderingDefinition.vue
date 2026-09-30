@@ -86,7 +86,7 @@ const props = defineProps<{
 
 const findingFields = computed(() => {
   return props.projectType.finding_fields
-    .filter(f => ![FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(f.type));
+    .filter(f => ![FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER, FieldDataType.JSON].includes(f.type));
 });
 const availableFindingFields = computed(() => {
   return findingFields.value.filter(f => !modelValue.value.map(o => o.field).includes(f.id));

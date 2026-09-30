@@ -293,8 +293,13 @@ class AuthViewSet(viewsets.ViewSet):
         else:
             return serializers.Serializer
 
+    def get_serializer_context(self):
+        return {
+            'request': self.request,
+        }
+
     def get_serializer(self, *args, context=None, **kwargs):
-        return self.get_serializer_class()(*args, context=context or {'request': self.request}, **kwargs)
+        return self.get_serializer_class()(*args, context=context or self.get_serializer_context(), **kwargs)
 
     @action(detail=False, methods=['post'], authentication_classes=[], permission_classes=[LocalUserAuthPermissions])
     def login(self, request, *args, **kwargs):
@@ -577,7 +582,7 @@ class AuthViewSet(viewsets.ViewSet):
         user = serializer_check.validated_data['user']
 
         # Set password
-        serializer_update = ResetPasswordSerializer(data=request.data, instance=user)
+        serializer_update = ResetPasswordSerializer(data=request.data, instance=user, context=self.get_serializer_context())
         serializer_update.is_valid(raise_exception=True)
         serializer_update.save()
         return Response(data={'status': 'ok'})

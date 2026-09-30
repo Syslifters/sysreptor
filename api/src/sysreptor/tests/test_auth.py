@@ -21,13 +21,14 @@ from sysreptor.management.commands import createapitoken
 from sysreptor.tests.mock import (
     api_client,
     create_project,
+    create_session,
     create_user,
     mock_time,
     override_configuration,
     update,
 )
 from sysreptor.tests.utils import assertKeysEqual
-from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser
+from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
 from sysreptor.users.serializers import PentestUserDetailSerializer
 from sysreptor.utils.utils import omit_keys
 
@@ -114,6 +115,14 @@ class TestLogin:
 
     def test_login_failure(self):
         self.assert_login(user=self.user, password='invalid_password', success=False)  # noqa: S106
+
+    def test_login_username_whitespace_not_trimmed(self):
+        res = self.client.post(reverse('auth-login'), data={
+            'username': f' {self.user.username} ',
+            'password': self.password,
+        })
+        assert res.status_code == 400
+        self.assert_api_access(False)
 
     def test_login_mfa(self):
         self.assert_login(user=self.user_mfa, status='mfa-required')
@@ -527,6 +536,68 @@ class TestForgotPassword:
     def test_check_token_settings(self, expected, settings):
         with override_settings(**settings), override_configuration(**settings):
             self.test_check_token(expected, lambda s: s.user, lambda s: s.token_user)
+
+
+@pytest.mark.django_db()
+class TestPasswordChangeSessionRevocation:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.password = get_random_string(32)
+        self.user = create_user(password=self.password, email='user@example.com')
+
+    def create_user_session(self):
+        session = create_session(self.user)
+        session['authentication_info'] = {'reauth_time': timezone.now().isoformat()}
+        session.save()
+        return session
+
+    def session_client(self, session=None):
+        session = session or self.create_user_session()
+        client = api_client()
+        client.cookies[settings.SESSION_COOKIE_NAME] = session.session_key
+        return client
+
+    def test_change_password_keeps_current_revokes_others(self):
+        client = self.session_client()
+        other = self.create_user_session()
+
+        assert client.post(reverse('pentestuser-change-password'), data={'password': get_random_string(32)}).status_code == 200
+        assert client.get(reverse('pentestuser-self')).status_code == 200
+        assert Session.objects.filter(user=self.user).count() == 1
+        assert not Session.objects.filter(session_key=other.session_key).exists()
+
+    @pytest.mark.parametrize('action', [
+        'admin_reset',
+        'forgot_password',
+    ])
+    def test_password_reset_revokes_all_sessions(self, action):
+        self.create_user_session()
+        self.create_user_session()
+
+        if action == 'admin_reset':
+            res = api_client(create_user(is_user_manager=True)).post(
+                reverse('pentestuser-reset-password', kwargs={'pk': self.user.id}),
+                data={'password': get_random_string(32)},
+            )
+        else:
+            res = api_client().post(reverse('auth-forgot-password-reset'), data={
+                'user': self.user.id,
+                'token': default_token_generator.make_token(self.user),
+                'password': get_random_string(32),
+            })
+
+        assert res.status_code == 200
+        assert not Session.objects.filter(user=self.user).exists()
+
+    def test_must_change_password_revokes_other_sessions(self):
+        other = self.create_user_session()
+        update(self.user, must_change_password=True)
+        client = api_client()
+
+        assert client.post(reverse('auth-login'), data={'username': self.user.username, 'password': self.password}).data['status'] == 'password-change-required'
+        assert client.post(reverse('auth-change-password'), data={'password': get_random_string(32)}).data['status'] == 'success'
+        assert client.get(reverse('pentestuser-self')).status_code == 200
+        assert not Session.objects.filter(session_key=other.session_key).exists()
 
 
 @pytest.mark.django_db()

@@ -6,6 +6,10 @@
 * AI agent: Show detailed LLM errors
 * AI agent: Prevent subagent errors from aborting the main agent
 * AI agent: Add button to fill fields
+* Security: implement multiple hardening measures
+* Invalidate user sessions on password change
+* Invalidate shared note sessions when the share password changes
+* Fix JSON field UI bugs
 
 
 ## v2026.82 - 2026-09-23

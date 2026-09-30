@@ -9,6 +9,8 @@ class OptionalPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def to_internal_value(self, data):
         if data is None:
             raise serializers.SkipField()
+        if self.pk_field is not None:
+            data = self.pk_field.to_internal_value(data)
         try:
             return self.get_queryset().get(pk=data)
         except ObjectDoesNotExist as ex:
