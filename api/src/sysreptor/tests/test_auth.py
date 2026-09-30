@@ -116,6 +116,14 @@ class TestLogin:
     def test_login_failure(self):
         self.assert_login(user=self.user, password='invalid_password', success=False)  # noqa: S106
 
+    def test_login_username_whitespace_not_trimmed(self):
+        res = self.client.post(reverse('auth-login'), data={
+            'username': f' {self.user.username} ',
+            'password': self.password,
+        })
+        assert res.status_code == 400
+        self.assert_api_access(False)
+
     def test_login_mfa(self):
         self.assert_login(user=self.user_mfa, status='mfa-required')
         self.assert_api_access(False)

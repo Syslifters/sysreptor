@@ -128,7 +128,7 @@ def serializer_from_field(definition: BaseField, validate_values=False, **kwargs
             validators.append(JsonStringValidator())
             if definition.schema:
                 validators.append(JsonSchemaValidator(schema=definition.schema or {}))
-        return serializers.CharField(allow_blank=allow_blank, **value_field_kwargs)
+        return serializers.CharField(trim_whitespace=False, allow_blank=allow_blank, **value_field_kwargs)
     elif field_type == FieldDataType.OBJECT:
         return serializer_from_definition(definition, validate_values=validate_values, **field_kwargs)
     elif field_type == FieldDataType.LIST:

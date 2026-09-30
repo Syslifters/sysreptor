@@ -87,11 +87,10 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
 
 
 class CreateUserSerializer(PentestUserDetailSerializer):
+    password = serializers.CharField(write_only=True, required=False, allow_null=True, default=None, trim_whitespace=False)
+
     class Meta(PentestUserDetailSerializer.Meta):
         fields = PentestUserDetailSerializer.Meta.fields + ['password']
-        extra_kwargs = {
-            'password': {'write_only': True, 'required': False, 'allow_null': True, 'default': None},
-        }
 
     def validate_password(self, value):
         if value:
@@ -144,7 +143,7 @@ class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
 
     class Meta:
         model = PentestUser
@@ -237,8 +236,8 @@ class MFAMethodSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    password = serializers.CharField(style={'input_type': 'password'})
+    username = serializers.CharField(trim_whitespace=False)
+    password = serializers.CharField(style={'input_type': 'password'}, trim_whitespace=False)
 
     def validate(self, attrs):
         try:
