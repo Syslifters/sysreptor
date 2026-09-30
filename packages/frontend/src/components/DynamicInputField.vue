@@ -243,7 +243,7 @@
                       </template>
                       <template #append>
                         <div 
-                          v-if="[FieldDataType.MARKDOWN, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type as any)"
+                          v-if="[FieldDataType.MARKDOWN, FieldDataType.JSON, FieldDataType.OBJECT, FieldDataType.LIST].includes(props.definition.items!.type as any)"
                           class="d-flex flex-column"
                         >
                           <btn-delete
