@@ -177,7 +177,7 @@ function updateField(field: FieldDefinition, val: FieldDefinition) {
   Object.keys(field).forEach(k => delete field[k as keyof FieldDefinition]);
   Object.assign(field, val);
 
-  if ([FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER].includes(val.type)) {
+  if ([FieldDataType.LIST, FieldDataType.OBJECT, FieldDataType.USER, FieldDataType.JSON].includes(val.type)) {
     // Remove from finding ordering if data type changed to an unsupported type
     projectType.value.finding_ordering = projectType.value.finding_ordering.filter(o => o.field !== val.id);
     projectType.value.finding_grouping = projectType.value.finding_grouping?.filter(o => o.field !== val.id) || null;
