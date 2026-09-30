@@ -1,10 +1,7 @@
 import hashlib
 import re
-import uuid
 
-from rest_framework import throttling
-
-from sysreptor.utils.utils import is_uuid
+from rest_framework import serializers, throttling
 
 
 class ScopedUserRateThrottle(throttling.ScopedRateThrottle):
@@ -25,17 +22,15 @@ class ScopedUserRateThrottle(throttling.ScopedRateThrottle):
         return hashlib.sha256(value.encode()).hexdigest()[:32]
 
     def get_ident(self, request):
-        if self.scope == 'pwreset_sendmail':
-            data = getattr(request, 'data', None) or {}
-            if email := str(data.get('email') or '').strip().lower():
-                return self.hash_ident(email)
-        elif self.scope == 'pwreset_check':
-            data = getattr(request, 'data', None) or {}
-            if user := data.get('user'):
-                if is_uuid(user):
-                    # normalize UUID to canonical form
-                    user = str(uuid.UUID(user))
-                return self.hash_ident(user)
+        try:
+            if self.scope == 'pwreset_sendmail':
+                if (data := getattr(request, 'data', None)) and (email := data.get('email')):
+                    return self.hash_ident(serializers.EmailField().run_validation(email))
+            elif self.scope == 'pwreset_check':
+                if (data := getattr(request, 'data', None)) and (user := data.get('user')):
+                    return self.hash_ident(str(serializers.UUIDField().run_validation(user)))
+        except serializers.ValidationError:
+            pass
         if request.user and request.user.is_authenticated:
             return self.hash_ident(str(request.user.id))
         return super().get_ident(request)

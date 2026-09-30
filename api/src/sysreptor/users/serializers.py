@@ -207,7 +207,7 @@ class ForgotPasswordSendSerializer(serializers.Serializer):
 
 
 class ForgotPasswordCheckSerializer(serializers.Serializer):
-    user = OptionalPrimaryKeyRelatedField(queryset=PentestUser.objects.all())
+    user = OptionalPrimaryKeyRelatedField(queryset=PentestUser.objects.all(), pk_field=serializers.UUIDField())
     token = serializers.CharField()
 
     def validate(self, attrs):
