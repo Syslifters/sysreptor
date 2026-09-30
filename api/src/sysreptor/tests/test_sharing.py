@@ -1079,3 +1079,11 @@ class TestSharePasswordAuth:
 
         res = victim_client.get(note_url)
         assert res.status_code == 200
+
+    def test_password_change_invalidates_session(self):
+        assert self.client.post(reverse('publicshareinfo-auth', kwargs={'pk': self.share_info.id}), data={'password': self.password}).status_code == 200
+        note_url = reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note.note_id})
+        assert self.client.get(note_url).status_code == 200
+
+        update(self.share_info, password='new-password')  # noqa: S106
+        assert self.client.get(note_url).status_code == 403
