@@ -21,7 +21,7 @@
 
     "sass-embedded": "^1.79.5",
     "@vueuse/nuxt": "^15.0.0",
-    "monaco-editor": "^0.56.0",
+    "monaco-editor": "^0.57.0",
     "vuedraggable": "^4.1.0",
     "@he-tree/vue": "^2.9.4",
     "@iconify/vue": "^5.0.0",

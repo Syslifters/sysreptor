@@ -55,7 +55,7 @@ function tableCaptionToMarkdown() {
   function tableCaption(node, _, state, safeOptions) {
     const exit = state.enter('tableCaption');
     const subexit = state.enter('phrasing');
-    const value = 'Table: ' + state.containerPhrasing(node, state, safeOptions);
+    const value = 'Table: ' + state.containerPhrasing(node, safeOptions);
     subexit();
     exit();
     return value;
