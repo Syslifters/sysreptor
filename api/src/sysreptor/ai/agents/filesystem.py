@@ -35,13 +35,13 @@ from langgraph.runtime import Runtime, get_runtime
 from sysreptor.pentests.models import (
     NoteType,
     PentestFinding,
+    PentestProject,
     ProjectNotebookPage,
     ReportSection,
 )
 
 if TYPE_CHECKING:
     from sysreptor.ai.agents.project import ProjectContext
-    from sysreptor.pentests.models import PentestProject
 
 
 def _project_runtime():

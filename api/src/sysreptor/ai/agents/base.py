@@ -1,11 +1,8 @@
 import json
 import logging
-from collections.abc import Callable
-from functools import wraps
 from typing import Any
 
 import yaml
-from asgiref.sync import iscoroutinefunction, sync_to_async
 from decouple import config
 from deepagents._tools import _apply_tool_description_overrides
 from deepagents.backends import StateBackend
@@ -23,24 +20,24 @@ from django.utils import timezone
 from langchain import chat_models
 from langchain.agents import create_agent
 from langchain.agents.middleware import (
-    AgentMiddleware,
-    AgentState,
     ModelRetryMiddleware,
     TodoListMiddleware,
     ToolErrorMiddleware,
 )
 from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
-from langchain.tools import ToolRuntime, tool
 from langchain_core._api import suppress_langchain_beta_warning
 from langchain_core.exceptions import LangChainException
 from langgraph.config import get_config
-from langgraph.errors import GraphInterrupt
 from langgraph.stream import UpdatesTransformer
-from langgraph.types import Command
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
-from sysreptor.ai.agents.middleware import MergeConsecutiveMessagesMiddleware, SelectConfiguredModelMiddleware
+from sysreptor.ai.agents.middleware import (
+    MergeConsecutiveMessagesMiddleware,
+    MessageTimestampMiddleware,
+    SelectConfiguredModelMiddleware,
+    stamp_message_timestamp,
+)
 from sysreptor.ai.models import ChatThread, LangchainCheckpoint
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.history import history_context
@@ -84,46 +81,6 @@ def to_short_string(s) -> str:
 
 def to_inline_context(data: dict[str, Any]) -> str:
     return ' '.join(f'{to_short_string(k)}={to_short_string(v)}' for k, v in data.items())
-
-
-def agent_tool(metadata=None, **kwargs):
-    def decorator(func: Callable) -> Callable:
-        if not iscoroutinefunction(func):
-            func = sync_to_async(func)
-
-        @tool(**kwargs)
-        @wraps(func)
-        async def tool_func(*tool_args, runtime: ToolRuntime, **tool_kwargs):
-            out = ToolMessage(
-                content='',
-                status='error',
-                tool_call_id=runtime.tool_call_id,
-            )
-            stamp_message_timestamp(out)
-
-            try:
-                res_output = None
-                res_content = await func(*tool_args, runtime=runtime, **tool_kwargs)
-                if isinstance(res_content, tuple):
-                    res_content, res_output = res_content
-                if not isinstance(res_content, str):
-                    res_content = to_yaml(res_content)
-                out.content = res_content
-                out.additional_kwargs['output'] = res_output or {}
-                out.status = 'success'
-            except GraphInterrupt:
-                raise
-            except Exception as ex:
-                out.content = format_agent_error(ex, generic_msg=None)
-                if not out.content:
-                    logging.exception(ex)
-                    out.content = 'Error: Unexpected error'
-            return Command(update={
-                'messages': [out],
-            })
-        tool_func.metadata = (tool_func.metadata or {}) | (metadata or {})
-        return tool_func
-    return decorator
 
 
 def is_in_subagent() -> bool:
@@ -174,35 +131,6 @@ def init_chat_model(model: str):
         model_provider=config.get('provider', 'deepseek'),
         **omit_keys(config, ['id', 'label', 'provider', 'model', 'vision_model', 'hidden']),
     )
-
-
-def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage) -> None:
-    if message.additional_kwargs.get('timestamp'):
-        return
-    message.additional_kwargs = {
-        **(message.additional_kwargs or {}),
-        'timestamp': timezone.now().isoformat(),
-    }
-
-
-class MessageTimestampMiddleware(AgentMiddleware[AgentState]):
-    """
-    Stamp completion timestamps on user and assistant messages for the chat UI.
-    """
-
-    async def abefore_agent(self, state, runtime):
-        for m in reversed(state['messages']):
-            if isinstance(m, HumanMessage):
-                if not m.additional_kwargs.get('injected_context'):
-                    stamp_message_timestamp(m)
-                break
-
-    async def aafter_model(self, state, runtime):
-        for m in reversed(state['messages']):
-            if isinstance(m, AIMessage):
-                stamp_message_timestamp(m)
-            else:
-                break
 
 
 def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **kwargs):

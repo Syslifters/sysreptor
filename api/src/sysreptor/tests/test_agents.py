@@ -27,9 +27,9 @@ from sysreptor.ai.agents.filesystem import (
     ProjectFilesystemBackend,
 )
 from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
-from sysreptor.ai.agents.project import (
-    ProjectContext,
-    analyze_image,
+from sysreptor.ai.agents.project import ProjectContext
+from sysreptor.ai.agents.tools import analyze_image
+from sysreptor.ai.agents.tools_project import (
     create_finding,
     create_note,
     list_notes,
@@ -856,7 +856,7 @@ class TestProjectAgentTools:
         fake_agent.ainvoke = mock.AsyncMock(return_value={
             'messages': [AIMessage(content='Screenshot shows SQL error on login form')],
         })
-        with mock.patch('sysreptor.ai.agents.project.create_agent', return_value=fake_agent):
+        with mock.patch('sysreptor.ai.agents.tools.create_agent', return_value=fake_agent):
             msg = self.run_tool_message(analyze_image, image=image_ref, prompt='What error is shown?')
 
         if expected:
@@ -1037,9 +1037,9 @@ class TestLLMConfig:
         project = create_project(members=[user])
         fake_agent = mock.Mock(ainvoke=mock.AsyncMock(return_value={'messages': [AIMessage(content='ok')]}))
         with (
-            mock.patch('sysreptor.ai.agents.project.get_model_configs', return_value=models),
-            mock.patch('sysreptor.ai.agents.project.init_chat_model', return_value=mock.Mock()) as init_mock,
-            mock.patch('sysreptor.ai.agents.project.create_agent', return_value=fake_agent),
+            mock.patch('sysreptor.ai.agents.tools.get_model_configs', return_value=models),
+            mock.patch('sysreptor.ai.agents.tools.init_chat_model', return_value=mock.Mock()) as init_mock,
+            mock.patch('sysreptor.ai.agents.tools.create_agent', return_value=fake_agent),
         ):
             msg = async_to_sync(analyze_image.ainvoke)({
                 'image': 'file0.png',
