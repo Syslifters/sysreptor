@@ -67,7 +67,7 @@ def agent_tool(metadata=None, **kwargs):
     return decorator
 
 
-@agent_tool(parse_docstring=True)
+@agent_tool(parse_docstring=True, metadata={'subagent': False})
 async def ask_user(
     runtime: ToolRuntime[ProjectContext],
     question: Annotated[str, Field(min_length=1)],

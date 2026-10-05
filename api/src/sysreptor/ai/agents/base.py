@@ -141,6 +141,10 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
     default_model = init_chat_model(get_default_model_id())
     profile = _harness_profile_for_model(default_model, spec=None)
     tools = _apply_tool_description_overrides(tools, profile.tool_description_overrides)
+    subagent_tools = [
+        t for t in tools
+        if (getattr(t, 'metadata', None) or {}).get('subagent', True)
+    ]
 
     backend = StateBackend()
     middleware = [
@@ -167,7 +171,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
             'description': gp_profile.description or GENERAL_PURPOSE_SUBAGENT['description'],
             'system_prompt': subagent_prompt,
             'model': default_model,
-            'tools': tools,
+            'tools': subagent_tools,
             'middleware': middleware,
         },
     ]
