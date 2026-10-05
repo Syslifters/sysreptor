@@ -4,6 +4,7 @@ import re
 import textwrap
 from datetime import timedelta
 from unittest import mock
+from uuid import uuid4
 
 import pytest
 from asgiref.sync import async_to_sync
@@ -15,6 +16,7 @@ from langchain.tools import ToolRuntime
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
 from langchain_core.outputs.chat_generation import ChatGenerationChunk
+from langgraph.checkpoint.base import WRITES_IDX_MAP
 
 from sysreptor.ai.agents import get_agent
 from sysreptor.ai.agents.base import (
@@ -22,6 +24,7 @@ from sysreptor.ai.agents.base import (
     get_model_configs,
     init_chat_model,
 )
+from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
 from sysreptor.ai.agents.filesystem import (
     NotesAgentsDirBackend,
     ProjectFilesystemBackend,
@@ -38,7 +41,7 @@ from sysreptor.ai.agents.tools_project import (
     update_field_value,
     update_markdown_field,
 )
-from sysreptor.ai.models import ChatThread, LangchainCheckpoint
+from sysreptor.ai.models import ChatThread, LangchainCheckpoint, LangchainCheckpointBlob, LangchainCheckpointWrite
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints
 from sysreptor.conf.settings import validate_ai_agent_models
 from sysreptor.pentests.models import NoteType
@@ -947,24 +950,47 @@ class TestAgentPermissions:
 
 @pytest.mark.django_db()
 class TestAiCleanupTask:
-    def checkpoint_exists(self, checkpoint):
-        return LangchainCheckpoint.objects.filter(id=checkpoint.id).exists()
-
     def test_cleanup_old_langchain_checkpoints(self):
         with mock_time(before=timedelta(days=2)):
-            thread = ChatThread.objects.create(
-                user=create_user(),
-                project=create_project(),
+            thread = ChatThread.objects.create(user=create_user(), project=create_project())
+            old = LangchainCheckpoint.objects.create(
+                thread=thread,
+                checkpoint={'id': str(uuid4()), 'channel_versions': {'messages': '1'}, 'channel_values': {}},
             )
-            old_checkpoint = LangchainCheckpoint.objects.create(thread=thread)
-            current_checkpoint = LangchainCheckpoint.objects.create(thread=thread)
+            old_write = LangchainCheckpointWrite.objects.create(
+                thread=thread, checkpoint_ns='', checkpoint_id=old.checkpoint_id,
+                task_id='t1', idx=0, channel='messages', type='json', blob=b'"old"',
+            )
+            unreferenced_blob = LangchainCheckpointBlob.objects.create(
+                thread=thread, checkpoint_ns='',
+                channel='messages', version='1', type='json', blob=b'"v1"',
+            )
 
-        async_to_sync(cleanup_old_langchain_checkpoints)(task_info=PeriodicTaskInfo(
+            current = LangchainCheckpoint.objects.create(
+                thread=thread,
+                checkpoint={'id': str(uuid4()), 'channel_versions': {'messages': '2'}, 'channel_values': {}},
+            )
+            current_write = LangchainCheckpointWrite.objects.create(
+                thread=thread, checkpoint_ns='', checkpoint_id=current.checkpoint_id,
+                task_id='t2', idx=0, channel='messages', type='json', blob=b'"cur"',
+            )
+            referenced_blob = LangchainCheckpointBlob.objects.create(
+                thread=thread, checkpoint_ns='',
+                channel='messages', version='2', type='json', blob=b'"v2"',
+            )
+
+        cleanup_old_langchain_checkpoints(task_info=PeriodicTaskInfo(
             spec=next(filter(lambda t: t.id == 'cleanup_old_langchain_checkpoints', periodic_task_registry.tasks)),
             model=PeriodicTask(last_success=None),
         ))
-        assert not self.checkpoint_exists(old_checkpoint)
-        assert self.checkpoint_exists(current_checkpoint)
+
+        assert not LangchainCheckpoint.objects.filter(pk=old.pk).exists()
+        assert not LangchainCheckpointWrite.objects.filter(pk=old_write.pk).exists()
+        assert not LangchainCheckpointBlob.objects.filter(pk=unreferenced_blob.pk).exists()
+
+        assert LangchainCheckpoint.objects.filter(pk=current.pk).exists()
+        assert LangchainCheckpointWrite.objects.filter(pk=current_write.pk).exists()
+        assert LangchainCheckpointBlob.objects.filter(pk=referenced_blob.pk).exists()
 
 
 @pytest.mark.django_db()
@@ -1604,3 +1630,139 @@ class TestNotesAgentDirAgent:
         else:
             assert memory_text not in content
             assert '(No memory loaded)' in content
+
+
+
+@pytest.mark.django_db()
+class TestDjangoModelCheckpointer:
+    def setup_method(self):
+        self.thread = ChatThread.objects.create(
+            user=create_user(),
+            project=create_project(),
+        )
+        self.saver = DjangoModelCheckpointer()
+
+    def _config(self, checkpoint_id=None, checkpoint_ns=''):
+        configurable = {
+            'thread_id': str(self.thread.id),
+            'checkpoint_ns': checkpoint_ns,
+        }
+        if checkpoint_id is not None:
+            configurable['checkpoint_id'] = str(checkpoint_id)
+        return {'configurable': configurable}
+
+    def test_put_get_roundtrip_splits_blobs(self):
+        checkpoint_id = str(uuid4())
+        version = self.saver.get_next_version(None, None)
+        checkpoint = {
+            'v': 4,
+            'id': checkpoint_id,
+            'ts': '2026-01-01T00:00:00+00:00',
+            'channel_values': {
+                'messages': [{'role': 'user', 'content': 'hi'}],
+                'count': 1,
+            },
+            'channel_versions': {
+                'messages': version,
+                'count': version,
+            },
+            'versions_seen': {},
+        }
+        config = self._config()
+        saved = self.saver.put(config, checkpoint, {'source': 'input', 'step': 1, 'writes': {}}, {
+            'messages': version,
+            'count': version,
+        })
+        assert saved['configurable']['checkpoint_id'] == checkpoint_id
+
+        assert LangchainCheckpointBlob.objects.filter(
+            thread=self.thread,
+            channel='messages',
+            version=version,
+        ).exists()
+        assert not LangchainCheckpointBlob.objects.filter(
+            thread=self.thread,
+            channel='count',
+        ).exists()
+
+        loaded = self.saver.get_tuple(self._config(checkpoint_id=checkpoint_id))
+        assert loaded is not None
+        assert loaded.checkpoint['channel_values']['messages'] == [{'role': 'user', 'content': 'hi'}]
+        assert loaded.checkpoint['channel_values']['count'] == 1
+        # Slimmed JSON keeps only inline primitives
+        row = LangchainCheckpoint.objects.get(thread=self.thread, checkpoint_id=checkpoint_id)
+        assert 'messages' not in (row.checkpoint.get('channel_values') or {})
+        assert row.checkpoint['channel_values']['count'] == 1
+
+    def test_put_writes_write_once_and_special_upsert(self):
+        checkpoint_id = uuid4()
+        LangchainCheckpoint.objects.create(
+            thread=self.thread,
+            checkpoint_id=checkpoint_id,
+            checkpoint={'id': str(checkpoint_id), 'channel_versions': {}, 'channel_values': {}},
+        )
+        config = self._config(checkpoint_id=checkpoint_id)
+
+        self.saver.put_writes(config, [('messages', 'a')], task_id='t1')
+        self.saver.put_writes(config, [('messages', 'b')], task_id='t1')
+        writes = list(LangchainCheckpointWrite.objects.filter(thread=self.thread, checkpoint_id=checkpoint_id))
+        assert len(writes) == 1
+        assert self.saver.serde.loads_typed((writes[0].type, writes[0].blob)) == 'a'
+
+        # Special channels in WRITES_IDX_MAP are upserted
+        special = next(iter(WRITES_IDX_MAP))
+        self.saver.put_writes(config, [(special, 'one')], task_id='t2')
+        self.saver.put_writes(config, [(special, 'two')], task_id='t2')
+        special_writes = list(LangchainCheckpointWrite.objects.filter(
+            thread=self.thread,
+            checkpoint_id=checkpoint_id,
+            task_id='t2',
+            channel=special,
+        ))
+        assert len(special_writes) == 1
+        assert self.saver.serde.loads_typed((special_writes[0].type, special_writes[0].blob)) == 'two'
+
+        loaded = self.saver.get_tuple(config)
+        assert loaded is not None
+        assert ('t1', 'messages', 'a') in loaded.pending_writes
+        assert ('t2', special, 'two') in loaded.pending_writes
+
+    def test_delta_channel_history_seed_and_writes(self):
+        parent_id = uuid4()
+        head_id = uuid4()
+        version = self.saver.get_next_version(None, None)
+
+        parent_checkpoint = {
+            'v': 4,
+            'id': str(parent_id),
+            'ts': '2026-01-01T00:00:00+00:00',
+            'channel_values': {'messages': [{'id': 1}]},
+            'channel_versions': {'messages': version},
+            'versions_seen': {},
+        }
+        self.saver.put(self._config(), parent_checkpoint, {'source': 'loop', 'step': 0, 'writes': {}}, {
+            'messages': version,
+        })
+        self.saver.put_writes(self._config(checkpoint_id=parent_id), [('messages', {'id': 2})], task_id='w1')
+
+        LangchainCheckpoint.objects.create(
+            thread=self.thread,
+            checkpoint_id=head_id,
+            parent_checkpoint_id=parent_id,
+            checkpoint={
+                'v': 4,
+                'id': str(head_id),
+                'ts': '2026-01-01T00:00:01+00:00',
+                'channel_values': {},
+                'channel_versions': {'messages': version},
+                'versions_seen': {},
+            },
+        )
+
+        history = self.saver.get_delta_channel_history(
+            config=self._config(checkpoint_id=head_id),
+            channels=['messages'],
+        )
+        assert 'seed' in history['messages']
+        assert history['messages']['seed'] == [{'id': 1}]
+        assert history['messages']['writes'] == [('w1', 'messages', {'id': 2})]
