@@ -26,7 +26,7 @@ from sysreptor.api_utils.serializers import (
 )
 from sysreptor.conf import plugins
 from sysreptor.pentests.models import Language, ProjectMemberRole, ReviewStatus
-from sysreptor.tasks.models import PeriodicTask
+from sysreptor.tasks.tasks import run_pending_periodic_tasks
 from sysreptor.users.models import AuthIdentity
 from sysreptor.users.serializers import get_oauth
 from sysreptor.utils import license
@@ -37,7 +37,7 @@ from sysreptor.utils.fielddefinition.serializers import (
     serializer_from_field,
 )
 from sysreptor.utils.fielddefinition.types import CweField, FieldDefinition, serialize_field_definition
-from sysreptor.utils.utils import copy_keys, remove_duplicates, run_in_background
+from sysreptor.utils.utils import copy_keys, remove_duplicates
 
 log = logging.getLogger(__name__)
 
@@ -232,7 +232,7 @@ class HealthcheckApiView(APIViewAsync):
 
         if res.status_code == 200:
             # Run periodic tasks
-            run_in_background(PeriodicTask.objects.run_all_pending_tasks)()
+            await run_pending_periodic_tasks()
 
         return res
 

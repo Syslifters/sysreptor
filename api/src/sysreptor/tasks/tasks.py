@@ -8,8 +8,14 @@ from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import dateparse
 
-from sysreptor.tasks.models import LicenseActivationInfo, TaskStatus, periodic_task
+from sysreptor.conf.taskiq import background_task
+from sysreptor.tasks.models import LicenseActivationInfo, PeriodicTask, TaskStatus, periodic_task
 from sysreptor.utils import license
+
+
+@background_task('run_pending_periodic_tasks')
+async def run_pending_periodic_tasks():
+    await PeriodicTask.objects.run_all_pending_tasks()
 
 
 @periodic_task(id='clear_sessions', schedule=timedelta(days=1))

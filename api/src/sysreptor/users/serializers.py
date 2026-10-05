@@ -19,7 +19,7 @@ from rest_framework import serializers
 
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
 from sysreptor.utils.configuration import configuration
-from sysreptor.utils.mail import send_mail_in_background
+from sysreptor.utils.mail import send_mail
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 
@@ -191,12 +191,17 @@ class ForgotPasswordSendSerializer(serializers.Serializer):
             .filter(email=validated_data['email']) \
             .first()
         if user and user.email and user.is_active:
-            async_to_sync(send_mail_in_background)(
+            async_to_sync(send_mail)(
                 to=user.email,
                 subject='SysReptor Password Reset',
                 template_name='email/forgot_password.html',
                 template_context={
-                    'user': user,
+                    'user': {
+                        'id': str(user.id),
+                        'email': user.email,
+                        'username': user.username,
+                        'name': user.name,
+                    },
                     'confirmation_link': self.context['request'].build_absolute_uri(
                         f'/login/set-password/#user={user.id}&token={default_token_generator.make_token(user)}'),
                     'confirmation_link_valid_hours': settings.PASSWORD_RESET_TIMEOUT // 3600,

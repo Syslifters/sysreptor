@@ -211,6 +211,8 @@ DATABASES = {
 REDIS_URL = config('REDIS_URL', default=None)
 REDIS_CONNECTION_CONFIG = config('REDIS_CONNECTION_CONFIG', cast=json.loads, default='null')
 DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False) or (not REDIS_URL and not REDIS_CONNECTION_CONFIG)
+TASKIQ_ALWAYS_EAGER = False
+
 if not DISABLE_WEBSOCKETS:
     CHANNEL_LAYERS = {
         'default': {
@@ -226,7 +228,7 @@ if not DISABLE_WEBSOCKETS:
                     },
                     'retry_on_timeout': True,
                     'retry_on_error': [redis.ConnectionError],
-                } | ( REDIS_CONNECTION_CONFIG or {'address': REDIS_URL})],
+                } | (REDIS_CONNECTION_CONFIG or {'address': REDIS_URL})],
                 'capacity': 3000,
                 'expiry': 30,
             },

@@ -7,7 +7,7 @@ from sysreptor.pentests.models import (
 from sysreptor.plugins import signals as sysreptor_signals
 
 from .models import WebhookEventType
-from .utils import send_webhooks
+from .tasks import send_webhooks
 
 
 @receiver(sysreptor_signals.post_create, sender=PentestProject)
