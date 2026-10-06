@@ -5,7 +5,7 @@ import os
 import signal
 
 import psutil
-from asgiref.sync import sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
 from decouple import strtobool
 from django.conf import settings
 from django.db import transaction
@@ -148,4 +148,10 @@ def reload_server():
         os.kill(server_proc.pid, signal.SIGHUP)
     else:
         logging.warning('Server reload not supported')
+
+    try:
+        from sysreptor.tasks.tasks import reload_workers
+        async_to_sync(reload_workers)()
+    except Exception:
+        logging.exception('Failed to enqueue taskiq worker reload')
 

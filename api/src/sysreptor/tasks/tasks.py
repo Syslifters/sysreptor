@@ -1,9 +1,13 @@
 import json
 import logging
+import os
+import signal
 from datetime import timedelta
 
 import httpx
+import psutil
 from asgiref.sync import sync_to_async
+from django.conf import settings
 from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import dateparse
@@ -34,6 +38,19 @@ async def execute_periodic_task(task_id: str):
     if not is_task_pending(model, spec):
         return
     await PeriodicTask.objects.run_task(PeriodicTaskInfo(spec=spec, model=model))
+
+
+@background_task('reload_workers')
+async def reload_workers():
+    if settings.TASKIQ_ALWAYS_EAGER:
+        return
+
+    parent = psutil.Process(os.getppid())
+    if parent.name() == 'taskiq':
+        logging.info('Reloading taskiq workers')
+        os.kill(parent.pid, signal.SIGHUP)
+    else:
+        logging.warning(f'Taskiq worker reload skipped: parent is not taskiq ({parent.name()})')
 
 
 @periodic_task(id='clear_sessions', schedule=timedelta(days=1))
