@@ -26,7 +26,7 @@ from sysreptor.api_utils.serializers import (
 )
 from sysreptor.conf import plugins
 from sysreptor.pentests.models import Language, ProjectMemberRole, ReviewStatus
-from sysreptor.tasks.tasks import run_pending_periodic_tasks
+from sysreptor.tasks.models import PeriodicTask
 from sysreptor.users.models import AuthIdentity
 from sysreptor.users.serializers import get_oauth
 from sysreptor.utils import license
@@ -231,8 +231,11 @@ class HealthcheckApiView(APIViewAsync):
         res = await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
 
         if res.status_code == 200:
-            # Run periodic tasks
-            await run_pending_periodic_tasks()
+            # Schedule periodic tasks
+            try:
+                await PeriodicTask.objects.schedule_pending_tasks()
+            except Exception:
+                logging.exception('Error while scheduling periodic tasks')
 
         return res
 

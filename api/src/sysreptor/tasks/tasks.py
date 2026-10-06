@@ -9,13 +9,31 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import dateparse
 
 from sysreptor.conf.taskiq import background_task
-from sysreptor.tasks.models import LicenseActivationInfo, PeriodicTask, TaskStatus, periodic_task
+from sysreptor.tasks.models import (
+    LicenseActivationInfo,
+    PeriodicTask,
+    PeriodicTaskInfo,
+    TaskStatus,
+    periodic_task,
+    periodic_task_registry,
+)
 from sysreptor.utils import license
 
 
-@background_task('run_pending_periodic_tasks')
-async def run_pending_periodic_tasks():
-    await PeriodicTask.objects.run_all_pending_tasks()
+@background_task('execute_periodic_task')
+async def execute_periodic_task(task_id: str):
+    from sysreptor.tasks.querysets import is_task_pending
+
+    spec = next((t for t in periodic_task_registry.tasks if t.id == task_id), None)
+    if not spec:
+        logging.warning(f'Unknown periodic task "{task_id}"')
+        return
+
+    model = await PeriodicTask.objects.filter(id=task_id).afirst()
+    # Drop stale duplicate messages that arrive after another worker already ran.
+    if not is_task_pending(model, spec):
+        return
+    await PeriodicTask.objects.run_task(PeriodicTaskInfo(spec=spec, model=model))
 
 
 @periodic_task(id='clear_sessions', schedule=timedelta(days=1))
