@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Fix duplicate module check in plugin loader
+
+
 ## v2026.86 - 2026-10-07
 * AI agent: Add `analyze_image` tool
 * AI agent: Fix ask_user UI selection bugs
