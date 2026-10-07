@@ -175,6 +175,7 @@ def audit_backup_log(sender, instance, **kwargs):
 def audit_license_changed(sender, instance, **kwargs):
     audit_log(
         type=AuditLogTypes.LICENSE_CHANGED,
+        user=None,
         related=instance,
         data={
             'related_name': instance.license_type,

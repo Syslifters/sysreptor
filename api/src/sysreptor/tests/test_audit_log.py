@@ -20,6 +20,7 @@ from sysreptor.tests.utils import assertKeysEqual
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod
 from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
+from sysreptor.utils.history import history_context
 
 
 @pytest.mark.django_db()
@@ -260,11 +261,14 @@ class TestAuditLog:
         assert set(entry.data['changes']) == {'GUEST_USERS_CAN_EDIT_PROJECTS', 'OIDC_AUTHLIB_OAUTH_CLIENTS'}
 
     def test_license_changed(self):
-        info = LicenseActivationInfo.objects.create(
-            license_type=license.LicenseType.PROFESSIONAL,
-            license_hash='test-license-hash',
-        )
+        with history_context(history_user=self.user):
+            info = LicenseActivationInfo.objects.create(
+                license_type=license.LicenseType.PROFESSIONAL,
+                license_hash='test-license-hash',
+            )
         entry = AuditLogEntry.objects.get(type=AuditLogTypes.LICENSE_CHANGED, object_id=info.id)
+        assert entry.actor is None
+        assert 'actor_name' not in entry.data
         assert entry.data['related_name'] == license.LicenseType.PROFESSIONAL
         assertKeysEqual(entry.data['license'], {
             'type': license.LicenseType.PROFESSIONAL,
