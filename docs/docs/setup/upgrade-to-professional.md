@@ -22,8 +22,11 @@ Here's how:
 For reverting to community, remove or comment out the license key from `deploy/app.env`.  
 You can also remove `languagetool/docker-compose.yml` from `deploy/docker-compose.yml`. This saves resources (one docker container), as languagetool is not available in SysReptor Community.
 
-Moving from Professional to Community does not result in data loss. All data will be preserved.  
-Non-superuser accounts, will, however, no longer be able to log in.
+Moving from Professional to Community does not result in data loss. All data will be preserved.
+
+::: info Non-superuser login is disabled
+Downgrading disables login for non-superusers. Community edition allows unlimited project access, so any account that can log in is a superuser and has access to every pentest project. These accounts previously had limited project access. Allowing them to log in would expose all projects.
+:::
 
 ::: info <DocBadge icon="mdi:calendar" label="Book a demo" />
 

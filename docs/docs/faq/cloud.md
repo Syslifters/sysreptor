@@ -32,6 +32,17 @@ SysReptor Cloud is a paid hosted offering. See [pricing](https://sysreptor.com/p
 </div>
 
 
+<div class="faq-item" id="user-count">
+
+::: details How do I increase or decrease the number of users on a paid subscription?
+To add users, [contact us](/contact-us#contact-information). The additional charge is pro-rated for the remaining contract period.
+
+A decrease is not possible during the subscription. It can only take effect at renewal, and the request has to be made two weeks before the contract period ends.
+:::
+
+</div>
+
+
 <div class="faq-item" id="hosted">
 
 ::: details Where is SysReptor Cloud hosted?
