@@ -3,6 +3,8 @@ from sysreptor.users.models import PentestUser
 from sysreptor.utils import license
 from sysreptor.utils.history import HistoricalRecords
 
+empty = object()
+
 
 def _clean_user(user):
     if user and getattr(user, 'is_anonymous', False):
@@ -11,14 +13,16 @@ def _clean_user(user):
 
 
 def _resolve_user(user):
+    if user is not empty:
+        return _clean_user(user)
+
     return (
-        _clean_user(user) or
         _clean_user(getattr(HistoricalRecords.context, 'history_user', None)) or
         _clean_user(getattr(getattr(HistoricalRecords.context, 'request', None), 'user', None))
     )
 
 
-def audit_log(*, type, user=None, data=None, related=None):
+def audit_log(*, type, user=empty, data=None, related=None):
     from sysreptor.audit.models import AuditLogEntry
 
     if not license.is_professional():
