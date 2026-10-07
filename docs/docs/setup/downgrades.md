@@ -7,7 +7,7 @@
 ::: info
 
 
-Downgrading requires a backup from the version that you want downgrade to.
+Downgrading restores a backup from the version you want to return to and results in data loss. Anything created after that backup is deleted.
 
 :::
 

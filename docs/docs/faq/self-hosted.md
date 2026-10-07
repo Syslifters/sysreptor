@@ -148,6 +148,15 @@ Professional installations can add `--backup` to create a backup before the upda
 </div>
 
 
+<div class="faq-item" id="downgrade-version">
+
+::: details How do I downgrade to a prior SysReptor version?
+Downgrading restores a backup from the version you want to return to. That deletes current data (anything created after that backup is lost). Full steps: [Downgrades](/setup/downgrades).
+:::
+
+</div>
+
+
 <div class="faq-item">
 
 ::: details How do I back up and restore a self-hosted SysReptor instance?
@@ -165,12 +174,44 @@ Restore deletes existing data in the database and file storage. Use the same Sys
 </div>
 
 
+<div class="faq-item" id="user-count">
+
+::: details How do I increase or decrease the number of users on a paid subscription?
+To add users, [contact us](/contact-us#contact-information). The additional charge is pro-rated for the remaining contract period.
+
+A decrease is not possible during the subscription. It can only take effect at renewal, and the request has to be made two weeks before the contract period ends.
+:::
+
+</div>
+
+
 <div class="faq-item">
 
 ::: details How do I add a SysReptor Professional license to a self-hosted install?
-Add your license key to `deploy/app.env` as `LICENSE='your_license_key'`, include the LanguageTool compose file if needed, and run `docker compose up -d` from `deploy`. You do not need to reinstall. No data is lost during the transition from Community to Professional or vice versa.
+Add your license key to `deploy/app.env` as `LICENSE='your_license_key'`. For spell check, add `languagetool/docker-compose.yml` to `deploy/docker-compose.yml`:
+
+```yaml
+name: sysreptor
+
+include:
+  - sysreptor/docker-compose.yml
+  - languagetool/docker-compose.yml
+```
+
+Then run `docker compose up -d` from `deploy`. You do not need to reinstall. No data is lost during the transition from Community to Professional or vice versa.
 
 See [Upgrade to Professional](/setup/upgrade-to-professional) for more details.
+:::
+
+</div>
+
+
+<div class="faq-item" id="downgrade-community">
+
+::: details Can I downgrade from Professional to Community?
+Yes. Downgrading from Professional to Community needs no reinstallation and does not delete data. Non-superuser accounts can no longer log in. Community edition allows unlimited project access, so any account that can log in is a superuser and has access to every pentest project. These accounts previously had limited project access. Allowing them to log in would expose all projects.
+
+See [From Professional to Community](/setup/upgrade-to-professional#from-professional-to-community).
 :::
 
 </div>

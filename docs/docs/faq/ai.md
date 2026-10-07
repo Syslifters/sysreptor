@@ -91,12 +91,27 @@ If they say “Swagger” or “HTTP API”, use (1). If they say Python or `imp
 
 No. Keep these separate:
 
-* **Community** — free self-host; limited features; without Professional, non-superusers cannot log in if you drop back from Pro (there is no data loss).
+* **Community** — free self-host; limited features; without Professional, non-superusers cannot log in if you drop back from Pro (there is no data loss). Community has no per-user project restrictions, so a logged-in account is a superuser and can open every pentest project. Blocking these accounts keeps their previous limited access from becoming full visibility.
 * **Professional** — paid license for self-host or Cloud features (roles, comments, spell check, and others). [Pricing](https://sysreptor.com/pricing).
 * **SysReptor Labs (labs.sysre.pt)** — free **with Pro features** for supported certs; not a Community install and not Cloud.
 * **Cloud** — paid hosted org instance; custom plugins are **not** supported (self-hosted only).
 
-Application FAQ: [Is SysReptor free or paid only?](/faq/application).
+Application FAQ: [Is SysReptor free or paid only?](/faq/application). Self-hosted upgrade and downgrade: [How do I add a SysReptor Professional license?](/faq/self-hosted) and [Can I downgrade from Professional to Community?](/faq/self-hosted#downgrade-community).
+
+
+## How do I change the number of users on a paid subscription?
+
+This applies to **SysReptor Cloud** and **self-hosted Professional**. It does not apply to Community or to labs.sysre.pt.
+
+* **Increase:** [contact us](/contact-us#contact-information). The additional charge is pro-rated for the remaining contract period.
+* **Decrease:** not possible during the subscription. It can only take effect at renewal, and the request has to be made two weeks before the contract period ends.
+
+Public FAQs: [Cloud](/faq/cloud#user-count), [self-hosted](/faq/self-hosted#user-count).
+
+
+## How do I downgrade a self-hosted SysReptor to an older version?
+
+Restoring a backup from the older version **deletes current data** (anything created after that backup is lost). This is not the same as dropping a Professional license. Steps: [Downgrades](/setup/downgrades). Public FAQ: [How do I downgrade to a prior SysReptor version?](/faq/self-hosted#downgrade-version).
 
 
 ## How do I install cosign to verify SysReptor releases?
