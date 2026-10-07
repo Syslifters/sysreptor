@@ -1,42 +1,25 @@
 import copy
 import dataclasses
 import itertools
-import logging
-import mimetypes
-import re
 import textwrap
-from base64 import b64encode
-from typing import Annotated
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
 from deepagents.backends import CompositeBackend, StateBackend
-from deepagents.backends.protocol import FILE_NOT_FOUND
 from deepagents.middleware._utils import append_to_system_message
 from deepagents.middleware.filesystem import FilesystemMiddleware
 from deepagents.middleware.memory import MemoryMiddleware
 from deepagents.middleware.skills import SkillsMiddleware
-from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Prefetch
-from langchain.agents import create_agent
 from langchain.agents.middleware import (
     AgentMiddleware,
     AgentState,
 )
-from langchain.messages import AIMessage, HumanMessage
+from langchain.messages import HumanMessage
 from langchain.tools import ToolRuntime
-from langgraph.types import interrupt
-from pydantic import Field
-from rest_framework.filters import search_smart_split
 
 from sysreptor.ai.agents.base import (
-    agent_tool,
     create_sysreptor_agent,
-    format_agent_error,
-    get_default_model_id,
-    get_model_configs,
-    init_chat_model,
     to_inline_context,
     to_yaml,
 )
@@ -51,11 +34,9 @@ from sysreptor.pentests.models import (
     ReportSection,
 )
 from sysreptor.pentests.models.common import get_risk_score_from_data
-from sysreptor.pentests.permissions import ProjectSubresourcePermissions
 from sysreptor.pentests.rendering.entry import format_template_field_object
-from sysreptor.pentests.serializers.notes import ProjectNotebookPageCreateSerializer, ProjectNotebookPageSerializer
+from sysreptor.pentests.serializers.notes import ProjectNotebookPageSerializer
 from sysreptor.pentests.serializers.project import (
-    PentestFindingFromTemplateSerializer,
     PentestFindingSerializer,
     ReportSectionSerializer,
 )
@@ -63,13 +44,11 @@ from sysreptor.pentests.serializers.template import FindingTemplateSerializer, F
 from sysreptor.users.models import PentestUser
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.fielddefinition.types import (
-    FieldDataType,
     FieldDefinition,
     MarkdownField,
     StringField,
     serialize_field_definition,
 )
-from sysreptor.utils.fielddefinition.utils import get_field_value_and_definition, set_value_at_path
 from sysreptor.utils.utils import copy_keys, omit_keys
 
 
@@ -132,6 +111,8 @@ def format_section_info(s) -> str:
 
 
 def format_project_info(project: PentestProject) -> str:
+    from sysreptor.ai.agents.tools_project import list_notes
+
     findings = [
         format_template_field_object(
             value={'id': str(f.finding_id), 'created': str(f.created), 'order': f.order, **f.data},
@@ -260,478 +241,6 @@ def format_field_definition(definition: FieldDefinition):
     return to_yaml(data)
 
 
-@agent_tool(parse_docstring=True)
-async def ask_user(
-    runtime: ToolRuntime[ProjectContext],
-    question: Annotated[str, Field(min_length=1)],
-    options: Annotated[list[str], Field(min_length=2)],
-) -> tuple[str, dict]:
-    """
-    Ask the user a clarifying question and wait for their answer.
-
-    Use this when you need more information, or when there are multiple valid approaches
-    and you are uncertain which to take. Prefer clear multiple-choice options. Do not use
-    for routine progress updates. Ask one question at a time; call again if you need more.
-
-    Args:
-        question: The full question text shown to the user.
-        options: 2 to 4 concise choice labels for the user to pick from.
-    """
-    answer = interrupt({
-        'interrupt_type': 'ask_user',
-        'question': question,
-        'options': options,
-    })
-    if not isinstance(answer, str) or not answer.strip():
-        raise ValidationError('Answer must be a non-empty string')
-    content = f'User answered: {answer}'
-    return content, {'answer': answer}
-
-
-@agent_tool(parse_docstring=True)
-def list_notes(runtime: ToolRuntime[ProjectContext]) -> str:
-    """
-    List all notes in the current project as a tree.
-
-    Returns a hierarchical view of notes with id, title, file path, and assignee.
-    Indentation indicates parent-child relationships. Use read_file on the file
-    path to get full note content.
-
-    """
-    project = get_project(runtime.context.project_id)
-    notes_tree = project.notes.to_tree(project.notes.all())
-
-    def format_note_tree(tree, level=0):
-        out = []
-        for e in tree:
-            prefix = '  ' * level + '- '
-            out.append(prefix + format_note_info(e['note']))
-            out.extend(format_note_tree(e['children'], level + 1))
-        return out
-
-    return '\n'.join(format_note_tree(notes_tree))
-
-
-@agent_tool(parse_docstring=True)
-async def analyze_image(
-    runtime: ToolRuntime[ProjectContext],
-    image: str,
-    prompt: str = '',
-) -> tuple[str, dict]:
-    """
-    Analyze a project screenshot or image with a vision model and return a text summary.
-
-    Call this when markdown contains an image like ![](/images/name/image.png) and you
-    need to read what is shown (UI text, errors, URLs, parameters, highlighted areas,
-    or scene context) before writing evidence, reproduction steps, or PoC text.
-    Do not guess image contents from the filename or surrounding text alone.
-
-    Do not call again for the same image if this tool reports that image analysis is
-    disabled or the model does not support image input; continue from surrounding
-    text only.
-
-    Returns a concise factual summary of visible text, highlights, and scene context.
-    Use prompt when you need a specific detail answered.
-
-    Args:
-        image: Project image path from markdown, e.g. /images/name/image.png
-        prompt: Optional focus question for the vision model.
-            If omitted, returns a general evidence-oriented summary.
-    """
-    system_prompt = textwrap.dedent("""\
-        You analyze pentest screenshots for report writing.
-        Return a concise factual summary of visible text (errors, URLs, params, labels),
-        highlighted/annotated areas, and scene context useful for evidence or reproduction.
-        Quote text faithfully; do not invent unread content. Prefer short bullets. No preamble.
-        If a focus question is given, answer it while still capturing important visible details.
-        """)
-    default_user_prompt = 'Analyze this screenshot for pentest evidence and reproduction details.'
-
-    @sync_to_async
-    def prepare():
-        # Resolve vision model. Use current model if not configured.
-        active_model_id = runtime.context.model or get_default_model_id()
-        configs = get_model_configs()
-        active_config = next((c for c in configs if c.get('id') == active_model_id), None) or {}
-        vision_setting = active_config.get('vision_model')
-        if vision_setting is True or 'vision_model' not in active_config:
-            vision_model_id = active_model_id
-        elif isinstance(vision_setting, str) and vision_setting:
-            if not any(c.get('id') == vision_setting for c in configs):
-                raise ValidationError(f'Image analysis failed: vision_model "{vision_setting}" is not configured.')
-            vision_model_id = vision_setting
-        else:
-            raise ValidationError('Image analysis is disabled for the configured model.')
-
-        # Load image
-        filename = image.strip()
-        if match := re.search(r'/images/name/([^)\s{]+)', filename):
-            filename = match.group(1)
-        if not filename or '/' in filename:
-            raise ValidationError('Invalid image reference. Pass a path like /images/name/image.png')
-
-        uploaded = get_project(runtime.context.project_id).images.filter_name(filename).get()
-        with uploaded.file.open('rb') as f:
-            image_bytes = f.read()
-
-        mime_type, _ = mimetypes.guess_file_type(uploaded.name)
-        if not mime_type or not mime_type.startswith('image/'):
-            mime_type = 'image/png'
-
-        prompt_text = (prompt or '').strip() or default_user_prompt
-        llm = init_chat_model(vision_model_id)
-        human_message = HumanMessage(content=[
-            {'type': 'text', 'text': prompt_text},
-            {'type': 'image', 'base64': b64encode(image_bytes).decode('ascii'), 'mime_type': mime_type},
-        ])
-        return llm, human_message, filename, vision_model_id
-
-    llm, human_message, filename, vision_model_id = await prepare()
-    try:
-        # Nested agent so astream_events assigns a non-empty namespace (like task subagents).
-        vision_agent = create_agent(
-            model=llm,
-            system_prompt=system_prompt,
-            tools=[],
-        )
-        result = await vision_agent.ainvoke({'messages': [human_message]})
-    except Exception as ex:
-        logging.exception('analyze_image failed for %s with model %s', filename, vision_model_id)
-        detail = format_agent_error(ex).removeprefix('Error: ')
-        raise ValidationError(f'Image analysis failed. Maybe the model does not support images. {detail}') from ex
-
-    ai_messages = [m for m in (result.get('messages') or []) if isinstance(m, AIMessage)]
-    output = ((ai_messages[-1].text if ai_messages else '') or '').strip()
-    if not output:
-        raise ValidationError('Image analysis failed: empty model response.')
-    return output, {'image': filename, 'model': vision_model_id}
-
-
-@agent_tool(parse_docstring=True)
-def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str = '') -> str:
-    """
-    Search for finding templates in the knowledge base.
-
-    Returns templates matching the search (by keywords or tags). Results are ordered
-    by relevance, usage, and risk. Use read_template with a template_id from
-    this list to get full template structure before creating a finding.
-
-    Args:
-        search_terms: Optional. Space-separated keywords or tags; all terms must be
-            present in the template (e.g. "xss", "sql injection"). If omitted, returns
-            all templates ordered by usage and risk.
-    """
-    project = get_project(runtime.context.project_id)
-    qs = FindingTemplate.objects.all()
-    search_terms = (search_terms or '').strip()
-    if search_terms:
-        qs = qs.search(search_smart_split(search_terms))
-    qs = qs.annotate_risk_level_number() \
-        .order_by_language(project.language) \
-        .prefetch_related('translations') \
-        .order_by('-has_language', *(['-search_rank'] if search_terms else []), '-usage_count', '-risk_level_number', '-risk_score_number', '-created')
-
-    results = []
-    for t in qs[:100]:
-        results.append(format_template_data(t, short=True))
-    if results:
-        return '\n'.join(results)
-    else:
-        return 'No matching templates found.'
-
-
-@agent_tool(parse_docstring=True)
-def read_template(runtime: ToolRuntime[ProjectContext], template_id: str) -> tuple[str, dict]:
-    """
-    Retrieve full structure and content of a finding template.
-
-    Returns the template id, tags, and per-language data (title, cvss, description,
-    recommendation, etc.). Use this after list_templates to inspect a template
-    before creating a finding with create_finding(template_id=...).
-
-    Args:
-        template_id: The template ID from list_templates (e.g. numeric or UUID
-            identifier shown in search results).
-    """
-    template = FindingTemplate.objects \
-        .prefetch_related('translations') \
-        .get(id=template_id)
-    return format_template_data(template=template), {
-        'id': str(template.id),
-        'title': template.main_translation.title,
-    }
-
-
-@agent_tool(parse_docstring=True, metadata={'writable': True})
-def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, template_id: str = '', template_language: str = '') -> tuple[str, dict]:
-    """
-    Create a new finding in the project, optionally from a template.
-
-    Use this tool to add a new finding. You can base it on a template (from
-    list_templates / read_template) or create a blank finding and set fields
-    in data.
-
-    Workflow with template:
-    1. list_templates("xss") or list_templates("sql injection")
-    2. read_template(template_id) to see template fields
-    3. create_finding(template_id=id, data={"title": "Custom Title", ...})
-
-    Workflow without template:
-    1. create_finding(data={"title": "New Finding", "description": "...", ...})
-
-    Args:
-        data: Optional. Dict of field names to values. Overrides template defaults
-            when template_id is set, or finding defaults for a blank finding.
-            Use exact field names from read_template or the project's finding
-            field definition.
-        template_id: Optional. Template ID from list_templates to base the finding on.
-        template_language: Optional. Language code for the template (defaults to
-            the template's main language).
-    """
-
-    project = get_project(runtime.context.project_id)
-    user = PentestUser.objects.get(id=runtime.context.user_id)
-    if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
-        raise ValidationError('You do not have write permissions')
-
-    serializer_context = {'project': project, 'request': FakeRequest(user=user)}
-    if template_id:
-        serializer = PentestFindingFromTemplateSerializer(data={
-            'template': template_id or None,
-            'template_language': template_language or None,
-            'data': data or {},
-        }, context=serializer_context)
-        serializer.is_valid(raise_exception=True)
-        finding = serializer.save()
-    else:
-        serializer = PentestFindingSerializer(data={'data': data or {}}, context=serializer_context)
-        serializer.is_valid(raise_exception=True)
-        finding = serializer.save()
-
-    finding_data = ProjectFilesystemBackend(runtime=runtime).read(file_path=f'/reporting/findings/{finding.finding_id}.yaml').file_data.get('content', '')
-    file_path = f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/findings/{finding.finding_id}.yaml'
-    return f'Successfully created finding at {file_path}:\n' + finding_data, {
-        'id': str(finding.finding_id),
-        'title': finding.title,
-    }
-
-
-@agent_tool(parse_docstring=True, metadata={'writable': True})
-def create_note(
-    runtime: ToolRuntime[ProjectContext],
-    data: dict = None,
-    parent: str = '',
-    order: int | None = None,
-) -> tuple[str, dict]:
-    """
-    Create a new note in the project.
-
-    Use list_notes to see the note tree and valid parent note IDs. Set parent and
-    order to control placement in the hierarchy; put note content fields in data.
-
-    Args:
-        data: Optional. Note content fields, e.g. {"title": "...", "text": "..."}.
-            May include title, text, checked, and icon_emoji.
-        parent: Optional parent note ID from list_notes. Omit or leave empty for
-            a top-level note.
-        order: Optional 1-based position among siblings with the same parent.
-            Existing notes at or after this position are shifted down. When omitted,
-            the note is appended at the end of its sibling group.
-    """
-    project = get_project(runtime.context.project_id)
-    user = PentestUser.objects.get(id=runtime.context.user_id)
-    if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
-        raise ValidationError('You do not have write permissions')
-
-    serializer_data = dict(data or {})
-    if parent:
-        serializer_data['parent'] = parent
-    if order is not None:
-        serializer_data['order'] = order
-
-    serializer = ProjectNotebookPageCreateSerializer(
-        data=serializer_data,
-        context={'project': project},
-    )
-    serializer.is_valid(raise_exception=True)
-    note = serializer.save()
-
-    note_data = ProjectFilesystemBackend(runtime=runtime).read(
-        file_path=f'/notes/{note.note_id}.yaml',
-    ).file_data.get('content', '')
-    file_path = f'{ProjectFilesystemBackend.PROJECT_ROOT}/notes/{note.note_id}.yaml'
-    return f'Successfully created note at {file_path}:\n' + note_data, {
-        'id': str(note.note_id),
-        'title': note.title,
-    }
-
-
-def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContext]) -> dict:
-    project = get_project(runtime.context.project_id)
-    user = PentestUser.objects.get(id=runtime.context.user_id)
-    if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
-        raise ValidationError('You do not have write permissions')
-
-    filepath_parts = tuple(file_path.strip('/').split('/'))
-    if len(filepath_parts) < 3 or filepath_parts[0] != 'project':
-        raise ValidationError('File not found.')
-    obj_id = filepath_parts[-1][:-5] if filepath_parts[-1].endswith('.yaml') else filepath_parts[-1]
-    if len(filepath_parts) == 4 and filepath_parts[1] == 'reporting':
-        resource_type = filepath_parts[2]
-    elif len(filepath_parts) == 3:
-        resource_type = filepath_parts[1]
-    else:
-        raise ValidationError('File not found.')
-    match resource_type:
-        case 'findings':
-            try:
-                obj = project.findings.get(finding_id=obj_id)
-            except Exception:
-                raise ValidationError(FILE_NOT_FOUND) from None
-        case 'sections':
-            try:
-                obj = project.sections.get(section_id=obj_id)
-            except Exception:
-                raise ValidationError(FILE_NOT_FOUND) from None
-        case 'notes':
-            try:
-                obj = project.notes.get(note_id=obj_id)
-            except Exception:
-                raise ValidationError(FILE_NOT_FOUND) from None
-        case _:
-            raise ValidationError(
-                'File not found. Only files in "/project/reporting/sections/", '
-                '"/project/reporting/findings/" and "/project/notes/" directories are supported.',
-            )
-
-    field_parts = tuple(field.split('.'))
-    try:
-        if isinstance(obj, ProjectNotebookPage):
-            if obj.type == NoteType.EXCALIDRAW and field_parts and field_parts[0] == 'text':
-                raise ValidationError('Cannot write to "text" for excalidraw notes. Use the excalidraw note endpoints/tools instead.')
-            data_path, old_value, definition = get_field_value_and_definition(
-                data=get_note_data(obj),
-                definition=NOTE_FIELD_DEFINITION,
-                path=field_parts,
-            )
-        else:
-            if field_parts[0] != 'data':
-                raise ValidationError('Currently only "data" field updates are supported. Field path must contain "data." as the first component.')
-            data_path, old_value, definition = get_field_value_and_definition(
-                data=obj.data, definition=obj.field_definition, path=field_parts[1:],
-            )
-    except (KeyError, AttributeError):
-        # Provide helpful feedback about available fields
-        raise ValidationError(f'Field "{field}" not found in {file_path}. Use read_file to see the actual structure. Use exact field names from the returned data.') from None
-
-    return {
-        'file_path': file_path,
-        'field': field,
-        'data_path': data_path,
-        'old_value': old_value,
-        'definition': definition,
-        'obj': obj,
-    }
-
-
-def update_at_path(info: dict, value):
-    obj = info['obj']
-    if isinstance(obj, ProjectNotebookPage):
-        serializer = ProjectNotebookPageSerializer(
-            instance=obj,
-            data={info['data_path'][0]: value},
-            partial=True,
-            context={'project': obj.project},
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-    else:
-        updated_data = obj.data
-        set_value_at_path(obj=updated_data, path=info['data_path'], value=value)
-        # Update in DB
-        serializer_class = ReportSectionSerializer if isinstance(obj, ReportSection) else PentestFindingSerializer
-        serializer = serializer_class(instance=obj, data={'data': updated_data}, partial=True, context={'project': obj.project})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-
-@agent_tool(parse_docstring=True, metadata={'writable': True})
-@transaction.atomic()
-def update_field_value(runtime: ToolRuntime[ProjectContext], file_path: str, field: str, value: str|int|float|bool|list|dict) -> str:
-    """
-    Set a single field in section, finding, or note data (full replacement).
-
-    Replaces the current value of the field at the given path. Use for short
-    fields or when replacing an entire field. For long markdown fields where you
-    only want to change a substring, use update_markdown_field instead.
-
-    Args:
-        file_path: The file path to the section, finding, or note file. Examples:
-            /project/reporting/findings/123e4567-e89b-12d3-a456-426614174000.yaml,
-            /project/reporting/sections/executive_summary.yaml,
-            /project/notes/123e4567-e89b-12d3-a456-426614174000.yaml
-        field: Dot-separated path to the field inside the file.
-            e.g. "data.title", "data.summary", "data.affected_components.[0]".
-            Use only field names that exist in the project structure (see read_file
-            output for the corresponding /project/... path).
-        value: The new value. Replaces the existing value. Type must match the
-            field (string, number, boolean, list, or dict).
-    """
-    res = validate_path(file_path=file_path, field=field, runtime=runtime)
-    update_at_path(info=res, value=value)
-    return 'Updated successfully.'
-
-
-@agent_tool(parse_docstring=True, metadata={'writable': True})
-@transaction.atomic()
-def update_markdown_field(runtime: ToolRuntime[ProjectContext], file_path: str, field: str, old_text: str, new_text: str) -> str:
-    """
-    Partially update a markdown field by replacing one substring with another.
-
-    Use this for long markdown content when you only need to change a specific
-    sentence or paragraph. The replacement is exact and whitespace-sensitive.
-    For replacing the entire field or for short fields, use update_field_value
-    instead. The field must be of type markdown.
-
-    Args:
-        file_path: The file path to the section, finding, or note file. Examples:
-            /project/reporting/findings/123e4567-e89b-12d3-a456-426614174000.yaml,
-            /project/reporting/sections/executive_summary.yaml,
-            /project/notes/123e4567-e89b-12d3-a456-426614174000.yaml
-        field: Dot-separated path to the field inside the file.
-            e.g. "data.summary", "data.recommendation".
-            Use only field names that exist in the project structure (see read_file
-            output for the corresponding /project/... path).
-        old_text: The exact substring to find and replace. Must appear in the
-            current field content; matching is case- and whitespace-sensitive.
-        new_text: The replacement text. Inserted in place of old_text.
-    """
-    res = validate_path(file_path=file_path, field=field, runtime=runtime)
-    if res['definition'].type != FieldDataType.MARKDOWN:
-        raise ValidationError('Field is not of type markdown.')
-
-    current_value = res['old_value'] or ''
-    if not old_text:
-        raise ValidationError(f'old_text cannot be empty. Specify the text you want to replace or use `{update_field_value.name}` instead.')
-    elif not current_value:
-        raise ValidationError(f'The field is empty. Use `{update_field_value.name}` instead.')
-
-    # Find the old_text in current_value
-    old_text_index = current_value.find(old_text)
-    if old_text_index == -1:
-        # Show a preview of current content
-        preview_len = min(200, len(current_value))
-        preview = current_value[:preview_len]
-        if len(current_value) > preview_len:
-            preview += '...'
-        raise ValidationError('Could not find the specified old_text in the field. The content may have been modified by another user.')
-
-    # Perform the replacement
-    updated_value = current_value[:old_text_index] + new_text + current_value[old_text_index + len(old_text):]
-    update_at_path(info=res, value=updated_value)
-    return 'Updated successfully'
-
-
 class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]):
     """
     Inject context about the current project and section/finding into the agent.
@@ -853,6 +362,9 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
 
 
 def init_agent_project_base(additional_system_prompt: str = None, additional_tools: list = None):
+    from sysreptor.ai.agents.tools import analyze_image, ask_user
+    from sysreptor.ai.agents.tools_project import list_notes, list_templates, read_template
+
     system_prompt = textwrap.dedent(
         """\
         You are SysReptor Copilot, an AI assistant for pentest report writing. You respond with
@@ -985,6 +497,13 @@ def init_agent_project_ask():
 
 
 def init_agent_project_agent():
+    from sysreptor.ai.agents.tools_project import (
+        create_finding,
+        create_note,
+        update_field_value,
+        update_markdown_field,
+    )
+
     return init_agent_project_base(
         additional_system_prompt=textwrap.dedent("""\
         ## Agent Mode

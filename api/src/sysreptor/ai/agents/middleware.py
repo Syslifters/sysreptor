@@ -1,7 +1,38 @@
 from collections.abc import Awaitable, Callable
 
-from langchain.agents.middleware import AgentMiddleware, ModelRequest, ModelResponse
+from django.utils import timezone
+from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse
+from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.messages import merge_message_runs
+
+
+def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage) -> None:
+    if message.additional_kwargs.get('timestamp'):
+        return
+    message.additional_kwargs = {
+        **(message.additional_kwargs or {}),
+        'timestamp': timezone.now().isoformat(),
+    }
+
+
+class MessageTimestampMiddleware(AgentMiddleware[AgentState]):
+    """
+    Stamp completion timestamps on user and assistant messages for the chat UI.
+    """
+
+    async def abefore_agent(self, state, runtime):
+        for m in reversed(state['messages']):
+            if isinstance(m, HumanMessage):
+                if not m.additional_kwargs.get('injected_context'):
+                    stamp_message_timestamp(m)
+                break
+
+    async def aafter_model(self, state, runtime):
+        for m in reversed(state['messages']):
+            if isinstance(m, AIMessage):
+                stamp_message_timestamp(m)
+            else:
+                break
 
 
 class SelectConfiguredModelMiddleware(AgentMiddleware):
