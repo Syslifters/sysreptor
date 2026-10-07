@@ -108,6 +108,7 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: 'User Permissions', link: '/users/user-permissions' },
+          { text: 'Audit Log', link: '/users/audit-log' },
           {
             text: 'Single Sign-On',
             collapsed: true,
