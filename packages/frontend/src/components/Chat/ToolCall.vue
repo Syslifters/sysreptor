@@ -144,23 +144,14 @@
           </template>
         </template>
         <template #default>
-          <template v-if="props.value.subagentMessages?.length">
-            <chat-message
-              v-for="msg, idx in props.value.subagentMessages" :key="msg.id"
-              :msg="msg"
-              :project="props.project"
-              :is-streaming="isChatMessageStreaming(msg, {
-                inProgress: props.isStreaming,
-                isLastMessage: idx === props.value.subagentMessages!.length - 1,
-              })"
-            />
-          </template>
-          <markdown-preview
-            v-else-if="props.value.content"
-            :value="props.value.content"
-            :readonly="true"
-            :throttle-ms="100"
-            class="message-text"
+          <chat-message
+            v-for="msg, idx in subagentDisplayMessages" :key="msg.id"
+            :msg="msg"
+            :project="props.project"
+            :is-streaming="isChatMessageStreaming(msg, {
+              inProgress: props.isStreaming,
+              isLastMessage: idx === subagentDisplayMessages.length - 1,
+            })"
           />
         </template>
       </chat-reasoning-panel>
@@ -192,7 +183,14 @@
 
 <script setup lang="ts">
 import ChatThinkingPlaceholder from '@/components/Chat/ThinkingPlaceholder.vue';
-import { getPageTitle, isChatMessageStreaming, parseProjectFilePath, parseProjectImageName, ToolCallStatus } from '@/utils/agent';
+import {
+  getPageTitle,
+  isChatMessageStreaming,
+  MessageRole,
+  parseProjectFilePath,
+  parseProjectImageName,
+  ToolCallStatus,
+} from '@/utils/agent';
 import { absoluteApiUrl } from '#imports';
 import { capitalize } from 'lodash-es';
 
@@ -207,6 +205,23 @@ const projectStore = useProjectStore();
 const isPendingLine = computed(() =>
   props.isStreaming && !['task', 'analyze_image', 'ask_user'].includes(props.value.name),
 );
+const subagentDisplayMessages = computed(() => {
+  const out = [];
+  const toolCall = props.value;
+  const prompt = 
+    toolCall.name === 'task' ? toolCall.args?.description :
+    toolCall.name === 'analyze_image' ? toolCall.args?.prompt :
+    null;
+  if (prompt) {
+    out.push({ id: `${toolCall.id}-prompt`, role: MessageRole.USER, text: prompt });
+  }
+  if (toolCall.subagentMessages?.length) {
+    out.push(...toolCall.subagentMessages);
+  } else if (toolCall.content) {
+    out.push({ id: `${toolCall.id}-content`, role: MessageRole.ASSISTANT, text: toolCall.content });
+  }
+  return out;
+});
 const projectFileRef = computed(() => {
   if (!['read_file', 'update_field_value', 'update_markdown_field'].includes(props.value.name)) {
     return null;
@@ -298,10 +313,6 @@ a {
   & > .v-expansion-panel > .v-expansion-panel-title {
     padding-left: 0;
   }
-}
-
-.message-text {
-  font-size: 0.875rem;
 }
 
 .ask-user-result-card:deep() {
