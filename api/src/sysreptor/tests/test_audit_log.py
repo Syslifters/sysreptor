@@ -221,6 +221,20 @@ class TestAuditLog:
         entry = AuditLogEntry.objects.get(type=AuditLogTypes.PROJECT_MEMBER_REMOVED, object_id=project.id)
         assertKeysEqual(entry.data, expected)
 
+        AuditLogEntry.objects.all().delete()
+        PentestProject.objects.add_member(user=self.user, projects=[project])
+        entry = AuditLogEntry.objects.get(type=AuditLogTypes.PROJECT_MEMBER_ADDED, object_id=project.id)
+        assertKeysEqual(entry.data, {
+            'member': {
+                'id': str(self.user.id),
+                'username': self.user.username,
+            },
+            'project': {
+                'id': str(project.id),
+                'name': project.name,
+            },
+        })
+
     @pytest.mark.parametrize(('backup_type', 'expected'), [
         (BackupLogType.BACKUP_STARTED, True),
         (BackupLogType.RESTORE, True),
