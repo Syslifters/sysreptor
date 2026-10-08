@@ -131,6 +131,30 @@ We highly recommend adding MFA for every user account.
 </div>
 
 
+<div class="faq-item" id="multi-language">
+
+::: details How do I translate fixed strings in a report design?
+Keep the wording in the shared design. A helper reads the project language and returns the string for that language. Writers set the language in the project settings.
+
+See [Multiple languages](/designer/multi-language).
+:::
+
+</div>
+
+
+<div class="faq-item" id="optional-chapters">
+
+::: details How do I reuse one design for different types of tests?
+Keep every chapter in the shared design. A report field records which test types the project includes, and `v-if` renders those chapters.
+
+Writers select the types on the project. **Customize Design** stays available for a one-off layout change on a single project.
+
+See [Optional chapters](/designer/optional-chapters).
+:::
+
+</div>
+
+
 <div class="faq-item">
 
 ::: details How do I write re-test reports in SysReptor?
