@@ -24,6 +24,7 @@ ENABLED_PLUGINS="scanimport"
 | Tool | File Format | Import Type | Description |
 |------|-------------|-------------|-------------|
 | **Burp Suite** | XML | Findings/Notes | Web application security scanner |
+| **Darkmoon** | JSON | Findings/Notes | Autonomous AI penetration testing (open source CLI) |
 | **Nessus** | .nessus (XML) | Findings/Notes | Vulnerability scanner |
 | **Nmap** | XML/Greppable | Notes | Network discovery and security auditing |
 | **OpenVAS** | XML | Findings/Notes | Vulnerability assessment system |
