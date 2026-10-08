@@ -76,11 +76,13 @@ export function isChatMessageStreaming(
 
 export enum StreamEventType {
   METADATA = 'metadata',
+  SNAPSHOT = 'snapshot',
   TEXT = 'text',
   TOOL_CALL = 'tool_call',
   TOOL_CALL_STATUS = 'tool_call_status',
   INTERRUPT = 'interrupt',
   ERROR = 'error',
+  RUN_STATUS = 'run_status',
 }
 
 export type ChatInterrupt = {
@@ -100,8 +102,17 @@ export type StreamEvent = {
     thread_id: string;
   }
 } | {
+  type: StreamEventType.SNAPSHOT;
+  content: {
+    messages: ChatHistoryEntry[];
+    interrupts: ChatInterrupt[];
+    thread_id: string;
+    run_id?: string|null;
+    run_status?: string|null;
+  };
+} | {
   type: StreamEventType.TEXT;
-  content: AssistantMessage;
+  content: ChatHistoryEntry & { replace?: boolean };
   subagent?: string|null;
 } | {
   type: StreamEventType.TOOL_CALL;
@@ -117,14 +128,23 @@ export type StreamEvent = {
 } | {
   type: StreamEventType.ERROR;
   content: string;
+} | {
+  type: StreamEventType.RUN_STATUS;
+  content: {
+    status: string;
+    error?: string|null;
+    interrupts?: ChatInterrupt[];
+  };
+};
+
+export type ApplyStreamState = {
+  interrupts: ChatInterrupt[];
+  error: string | null;
+  runStatus: string | null;
 };
 
 function isRequestAborted(error: any): boolean {
   return Boolean(error?.options?.signal?.aborted || error?.name === 'AbortError' || error?.message === 'Aborted by user');
-}
-
-export function formatAgentRequestError(error: any): string {
-  return formatRequestError({ error, message: 'AI chat request failed' }) || 'Unexpected error';
 }
 
 export function findToolCall(
@@ -285,84 +305,129 @@ export async function fetchSSE(url: string, options: Partial<Parameters<typeof $
   await parseEventStream(stream, { onMessage }, fetchOptions.signal);
 }
 
+/**
+ * Apply one stream event onto messageHistory (mutates in place).
+ * Returns true when a terminal run_status was received.
+ */
+export function applyStreamEvent(
+  messageHistory: ChatHistoryEntry[],
+  state: ApplyStreamState,
+  data: StreamEvent,
+): boolean {
+  if (data.type === StreamEventType.METADATA) {
+    // TODO: Handle metadata events
+  } else if (data.type === StreamEventType.SNAPSHOT) {
+    const snapshotMessages = (data.content.messages || []).map(m => reactive({ ...m }));
+    const snapshotIds = new Set(snapshotMessages.map(m => m.id));
+    // Keep a trailing optimistic user message not yet in the checkpoint
+    const last = messageHistory[messageHistory.length - 1];
+    const trailing = (
+      last?.role === MessageRole.USER && !snapshotIds.has(last.id)
+    ) ? [last] : [];
+    messageHistory.splice(0, messageHistory.length, ...snapshotMessages, ...trailing);
+    state.interrupts = data.content.interrupts || [];
+  } else if (data.type === StreamEventType.TEXT) {
+    // Reconcile optimistic local user message (same text, different id)
+    if (
+      data.content.role === MessageRole.USER
+      && !data.subagent
+      && !messageHistory.some(m => m.id === data.content.id)
+    ) {
+      const last = messageHistory[messageHistory.length - 1];
+      if (
+        last?.role === MessageRole.USER
+        && last.text === data.content.text
+        && last.id !== data.content.id
+      ) {
+        last.id = data.content.id;
+        if (data.content.timestamp) {
+          last.timestamp = data.content.timestamp;
+        }
+        return false;
+      }
+    }
+
+    const messageList = getSubagentMessageList(messageHistory, data.subagent);
+    const currentMessage = messageList.find(m => m.id === data.content.id);
+    if (currentMessage) {
+      if (data.content.replace) {
+        Object.assign(currentMessage, data.content);
+      } else {
+        currentMessage.text = (currentMessage.text || '') + (data.content.text || '');
+        currentMessage.reasoning = (currentMessage.reasoning || '') + (data.content.reasoning || '');
+        if (data.content.timestamp && !currentMessage.timestamp) {
+          currentMessage.timestamp = data.content.timestamp;
+        }
+      }
+    } else {
+      messageList.push(reactive(data.content));
+    }
+  } else if (data.type === StreamEventType.TOOL_CALL) {
+    const messageList = getSubagentMessageList(messageHistory, data.subagent);
+    if (!messageList.some(m => m.id === data.content.id)) {
+      messageList.push(reactive({
+        id: data.content.id,
+        role: MessageRole.TOOL,
+        timestamp: data.content.timestamp,
+        tool_call: {
+          ...data.content,
+          subagentMessages: [],
+        },
+      }));
+    }
+  } else if (data.type === StreamEventType.TOOL_CALL_STATUS) {
+    const toolCall = findToolCall(messageHistory, data.content.id);
+    if (toolCall) {
+      Object.assign(toolCall, data.content);
+    }
+  } else if (data.type === StreamEventType.INTERRUPT) {
+    state.interrupts = data.content;
+  } else if (data.type === StreamEventType.ERROR) {
+    state.error = data.content;
+  } else if (data.type === StreamEventType.RUN_STATUS) {
+    state.runStatus = data.content.status;
+    if (data.content.error) {
+      state.error = data.content.error;
+    }
+    if (data.content.interrupts) {
+      state.interrupts = data.content.interrupts;
+    }
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Subscribe to a thread's SSE stream (snapshot + live tail).
+ */
 export async function submitMessageStreamed(options: {
-  body: {
-    agent: string;
-    id?: string|null;
-    messages?: string[];
-    resume?: Record<string, any>;
-    model?: string;
-    context?: Record<string, string|null|undefined>;
-    [key: string]: any;
-  },
-  messageHistory?: ChatHistoryEntry[],
+  url: string;
+  messageHistory?: ChatHistoryEntry[];
   signal?: AbortSignal;
 }) {
-  const metadata = {
-    thread_id: options.body.thread_id as string,
+  const streamState: ApplyStreamState = {
+    interrupts: [],
+    error: null,
+    runStatus: null,
   };
-  const messages = [] as ChatHistoryEntry[];
-  const pendingToolCalls = [] as ToolCall[];
-  let interrupts: ChatInterrupt[] = [];
-  let error: string | null = null;
+  const messageHistory = options.messageHistory ?? [];
 
-  await fetchSSE("/api/v1/utils/chat/", {
-    method: "POST",
-    body: options.body,
+  await fetchSSE(options.url, {
+    method: 'GET',
     signal: options.signal,
     onMessage(event) {
       const data = JSON.parse(event.data) as StreamEvent;
-
-      if (data.type === StreamEventType.METADATA) {
-        Object.assign(metadata, data.content);
-      } else if (data.type === StreamEventType.TEXT) {
-        const messageList = getSubagentMessageList(options.messageHistory ?? [], data.subagent);
-        const currentMessage = messageList.find(m => m.id === data.content.id);
-        if (currentMessage) {
-          currentMessage.text = (currentMessage.text || '') + (data.content.text || '');
-          currentMessage.reasoning = (currentMessage.reasoning || '') + (data.content.reasoning || '');
-          if (data.content.timestamp && !currentMessage.timestamp) {
-            currentMessage.timestamp = data.content.timestamp;
-          }
-        } else {
-          const newMessage = reactive(data.content);
-          messageList.push(newMessage);
-          if (!data.subagent) { 
-            messages.push(newMessage);
-          }
-        }
-      } else if (data.type === StreamEventType.TOOL_CALL) {
-        const messageList = getSubagentMessageList(options.messageHistory ?? [], data.subagent);
-        messageList.push(reactive({
-          id: data.content.id,
-          role: MessageRole.TOOL,
-          timestamp: data.content.timestamp,
-          tool_call: {
-            ...data.content,
-            subagentMessages: [],
-          },
-        }));
-      } else if (data.type === StreamEventType.TOOL_CALL_STATUS) {
-        const toolCall = findToolCall(options.messageHistory ?? [], data.content.id);
-        if (toolCall) {
-          Object.assign(toolCall, data.content);
-        }
-      } else if (data.type === StreamEventType.INTERRUPT) {
-        interrupts = data.content;
-      } else if (data.type === StreamEventType.ERROR) {
-        error = data.content;
-      }
-    }
+      applyStreamEvent(messageHistory, streamState, data);
+    },
   });
 
   return {
-    metadata,
-    messages,
-    pendingToolCalls,
-    interrupts,
-    messageHistory: options.messageHistory,
-    error,
-  }
+    messages: messageHistory,
+    interrupts: streamState.interrupts,
+    messageHistory,
+    error: streamState.error,
+    runStatus: streamState.runStatus,
+  };
 }
 
 
@@ -371,9 +436,11 @@ export type AiAgentStoreState = {
   messageHistory: ChatHistoryEntry[];
   interrupts: ChatInterrupt[];
   error: string|null;
+  run: { id: string } | null;
   currentRequest: {
     promise?: Promise<any>;
     abortController?: AbortController;
+    reconnectTimer?: ReturnType<typeof setTimeout>|null;
   }|null;
   changesState: {
     sessionStartIndex: number;
@@ -391,7 +458,7 @@ export function useAiAgentChat(options: {
   };
   threadId?: string;
 }) {
-  const inProgress = computed(() => !!options.storeState.currentRequest);
+  const inProgress = computed(() => !!options.storeState.currentRequest || !!options.storeState.run);
   const changesState = computed(() => options.storeState.changesState);
   const currentSessionMessages = computed(() => options.storeState.messageHistory.slice(changesState.value.sessionStartIndex));
 
@@ -430,32 +497,130 @@ export function useAiAgentChat(options: {
     );
   });
 
-  async function loadHistory(params: Record<string, any>) {
-    if (options.storeState.threadId) {
+  function clearReconnectTimer() {
+    const s = options.storeState;
+    if (s.currentRequest?.reconnectTimer) {
+      clearTimeout(s.currentRequest.reconnectTimer);
+      s.currentRequest.reconnectTimer = null;
+    }
+  }
+
+  async function attachToRun(threadId: string, runId: string) {
+    const s = options.storeState;
+    s.run = { id: runId };
+    let reconnectAttempt = 0;
+    const abortController = new AbortController();
+
+    const promise = (async () => {
+      while (!abortController.signal.aborted) {
+        try {
+          const out = await submitMessageStreamed({
+            url: `/api/v1/utils/chat/${threadId}/stream/`,
+            messageHistory: s.messageHistory,
+            signal: abortController.signal,
+          });
+          s.interrupts = out.interrupts;
+          s.error = out.error;
+          s.run = null;
+          return out;
+        } catch (error: any) {
+          if (isRequestAborted(error) || abortController.signal.aborted) {
+            throw error;
+          }
+          const delay = Math.min(30000, 1000 * (2 ** reconnectAttempt));
+          reconnectAttempt += 1;
+          await new Promise<void>((resolve) => {
+            if (s.currentRequest) {
+              s.currentRequest.reconnectTimer = setTimeout(resolve, delay);
+            } else {
+              setTimeout(resolve, delay);
+            }
+          });
+          clearReconnectTimer();
+        }
+      }
+      return { runStatus: 'aborted', error: null, interrupts: s.interrupts };
+    })();
+
+    s.currentRequest = { promise, abortController, reconnectTimer: null };
+    try {
+      return await promise;
+    } finally {
+      if (s.currentRequest?.promise === promise) {
+        s.currentRequest = null;
+      }
+    }
+  }
+
+  async function loadHistory(params: Record<string, any>, opts?: { force?: boolean }) {
+    const s = options.storeState;
+    if (s.threadId && !opts?.force) {
       // Already loaded
+      if (s.run && !s.currentRequest) {
+        void attachToRun(s.threadId, s.run.id);
+      }
       initChangesSession();
       return;
     }
 
     try {
+      const url = s.threadId
+        ? `/api/v1/utils/chat/${s.threadId}/`
+        : `/api/v1/utils/chat/latest/`;
       const promise = $fetch<{
         id: string;
         messages: ChatHistoryEntry[];
         interrupts?: ChatInterrupt[];
-      }>(`/api/v1/utils/chat/${options.storeState.threadId || 'latest'}/`, { method: 'GET', params, });
-      options.storeState.currentRequest = { promise };
+        run_id?: string|null;
+        run_status?: string|null;
+      }>(url, { method: 'GET', params });
+      s.currentRequest = { promise };
       const response = await promise;
-      options.storeState.threadId = response.id;
-      options.storeState.messageHistory = response.messages;
-      options.storeState.interrupts = response.interrupts ?? [];
+      s.threadId = response.id;
+      s.messageHistory = response.messages;
+      s.interrupts = response.interrupts ?? [];
+
+      if (response.run_status === 'running' && response.run_id) {
+        s.run = { id: response.run_id };
+        s.currentRequest = null;
+        void attachToRun(response.id, response.run_id);
+      } else {
+        s.run = null;
+      }
     } catch {
-      // ignore errors
+      // ignore errors (e.g. no latest thread)
     } finally {
-      options.storeState.currentRequest = null;
+      if (s.currentRequest && !s.run) {
+        s.currentRequest = null;
+      }
     }
     initChangesSession();
   }
-  
+
+  async function startRun(body: Record<string, any>) {
+    const s = options.storeState;
+    try {
+      const response = await $fetch<{ thread_id: string; run_id: string }>('/api/v1/utils/chat/', {
+        method: 'POST',
+        body,
+      });
+      s.threadId = response.thread_id;
+      const out = await attachToRun(response.thread_id, response.run_id);
+      if (out?.error || out?.runStatus === 'error') {
+        return 'error';
+      } else if (out?.runStatus === 'cancelled') {
+        return 'aborted';
+      }
+      return 'success';
+    } catch (error: any) {
+      if (isRequestAborted(error)) {
+        return 'aborted';
+      }
+      s.error = formatRequestError({ error, message: 'AI chat request failed' }) || 'Unexpected error';
+      return 'error';
+    }
+  }
+
   async function submitMessage(opts: { message: string, context?: Record<string, string|null|undefined>, agent?: string, model?: string|null }) {
     const message = opts.message.trim();
     if (inProgress.value || !message) {
@@ -466,48 +631,21 @@ export function useAiAgentChat(options: {
     options.storeState.interrupts = [];
     options.storeState.error = null;
 
+    const messageId = uuidv4();
     options.storeState.messageHistory.push({
-      id: uuidv4(),
+      id: messageId,
       role: MessageRole.USER,
       text: message,
     });
 
-    try {
-      const abortController = new AbortController();
-      const promise = submitMessageStreamed({
-        body: {
-          ...options.body,
-          id: options.storeState.threadId,
-          messages: [message], 
-          context: opts.context,
-          agent: opts.agent || options.body.agent,
-          model: opts.model || options.body.model,
-        },
-        messageHistory: options.storeState.messageHistory,
-        signal: abortController.signal,
-      });
-      options.storeState.currentRequest = { promise, abortController };
-      const out = await promise;
-      options.storeState.threadId = out.metadata.thread_id;
-      options.storeState.interrupts = out.interrupts;
-      options.storeState.error = out.error;
-
-      if (abortController.signal.aborted) {
-        return 'aborted';
-      } else if (out.error) {
-        return 'error';
-      } else {
-        return 'success';
-      }
-    } catch (error) {
-      if (isRequestAborted(error)) {
-        return 'aborted';
-      }
-      options.storeState.error = formatAgentRequestError(error);
-      return 'error';
-    } finally {
-      options.storeState.currentRequest = null;
-    }
+    return await startRun({
+      ...options.body,
+      id: options.storeState.threadId,
+      messages: [message],
+      context: opts.context,
+      agent: opts.agent || options.body.agent,
+      model: opts.model || options.body.model,
+    });
   }
 
   async function resume(resumePayload: Record<string, any>) {
@@ -517,54 +655,57 @@ export function useAiAgentChat(options: {
 
     options.storeState.error = null;
 
-    try {
-      const abortController = new AbortController();
-      const promise = submitMessageStreamed({
-        body: {
-          ...options.body,
-          id: options.storeState.threadId,
-          resume: resumePayload,
-        },
-        messageHistory: options.storeState.messageHistory,
-        signal: abortController.signal,
-      });
-      options.storeState.currentRequest = { promise, abortController };
-      const out = await promise;
-      options.storeState.threadId = out.metadata.thread_id;
-      options.storeState.interrupts = out.interrupts;
-      options.storeState.error = out.error;
-
-      if (abortController.signal.aborted) {
-        return 'aborted';
-      } else if (out.error) {
-        return 'error';
-      } else {
-        return 'success';
-      }
-    } catch (error) {
-      if (isRequestAborted(error)) {
-        return 'aborted';
-      }
-      options.storeState.error = formatAgentRequestError(error);
-      return 'error';
-    } finally {
-      options.storeState.currentRequest = null;
-    }
+    return await startRun({
+      ...options.body,
+      id: options.storeState.threadId,
+      resume: resumePayload,
+    });
   }
 
-  function cancel() {
+  /** Abort only the local SSE subscription; the agent keeps running. */
+  function detach() {
+    clearReconnectTimer();
     options.storeState.currentRequest?.abortController?.abort();
     options.storeState.currentRequest = null;
   }
-  onUnmounted(() => cancel());
+
+  /** Ask the server to stop the run, then wait for run_status. */
+  async function cancel() {
+    const s = options.storeState;
+    const threadId = s.threadId;
+    if (threadId && s.run) {
+      try {
+        await $fetch(`/api/v1/utils/chat/${threadId}/cancel/`, { 
+          method: 'POST', 
+          body: {},
+        });
+      } catch {
+        // ignore
+      }
+      // Let the stream finish with run_status(cancelled)
+      if (s.currentRequest?.promise) {
+        try {
+          await s.currentRequest.promise;
+        } catch {
+          // ignore
+        }
+      }
+    } else {
+      detach();
+    }
+    s.run = null;
+  }
+  onUnmounted(() => detach());
 
   function reset() {
-    cancel();
-    options.storeState.threadId = null;
-    options.storeState.messageHistory = [];
-    options.storeState.interrupts = [];
-    options.storeState.error = null;
-    resetChanges();
+    void cancel().finally(() => {
+      options.storeState.threadId = null;
+      options.storeState.messageHistory = [];
+      options.storeState.interrupts = [];
+      options.storeState.error = null;
+      options.storeState.run = null;
+      resetChanges();
+    });
   }
 
   return {
@@ -579,6 +720,7 @@ export function useAiAgentChat(options: {
     loadHistory,
     reset,
     cancel,
+    detach,
     acceptChange,
   }
 }

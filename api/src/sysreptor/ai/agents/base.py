@@ -24,7 +24,7 @@ from langchain.agents.middleware import (
     TodoListMiddleware,
     ToolErrorMiddleware,
 )
-from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
+from langchain.messages import AIMessage, AIMessageChunk, AnyMessage, HumanMessage, ToolMessage
 from langchain_core._api import suppress_langchain_beta_warning
 from langchain_core.exceptions import LangChainException
 from langgraph.config import get_config
@@ -38,7 +38,7 @@ from sysreptor.ai.agents.middleware import (
     SelectConfiguredModelMiddleware,
     stamp_message_timestamp,
 )
-from sysreptor.ai.models import ChatThread, LangchainCheckpoint
+from sysreptor.ai.models import AgentRunStatus, ChatThread, LangchainCheckpoint
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.history import history_context
 from sysreptor.utils.utils import copy_keys, omit_keys
@@ -224,11 +224,21 @@ def format_message(m: AnyMessage) -> dict|None:
     return None
 
 
+def user_message_event(input) -> dict | None:
+    msg = (input.get('messages') or [None])[0] if isinstance(input, dict) else None
+    if isinstance(msg, HumanMessage):
+        stamp_message_timestamp(msg)
+        if formatted := format_message(msg):
+            return {'type': 'text', 'content': {**formatted, 'replace': True}}
+    return None
+
+
 async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]|None = None, model: str | None = None, **kwargs):
     try:
-        with history_context(history_user=thread.user, set_history_date=False):
-            yield {'type': 'metadata', 'content': {'thread_id': str(thread.id)}}
+        if event := user_message_event(input):
+            yield event
 
+        with history_context(history_user=thread.user, set_history_date=False):
             pending_tool_call_ids = []
             namespace_to_tool_call_id = {}
             message_id_by_run: dict[str, str] = {}
@@ -245,7 +255,7 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                         'project_id': thread.project_id,
                         'model': model or get_default_model_id(),
                     }),
-                    durability='exit',
+                    durability='async',
                     version='v3',
                     transformers=[UpdatesTransformer],
                     **kwargs,
@@ -278,8 +288,8 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                                 yield {'type': 'text', 'content': {'id': msg_id, 'role': 'assistant', 'text': delta['text']}, **meta}
                             elif delta.get('type') == 'reasoning-delta' and 'reasoning' in delta:
                                 yield {'type': 'text', 'content': {'id': msg_id, 'role': 'assistant', 'reasoning': delta['reasoning']}, **meta}
-                        elif isinstance(payload, AIMessage) and (m := format_message(payload)):
-                            yield {'type': 'text', 'content': m, **meta}
+                        elif isinstance(payload, AIMessage) and not isinstance(payload, AIMessageChunk) and (m := format_message(payload)):
+                            yield {'type': 'text', 'content': {**m, 'replace': True}, **meta}
                     elif method == 'updates' and isinstance(chunk, dict) and (raw_interrupt := chunk.get('__interrupt__')):
                         interrupts = raw_interrupt if isinstance(raw_interrupt, list | tuple) else (raw_interrupt,)
                         yield {
@@ -290,13 +300,13 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                         (messages := (chunk.get('model') or {}).get('messages')) and len(messages) >= 1 and isinstance(messages[0], AIMessage):
                         ai_message = messages[0]
                         stamp_message_timestamp(ai_message)
-                        if any(filter(lambda b: b.get('type') in ['text', 'reasoning'], ai_message.content_blocks)):
+                        if formatted := format_message(ai_message):
                             yield {
                                 'type': 'text',
                                 'content': {
-                                    'id': ai_message.id,
-                                    'role': 'assistant',
+                                    **formatted,
                                     'timestamp': ai_message.additional_kwargs.get('timestamp') or timezone.now().isoformat(),
+                                    'replace': True,
                                 },
                                 **meta,
                             }
@@ -341,35 +351,78 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
         raise ex
 
 
-def get_chat_history(agent, thread: ChatThread):
+def covered_ids_from_messages(messages: list) -> list[str]:
+    covered = set()
+    for m in messages:
+        if isinstance(m, HumanMessage | AIMessage) and m.id:
+            covered.add(m.id)
+        elif isinstance(m, ToolMessage) and m.tool_call_id and m.status != 'pending':
+            covered.add(m.tool_call_id)
+    return list(covered)
+
+
+def get_chat_history(agent, thread: ChatThread, *, include_pending_tools: bool | None = None):
     thread_exists = LangchainCheckpoint.objects \
         .filter(thread=thread) \
         .exists()
     if not thread_exists:
-        raise LangchainCheckpoint.DoesNotExist()
+        return {
+            'id': thread.id,
+            'project': thread.project_id,
+            'messages': [],
+            'interrupts': [],
+            'covered': [],
+        }
 
     state = agent.get_state(config={'configurable': {'thread_id': str(thread.id)}})
+    raw_messages = state.values.get('messages', [])
+    covered = covered_ids_from_messages(raw_messages)
+
+    if include_pending_tools is None:
+        include_pending_tools = (thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED])
+    pending_status = 'pending' if thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED] else 'error'
+
     messages = []
     tool_calls = []
-    for m in state.values.get('messages', []):
+    finished_tool_calls = {m.tool_call_id for m in raw_messages if isinstance(m, ToolMessage) and m.tool_call_id}
+    for m in raw_messages:
         if isinstance(m, AIMessage):
             for tc in m.tool_calls:
                 tool_calls.append(copy_keys(tc, ['id', 'name', 'args']))
 
         formatted = format_message(m)
-        if not formatted:
-            continue
+        if formatted:
+            if isinstance(m, ToolMessage):
+                existing_tc = next((tc for tc in tool_calls if tc['id'] == m.tool_call_id), None)
+                formatted['tool_call'].update({
+                    'args': existing_tc['args'] if existing_tc else {},
+                })
+            messages.append(formatted)
 
-        if isinstance(m, ToolMessage):
-            existing_tc = next((tc for tc in tool_calls if tc['id'] == m.tool_call_id), None)
-            formatted['tool_call'].update({
-                'args': existing_tc['args'] if existing_tc else {},
-            })
-        messages.append(formatted)
+        # Emit pending/incomplete tool calls that have no ToolMessage yet
+        if include_pending_tools and isinstance(m, AIMessage):
+            for tc in m.tool_calls:
+                tid = tc.get('id')
+                if not tid or tid in finished_tool_calls:
+                    continue
+                messages.append({
+                    'id': tid,
+                    'role': 'tool',
+                    'timestamp': m.additional_kwargs.get('timestamp'),
+                    'tool_call': {
+                        'id': tid,
+                        'name': tc.get('name'),
+                        'args': tc.get('args') or {},
+                        'status': pending_status,
+                        'output': None,
+                        **({'content': 'Tool call did not complete'} if pending_status == 'error' else {}),
+                    },
+                })
 
     return {
         'id': thread.id,
         'project': thread.project_id,
         'messages': messages,
         'interrupts': [{'id': i.id, 'value': i.value} for i in state.interrupts],
+        'covered': covered,
     }

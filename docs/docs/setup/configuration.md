@@ -245,7 +245,7 @@ CA_CERTIFICATES="-----BEGIN CERTIFICATE-----\nMIIDqDCCApCgAwIBAgIFAMjv7sswDQYJKo
 ### WebSockets
 Disable WebSockets and always use HTTP fallback for collaborative editing. 
 This is not recommended because some features are only available with WebSockets and HTTP fallback has higher latency.
-This setting sould only be activated if WebSockets are blocked by a firewall or not supported by a reverse proxy.
+This setting should only be activated if WebSockets are blocked by a firewall or not supported by a reverse proxy.
 
 ```dotenv title="Example:"
 DISABLE_WEBSOCKETS=true

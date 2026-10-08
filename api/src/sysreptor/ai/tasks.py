@@ -1,9 +1,19 @@
 from datetime import timedelta
+from uuid import UUID, uuid4
 
 from django.db.models import Exists, F, OuterRef, Subquery
 from django.utils import timezone
+from langchain.messages import HumanMessage
+from langgraph.types import Command
 
-from sysreptor.ai.models import LangchainCheckpoint, LangchainCheckpointBlob, LangchainCheckpointWrite
+from sysreptor.ai.models import (
+    ChatThread,
+    LangchainCheckpoint,
+    LangchainCheckpointBlob,
+    LangchainCheckpointWrite,
+)
+from sysreptor.ai.runs import AgentRunWorker
+from sysreptor.conf.taskiq import background_task
 from sysreptor.tasks.models import PeriodicTaskInfo, periodic_task
 
 
@@ -57,3 +67,47 @@ def cleanup_old_langchain_checkpoints(task_info: PeriodicTaskInfo):
             stale_blob_pks.append(pk)
     if stale_blob_pks:
         LangchainCheckpointBlob.objects.filter(pk__in=stale_blob_pks).delete()
+
+
+@background_task('run_agent')
+async def run_agent(
+    thread_id: str,
+    run_id: str,
+    agent: str,
+    model: str | None = None,
+    message: str | None = None,
+    resume: dict | None = None,
+    context: dict | None = None,
+):
+    """
+    Execute an agent run in the background, publishing events via channel layer.
+    """
+    thread_id = UUID(str(thread_id))
+    run_id = UUID(str(run_id))
+
+    thread = await ChatThread.objects \
+        .filter(id=thread_id) \
+        .filter(run_id=run_id) \
+        .select_related('user', 'project') \
+        .afirst()
+    if not thread:
+        # ChatThread deleted or run_id mismatched
+        return
+
+    if resume is not None:
+        input_data = Command(resume=resume)
+    else:
+        input_data = {
+            'messages': [HumanMessage(
+                id=str(uuid4()) if message else None,
+                content=message or '',
+            )],
+        }
+
+    await AgentRunWorker(
+        thread,
+        agent=agent,
+        model=model,
+        input_data=input_data,
+        context=context,
+    ).run()

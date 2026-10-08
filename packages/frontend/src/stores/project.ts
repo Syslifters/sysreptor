@@ -182,6 +182,7 @@ export const useProjectStore = defineStore('project', {
             messageHistory: [],
             interrupts: [],
             error: null,
+            run: null,
             currentRequest: null,
             changesState: {
               sessionStartIndex: 0,

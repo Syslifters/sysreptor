@@ -36,6 +36,13 @@ It **cannot**:
 When information is missing or there are multiple valid approaches, the agent can pause and ask you a multiple-choice question. Pick an option (or type your own answer) to continue, or send a new message to skip the question.
 
 
+## Background runs
+
+Agent runs continue on the server after you close the sidebar, reload the page, or navigate away. Re-open the chat to resume the live stream from where it left off.
+
+Closing the sidebar does **not** stop a running agent. Use the stop button to cancel the agent.
+
+
 ## AGENTS.md
 
 You can give the agent reusable instructions with an `AGENTS.md` note:

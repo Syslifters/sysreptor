@@ -59,6 +59,8 @@ class Command(BaseCommand):
 
             match token['type']:
                 case 'text':
+                    if token['content'].get('role') == 'user':
+                        continue
                     if token['content'].get('reasoning'):
                         if not prev_token or prev_token['type'] != 'text' or prev_token['content']['id'] != token['content']['id']:
                             self.newline_if_needed(prev_token)

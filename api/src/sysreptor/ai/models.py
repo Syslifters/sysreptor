@@ -10,9 +10,21 @@ from sysreptor.utils.crypto.fields import EncryptedField
 from sysreptor.utils.models import BaseModel
 
 
+class AgentRunStatus(models.TextChoices):
+    RUNNING = 'running', 'Running'
+    INTERRUPTED = 'interrupted', 'Interrupted'
+    COMPLETED = 'completed', 'Completed'
+    ERROR = 'error', 'Error'
+    CANCELLED = 'cancelled', 'Cancelled'
+
+
 class ChatThread(BaseModel):
     user = models.ForeignKey(PentestUser, on_delete=models.CASCADE)
     project = models.ForeignKey(PentestProject, on_delete=models.CASCADE, null=True, blank=True)
+
+    run_id = models.UUIDField(null=True, blank=True, db_index=True)
+    run_status = models.CharField(max_length=20, choices=AgentRunStatus.choices, null=True, blank=True)
+    run_heartbeat_at = models.DateTimeField(null=True, blank=True)
 
     objects = querysets.ChatThreadManager()
 

@@ -22,7 +22,7 @@ class ChatThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatThread
-        fields = ['id', 'project', 'messages', 'interrupts']
+        fields = ['id', 'project', 'messages', 'interrupts', 'run_id', 'run_status']
 
 
 class LLMAgentSerializer(serializers.Serializer):
@@ -54,15 +54,9 @@ class LLMAgentSerializer(serializers.Serializer):
         if model and not any(m['id'] == model for m in get_model_configs(include_hidden=False)):
             raise serializers.ValidationError('Invalid model')
 
-        # Set agent parameters
-        if resume is not None:
-            from langgraph.types import Command
-            attrs['input'] = Command(resume=resume)
-        else:
-            attrs['input'] = {'messages': messages}
-
         # Validate required parameters for agent type
-        attrs['agent'], thread_filters = self.get_agent(attrs)
+        agent_instance, thread_filters = self.get_agent(attrs)
+        attrs['agent_instance'] = agent_instance
 
         # Validate thread_id exists and belongs to user
         if thread_id:
@@ -91,19 +85,22 @@ class LLMAgentSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError('Invalid agent type')
 
-    def stream(self):
-        from sysreptor.ai.agents import agent_stream
+    async def start(self):
+        from sysreptor.ai.runs import start_run
+        from sysreptor.ai.tasks import run_agent
 
-        thread = self.validated_data.get('thread')
-        if not thread.id:
-            # Create new thread
-            thread.save()
+        thread = self.validated_data['thread']
+        messages = self.validated_data.get('messages') or []
+        message = messages[0] if messages else None
 
-        return agent_stream(
+        run_id = await start_run(thread=thread)
+        await run_agent(
+            thread_id=str(thread.id),
+            run_id=str(run_id),
             agent=self.validated_data['agent'],
-            input=self.validated_data['input'],
-            context=self.validated_data.get('context', {}),
             model=self.validated_data.get('model'),
-            thread=thread,
+            message=message,
+            resume=self.validated_data.get('resume'),
+            context=self.validated_data.get('context') or {},
         )
-
+        return thread.id, run_id
