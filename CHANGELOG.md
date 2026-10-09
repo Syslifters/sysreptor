@@ -2,6 +2,7 @@
 
 ## Upcoming
 * Fix duplicate module check in plugin loader
+* Prevent changing the design of readonly projects
 
 
 ## v2026.86 - 2026-10-07
