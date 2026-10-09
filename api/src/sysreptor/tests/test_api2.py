@@ -107,16 +107,20 @@ class TestProjectApi:
     def test_update_metadata_readonly_project(self):
         project = create_project(members=[self.user], readonly=True)
         pt = create_project_type()
+        old_pt_id = project.project_type_id
         res = self.client.patch(reverse('pentestproject-detail', kwargs={'pk': project.id}), data={
             'tags': ['updated_tag'],
             'delete_date': 'never',
             'project_type': pt.id,
+            'force_change_project_type': True,
             'language': Language.SPANISH.value,
+            'override_finding_order': True,
         })
         assert res.status_code == 200
         project.refresh_from_db()
-        assert project.project_type != pt
+        assert project.project_type_id == old_pt_id
         assert project.language != Language.SPANISH
+        assert not project.override_finding_order
         assert project.tags == ['updated_tag']
         assert project.delete_date == DELETE_DATE_NEVER
 
