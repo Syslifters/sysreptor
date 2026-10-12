@@ -8,7 +8,7 @@
               <s-btn-icon
                 @click="updateKey('checked', note.checked === null ? false : !note.checked ? true : null)"
                 :icon="note.checked === null ? 'mdi-checkbox-blank-off-outline' : note.checked ? 'mdi-checkbox-marked' : 'mdi-checkbox-blank-outline'"
-                :disabled="readonly"
+                :disabled="readonly || isShareRoot"
                 density="comfortable"
               />
             </div>
@@ -17,7 +17,7 @@
               :model-value="note.icon_emoji"
               @update:model-value="updateKey('icon_emoji', $event)"
               :empty-icon="hasChildNotes ? 'mdi-folder-outline' : note.type === NoteType.EXCALIDRAW ? 'mdi-drawing' : 'mdi-note-text-outline'"
-              :readonly="readonly"
+              :readonly="readonly || isShareRoot"
               density="comfortable"
             />
               
@@ -27,6 +27,7 @@
               :collab="collabPropsTitle"
               @collab="notesCollab.onCollabEvent"
               v-bind="inputFieldAttrs"
+              :readonly="readonly || isShareRoot"
               class="note-title"
             />
           </div>
@@ -69,6 +70,7 @@ const shareInfo = await useAsyncDataE(async () => await shareInfoStore.getById(r
 const notesCollab = shareInfoStore.useNotesCollab({ shareInfo: shareInfo.value!, noteId: route.params.noteId as string });
 const note = computed(() => notesCollab.data.value.notes[route.params.noteId as string]);
 const readonly = computed(() => notesCollab.readonly.value);
+const isShareRoot = computed(() => note.value?.id === shareInfo.value?.note_id);
 const collabPropsTitle = computed<CollabPropType>((oldValue) => collabSubpath(notesCollab.collabProps.value, 'title', oldValue));
 const collabPropsText = computed<CollabPropType>((oldValue) => collabSubpath(notesCollab.collabProps.value, 'text', oldValue));
 

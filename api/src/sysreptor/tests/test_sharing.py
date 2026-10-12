@@ -101,6 +101,33 @@ class TestSharedProjectNotePermissions:
         res = self.client.delete(reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': note_id}))
         assert res.status_code in ([204] if expected else [400, 404])
 
+    @pytest.mark.parametrize(('expected', 'field', 'value'), [
+        (False, 'title', 'renamed'),
+        (False, 'checked', True),
+        (False, 'icon_emoji', '👍'),
+        (True, 'text', 'updated root text'),
+    ])
+    def test_cannot_update_share_root_locked_fields(self, expected, field, value):
+        res = self.client.patch(
+            reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note_shared.note_id}),
+            data={field: value},
+        )
+        assert res.status_code == (200 if expected else 400), res.data
+
+    @pytest.mark.parametrize(('field', 'value'), [
+        ('title', 'renamed child'),
+        ('checked', True),
+        ('icon_emoji', '👍'),
+        ('text', 'updated child text'),
+    ])
+    def test_can_update_child_locked_fields(self, field, value):
+        res = self.client.patch(
+            reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.childnote_shared.note_id}),
+            data={field: value},
+        )
+        assert res.status_code == 200, res.data
+        assert res.data[field] == value
+
     def test_list_includes_only_childnotes(self):
         res = self.client.get(reverse('sharednote-list', kwargs={'shareinfo_pk': self.share_info.id}))
         assert set([n['id'] for n in res.data]) == {str(self.note_shared.note_id), str(self.childnote_shared.note_id)}
@@ -205,6 +232,33 @@ class TestSharedUserNotePermissions:
         note_id = getattr(self, note).note_id
         res = self.client.delete(reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': note_id}))
         assert res.status_code in ([204] if expected else [400, 404])
+
+    @pytest.mark.parametrize(('expected', 'field', 'value'), [
+        (False, 'title', 'renamed'),
+        (False, 'checked', True),
+        (False, 'icon_emoji', '👍'),
+        (True, 'text', 'updated root text'),
+    ])
+    def test_cannot_update_share_root_locked_fields(self, expected, field, value):
+        res = self.client.patch(
+            reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.note_shared.note_id}),
+            data={field: value},
+        )
+        assert res.status_code == (200 if expected else 400), res.data
+
+    @pytest.mark.parametrize(('field', 'value'), [
+        ('title', 'renamed child'),
+        ('checked', True),
+        ('icon_emoji', '👍'),
+        ('text', 'updated child text'),
+    ])
+    def test_can_update_child_locked_fields(self, field, value):
+        res = self.client.patch(
+            reverse('sharednote-detail', kwargs={'shareinfo_pk': self.share_info.id, 'id': self.childnote_shared.note_id}),
+            data={field: value},
+        )
+        assert res.status_code == 200, res.data
+        assert res.data[field] == value
 
     def test_list_includes_only_childnotes(self):
         res = self.client.get(reverse('sharednote-list', kwargs={'shareinfo_pk': self.share_info.id}))
