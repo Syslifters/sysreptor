@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from sysreptor.pentests.models import (
     NoteType,
@@ -991,6 +992,37 @@ class TestPeriodicShareAllowlistPrune:
         self._run_prune(last_success=None)
         share_info.refresh_from_db()
         assert shared_file.id not in share_info.allowed_file_ids
+
+    @pytest.mark.parametrize(('data', 'expected_pruned'), [
+        ({'expire_date': (timezone.now() + timedelta(days=60)).date().isoformat()}, True),
+        ({'is_revoked': True}, True),
+        ({'password': 'new-password'}, True),
+        ({'permissions_write': False}, True),
+        ({'comment': 'unrelated change'}, False),
+    ])
+    def test_share_update_prunes_allowlist(self, data, expected_pruned):
+        member = create_user()
+        project = create_project(
+            members=[member],
+            notes_kwargs=[],
+            images_kwargs=[],
+            files_kwargs=[{'name': self.SHARED_FILE, 'content': b'shared-ok'}],
+        )
+        note_shared = create_projectnotebookpage(
+            project=project,
+            text=f'[file](/files/name/{self.SHARED_FILE})',
+        )
+        share_info = create_shareinfo(projectnote=note_shared, permissions_write=True)
+        shared_file = project.files.get(name=self.SHARED_FILE)
+        assert shared_file.id in share_info.allowed_file_ids
+
+        note_shared.text = 'unlinked'
+        note_shared.save()
+
+        res = api_client(user=member).patch(reverse('projectnoteshareinfo-detail', kwargs={'project_pk': project.id, 'note_id': note_shared.note_id, 'pk': share_info.id}), data=data)
+        assert res.status_code == 200, res.data
+        share_info.refresh_from_db()
+        assert (shared_file.id not in share_info.allowed_file_ids) == expected_pruned
 
 
 @pytest.mark.django_db()
