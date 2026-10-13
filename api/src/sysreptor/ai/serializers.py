@@ -7,6 +7,13 @@ from sysreptor.pentests.models import PentestProject, ProjectNotebookPage
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 
+def truncate_title(text: str, max_length: int = 80) -> str:
+    collapsed = ' '.join((text or '').split())
+    if len(collapsed) <= max_length:
+        return collapsed
+    return collapsed[: max_length - 1].rstrip() + '…'
+
+
 @extend_schema_field(OpenApiTypes.STR)
 class ProjectRelatedField(OptionalPrimaryKeyRelatedField):
     def get_queryset(self):
@@ -22,7 +29,13 @@ class ChatThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatThread
-        fields = ['id', 'project', 'messages', 'interrupts', 'run_id', 'run_status']
+        fields = ['id', 'project', 'title', 'messages', 'interrupts', 'run_id', 'run_status']
+
+
+class ChatThreadListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatThread
+        fields = ['id', 'project', 'title', 'run_status', 'created', 'updated']
 
 
 class LLMAgentSerializer(serializers.Serializer):
@@ -69,8 +82,10 @@ class LLMAgentSerializer(serializers.Serializer):
             if not attrs['thread']:
                 raise serializers.ValidationError('Invalid id')
         else:
+            title = truncate_title(messages[0]) if messages else ''
             attrs['thread'] = ChatThread.objects.create(
                 user=self.context['request'].user,
+                title=title,
                 **thread_filters,
             )
         return super().validate(attrs)

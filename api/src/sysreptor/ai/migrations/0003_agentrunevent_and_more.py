@@ -30,4 +30,9 @@ class Migration(migrations.Migration):
             name='run_heartbeat_at',
             field=models.DateTimeField(blank=True, null=True),
         ),
+        migrations.AddField(
+            model_name='chatthread',
+            name='title',
+            field=models.CharField(blank=True, default='', max_length=255),
+        ),
     ]

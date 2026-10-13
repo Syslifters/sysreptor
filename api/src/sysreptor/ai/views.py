@@ -1,13 +1,13 @@
 
 from asgiref.sync import async_to_sync
-from rest_framework import renderers, status, viewsets
+from rest_framework import mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from sysreptor.ai.models import ChatThread
+from sysreptor.ai.models import AgentRunStatus, ChatThread
 from sysreptor.ai.runs import (
     cancel_run,
     ensure_thread_not_stale,
@@ -35,18 +35,26 @@ class ChatThreadPermissions(BasePermission):
         return True
 
 
-class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
+class ChatThreadViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet, ViewSetAsync):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [ChatThreadPermissions]
 
     def get_queryset(self):
-        return ChatThread.objects \
+        qs = ChatThread.objects \
             .only_permitted(self.request.user) \
-            .filter_visible()
+            .filter_visible() \
+            .order_by('-created')
+        if self.action == 'list':
+            project = self.request.GET.get('project')
+            if project:
+                qs = qs.filter(project_id=project)
+        return qs
 
     def get_serializer_class(self):
-        from sysreptor.ai.serializers import ChatThreadSerializer, LLMAgentSerializer
+        from sysreptor.ai.serializers import ChatThreadListSerializer, ChatThreadSerializer, LLMAgentSerializer
         if self.action == 'create':
             return LLMAgentSerializer
+        if self.action == 'list':
+            return ChatThreadListSerializer
         return ChatThreadSerializer
 
     def get_renderers(self):
@@ -62,18 +70,6 @@ class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
             'run_id': str(run_id),
         }, status=status.HTTP_200_OK)
 
-    def _build_thread_history(thread: ChatThread) -> dict:
-        from sysreptor.ai.agents import get_agent, get_chat_history
-
-        async_to_sync(ensure_thread_not_stale)(thread)
-        thread.refresh_from_db()
-
-        history = get_chat_history(agent=get_agent('project_ask'), thread=thread)
-        history.pop('covered', None)
-        history['run_id'] = thread.run_id
-        history['run_status'] = thread.run_status
-        return history
-
     def retrieve(self, request, *args, **kwargs):
         from sysreptor.ai.agents import get_agent, get_chat_history
 
@@ -84,10 +80,16 @@ class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
 
         data = get_chat_history(agent=get_agent('project_ask'), thread=instance)
         data.pop('covered', None)
+        data['title'] = instance.title
         data['run_id'] = instance.run_id
         data['run_status'] = instance.run_status
 
         return Response(data=data)
+
+    def perform_destroy(self, instance):
+        if instance.run_status == AgentRunStatus.RUNNING:
+            async_to_sync(cancel_run)(instance)
+        instance.delete()
 
     @action(detail=True, methods=['post'])
     async def cancel(self, request, *args, **kwargs):

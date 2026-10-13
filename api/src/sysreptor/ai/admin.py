@@ -11,10 +11,10 @@ from sysreptor.utils.admin import BaseAdmin, admin_changelist_url
 
 @admin.register(ChatThread)
 class ChatThreadAdmin(BaseAdmin):
-    list_display = ['id', 'user', 'project', 'run_status', 'run_id', 'created']
+    list_display = ['id', 'title', 'user', 'project', 'run_status', 'run_id', 'created']
     list_filter = ['created', 'updated', 'run_status']
-    search_fields = ['user__username', 'project__name']
-    readonly_fields = ['user', 'project', 'run_id', 'run_status', 'run_heartbeat_at']
+    search_fields = ['title', 'user__username', 'project__name']
+    readonly_fields = ['user', 'project', 'title', 'run_id', 'run_status', 'run_heartbeat_at']
 
     def get_queryset(self, request):
         return super().get_queryset(request) \
