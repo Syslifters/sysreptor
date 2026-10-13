@@ -448,11 +448,6 @@ export type AiAgentStoreState = {
     abortController?: AbortController;
     reconnectTimer?: ReturnType<typeof setTimeout>|null;
   }|null;
-  changesState: {
-    sessionStartIndex: number;
-    historyReady: boolean;
-    acceptedUpTo: Record<string, string>;
-  };
 }
 
 function truncateChatTitle(text: string, maxLength: number = 80): string {
@@ -473,11 +468,6 @@ function createEmptyAiAgentStoreState(partial?: Partial<AiAgentStoreState>): AiA
     error: null,
     run: null,
     currentRequest: null,
-    changesState: {
-      sessionStartIndex: 0,
-      historyReady: false,
-      acceptedUpTo: {},
-    },
     ...partial,
   };
 }
@@ -637,40 +627,34 @@ export function useAiAgentChat(options: {
     [key: string]: any;
   };
 }) {
+  const aiSettings = useAiSettings();
   const inProgress = computed(() => !!options.storeState.currentRequest || !!options.storeState.run);
-  const changesState = computed(() => options.storeState.changesState);
-  const currentSessionMessages = computed(() => options.storeState.messageHistory.slice(changesState.value.sessionStartIndex));
   const draftMessage = computed({
     get: () => options.storeState.draftMessage,
     set: (value: string) => { options.storeState.draftMessage = value; },
   });
 
-  function initChangesSession() {
-    if (!changesState.value.historyReady) {
-      // Only track changes made after history load (this browser session).
-      changesState.value.sessionStartIndex = options.storeState.messageHistory.length;
-      changesState.value.historyReady = true;
-    }
-  }
-
   function acceptChange(filePath: string) {
-    const latestTimestamp = getLatestWriteToolTimestamp(currentSessionMessages.value, filePath);
+    const threadId = options.storeState.threadId;
+    const entityId = parseProjectFilePath(filePath)?.id;
+    if (!threadId || !entityId) {
+      return;
+    }
+    const latestTimestamp = getLatestWriteToolTimestamp(options.storeState.messageHistory, filePath);
     if (!latestTimestamp) {
       return;
     }
-    changesState.value.acceptedUpTo = {
-      ...changesState.value.acceptedUpTo,
-      [filePath]: latestTimestamp,
-    };
+    aiSettings.acceptChangesUpTo(threadId, entityId, latestTimestamp);
   }
 
   const changedFiles = computed(() => {
-    if (!changesState.value.historyReady) {
+    const threadId = options.storeState.threadId;
+    if (!threadId) {
       return [];
     }
     return buildChangedFiles(
-      currentSessionMessages.value,
-      changesState.value.acceptedUpTo,
+      options.storeState.messageHistory,
+      aiSettings.getAcceptedChangesUpTo(threadId),
     );
   });
 
@@ -732,7 +716,6 @@ export function useAiAgentChat(options: {
   async function refresh() {
     const s = options.storeState;
     if (!s.threadId) {
-      initChangesSession();
       return;
     }
     if (s.currentRequest?.abortController) {
@@ -771,7 +754,6 @@ export function useAiAgentChat(options: {
     } catch {
       // ignore errors (e.g. thread deleted)
     }
-    initChangesSession();
   }
 
   async function startRun(body: Record<string, any>) {
@@ -1073,7 +1055,8 @@ export function buildChangedFiles(
       return;
     }
     const filePath = getToolFilePath(tool)!;
-    const acceptedUntil = acceptedUpTo[filePath];
+    const entityId = parseProjectFilePath(filePath)?.id;
+    const acceptedUntil = entityId ? acceptedUpTo[entityId] : undefined;
     if (acceptedUntil && tool.timestamp <= acceptedUntil) {
       return;
     }
