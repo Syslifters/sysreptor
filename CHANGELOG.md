@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Fix `update.sh` so a failed container start is retried on the next run
 * Fix duplicate module check in plugin loader
 * Prevent changing the design of readonly projects
 * Prevent updating shared root note title

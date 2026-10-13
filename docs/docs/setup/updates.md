@@ -30,6 +30,8 @@ bash sysreptor/update.sh --backup
 
 Please make sure to monitor your disk space and clean up old backups, as automatic backups might increase disk usage significantly.
 
+If the new containers fail to start, `update.sh` keeps the updated directory and the new `SYSREPTOR_VERSION` in `deploy/.env`. It writes the previous version to `deploy/.update-incomplete`, leaves the previous Docker images in place, and exits with an error. Run the script again after fixing the cause, for example after freeing disk space. The daily cron entry below does that on its next run. While `deploy/.update-incomplete` is present and no newer release is available, the script only retries `docker compose up -d`. That retry skips the download, the directory replacement, `post_update.sh`, and `--backup`. Previous images are removed after the containers start. A newer release is downloaded and installed as usual.
+
 == Manual update
 
 Download and extract the latest SysReptor release:

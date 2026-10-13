@@ -106,6 +106,30 @@ if [ "$version" != "$OLD_SYSREPTOR_VERSION" ]
 then
     echo "Found newer version $version"
 else
+    if [ -f "$script_location/deploy/.update-incomplete" ]
+    then
+        # The new version is already in place; only the container start failed.
+        source "$script_location/deploy/.update-incomplete"
+        echo "Launching SysReptor via docker compose..."
+        echo "Downloading the Docker images may take a few minutes."
+        if
+            cd "$script_location/deploy"
+            source .env
+            export SYSREPTOR_VERSION
+            ! docker compose up -d
+        then
+            echo "Ups. Something did not work while building and launching your containers."
+            exit -8
+        fi
+        echo "Cleaning up your old docker images..."
+        for image in $DOCKER_HUB_IMAGE $DOCKER_HUB_LANGUAGETOOL_IMAGE; do
+            docker rmi "$image:$PREVIOUS_SYSREPTOR_VERSION" 2>/dev/null || true
+        done
+        rm -f "$script_location/deploy/.update-incomplete"
+        echo "Nice. Successfully updated."
+        echo "Easy peasy lemon squeezy."
+        exit 0
+    fi
     echo "The latest SysReptor version is already installed."
     exit 0
 fi
@@ -188,6 +212,9 @@ if
     ! docker compose up -d
 then
     echo "Ups. Something did not work while building and launching your containers."
+    # Leave the new tree in place. error_cleanup would restore the pre-upgrade directory.
+    echo "PREVIOUS_SYSREPTOR_VERSION=${OLD_SYSREPTOR_VERSION}" > "$script_location/deploy/.update-incomplete"
+    exit -8
 fi
 
 echo "Cleaning up your old docker images..."
