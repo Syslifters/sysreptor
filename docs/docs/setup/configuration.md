@@ -215,13 +215,17 @@ SECURE_SSL_REDIRECT=on
 ```
 
 ### Proxy Server
-Set the proxy variables `HTTP_PROXY`, `HTTPS_PROXY` and `NO_PROXY` to allow outbound connections using a proxy server.
+Configure outbound proxy settings in `deploy/.env`. Docker Compose passes them into the containers as `HTTP_PROXY`, `HTTPS_PROXY`, and `NO_PROXY`.
 
-```dotenv title="Example:"
-HTTP_PROXY="http://192.168.0.111:8080"
-HTTPS_PROXY="http://192.168.0.111:8080"
+```dotenv title="Example (deploy/.env):"
+SYSREPTOR_HTTP_PROXY=http://192.168.0.111:8080
+SYSREPTOR_HTTPS_PROXY=http://192.168.0.111:8080
+SYSREPTOR_NO_PROXY=localhost,127.0.0.1,languagetool
 ```
 
+`SYSREPTOR_NO_PROXY` replaces any host `NO_PROXY` fallback, so it must list every host that should be reached directly (not via the proxy).
+Include `languagetool` so spell check can reach the LanguageTool container. Add any other internal HTTP hostnames (for example a custom container).
+Keep `localhost` and `127.0.0.1` so in-container requests are not proxied.
 
 ::: info The proxy server must be reachable from container
 
