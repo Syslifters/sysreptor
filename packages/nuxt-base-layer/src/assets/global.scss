@@ -38,6 +38,12 @@ body {
   // opacity=0 prevents Bitwarden from auto-filling fields
   opacity: 1;
 }
+.v-btn--icon {
+  overflow: visible;
+  .v-btn__overlay, .v-btn__underlay {
+    border-radius: inherit;
+  }
+}
 
 
 // CodeMirror overrides
