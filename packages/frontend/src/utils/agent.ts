@@ -1,4 +1,4 @@
-import type { PentestFinding, ProjectNote, ReportSection } from '#imports';
+import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from '#imports';
 
 export enum MessageRole {
   USER = 'user',
@@ -321,27 +321,31 @@ export function applyStreamEvent(
     const snapshotIds = new Set(snapshotMessages.map(m => m.id));
     // Keep a trailing optimistic user message not yet in the checkpoint
     const last = messageHistory[messageHistory.length - 1];
+    const lastSnapshotUser = [...snapshotMessages].reverse().find(m => m.role === MessageRole.USER);
     const trailing = (
-      last?.role === MessageRole.USER && !snapshotIds.has(last.id)
+      last?.role === MessageRole.USER
+      && !snapshotIds.has(last.id)
+      && lastSnapshotUser?.text !== last.text
     ) ? [last] : [];
     messageHistory.splice(0, messageHistory.length, ...snapshotMessages, ...trailing);
     state.interrupts = data.content.interrupts || [];
   } else if (data.type === StreamEventType.TEXT) {
     // Reconcile optimistic local user message (same text, different id)
-    if (
-      data.content.role === MessageRole.USER
-      && !data.subagent
-      && !messageHistory.some(m => m.id === data.content.id)
-    ) {
+    if (data.content.role === MessageRole.USER && !data.subagent) {
       const last = messageHistory[messageHistory.length - 1];
       if (
         last?.role === MessageRole.USER
         && last.text === data.content.text
         && last.id !== data.content.id
       ) {
-        last.id = data.content.id;
-        if (data.content.timestamp) {
-          last.timestamp = data.content.timestamp;
+        if (messageHistory.some(m => m.id === data.content.id)) {
+          // Server message already present (e.g. from snapshot); drop optimistic duplicate
+          messageHistory.pop();
+        } else {
+          last.id = data.content.id;
+          if (data.content.timestamp) {
+            last.timestamp = data.content.timestamp;
+          }
         }
         return false;
       }
@@ -433,6 +437,8 @@ export async function submitMessageStreamed(options: {
 
 export type AiAgentStoreState = {
   threadId: string|null;
+  title: string;
+  draftMessage: string;
   messageHistory: ChatHistoryEntry[];
   interrupts: ChatInterrupt[];
   error: string|null;
@@ -449,6 +455,180 @@ export type AiAgentStoreState = {
   };
 }
 
+function truncateChatTitle(text: string, maxLength: number = 80): string {
+  const collapsed = (text || '').trim().replace(/\s+/g, ' ');
+  if (collapsed.length <= maxLength) {
+    return collapsed;
+  }
+  return collapsed.slice(0, maxLength - 1).replace(/\s+$/, '') + '…';
+}
+
+function createEmptyAiAgentStoreState(partial?: Partial<AiAgentStoreState>): AiAgentStoreState {
+  return {
+    threadId: null,
+    title: '',
+    draftMessage: '',
+    messageHistory: [],
+    interrupts: [],
+    error: null,
+    run: null,
+    currentRequest: null,
+    changesState: {
+      sessionStartIndex: 0,
+      historyReady: false,
+      acceptedUpTo: {},
+    },
+    ...partial,
+  };
+}
+
+export type AiChatTab = {
+  id: string;
+  threadId: string|null;
+};
+
+export type AiChatTabsState = {
+  tabs: AiChatTab[];
+  activeTabId: string|null;
+};
+
+const sessionTabsByProject = reactive<Record<string, AiChatTabsState>>({});
+
+function abortAiAgentRequest(state?: AiAgentStoreState|null) {
+  if (!state?.currentRequest) {
+    return;
+  }
+  if (state.currentRequest.reconnectTimer) {
+    clearTimeout(state.currentRequest.reconnectTimer);
+  }
+  state.currentRequest.abortController?.abort();
+  state.currentRequest = null;
+}
+
+function getPersistedThreadIds(projectId: string): string[] {
+  return useAiSettings().getOpenTabs(projectId);
+}
+
+function persistThreadIds(projectId: string) {
+  const threadIds = (sessionTabsByProject[projectId]?.tabs || [])
+    .map(t => t.threadId)
+    .filter((id): id is string => !!id);
+  useAiSettings().setOpenTabs(projectId, threadIds);
+}
+
+function getAiChatTabs(projectId: string): AiChatTabsState {
+  if (!sessionTabsByProject[projectId]) {
+    const tabs: AiChatTab[] = getPersistedThreadIds(projectId).map(threadId => ({
+      id: uuidv4(),
+      threadId,
+    }));
+    if (tabs.length === 0) {
+      tabs.push({ id: uuidv4(), threadId: null });
+    }
+    sessionTabsByProject[projectId] = {
+      tabs,
+      activeTabId: tabs[0]!.id,
+    };
+    for (const tab of tabs) {
+      ensureAiThreadState(projectId, tab.id, { threadId: tab.threadId });
+    }
+  }
+  return sessionTabsByProject[projectId]!;
+}
+
+function ensureAiThreadState(projectId: string, tabId: string, partial?: Partial<AiAgentStoreState>) {
+  const projectStore = useProjectStore();
+  projectStore.ensureExists(projectId);
+  const threads = projectStore.data[projectId]!.aiAgentThreads;
+  if (!threads[tabId]) {
+    threads[tabId] = createEmptyAiAgentStoreState(partial);
+  }
+  return threads[tabId]!;
+}
+
+export function useProjectAiChatTabs(projectId: string) {
+  const projectStore = useProjectStore();
+  const tabsState = getAiChatTabs(projectId);
+
+  function open(opts: { threadId?: string|null; title?: string } = {}) {
+    if (opts.threadId) {
+      const existing = tabsState.tabs.find(t => t.threadId === opts.threadId);
+      if (existing) {
+        tabsState.activeTabId = existing.id;
+        return existing;
+      }
+    }
+    const newTab: AiChatTab = {
+      id: uuidv4(),
+      threadId: opts.threadId ?? null,
+    };
+    tabsState.tabs.push(newTab);
+    tabsState.activeTabId = newTab.id;
+    ensureAiThreadState(projectId, newTab.id, {
+      threadId: newTab.threadId,
+      title: opts.title || '',
+    });
+    if (newTab.threadId) {
+      persistThreadIds(projectId);
+    }
+    return newTab;
+  }
+
+  function close(tabId: string): boolean {
+    const idx = tabsState.tabs.findIndex(t => t.id === tabId);
+    if (idx < 0) {
+      return tabsState.tabs.length === 0;
+    }
+    abortAiAgentRequest(projectStore.data[projectId]?.aiAgentThreads[tabId]);
+    delete projectStore.data[projectId]!.aiAgentThreads[tabId];
+    tabsState.tabs.splice(idx, 1);
+    persistThreadIds(projectId);
+    if (tabsState.tabs.length === 0) {
+      tabsState.activeTabId = null;
+      return true;
+    }
+    if (tabsState.activeTabId === tabId) {
+      tabsState.activeTabId = tabsState.tabs[Math.max(0, idx - 1)]!.id;
+    }
+    return false;
+  }
+
+  function closeByThreadId(threadId: string): boolean {
+    for (const tab of [...tabsState.tabs]) {
+      if (tab.threadId === threadId) {
+        close(tab.id);
+      }
+    }
+    return tabsState.tabs.length === 0;
+  }
+
+  function select(tabId: string) {
+    if (tabsState.tabs.some(t => t.id === tabId)) {
+      tabsState.activeTabId = tabId;
+    }
+  }
+
+  function detachAll() {
+    for (const state of Object.values(projectStore.data[projectId]?.aiAgentThreads || {})) {
+      abortAiAgentRequest(state);
+    }
+  }
+
+  // Reopening the sidebar after the last tab was closed needs a blank tab
+  if (tabsState.tabs.length === 0) {
+    open();
+  }
+
+  return {
+    tabsState: computed(() => getAiChatTabs(projectId)),
+    open,
+    close,
+    closeByThreadId,
+    select,
+    detachAll,
+    ensureThread: (tabId: string, partial?: Partial<AiAgentStoreState>) => ensureAiThreadState(projectId, tabId, partial),
+  };
+}
 
 export function useAiAgentChat(options: {
   storeState: AiAgentStoreState;
@@ -456,11 +636,14 @@ export function useAiAgentChat(options: {
     agent: string,
     [key: string]: any;
   };
-  threadId?: string;
 }) {
   const inProgress = computed(() => !!options.storeState.currentRequest || !!options.storeState.run);
   const changesState = computed(() => options.storeState.changesState);
   const currentSessionMessages = computed(() => options.storeState.messageHistory.slice(changesState.value.sessionStartIndex));
+  const draftMessage = computed({
+    get: () => options.storeState.draftMessage,
+    set: (value: string) => { options.storeState.draftMessage = value; },
+  });
 
   function initChangesSession() {
     if (!changesState.value.historyReady) {
@@ -468,12 +651,6 @@ export function useAiAgentChat(options: {
       changesState.value.sessionStartIndex = options.storeState.messageHistory.length;
       changesState.value.historyReady = true;
     }
-  }
-
-  function resetChanges() {
-    changesState.value.sessionStartIndex = 0;
-    changesState.value.historyReady = true;
-    changesState.value.acceptedUpTo = {};
   }
 
   function acceptChange(filePath: string) {
@@ -552,47 +729,47 @@ export function useAiAgentChat(options: {
     }
   }
 
-  async function loadHistory(params: Record<string, any>, opts?: { force?: boolean }) {
+  async function refresh() {
     const s = options.storeState;
-    if (s.threadId && !opts?.force) {
-      // Already loaded
-      if (s.run && !s.currentRequest) {
-        void attachToRun(s.threadId, s.run.id);
-      }
+    if (!s.threadId) {
       initChangesSession();
       return;
     }
+    if (s.currentRequest?.abortController) {
+      // Live SSE keeps this tab up to date
+      return;
+    }
 
+    const threadId = s.threadId;
     try {
-      const url = s.threadId
-        ? `/api/v1/utils/chat/${s.threadId}/`
-        : `/api/v1/utils/chat/latest/`;
-      const promise = $fetch<{
+      const response = await $fetch<{
         id: string;
+        title?: string;
         messages: ChatHistoryEntry[];
         interrupts?: ChatInterrupt[];
         run_id?: string|null;
         run_status?: string|null;
-      }>(url, { method: 'GET', params });
-      s.currentRequest = { promise };
-      const response = await promise;
+      }>(`/api/v1/utils/chat/${threadId}/`, { method: 'GET' });
+
+      // Ignore stale response if a send/attach started while fetching
+      if (s.threadId !== threadId || s.currentRequest?.abortController) {
+        return;
+      }
+
       s.threadId = response.id;
+      s.title = response.title || s.title;
       s.messageHistory = response.messages;
       s.interrupts = response.interrupts ?? [];
+      s.error = null;
 
       if (response.run_status === 'running' && response.run_id) {
         s.run = { id: response.run_id };
-        s.currentRequest = null;
         void attachToRun(response.id, response.run_id);
       } else {
         s.run = null;
       }
     } catch {
-      // ignore errors (e.g. no latest thread)
-    } finally {
-      if (s.currentRequest && !s.run) {
-        s.currentRequest = null;
-      }
+      // ignore errors (e.g. thread deleted)
     }
     initChangesSession();
   }
@@ -616,7 +793,7 @@ export function useAiAgentChat(options: {
       if (isRequestAborted(error)) {
         return 'aborted';
       }
-      s.error = formatRequestError({ error, message: 'AI chat request failed' }) || 'Unexpected error';
+      s.error = formatRequestError({ error, message: 'Agent request failed' }) || 'Unexpected error';
       return 'error';
     }
   }
@@ -630,6 +807,10 @@ export function useAiAgentChat(options: {
     // User chose to send a new message instead of answering pending questions.
     options.storeState.interrupts = [];
     options.storeState.error = null;
+
+    if (!options.storeState.threadId && !options.storeState.title) {
+      options.storeState.title = truncateChatTitle(message);
+    }
 
     const messageId = uuidv4();
     options.storeState.messageHistory.push({
@@ -695,21 +876,11 @@ export function useAiAgentChat(options: {
     }
     s.run = null;
   }
-  onUnmounted(() => detach());
-
-  function reset() {
-    void cancel().finally(() => {
-      options.storeState.threadId = null;
-      options.storeState.messageHistory = [];
-      options.storeState.interrupts = [];
-      options.storeState.error = null;
-      options.storeState.run = null;
-      resetChanges();
-    });
-  }
 
   return {
     threadId: computed(() => options.storeState.threadId),
+    title: computed(() => options.storeState.title),
+    draftMessage,
     messageHistory: computed(() => options.storeState.messageHistory),
     interrupts: computed(() => options.storeState.interrupts),
     error: computed(() => options.storeState.error),
@@ -717,12 +888,39 @@ export function useAiAgentChat(options: {
     inProgress,
     submitMessage,
     resume,
-    loadHistory,
-    reset,
+    refresh,
     cancel,
     detach,
     acceptChange,
   }
+}
+
+export function useProjectAiChatTab(options: {
+  project: MaybeRefOrGetter<PentestProject>;
+  tabId: MaybeRefOrGetter<string>;
+}) {
+  const project = toValue(options.project);
+  const tabId = toValue(options.tabId);
+  const storeState = ensureAiThreadState(project.id, tabId);
+
+  watch(() => storeState.threadId, (threadId) => {
+    if (!threadId) {
+      return;
+    }
+    const tab = getAiChatTabs(project.id).tabs.find(t => t.id === tabId);
+    if (tab && tab.threadId !== threadId) {
+      tab.threadId = threadId;
+      persistThreadIds(project.id);
+    }
+  });
+
+  return useAiAgentChat({
+    storeState,
+    body: {
+      agent: 'project_ask',
+      project: project.id,
+    },
+  });
 }
 
 
@@ -844,7 +1042,7 @@ function isSuccessfulWriteTool(tool: ToolCall): boolean {
     && !!getToolFilePath(tool);
 }
 
-export function getLatestWriteToolTimestamp(
+function getLatestWriteToolTimestamp(
   messages: readonly ChatHistoryEntry[],
   filePath: string,
 ): string | null {

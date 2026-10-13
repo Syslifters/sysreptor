@@ -1,7 +1,8 @@
 import { orderBy, pick, set, isObject, isEqual, sortBy } from "lodash-es";
 import { groupNotes } from "@base/utils/notes";
 import { sortComments } from '~/utils/comments';
-import { useCollabSubpaths, collabSubpath, type CollabPropType, type Comment, type CommentAnswer, type CommentStatus, type PentestFinding, type PentestProject, type ProjectNote, type ProjectType, type ReportSection, type AiAgentStoreState, ReportingSidebarType } from "#imports";
+import type { AiAgentStoreState } from '@/utils/agent';
+import { useCollabSubpaths, collabSubpath, type CollabPropType, type Comment, type CommentAnswer, type CommentStatus, type PentestFinding, type PentestProject, type ProjectNote, type ProjectType, type ReportSection, ReportingSidebarType } from "#imports";
 
 export function useFindingFieldValueSuggestions(findings: MaybeRefOrGetter<Record<string, PentestFinding>>, projectType: MaybeRefOrGetter<ProjectType>) {
   const findingsRef = toRef(findings);
@@ -64,7 +65,7 @@ export const useProjectStore = defineStore('project', {
         sections: Record<string, ReportSection>, 
         comments: Record<string, Comment>,
       }>,
-      aiAgentState: AiAgentStoreState,
+      aiAgentThreads: Record<string, AiAgentStoreState>,
     }>,
   }),
   getters: {
@@ -177,19 +178,7 @@ export const useProjectStore = defineStore('project', {
               }
             }
           }),
-          aiAgentState: {
-            threadId: null,
-            messageHistory: [],
-            interrupts: [],
-            error: null,
-            run: null,
-            currentRequest: null,
-            changesState: {
-              sessionStartIndex: 0,
-              historyReady: false,
-              acceptedUpTo: {},
-            },
-          } as AiAgentStoreState,
+          aiAgentThreads: {} as Record<string, AiAgentStoreState>,
           ...(initialStoreData || {})
         }
       }
@@ -507,26 +496,5 @@ export const useProjectStore = defineStore('project', {
         onAiPrefillField,
       };
     },
-    useReportingAgent(options: { project: MaybeRefOrGetter<PentestProject> }) {
-      const project = toValue(options.project);
-      this.ensureExists(project.id);
-      
-      const agent = useAiAgentChat({
-        storeState: this.data[project.id]!.aiAgentState,
-        body: {
-          agent: 'project_ask',
-          project: project.id,
-        },
-      });
-
-      async function loadHistory() {
-        return await agent.loadHistory({ project: project.id });
-      }
-
-      return {
-        ...agent,
-        loadHistory,
-      }
-    }
   },
 })
