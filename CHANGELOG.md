@@ -4,6 +4,7 @@
 * Fix duplicate module check in plugin loader
 * Prevent changing the design of readonly projects
 * Prevent updating shared root note title
+* UI: Fix overflowing icons and badges cut off inside buttons
 
 
 ## v2026.86 - 2026-10-07
