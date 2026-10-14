@@ -1,6 +1,6 @@
 # Changelog
 
-## Upcoming
+## 2026.89 - 2026-10-14
 * Fix duplicate module check in plugin loader
 * Prevent changing the design of readonly projects
 * Prevent updating shared root note title
