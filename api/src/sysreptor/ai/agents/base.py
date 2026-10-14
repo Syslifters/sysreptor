@@ -217,8 +217,9 @@ def format_message(m: AnyMessage) -> dict|None:
                 'id': m.tool_call_id,
                 'name': m.name,
                 'status': m.status,
-                'content': m.content,
-                **copy_keys(m.additional_kwargs or {}, ['timestamp', 'output']),
+                'timestamp': m.additional_kwargs.get('timestamp'),
+                'output': m.additional_kwargs.get('output') or (m.content if m.name in ['task', 'analyze_image'] else None),
+                **copy_keys(m.additional_kwargs or {}, ['output']),
             },
         }
     return None

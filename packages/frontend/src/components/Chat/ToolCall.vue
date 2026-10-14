@@ -217,8 +217,8 @@ const subagentDisplayMessages = computed(() => {
   }
   if (toolCall.subagentMessages?.length) {
     out.push(...toolCall.subagentMessages);
-  } else if (toolCall.content) {
-    out.push({ id: `${toolCall.id}-content`, role: MessageRole.ASSISTANT, text: toolCall.content });
+  } else if (toolCall.output) {
+    out.push({ id: `${toolCall.id}-output`, role: MessageRole.ASSISTANT, text: toolCall.output });
   }
   return out;
 });
