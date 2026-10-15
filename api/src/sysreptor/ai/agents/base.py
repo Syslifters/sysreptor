@@ -7,7 +7,7 @@ from decouple import config
 from deepagents._tools import _apply_tool_description_overrides
 from deepagents.backends import StateBackend
 from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
-from deepagents.middleware.subagents import GENERAL_PURPOSE_SUBAGENT, SubAgentMiddleware
+from deepagents.middleware.subagents import GENERAL_PURPOSE_SUBAGENT
 from deepagents.middleware.summarization import create_summarization_middleware
 from deepagents.profiles import GeneralPurposeSubagentProfile
 from deepagents.profiles.harness.harness_profiles import (
@@ -33,10 +33,12 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
 from sysreptor.ai.agents.middleware import (
+    CustomSubagentMiddleware,
     MergeConsecutiveMessagesMiddleware,
     MessageTimestampMiddleware,
     SelectConfiguredModelMiddleware,
     stamp_message_timestamp,
+    subagent_checkpoint_ns,
 )
 from sysreptor.ai.models import AgentRunStatus, ChatThread, LangchainCheckpoint
 from sysreptor.utils.configuration import configuration
@@ -180,7 +182,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         system_prompt=system_prompt + '\n\n' + _apply_profile_prompt(profile, ''),
         tools=tools,
         middleware=middleware + [
-            SubAgentMiddleware(backend=backend, subagents=subagents),
+            CustomSubagentMiddleware(backend=backend, subagents=subagents),
         ],
         checkpointer=DjangoModelCheckpointer(),
         **kwargs,
@@ -337,7 +339,6 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                                         'id': c.tool_call_id,
                                         'name': c.name,
                                         'status': c.status,
-                                        'content': c.content,
                                         **copy_keys(c.additional_kwargs or {}, ['timestamp', 'output']),
                                     },
                                     **meta,
@@ -362,27 +363,7 @@ def covered_ids_from_messages(messages: list) -> list[str]:
     return list(covered)
 
 
-def get_chat_history(agent, thread: ChatThread, *, include_pending_tools: bool | None = None):
-    thread_exists = LangchainCheckpoint.objects \
-        .filter(thread=thread) \
-        .exists()
-    if not thread_exists:
-        return {
-            'id': thread.id,
-            'project': thread.project_id,
-            'messages': [],
-            'interrupts': [],
-            'covered': [],
-        }
-
-    state = agent.get_state(config={'configurable': {'thread_id': str(thread.id)}})
-    raw_messages = state.values.get('messages', [])
-    covered = covered_ids_from_messages(raw_messages)
-
-    if include_pending_tools is None:
-        include_pending_tools = (thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED])
-    pending_status = 'pending' if thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED] else 'error'
-
+def format_history_messages(raw_messages: list, include_pending_tools=False, pending_status='error') -> list[dict]:
     messages = []
     tool_calls = []
     finished_tool_calls = {m.tool_call_id for m in raw_messages if isinstance(m, ToolMessage) and m.tool_call_id}
@@ -416,9 +397,53 @@ def get_chat_history(agent, thread: ChatThread, *, include_pending_tools: bool |
                         'args': tc.get('args') or {},
                         'status': pending_status,
                         'output': None,
-                        **({'content': 'Tool call did not complete'} if pending_status == 'error' else {}),
+                        **({'content': 'Error: Tool call did not complete'} if pending_status == 'error' else {}),
                     },
                 })
+    return messages
+
+
+def get_chat_history(agent, thread: ChatThread, *, include_pending_tools: bool | None = None):
+    thread_exists = LangchainCheckpoint.objects \
+        .filter(thread=thread) \
+        .exists()
+    if not thread_exists:
+        return {
+            'id': thread.id,
+            'project': thread.project_id,
+            'messages': [],
+            'interrupts': [],
+            'covered': [],
+        }
+
+    state = agent.get_state(config={'configurable': {'thread_id': str(thread.id)}})
+    raw_messages = state.values.get('messages', [])
+    covered = covered_ids_from_messages(raw_messages)
+
+    if include_pending_tools is None:
+        include_pending_tools = (thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED])
+    pending_status = 'pending' if thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED] else 'error'
+
+    messages = format_history_messages(raw_messages, include_pending_tools=include_pending_tools, pending_status=pending_status)
+
+    # Nest task-tool subagent histories (deterministic checkpoint_ns; analyze_image is not hydrated).
+    task_tools = [
+        m for m in messages
+        if m.get('role') == 'tool'
+        and (m.get('tool_call') or {}).get('name') == 'task'
+        and (m.get('tool_call') or {}).get('id')
+    ]
+    if task_tools:
+        ns_by_tool_id = {
+            tc['id']: subagent_checkpoint_ns((tc.get('args') or {}).get('subagent_type') or 'general-purpose', tc['id'])
+            for m in task_tools
+            if (tc := m['tool_call'])
+        }
+        namespaces_values = agent.checkpointer.get_values_by_namespaces(str(thread.id), list(ns_by_tool_id.values()))
+        for m in task_tools:
+            tc = m['tool_call']
+            if raw_messages := namespaces_values.get(ns_by_tool_id[tc['id']], {}).get('messages'):
+                tc['subagentMessages'] = format_history_messages(raw_messages)
 
     return {
         'id': thread.id,
