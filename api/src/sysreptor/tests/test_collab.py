@@ -229,6 +229,17 @@ class TestTextTransformations:
         assert c2.apply(text_after) == text_before
         c2.to_dict()
 
+    @pytest.mark.parametrize('changes', [
+        [5, [-5, 'ZZZZZ'], 10],  # negative delete length (would corrupt via slice)
+        [-1, [0, 'x'], 11],  # negative retain length
+        [5, [-1], 6],  # negative delete without insert
+        [[-3, 'abc'], 10],  # negative delete at start
+        [-10],  # negative retain only
+    ])
+    def test_reject_negative_change_lengths(self, changes):
+        with pytest.raises(ValueError, match='Invalid change'):
+            ChangeSet.from_dict(changes)
+
 
 @contextlib.asynccontextmanager
 async def ws_connect(path, user, consume_init=True, other_clients=None):

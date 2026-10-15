@@ -54,7 +54,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'scope', 'is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
             'is_mfa_enabled', 'has_password', 'can_login_local', 'can_login_sso',
         ]
-        read_only_fields = ['is_system_user']
+        read_only_fields = ['last_login', 'is_system_user']
 
     def get_is_mfa_enabled(self, obj) -> bool:
         if (is_mfa_enabled := getattr(obj, 'is_mfa_enabled', None)) is not None:
