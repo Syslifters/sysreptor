@@ -36,7 +36,7 @@ When all guest permissions are enabled, guest users are equivalent to regular us
 * edit projects (default: yes) - read-write access to projects they are assigned to
 * update project settings (default: yes) - update project settings like name, design, members, does not affect project content like findings, sections, notes
 * delete projects (default: yes)
-* see all users (default: no) - see all users on the SysReptor instance or only users working in the same projects as guest users
+* see all users (default: no) - see all users on the SysReptor instance, when disabled only users working in the same projects are listed (including their user attributes like id, name, email, etc.)
 * share notes (default: no) - create and manage note sharing links, including approving pending share assets
 
 Configure your installation by adding the following settings to your [application settings](/setup/configuration#guest-user-permissions):
