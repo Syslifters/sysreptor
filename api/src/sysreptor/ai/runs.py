@@ -73,10 +73,14 @@ class PendingEventBuffer:
         self._events[key] = event
 
     def apply(self, event: dict) -> None:
-        if event.get('type') == 'text':
-            self._apply_text(event)
-        elif key := self._key(event):
-            self._put(key, self._copy(event))
+        match event.get('type'):
+            case 'text':
+                self._apply_text(event)
+            case 'tool_call_status':
+                self._apply_tool_call_status(event)
+            case _:
+                if key := self._key(event):
+                    self._put(key, self._copy(event))
 
     def _apply_text(self, event: dict) -> None:
         content = event.get('content') or {}
@@ -90,6 +94,14 @@ class PendingEventBuffer:
         for field in ('text', 'reasoning'):
             if field in content:
                 stored[field] = (stored.get(field) or '') + (content[field] or '')
+
+    def _apply_tool_call_status(self, event: dict) -> None:
+        content = event.get('content') or {}
+        key = self._key({'type': 'tool_call', 'content': {'id': content.get('id')}})
+        if not key or key not in self._events:
+            return
+        content = self._events[key]['content']
+        content.update(event.get('content') or {})
 
     def _emit(self, key: str) -> dict:
         event = self._copy(self._events[key])

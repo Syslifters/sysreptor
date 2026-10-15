@@ -76,7 +76,7 @@
           density="compact"
           flat
           rows="1"
-          max-rows="8"
+          max-rows="5"
           auto-grow
           hide-details="auto"
           spellcheck="false"

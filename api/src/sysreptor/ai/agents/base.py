@@ -274,7 +274,13 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
                         'subagent': None,
                     }
                     if namespace and (src := namespace[0] if isinstance(namespace[0], str) else str(namespace[0])):
-                        if src not in namespace_to_tool_call_id and pending_tool_call_ids:
+                        root_ns = src.split('|', 1)[0]
+                        if root_ns.startswith('subagent:') and root_ns.count(':') >= 2:
+                            parsed_id = root_ns.split(':', 2)[2]
+                            namespace_to_tool_call_id.setdefault(src, parsed_id)
+                            if parsed_id in pending_tool_call_ids:
+                                pending_tool_call_ids.remove(parsed_id)
+                        elif src not in namespace_to_tool_call_id and pending_tool_call_ids:
                             namespace_to_tool_call_id[src] = pending_tool_call_ids.pop(0)
                         meta['subagent'] = namespace_to_tool_call_id.get(src)
 
@@ -363,7 +369,7 @@ def covered_ids_from_messages(messages: list) -> list[str]:
     return list(covered)
 
 
-def format_history_messages(raw_messages: list, include_pending_tools=False, pending_status='error') -> list[dict]:
+def format_history_messages(raw_messages: list, pending_status='error') -> list[dict]:
     messages = []
     tool_calls = []
     finished_tool_calls = {m.tool_call_id for m in raw_messages if isinstance(m, ToolMessage) and m.tool_call_id}
@@ -382,7 +388,7 @@ def format_history_messages(raw_messages: list, include_pending_tools=False, pen
             messages.append(formatted)
 
         # Emit pending/incomplete tool calls that have no ToolMessage yet
-        if include_pending_tools and isinstance(m, AIMessage):
+        if isinstance(m, AIMessage):
             for tc in m.tool_calls:
                 tid = tc.get('id')
                 if not tid or tid in finished_tool_calls:
@@ -397,13 +403,12 @@ def format_history_messages(raw_messages: list, include_pending_tools=False, pen
                         'args': tc.get('args') or {},
                         'status': pending_status,
                         'output': None,
-                        **({'content': 'Error: Tool call did not complete'} if pending_status == 'error' else {}),
                     },
                 })
     return messages
 
 
-def get_chat_history(agent, thread: ChatThread, *, include_pending_tools: bool | None = None):
+def get_chat_history(agent, thread: ChatThread):
     thread_exists = LangchainCheckpoint.objects \
         .filter(thread=thread) \
         .exists()
@@ -420,11 +425,8 @@ def get_chat_history(agent, thread: ChatThread, *, include_pending_tools: bool |
     raw_messages = state.values.get('messages', [])
     covered = covered_ids_from_messages(raw_messages)
 
-    if include_pending_tools is None:
-        include_pending_tools = (thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED])
     pending_status = 'pending' if thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED] else 'error'
-
-    messages = format_history_messages(raw_messages, include_pending_tools=include_pending_tools, pending_status=pending_status)
+    messages = format_history_messages(raw_messages, pending_status=pending_status)
 
     # Nest task-tool subagent histories (deterministic checkpoint_ns; analyze_image is not hydrated).
     task_tools = [
@@ -443,7 +445,7 @@ def get_chat_history(agent, thread: ChatThread, *, include_pending_tools: bool |
         for m in task_tools:
             tc = m['tool_call']
             if raw_messages := namespaces_values.get(ns_by_tool_id[tc['id']], {}).get('messages'):
-                tc['subagentMessages'] = format_history_messages(raw_messages)
+                tc['subagentMessages'] = format_history_messages(raw_messages, pending_status=pending_status)
 
     return {
         'id': thread.id,

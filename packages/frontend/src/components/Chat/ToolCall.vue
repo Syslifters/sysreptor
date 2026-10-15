@@ -206,21 +206,23 @@ const isPendingLine = computed(() =>
   props.isStreaming && !['task', 'analyze_image', 'ask_user'].includes(props.value.name),
 );
 const subagentDisplayMessages = computed(() => {
-  const out = [];
   const toolCall = props.value;
-  const prompt = 
-    toolCall.name === 'task' ? toolCall.args?.description :
-    toolCall.name === 'analyze_image' ? toolCall.args?.prompt :
-    null;
-  if (prompt) {
-    out.push({ id: `${toolCall.id}-prompt`, role: MessageRole.USER, text: prompt });
-  }
   if (toolCall.subagentMessages?.length) {
-    out.push(...toolCall.subagentMessages);
-  } else if (toolCall.output) {
-    out.push({ id: `${toolCall.id}-output`, role: MessageRole.ASSISTANT, text: toolCall.output });
+    return toolCall.subagentMessages;
+  } else {
+    const out = [];
+    const prompt = 
+      toolCall.name === 'task' ? toolCall.args?.description :
+      toolCall.name === 'analyze_image' ? toolCall.args?.prompt :
+      null;
+    if (prompt) {
+      out.push({ id: `${toolCall.id}-prompt`, role: MessageRole.USER, text: prompt });
+    }
+    if (toolCall.output) {
+      out.push({ id: `${toolCall.id}-output`, role: MessageRole.ASSISTANT, text: toolCall.output });
+    }
+    return out;
   }
-  return out;
 });
 const projectFileRef = computed(() => {
   if (!['read_file', 'update_field_value', 'update_markdown_field'].includes(props.value.name)) {
