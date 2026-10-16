@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import time
 from collections.abc import AsyncIterator
 from datetime import timedelta
 from typing import Any
@@ -103,23 +104,23 @@ class PendingEventBuffer:
         content = self._events[key]['content']
         content.update(event.get('content') or {})
 
-    def _emit(self, key: str) -> dict:
-        event = self._copy(self._events[key])
-        if event.get('type') == 'text':
-            event['content'] = {**event['content'], 'replace': True}
-        return event
-
-    def events(self, covered: list | set | None = None) -> list[dict]:
+    def events(self, covered: list|set|None = None, *, replace: bool|None = True) -> list[dict]:
         covered = covered or ()
         out = []
         for key in self._order:
-            event = self._emit(key)
+            event = self._copy(self._events[key])
+            if event.get('type') == 'text' and replace is not None:
+                event['content'] = {**event['content'], 'replace': replace}
             content = event.get('content')
             eid = content.get('id') if isinstance(content, dict) else None
             if eid and eid in covered:
                 continue
             out.append(event)
         return out
+
+    def clear(self) -> None:
+        self._events.clear()
+        self._order.clear()
 
 
 def group_name_stream(run_id: UUID | str) -> str:
@@ -155,6 +156,65 @@ async def send_ai_control(run_id: UUID | str, message: dict) -> None:
         await get_channel_layer().group_send(group_name_control(run_id), message)
     except Exception:
         logger.exception('Failed to send control message for run %s', run_id)
+
+
+async def throttle_ai_stream_events(stream: AsyncIterator[dict], interval=0.5) -> AsyncIterator[dict]:
+    buffer = PendingEventBuffer()
+    last_flush = 0.0
+    aiter = stream.__aiter__()
+    next_event = asyncio.ensure_future(aiter.__anext__())
+
+    def flush() -> list[dict]:
+        nonlocal last_flush
+        events = buffer.events(replace=None)
+        buffer.clear()
+        if events:
+            last_flush = time.monotonic()
+        return events
+
+    def should_flush_immediately(event: dict|None) -> bool:
+        if not event or not isinstance(event, dict):
+            return False
+        content = event.get('content')
+        if isinstance(content, dict) and content.get('replace'):
+            return True
+        if event.get('type') == 'text':
+            return False
+        return True
+
+    try:
+        while True:
+            timeout = None
+            if buffer._events:
+                timeout = max(0.0, interval - (time.monotonic() - last_flush))
+
+            done, _ = await asyncio.wait({next_event}, timeout=timeout)
+            event = None
+            if done:
+                try:
+                    event = next_event.result()
+                    buffer.apply(event)
+                    next_event = asyncio.ensure_future(aiter.__anext__())
+                except StopAsyncIteration:
+                    break
+
+            flush_immediately = should_flush_immediately(event)
+            if not done or flush_immediately or time.monotonic() - last_flush >= interval:
+                for flushed in flush():
+                    yield flushed
+                if flush_immediately:
+                    # Skip timeout for next event (flush on leading edge)
+                    # such that the next event/message starts immediately and is not delayed by the interval.
+                    last_flush = 0.0
+
+        # On exit: drain pending events
+        for event in flush():
+            yield event
+    finally:
+        if not next_event.done():
+            next_event.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await next_event
 
 
 class AgentRunWorker:
@@ -229,13 +289,13 @@ class AgentRunWorker:
         from sysreptor.ai.agents import agent_stream, get_agent
 
         agent_instance = await sync_to_async(get_agent)(self.agent)
-        async for event in agent_stream(
+        async for event in throttle_ai_stream_events(agent_stream(
             agent=agent_instance,
             input=self.input_data,
             thread=self.thread,
             context=self.context,
             model=self.model,
-        ):
+        )):
             etype = event.get('type')
             if etype == 'interrupt':
                 self.result['status'] = AgentRunStatus.INTERRUPTED
