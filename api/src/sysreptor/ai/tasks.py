@@ -1,33 +1,44 @@
 from datetime import timedelta
 from uuid import UUID, uuid4
 
-from django.db.models import Exists, F, OuterRef, Subquery
+from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
 from langchain.messages import HumanMessage
 from langgraph.types import Command
 
 from sysreptor.ai.models import (
+    AgentRunStatus,
     ChatThread,
     LangchainCheckpoint,
     LangchainCheckpointBlob,
     LangchainCheckpointWrite,
 )
-from sysreptor.ai.runs import AgentRunWorker
+from sysreptor.ai.runs import HEARTBEAT_TTL_SECONDS, AgentRunWorker
 from sysreptor.conf.taskiq import background_task
 from sysreptor.tasks.models import PeriodicTaskInfo, periodic_task
+
+
+@periodic_task(id='cleanup_stale_agent_runs', schedule=timedelta(days=1))
+def cleanup_stale_agent_runs(task_info: PeriodicTaskInfo):
+    cutoff = timezone.now() - timedelta(seconds=HEARTBEAT_TTL_SECONDS)
+    ChatThread.objects \
+        .filter(run_status=AgentRunStatus.RUNNING) \
+        .filter(Q(run_heartbeat_at__isnull=True) | Q(run_heartbeat_at__lt=cutoff)) \
+        .update(run_status=AgentRunStatus.ERROR)
 
 
 @periodic_task(id='cleanup_old_langchain_checkpoints', schedule=timedelta(days=1))
 def cleanup_old_langchain_checkpoints(task_info: PeriodicTaskInfo):
     older_than = timezone.now() - timedelta(hours=1)
-    latest_thread_checkpoint = LangchainCheckpoint.objects \
+    latest_ns_checkpoint = LangchainCheckpoint.objects \
         .filter(thread_id=OuterRef('thread_id')) \
+        .filter(checkpoint_ns=OuterRef('checkpoint_ns')) \
         .order_by('-created') \
         .values('pk')[:1]
     checkpoints = LangchainCheckpoint.objects \
         .filter(created__lt=older_than) \
-        .annotate(latest_thread_checkpoint_id=Subquery(latest_thread_checkpoint)) \
-        .exclude(pk=F('latest_thread_checkpoint_id'))
+        .annotate(latest_ns_checkpoint_id=Subquery(latest_ns_checkpoint)) \
+        .exclude(pk=F('latest_ns_checkpoint_id'))
     if last_run := task_info.model.last_success:
         last_run = min(last_run, older_than - timedelta(days=1)) - timedelta(hours=1)
         checkpoints = checkpoints.filter(created__gt=last_run)
@@ -88,6 +99,7 @@ async def run_agent(
     thread = await ChatThread.objects \
         .filter(id=thread_id) \
         .filter(run_id=run_id) \
+        .filter(run_status=AgentRunStatus.RUNNING) \
         .select_related('user', 'project') \
         .afirst()
     if not thread:

@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from langchain.agents import create_agent
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
+from langchain_core.runnables.config import merge_configs
 from langgraph.errors import GraphInterrupt
 from langgraph.types import Command, interrupt
 from pydantic import Field
@@ -23,7 +24,7 @@ from sysreptor.ai.agents.base import (
     init_chat_model,
     to_yaml,
 )
-from sysreptor.ai.agents.middleware import stamp_message_timestamp
+from sysreptor.ai.agents.middleware import stamp_message_timestamp, subagent_checkpoint_ns
 from sysreptor.ai.agents.project import ProjectContext, get_project
 
 
@@ -170,14 +171,21 @@ async def analyze_image(
         return llm, human_message, filename, vision_model_id
 
     llm, human_message, filename, vision_model_id = await prepare()
+    # Nested agent so astream_events assigns a non-empty namespace (like task subagents)
+    if not runtime.tool_call_id:
+        raise ValueError('Tool call ID is required for analyze_image')
+    config = merge_configs(runtime.config, {})
+    config['configurable'] = dict(config.get('configurable') or {}) | {
+        'checkpoint_ns': subagent_checkpoint_ns('analyze_image', runtime.tool_call_id),
+    }
+    config['configurable'].pop('checkpoint_id', None)
     try:
-        # Nested agent so astream_events assigns a non-empty namespace (like task subagents).
         vision_agent = create_agent(
             model=llm,
             system_prompt=system_prompt,
             tools=[],
         )
-        result = await vision_agent.ainvoke({'messages': [human_message]})
+        result = await vision_agent.ainvoke({'messages': [human_message]}, config)
     except Exception as ex:
         logging.exception('analyze_image failed for %s with model %s', filename, vision_model_id)
         detail = format_agent_error(ex).removeprefix('Error: ')
@@ -187,4 +195,4 @@ async def analyze_image(
     output = ((ai_messages[-1].text if ai_messages else '') or '').strip()
     if not output:
         raise ValidationError('Image analysis failed: empty model response.')
-    return output, {'image': filename, 'model': vision_model_id}
+    return output, {'image': filename, 'model': vision_model_id, 'message': output}

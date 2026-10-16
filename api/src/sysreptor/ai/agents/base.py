@@ -220,8 +220,7 @@ def format_message(m: AnyMessage) -> dict|None:
                 'name': m.name,
                 'status': m.status,
                 'timestamp': m.additional_kwargs.get('timestamp'),
-                'output': m.additional_kwargs.get('output') or (m.content if m.name in ['task', 'analyze_image'] else None),
-                **copy_keys(m.additional_kwargs or {}, ['output']),
+                'output': m.additional_kwargs.get('output') or ({'message': m.content} if m.name in ['task'] else {}),
             },
         }
     return None
@@ -359,13 +358,14 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
         raise ex
 
 
-def covered_ids_from_messages(messages: list) -> list[str]:
+def covered_keys_from_messages(messages: list) -> list[str]:
+    """Buffer keys (text:{id} / tool_call:{id}) already present in a history snapshot."""
     covered = set()
     for m in messages:
         if isinstance(m, HumanMessage | AIMessage) and m.id:
-            covered.add(m.id)
+            covered.add(f'text:{m.id}')
         elif isinstance(m, ToolMessage) and m.tool_call_id and m.status != 'pending':
-            covered.add(m.tool_call_id)
+            covered.add(f'tool_call:{m.tool_call_id}')
     return list(covered)
 
 
@@ -423,7 +423,7 @@ def get_chat_history(agent, thread: ChatThread):
 
     state = agent.get_state(config={'configurable': {'thread_id': str(thread.id)}})
     raw_messages = state.values.get('messages', [])
-    covered = covered_ids_from_messages(raw_messages)
+    covered = set(covered_keys_from_messages(raw_messages))
 
     pending_status = 'pending' if thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED] else 'error'
     messages = format_history_messages(raw_messages, pending_status=pending_status)
@@ -437,7 +437,7 @@ def get_chat_history(agent, thread: ChatThread):
     ]
     if task_tools:
         ns_by_tool_id = {
-            tc['id']: subagent_checkpoint_ns((tc.get('args') or {}).get('subagent_type') or 'general-purpose', tc['id'])
+            tc['id']: subagent_checkpoint_ns((tc.get('args') or {}).get('subagent_type'), tc['id'])
             for m in task_tools
             if (tc := m['tool_call'])
         }
@@ -446,11 +446,12 @@ def get_chat_history(agent, thread: ChatThread):
             tc = m['tool_call']
             if raw_messages := namespaces_values.get(ns_by_tool_id[tc['id']], {}).get('messages'):
                 tc['subagentMessages'] = format_history_messages(raw_messages, pending_status=pending_status)
+                covered.update(covered_keys_from_messages(raw_messages))
 
     return {
         'id': thread.id,
         'project': thread.project_id,
         'messages': messages,
         'interrupts': [{'id': i.id, 'value': i.value} for i in state.interrupts],
-        'covered': covered,
+        'covered': list(covered),
     }

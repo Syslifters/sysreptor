@@ -101,7 +101,8 @@ class LLMAgentSerializer(serializers.Serializer):
             raise serializers.ValidationError('Invalid agent type')
 
     async def start(self):
-        from sysreptor.ai.runs import start_run
+        from sysreptor.ai.models import AgentRunStatus
+        from sysreptor.ai.runs import end_run, start_run
         from sysreptor.ai.tasks import run_agent
 
         thread = self.validated_data['thread']
@@ -109,13 +110,17 @@ class LLMAgentSerializer(serializers.Serializer):
         message = messages[0] if messages else None
 
         run_id = await start_run(thread=thread)
-        await run_agent(
-            thread_id=str(thread.id),
-            run_id=str(run_id),
-            agent=self.validated_data['agent'],
-            model=self.validated_data.get('model'),
-            message=message,
-            resume=self.validated_data.get('resume'),
-            context=self.validated_data.get('context') or {},
-        )
+        try:
+            await run_agent(
+                thread_id=str(thread.id),
+                run_id=str(run_id),
+                agent=self.validated_data['agent'],
+                model=self.validated_data.get('model'),
+                message=message,
+                resume=self.validated_data.get('resume'),
+                context=self.validated_data.get('context') or {},
+            )
+        except Exception:
+            await end_run(thread=thread, status=AgentRunStatus.ERROR, error='Failed to enqueue agent run')
+            raise
         return thread.id, run_id

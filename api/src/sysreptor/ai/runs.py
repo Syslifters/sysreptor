@@ -17,9 +17,9 @@ from sysreptor.ai.models import AgentRunStatus, ChatThread
 
 logger = logging.getLogger(__name__)
 
-HEARTBEAT_TTL_SECONDS = 30
-HEARTBEAT_INTERVAL_SECONDS = 5
-KEEPALIVE_INTERVAL_SECONDS = 15
+HEARTBEAT_TTL_SECONDS = 120
+HEARTBEAT_INTERVAL_SECONDS = 15
+KEEPALIVE_INTERVAL_SECONDS = 20
 
 
 class AiEventType:
@@ -90,31 +90,30 @@ class PendingEventBuffer:
             return
         if content.get('replace') or key not in self._events:
             self._put(key, self._copy(event))
-            return
-        stored = self._events[key]['content']
-        for field in ('text', 'reasoning'):
-            if field in content:
-                stored[field] = (stored.get(field) or '') + (content[field] or '')
+        else:
+            stored = self._events[key]['content']
+            for field in ('text', 'reasoning'):
+                if field in content:
+                    stored[field] = (stored.get(field) or '') + (content[field] or '')
 
     def _apply_tool_call_status(self, event: dict) -> None:
         content = event.get('content') or {}
         key = self._key({'type': 'tool_call', 'content': {'id': content.get('id')}})
         if not key or key not in self._events:
-            return
-        content = self._events[key]['content']
-        content.update(event.get('content') or {})
+            self._put(key, self._copy(event))
+        else:
+            content = self._events[key]['content']
+            content.update(event.get('content') or {})
 
     def events(self, covered: list|set|None = None, *, replace: bool|None = True) -> list[dict]:
-        covered = covered or ()
+        covered = set(covered or ())
         out = []
         for key in self._order:
+            if key in covered:
+                continue
             event = self._copy(self._events[key])
             if event.get('type') == 'text' and replace is not None:
                 event['content'] = {**event['content'], 'replace': replace}
-            content = event.get('content')
-            eid = content.get('id') if isinstance(content, dict) else None
-            if eid and eid in covered:
-                continue
             out.append(event)
         return out
 
@@ -256,6 +255,7 @@ class AgentRunWorker:
                 'status': AgentRunStatus.ERROR,
                 'error': error_reason or 'Agent aborted',
             }
+            raise
         except Exception:
             logger.exception('Agent run failed')
             self.result = {
@@ -318,11 +318,10 @@ class AgentRunWorker:
             try:
                 current = await ChatThread.objects \
                     .filter(id=self.thread.id) \
+                    .filter(run_id=self.run_id) \
+                    .filter(run_status=AgentRunStatus.RUNNING) \
                     .afirst()
-                if current is None:
-                    agent_task.cancel()
-                    return 'thread deleted'
-                if current.run_id != self.run_id or current.run_status != AgentRunStatus.RUNNING:
+                if not current:
                     # Cancel or stale-marking already published run_status
                     agent_task.cancel()
                     return None
@@ -360,16 +359,11 @@ class AgentRunWorker:
         await handler(message)
 
     async def ai_sync(self, message: dict) -> None:
-        # Filter with the subscriber's snapshot covered set (no second history load).
-        reply_channel = message.get('reply_channel')
+        # Filter with the subscriber's snapshot covered set (no second history load)
         async with self.lock:
-            events = self.pending.events(message.get('covered'))
-
-        for ev in events:
-            if reply_channel:
-                await send_ai_stream_event_to_channel(reply_channel, ev)
-            else:
-                await send_ai_stream_event(self.run_id, ev)
+            events = self.pending.events(covered=message.get('covered'))
+            for ev in events:
+                await send_ai_stream_event_to_channel(message['reply_channel'], ev)
 
     async def ai_cancel(self, message: dict) -> None:
         if self._agent_task and not self._agent_task.done():
@@ -390,12 +384,14 @@ async def end_run(thread: ChatThread, status: str, error: str|None = None, inter
         return False
     thread.run_status = status
 
-    content: dict = {'status': status}
-    if error:
-        content['error'] = error
-    if interrupts:
-        content['interrupts'] = interrupts
-    await send_ai_stream_event(thread.run_id, {'type': 'run_status', 'content': content})
+    await send_ai_stream_event(thread.run_id, {
+        'type': 'run_status',
+        'content': {
+            'status': status,
+            'error': error,
+            'interrupts': interrupts or [],
+        },
+    })
     return True
 
 
@@ -458,17 +454,10 @@ async def subscribe_thread(thread: ChatThread) -> AsyncIterator[dict | None]:
     layer = get_channel_layer()
     channel = None
     group = None
-    # Join the active run group before the snapshot so events between snapshot
-    # and sync are not missed.
-    if thread.run_status == AgentRunStatus.RUNNING and thread.run_id:
-        group = group_name_stream(thread.run_id)
-        channel = await layer.new_channel()
-        await layer.group_add(group, channel)
     try:
         history = await sync_to_async(get_chat_history)(
             agent=get_agent('project_ask'),
             thread=thread,
-            include_pending_tools=True,
         )
         covered = history.get('covered') or []
         yield {
@@ -482,13 +471,21 @@ async def subscribe_thread(thread: ChatThread) -> AsyncIterator[dict | None]:
             },
         }
 
-        if thread.run_status != AgentRunStatus.RUNNING or not thread.run_id or channel is None:
-            content: dict = {'status': thread.run_status}
-            interrupts = history.get('interrupts') or []
-            if interrupts:
-                content['interrupts'] = interrupts
-            yield {'type': 'run_status', 'content': content}
+        if thread.run_status != AgentRunStatus.RUNNING or not thread.run_id:
+            yield {
+                'type': 'run_status',
+                'content': {
+                    'status': thread.run_status,
+                    'error': None,
+                    'interrupts': history.get('interrupts') or [],
+                },
+            }
             return
+
+        # Join after snapshot so live events during history load are not queued ahead of sync.
+        group = group_name_stream(thread.run_id)
+        channel = await layer.new_channel()
+        await layer.group_add(group, channel)
 
         # Pass snapshot covered to the worker so sync skips history events.
         await send_ai_control(thread.run_id, {
@@ -505,6 +502,17 @@ async def subscribe_thread(thread: ChatThread) -> AsyncIterator[dict | None]:
                 )
             except TimeoutError:
                 yield None
+                # Worker may have died without publishing run_status; re-check heartbeat.
+                thread = await ChatThread.objects.filter(pk=thread.pk).afirst()
+                if thread:
+                    await ensure_thread_not_stale(thread)
+                if not thread or thread.run_status != AgentRunStatus.RUNNING:
+                    yield {'type': 'run_status', 'content': {
+                        'status': thread.run_status if thread else AgentRunStatus.ERROR,
+                        'error': None,
+                        'interrupts': [],
+                    }}
+                    return
                 continue
             if not isinstance(msg, dict) or msg.get('type') != AiEventType.STREAM:
                 continue

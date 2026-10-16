@@ -172,7 +172,13 @@ function getSubagentMessageList(messages: ChatHistoryEntry[], subagent?: string 
     return messages;
   }
   const subagentToolCall = findToolCall(messages, subagent);
-  return subagentToolCall?.subagentMessages ?? [];
+  if (!subagentToolCall) {
+    return [];
+  }
+  if (!subagentToolCall.subagentMessages) {
+    subagentToolCall.subagentMessages = [];
+  }
+  return subagentToolCall.subagentMessages;
 }
 
 /**
@@ -191,9 +197,6 @@ export async function parseEventStream(
   let buffer = '';
 
   function handleEvent(message: SSEMessageEvent) {
-    if (message.event === 'error') {
-      reader.cancel();
-    }
     callbacks.onMessage?.(message);
   }
   
@@ -367,14 +370,18 @@ export function applyStreamEvent(
     }
   } else if (data.type === StreamEventType.TOOL_CALL) {
     const messageList = getSubagentMessageList(messageHistory, data.subagent);
-    if (!messageList.some(m => m.id === data.content.id)) {
+    const existing = messageList.find(m => m.id === data.content.id);
+    if (existing?.tool_call) {
+      const subagentMessages = data.content.subagentMessages ?? existing.tool_call.subagentMessages;
+      Object.assign(existing.tool_call, data.content, { subagentMessages });
+    } else if (!existing) {
       messageList.push(reactive({
         id: data.content.id,
         role: MessageRole.TOOL,
         timestamp: data.content.timestamp,
         tool_call: {
-          ...data.content,
           subagentMessages: [],
+          ...data.content,
         },
       }));
     }
@@ -389,12 +396,8 @@ export function applyStreamEvent(
     state.error = data.content;
   } else if (data.type === StreamEventType.RUN_STATUS) {
     state.runStatus = data.content.status;
-    if (data.content.error) {
-      state.error = data.content.error;
-    }
-    if (data.content.interrupts) {
-      state.interrupts = data.content.interrupts;
-    }
+    state.error = data.content.error || null;
+    state.interrupts = data.content.interrupts || [];
     return true;
   }
   return false;
@@ -667,6 +670,22 @@ export function useAiAgentChat(options: {
 
   async function attachToRun(threadId: string, runId: string) {
     const s = options.storeState;
+
+    if (
+      s.run?.id === runId
+      && s.currentRequest?.promise
+      && s.currentRequest.abortController
+      && !s.currentRequest.abortController.signal.aborted
+    ) {
+      // Already attached to this run
+      return await s.currentRequest.promise;
+    }
+
+    // Always abort a prior SSE before installing a new reader
+    const priorPromise = s.currentRequest?.promise;
+    abortAiAgentRequest(s);
+    priorPromise?.catch(() => {});
+
     s.run = { id: runId };
     let reconnectAttempt = 0;
     const abortController = new AbortController();
@@ -745,7 +764,6 @@ export function useAiAgentChat(options: {
       s.error = null;
 
       if (response.run_status === 'running' && response.run_id) {
-        s.run = { id: response.run_id };
         void attachToRun(response.id, response.run_id);
       } else {
         s.run = null;
@@ -757,11 +775,21 @@ export function useAiAgentChat(options: {
 
   async function startRun(body: Record<string, any>) {
     const s = options.storeState;
+    const abortController = new AbortController();
+    s.currentRequest = {
+      promise: Promise.resolve(null),
+      abortController,
+      reconnectTimer: null,
+    };
     try {
       const response = await $fetch<{ thread_id: string; run_id: string }>('/api/v1/utils/chat/', {
         method: 'POST',
         body,
+        signal: abortController.signal,
       });
+      if (abortController.signal.aborted || s.currentRequest?.abortController !== abortController) {
+        return 'aborted';
+      }
       s.threadId = response.thread_id;
       const out = await attachToRun(response.thread_id, response.run_id);
       if (out?.error || out?.runStatus === 'error') {
@@ -771,6 +799,9 @@ export function useAiAgentChat(options: {
       }
       return 'success';
     } catch (error: any) {
+      if (s.currentRequest?.abortController === abortController) {
+        s.currentRequest = null;
+      }
       if (isRequestAborted(error)) {
         return 'aborted';
       }
@@ -856,6 +887,7 @@ export function useAiAgentChat(options: {
       detach();
     }
     s.run = null;
+    s.interrupts = [];
   }
 
   return {

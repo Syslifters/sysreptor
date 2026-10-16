@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Any
 
@@ -58,15 +59,23 @@ def _create_broker():
         return InMemoryBroker(await_inplace=False)
 
 
-broker = _create_broker().with_middlewares(DjangoDBMiddleware())
+broker = _create_broker() \
+    .with_middlewares(DjangoDBMiddleware())
 
 
 _broker_started = False
+_broker_start_lock = asyncio.Lock()
+
+
 async def ensure_broker_started():
     global _broker_started
-    if not _broker_started and not broker.is_worker_process:
-        await broker.startup()
-        _broker_started = True
+    if _broker_started or broker.is_worker_process:
+        return
+    async with _broker_start_lock:
+        # Another waiter may have completed startup before we acquired the lock.
+        if not _broker_started:
+            await broker.startup()
+            _broker_started = True
 
 
 class BackgroundAsyncTaskiqDecoratedTask(AsyncTaskiqDecoratedTask):
@@ -75,6 +84,8 @@ class BackgroundAsyncTaskiqDecoratedTask(AsyncTaskiqDecoratedTask):
 
     Workers execute ``original_func`` directly; client code can ``await task(...)``.
     """
+
+    reraise_on_enqueue_error: bool = True
 
     async def __call__(self, *args: Any, **kwargs: Any) -> Any:
         if self.broker.is_worker_process:
@@ -85,15 +96,21 @@ class BackgroundAsyncTaskiqDecoratedTask(AsyncTaskiqDecoratedTask):
             await self.kiq(*args, **kwargs)
         except Exception:
             logging.exception(f'Error while enqueuing background task {self.task_name}')
+            if self.reraise_on_enqueue_error:
+                raise
 
 
-def background_task(task_name: str, **labels: Any):
+def background_task(task_name: str, reraise_on_enqueue_error: bool = True, **labels: Any):
     """Register a background task; ``await task(...)`` enqueues it outside worker processes."""
     def decorator(func):
         old_decorator_class = broker.decorator_class
         broker.decorator_class = BackgroundAsyncTaskiqDecoratedTask
         try:
-            return broker.task(task_name=task_name, **labels)(func)
+            task = broker.task(task_name=task_name, **{
+                'ack_type': 'when_received',
+             } | labels)(func)
+            task.reraise_on_enqueue_error = reraise_on_enqueue_error
+            return task
         finally:
             broker.decorator_class = old_decorator_class
     return decorator

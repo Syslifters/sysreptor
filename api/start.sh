@@ -9,10 +9,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_SRC="${SCRIPT_DIR}/src"
 
 DEV=0
+RUN_MIGRATE=1
 START_SERVER=0
 START_WORKER=0
 WORKER_EXPLICIT=0
-NO_MIGRATE=0
 
 usage() {
     cat <<EOF
@@ -38,8 +38,11 @@ while true; do
     case "$1" in
         --dev) DEV=1 ;;
         --server) START_SERVER=1 ;;
+        --no-server) START_SERVER=0 ;;
         --worker) START_WORKER=1; WORKER_EXPLICIT=1 ;;
-        --no-migrate) NO_MIGRATE=1 ;;
+        --no-worker) START_WORKER=0 ;;
+        --migrate) RUN_MIGRATE=1 ;;
+        --no-migrate) RUN_MIGRATE=0 ;;
         -h|--help) usage; exit 0 ;;
         --) shift; break ;;
         *) echo "Unexpected option: $1" >&2; exit 1 ;;
@@ -60,16 +63,22 @@ if [[ "${START_SERVER}" -eq 0 && "${START_WORKER}" -eq 0 ]]; then
 fi
 
 WAIT_PIDS=()
-cleanup() {
+STOPPING=0
+
+shutdown() {
+    if [[ "${STOPPING}" -eq 1 ]]; then
+        return 0
+    fi
+    STOPPING=1
     if [[ "${#WAIT_PIDS[@]}" -gt 0 ]]; then
         kill -TERM "${WAIT_PIDS[@]}" 2>/dev/null || true
     fi
     wait 2>/dev/null || true
 }
-trap cleanup TERM INT EXIT
+trap shutdown TERM INT EXIT
 
 # Run DB migrations
-if [[ "${NO_MIGRATE}" -eq 0 ]]; then
+if [[ "${RUN_MIGRATE}" -eq 1 ]]; then
     python3 "${API_SRC}/manage.py" migrate
 fi
 

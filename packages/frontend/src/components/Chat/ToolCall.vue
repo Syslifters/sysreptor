@@ -218,8 +218,8 @@ const subagentDisplayMessages = computed(() => {
     if (prompt) {
       out.push({ id: `${toolCall.id}-prompt`, role: MessageRole.USER, text: prompt });
     }
-    if (toolCall.output) {
-      out.push({ id: `${toolCall.id}-output`, role: MessageRole.ASSISTANT, text: toolCall.output });
+    if (toolCall.output?.message) {
+      out.push({ id: `${toolCall.id}-output`, role: MessageRole.ASSISTANT, text: toolCall.output.message });
     }
     return out;
   }
