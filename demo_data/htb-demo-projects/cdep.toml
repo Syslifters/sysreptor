@@ -1,0 +1,224 @@
+format = "projects/v2"
+id = "1f9acf9f-846e-4734-96e2-e7251c8cc1aa"
+name = "CDEP Exam Report"
+language = "en-US"
+tags = []
+members = []
+override_finding_order = false
+images = []
+files = []
+
+[[sections]]
+id = "executive_summary"
+status = "in-progress"
+
+[[sections]]
+id = "techniques_overview"
+status = "in-progress"
+
+[[sections]]
+id = "meta"
+status = "in-progress"
+
+[[sections]]
+id = "appendix"
+status = "in-progress"
+
+[[sections]]
+id = "cross_host"
+status = "in-progress"
+
+[[sections]]
+id = "document_control"
+status = "in-progress"
+
+[[sections]]
+id = "attack_navigator"
+status = "in-progress"
+
+[[sections]]
+id = "scope"
+status = "in-progress"
+
+[report_data]
+title = "CDEP"
+executive_summary = """{{ report.customer_full }} was breached in a full-chain intrusion spanning a user workstation, the domain controller, a Linux build server, and additional workstations. In total, five machines were involved: one Domain Controller, three Windows workstations, and one Linux server. Incident response is complete: containment and eradication are done. During the intrusion, the SOC captured a comprehensive telemetry corpus (Sysmon, multiple ETW providers, ETW-TI, Windows Security, and Linux auditd) and preserved the recovered adversary tooling in an analysis store.
+
+{{ report.candidate.name }} joined {{ report.customer_short }} as a Detection Engineer. The mandate is not to re-investigate the incident. It is to build the detection content that would have caught each stage of this intrusion, and to validate every analytic against the captured corpus so that only rules proven to fire are shipped. The captured telemetry is the validation dataset; the recovered samples are the reference for designing behavior-based detections that survive a rebuild, rather than brittle IOC rules.
+
+Each analytic, together with its validation evidence, must be documented in this report in an understandable, technically robust, and reproducible way.
+"""
+techniques_overview = """Reference for Detection Coverage:
+
+* **High:** Detection is based on hard-to-change behaviors or strong telemetry, and is resilient to simple evasion.
+* **Medium:** Detection is useful but can be bypassed with moderate effort, or is sensitive to environmental variance.
+* **Low:** Detection is fragile or noisy. It relies mostly on easy-to-change indicators.
+
+| Finding ID | Host(s) | ATT&CK Technique | Time Window (UTC) | Detection Coverage |
+| --- | --- | --- | --- | --- |
+| F-001 | Machine Name | TXXXX(.XXX) | YYYY-MM-DD hh:mm:ss to YYYY-MM-DD hh:mm:ss | High / Medium / Low |
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+customer_full = "TODO Customer Ltd."
+customer_short = "TODO Customer"
+report_version = "1.0"
+appendix_additional_sections = []
+cross_host_storyline = """In this section, the Detection Engineer is expected to reconstruct the incident as a chronological sequence of attacker actions across all in-scope systems, showing how the intrusion progressed from initial access through various tactics and objectives. The data shown below is provided for illustrative purposes.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+
+**PD-WS-1:**
+
+| Time | Activity |
+| --- | --- |
+| 2026-09-09 10:14:22 | On PD-WS-1, the attacker initiated access via a spearphishing attachment (T1566.001), relying on a user opening a malicious document to trigger the chain. |
+| 2026-09-09 08:57:46 | The attacker’s payload executed after user interaction, consistent with user execution (T1204). |
+| … | … |
+
+**PARADOX-DC:**
+
+| Time | Activity |
+| --- | --- |
+| … | … |
+"""
+attack_navigator = """The ATT&CK Navigator map that shows all techniques referenced in the report is attached to this report as a JSON file. Please refer to it for an overview of all techniques identified for the APT whose behavior was observed throughout this report.
+
+TODO: Attach the ATT&CK Navigator JSON file to this report.
+"""
+scope = """Here, the Detection Engineer is expected to clearly define the boundaries of the technical analysis and detection engineering work so the reader can interpret the results accurately. This includes explicitly listing the assets in scope, such as the relevant domain, hosts, subnets, and user accounts that were examined, and clarifying whether any systems or accounts were out of scope.
+
+The Detection Engineer is also expected to specify the exact time window analyzed, including the start and end timestamps and the timezone used, since event sequencing, correlation logic, and conclusions depend on consistent time interpretation and log availability within that period.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+telemetry_sources = """In this section, the Detection Engineer lists the exact telemetry sources used to author and validate each detection, so the work is transparent and reproducible. It should state which available data sources each analytic relies on, where they are queried in Splunk (indexes and source types), which key fields are relied on, and any data collection gaps that could affect confidence.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+
+[report_data.candidate]
+title = "TODO Candidate Title"
+name = "TODO Candidate Name"
+email = "TODO Candidate Email"
+
+[[report_data.engagement_contacts]]
+title = "TODO Title"
+name = "TODO Name"
+email = "TODO Email"
+
+[[findings]]
+id = "0dbc9402-2c0b-451c-8a6b-476df6a983d6"
+created = "2026-10-19T09:23:58.219480Z"
+updated = "2026-10-19T09:24:08.225825Z"
+status = "in-progress"
+order = 1
+
+[findings.assignee]
+id = "27a04015-353f-4237-8c71-f297c8395ad5"
+
+[findings.data]
+title = "TODO Hostname"
+synthesis = """**Goal:** Provide an ATT&CK-mapped synthesis of the adversary tradecraft as a detection engineering deliverable: what happened, and what detection coverage can be built/validated on this host.
+
+**Example:** on PD-WS-1, observed host telemetry indicates the threat actor utilized certutil.exe (S0160) for Ingress Tool Transfer (T1105) to deploy Rubeus (S1071), subsequently executing AS-REP Roasting (T1558.004) against the mcameron principal; following successful Password Cracking (T1110.002), obtained credentials were leveraged via Valid Accounts (T1078) to facilitate Lateral Movement (T1021.002); the attacker then performed OS Credential Dumping (T1003) for privilege escalation, established Persistence through a Windows Service (T1543.003), and employed Pass the Ticket (T1550.003) maneuvers; concluding the operation, the actor engaged in Collection (T1005), Archiving (T1560.001), and Exfiltration (T1041) of sensitive data, followed by the Removal of Indicator Artifacts (T1070) to obfuscate their presence.
+
+**Detection engineering focus:** (1) identify high-fidelity behavioral invariants on the machine, (2) map telemetry sources required to detect each stage, and (3) propose + validate SPL correlations to catch the chain end-to-end.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+tool_analysis = """If the analysis uncovers the use of a publicly available, open-source tool in an open repository, rather than an attacker-crafted artifact, the detection engineer is expected to break down the tool’s operating procedure and identify the key choke points and invariants that can be leveraged to derive high-value indicators for future detection rules.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+artifact_analysis = """If capability analysis of a recovered sample from the RE folder is performed, the Detection Engineer is expected to document all relevant analysis steps in this section and provide a detailed, step-by-step explanation of the methodology followed, identifying the behaviors, choke points, and invariants on which the resulting behavior-based detection is built.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+
+**WinDbg Trace File Analysis (If Applicable)**
+
+When WinDbg is used in the analysis of the identified technique, the Detection Engineer is expected to document the complete analysis process in this section, clearly detailing each step of the methodology used with the debugger and the observations made throughout the trace file analysis.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+detection_deliverables = """**Host-Based Model (If Applicable)**
+
+Here, the Detection Engineer is expected to map the identified detection opportunities and their associated telemetry sources to the Summiting the Pyramid (STP) framework, assessing their respective levels of detection capability and robustness. Here, the Detection Engineer is expected to focus on the framework's host-based model, where applicable to the identified technique.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+
+The following table provides a partial example for the BITS Jobs technique (T1197).
+
+| | Application (A) | User-Mode (U) | Kernel-Mode (K) |
+| --- | --- | --- | --- |
+| Core to (Sub-) Technique (5) | Microsoft-Windows-Bits-Client/Operational log, EID 3 “BITS job created” generated by the BITS service itself | | Outbound network connection initiated by svchost.exe -k netsvcs -s BITS (Sysmon EID 3) |
+| Core to Some Implementation of (Sub-) Technique (4) | | The destination file is written by svchost.exe (BITS), not by the calling tool (Sysmon Event ID 11 - FileCreate) | |
+| Core to Pre-Existing Tool or Inside Boundary (3) | Event ID 4104 (PowerShell ScriptBlock) containing Start-BitsTransfer | Registry value set in HKLM\\...\\BITS\\(Sysmon EID 13 - Registry Set) | bitsadmin.exe command line (Sysmon EID 1) - Look for /transfer and /SetNotifyCmdLine |
+| Core to Adversary-Brought Tool or Outside Boundary (2) | | | IP address or domain name of the remote server hosting the payload |
+| Ephemeral (1) | BITS job DisplayName | | SHA256 hash of the downloaded file |
+
+**Network-Based Model (If Applicable)**
+
+Here, the Detection Engineer is expected to focus specifically on the framework's network-based model when applicable to the identified technique.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+
+| | Protocol Payload (P) | Protocol Header (H) |
+| --- | --- | --- |
+| Core to (Sub-) Technique (5) | | |
+| Core to Some Implementation of (Sub-) Technique (4) | | |
+| Core to Pre-Existing Tool or Inside Boundary (3) | | |
+| Core to Adversary-Brought Tool or Outside Boundary (2) | | |
+| Ephemeral (1) | | |
+
+**ATT&CK Detection Guidance**
+
+DETXXX - TODO Description (e.g. “DET0098 - Detect abuse of Windows BITS Jobs for download, execution and persistence”)
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+detection_rules = """Based on the preceding analysis tasks, the Detection Engineer is expected to develop Splunk SPL queries, where applicable, to detect the identified technique. These queries should aim to leverage detection approaches positioned as high as possible on the Pyramid of Pain, so that they survive a rebuild of the adversary tooling. The Detection Engineer is expected to develop robust detection rules and identify relevant correlation opportunities to improve detection accuracy, reduce false positives, and strengthen overall detection coverage.
+
+The Detection Engineer is also expected to provide the output of the SPL query they propose, either as a screenshot or a table, demonstrating that the rule fires on the true positive in the captured corpus.
+
+**Detection Rule 1 - TODO Purpose**
+
+```
+TODO SPL query
+```
+
+Possible False Positives (if applicable):
+* …
+* …
+
+**Detection Rule 2 - TODO Purpose**
+
+```
+TODO SPL query
+```
+
+Possible False Positives (if applicable):
+* …
+* …
+"""
+additional_telemetry = """In this section, the Detection Engineer may highlight additional detection opportunities, provide recommendations, or identify missing telemetry sources relevant to detecting the described technique. This is also where they can add supporting detection rules or queries, such as YARA and Sigma, along with a clear rationale explaining their relevance and potential value for improving detection coverage. This section also allows specifying potential hook points for APIs to intercept.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+
+[[findings.data.attack_techniques]]
+title = "[ATT&CK Technique Name] - [ATT&CK Technique ID]"
+detection_objective = """In this section, the Detection Engineer explains why the adversary used the technique in the context of the incident, what tactical objective it served in the attack chain, and how it contributed to the attacker’s broader goals. The intent is to connect observed actions to motivation and outcome, so the reader understands the technique’s role in progression, for example, enabling Credential Access, Privilege Escalation, Lateral Movement, Persistence, Collection, or Defense Evasion, rather than viewing it as an isolated event.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+behavioral_breakdown = """In this section, the Detection Engineer characterizes how the technique works, using the recovered sample (capability analysis) and/or the captured telemetry. The section should also state the technique's objective in the attack chain, and its relationship to preceding and subsequent techniques, within a unified attack narrative.
+
+TODO TO BE FILLED BY THE DETECTION ENGINEER
+"""
+
+[[notes]]
+file = "../notes/certification-notes.toml"
+
+[project_type]
+file = "../htb-designs/cdep.toml"

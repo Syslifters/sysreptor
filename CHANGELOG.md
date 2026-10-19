@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Add design for HTB CDEP certification
+
+
 ## v2026.89 - 2026-10-14
 * Fix duplicate module check in plugin loader
 * Prevent changing the design of readonly projects
