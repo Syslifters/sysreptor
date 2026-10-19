@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 API_SRC="${SCRIPT_DIR}/src"
 
 DEV=0
-RUN_MIGRATE=1
+RUN_MIGRATE=0
 START_SERVER=0
 START_WORKER=0
 WORKER_EXPLICIT=0
@@ -19,11 +19,11 @@ usage() {
 Usage: $(basename "$0") [OPTIONS]
 
 Options:
-  --dev         Development mode (uvicorn --reload, taskiq --reload)
-  --server      Start only the web server
-  --worker      Start only the Taskiq worker
-  --no-migrate  Do not run database migrations
-  -h, --help    Show this help
+  --dev                     Development mode (reload on code changes)
+  --server/--no-server      Start web server
+  --worker/--no-worker      Start taskiq worker
+  --migrate/--no-migrate    Run database migrations
+  -h, --help                Show this help
 
 Default: start server and worker (worker requires redis).
 EOF
@@ -57,7 +57,8 @@ if [[ $# -gt 0 ]]; then
 fi
 
 # Default: start both
-if [[ "${START_SERVER}" -eq 0 && "${START_WORKER}" -eq 0 ]]; then
+if [[ "${START_SERVER}" -eq 0 && "${START_WORKER}" -eq 0 && "${RUN_MIGRATE}" -eq 0 ]]; then
+    RUN_MIGRATE=1
     START_SERVER=1
     START_WORKER=1
 fi
