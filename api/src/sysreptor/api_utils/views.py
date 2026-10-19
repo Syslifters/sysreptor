@@ -4,6 +4,7 @@ from inspect import cleandoc
 
 from adrf.views import APIView as APIViewAsync
 from asgiref.sync import sync_to_async
+from channels.layers import channel_layers
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiTypes, extend_schema
@@ -173,7 +174,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             'languages': languages,
             'license': copy_keys(license.check_license(), ['type', 'error']),
             'features': {
-                'websockets': not settings.DISABLE_WEBSOCKETS,
+                'websockets': not settings.DISABLE_WEBSOCKETS and 'default' in channel_layers,
                 'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST) and '*' not in settings.ALLOWED_HOSTS,
             },
             'permissions': {},

@@ -210,7 +210,7 @@ DATABASES = {
 REDIS_URL = config('REDIS_URL', default=None)
 REDIS_CONNECTION_CONFIG = config('REDIS_CONNECTION_CONFIG', cast=json.loads, default='null')
 HAS_REDIS = bool(REDIS_URL or REDIS_CONNECTION_CONFIG)
-DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False) or not HAS_REDIS
+DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False)
 TASKIQ_ALWAYS_EAGER = False
 
 if HAS_REDIS:

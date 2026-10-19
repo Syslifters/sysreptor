@@ -1,5 +1,6 @@
 
 from asgiref.sync import async_to_sync
+from channels.layers import channel_layers
 from rest_framework import mixins, renderers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied
@@ -30,6 +31,10 @@ class ChatThreadPermissions(BasePermission):
     def has_permission(self, request, view):
         if not configuration.AI_AGENT_ENABLED:
             raise PermissionDenied('AI agent chat is disabled in settings')
+        if view.action in ['list', 'retrieve']:
+            return True
+        if 'default' not in channel_layers:
+            return False
         from sysreptor.ai.agents.base import get_model_configs
         if not get_model_configs(include_hidden=False):
             raise PermissionDenied('No LLM models configured in settings')
