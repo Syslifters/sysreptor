@@ -29,7 +29,7 @@ class ChatThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatThread
-        fields = ['id', 'project', 'title', 'messages', 'interrupts', 'run_id', 'run_status']
+        fields = ['id', 'project', 'title', 'messages', 'interrupts', 'run_id', 'run_status', 'run_error']
 
 
 class ChatThreadListSerializer(serializers.ModelSerializer):

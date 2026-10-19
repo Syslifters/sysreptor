@@ -15,6 +15,7 @@ from sysreptor.ai.runs import (
 )
 from sysreptor.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from sysreptor.utils.configuration import configuration
+from sysreptor.utils.utils import copy_keys
 
 
 class EventStreamRenderer(renderers.BaseRenderer):
@@ -79,10 +80,8 @@ class ChatThreadViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, viewset
         instance.refresh_from_db()
 
         data = get_chat_history(agent=get_agent('project_ask'), thread=instance)
+        data |= copy_keys(instance, ['title', 'run_id', 'run_status', 'run_error'])
         data.pop('covered', None)
-        data['title'] = instance.title
-        data['run_id'] = instance.run_id
-        data['run_status'] = instance.run_status
 
         return Response(data=data)
 

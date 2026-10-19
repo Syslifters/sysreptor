@@ -108,6 +108,7 @@ export type StreamEvent = {
     thread_id: string;
     run_id?: string|null;
     run_status?: string|null;
+    run_error?: string|null;
   };
 } | {
   type: StreamEventType.TEXT;
@@ -139,7 +140,7 @@ export type StreamEvent = {
 export type ApplyStreamState = {
   interrupts: ChatInterrupt[];
   error: string | null;
-  runStatus: string | null;
+  status: string | null;
 };
 
 function isRequestAborted(error: any): boolean {
@@ -331,6 +332,7 @@ export function applyStreamEvent(
     ) ? [last] : [];
     messageHistory.splice(0, messageHistory.length, ...snapshotMessages, ...trailing);
     state.interrupts = data.content.interrupts || [];
+    state.error = data.content.run_error || null;
   } else if (data.type === StreamEventType.TEXT) {
     // Reconcile optimistic local user message (same text, different id)
     if (data.content.role === MessageRole.USER && !data.subagent) {
@@ -395,7 +397,7 @@ export function applyStreamEvent(
   } else if (data.type === StreamEventType.ERROR) {
     state.error = data.content;
   } else if (data.type === StreamEventType.RUN_STATUS) {
-    state.runStatus = data.content.status;
+    state.status = data.content.status;
     state.error = data.content.error || null;
     state.interrupts = data.content.interrupts || [];
     return true;
@@ -414,7 +416,7 @@ export async function submitMessageStreamed(options: {
   const streamState: ApplyStreamState = {
     interrupts: [],
     error: null,
-    runStatus: null,
+    status: null,
   };
   const messageHistory = options.messageHistory ?? [];
 
@@ -432,7 +434,7 @@ export async function submitMessageStreamed(options: {
     interrupts: streamState.interrupts,
     messageHistory,
     error: streamState.error,
-    runStatus: streamState.runStatus,
+    status: streamState.status,
   };
 }
 
@@ -718,7 +720,7 @@ export function useAiAgentChat(options: {
           clearReconnectTimer();
         }
       }
-      return { runStatus: 'aborted', error: null, interrupts: s.interrupts };
+      return { status: 'aborted', error: null, interrupts: s.interrupts };
     })();
 
     s.currentRequest = { promise, abortController, reconnectTimer: null };
@@ -750,6 +752,7 @@ export function useAiAgentChat(options: {
         interrupts?: ChatInterrupt[];
         run_id?: string|null;
         run_status?: string|null;
+        run_error?: string|null;
       }>(`/api/v1/utils/chat/${threadId}/`, { method: 'GET' });
 
       // Ignore stale response if a send/attach started while fetching
@@ -761,7 +764,7 @@ export function useAiAgentChat(options: {
       s.title = response.title || s.title;
       s.messageHistory = response.messages;
       s.interrupts = response.interrupts ?? [];
-      s.error = null;
+      s.error = response.run_error ?? null;
 
       if (response.run_status === 'running' && response.run_id) {
         void attachToRun(response.id, response.run_id);
@@ -792,9 +795,9 @@ export function useAiAgentChat(options: {
       }
       s.threadId = response.thread_id;
       const out = await attachToRun(response.thread_id, response.run_id);
-      if (out?.error || out?.runStatus === 'error') {
+      if (out?.error || out?.status === 'error') {
         return 'error';
-      } else if (out?.runStatus === 'cancelled') {
+      } else if (out?.status === 'cancelled') {
         return 'aborted';
       }
       return 'success';

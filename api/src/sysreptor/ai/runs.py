@@ -379,10 +379,11 @@ async def end_run(thread: ChatThread, status: str, error: str|None = None, inter
         .filter(id=thread.id) \
         .filter(run_id=thread.run_id) \
         .filter(run_status=AgentRunStatus.RUNNING) \
-        .aupdate(run_status=status)
+        .aupdate(run_status=status, run_error=error)
     if not updated:
         return False
     thread.run_status = status
+    thread.run_error = error
 
     await send_ai_stream_event(thread.run_id, {
         'type': 'run_status',
@@ -416,6 +417,7 @@ async def start_run(thread: ChatThread) -> UUID:
             run_id=run_id,
             run_status=AgentRunStatus.RUNNING,
             run_heartbeat_at=now,
+            run_error=None,
         )
     if not claimed:
         active = await ChatThread.objects \
@@ -427,6 +429,7 @@ async def start_run(thread: ChatThread) -> UUID:
     thread.run_id = run_id
     thread.run_status = AgentRunStatus.RUNNING
     thread.run_heartbeat_at = now
+    thread.run_error = None
     return run_id
 
 
@@ -435,7 +438,7 @@ async def cancel_run(thread: ChatThread) -> UUID | None:
     if thread.run_status != AgentRunStatus.RUNNING or not thread.run_id:
         return None
     run_id = thread.run_id
-    if await end_run(thread=thread, status=AgentRunStatus.CANCELLED):
+    if await end_run(thread=thread, status=AgentRunStatus.CANCELLED, error='Cancelled'):
         await send_ai_control(run_id, {'type': AiEventType.CANCEL_REQUEST})
         return run_id
     return None
@@ -466,6 +469,7 @@ async def subscribe_thread(thread: ChatThread) -> AsyncIterator[dict | None]:
                 'thread_id': str(thread.id),
                 'run_id': str(thread.run_id) if thread.run_id else None,
                 'run_status': thread.run_status,
+                'run_error': thread.run_error,
                 'messages': history.get('messages') or [],
                 'interrupts': history.get('interrupts') or [],
             },
@@ -476,7 +480,7 @@ async def subscribe_thread(thread: ChatThread) -> AsyncIterator[dict | None]:
                 'type': 'run_status',
                 'content': {
                     'status': thread.run_status,
-                    'error': None,
+                    'error': thread.run_error,
                     'interrupts': history.get('interrupts') or [],
                 },
             }
@@ -509,7 +513,7 @@ async def subscribe_thread(thread: ChatThread) -> AsyncIterator[dict | None]:
                 if not thread or thread.run_status != AgentRunStatus.RUNNING:
                     yield {'type': 'run_status', 'content': {
                         'status': thread.run_status if thread else AgentRunStatus.ERROR,
-                        'error': None,
+                        'error': thread.run_error if thread else None,
                         'interrupts': [],
                     }}
                     return

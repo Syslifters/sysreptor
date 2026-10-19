@@ -24,7 +24,7 @@ def cleanup_stale_agent_runs(task_info: PeriodicTaskInfo):
     ChatThread.objects \
         .filter(run_status=AgentRunStatus.RUNNING) \
         .filter(Q(run_heartbeat_at__isnull=True) | Q(run_heartbeat_at__lt=cutoff)) \
-        .update(run_status=AgentRunStatus.ERROR)
+        .update(run_status=AgentRunStatus.ERROR, run_error='Agent aborted')
 
 
 @periodic_task(id='cleanup_old_langchain_checkpoints', schedule=timedelta(days=1))
