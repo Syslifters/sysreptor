@@ -1,8 +1,11 @@
+from uuid import uuid4
 
 from asgiref.sync import async_to_sync
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import termcolors
+from langchain.messages import HumanMessage
+from langgraph.types import Command as ResumeCommand
 
 from sysreptor.ai.agents import agent_stream, get_agent
 from sysreptor.ai.agents.project import get_project
@@ -28,9 +31,10 @@ class Command(BaseCommand):
         parser.add_argument('--user', type=str, required=True, help='Username to run the agent as')
         parser.add_argument('--project', type=str, required=True, help='Project ID to run the agent in')
         parser.add_argument('--agent', type=str, default='project_ask', help='Agent to use')
+        parser.add_argument('--model', type=str, default=None, help='Model ID to use')
         return super().add_arguments(parser)
 
-    def handle(self, user, project, agent, *args, **options):
+    def handle(self, user, project, agent, model, *args, **options):
         try:
             agent = get_agent(agent)
             user = PentestUser.objects.get(username=user)
@@ -45,47 +49,96 @@ class Command(BaseCommand):
                 agent=agent,
                 thread=thread,
                 prompt=prompt,
+                model=model,
             )
 
-    async def run_agent(self, agent, thread, prompt):
+    async def run_agent(self, agent, thread, prompt, model=None):
+        input_data = {
+            'messages': [HumanMessage(id=str(uuid4()), content=prompt)],
+        }
+        while True:
+            resume = await self.stream_events(agent=agent, thread=thread, input_data=input_data, model=model)
+            if not resume:
+                break
+            input_data = ResumeCommand(resume=resume)
+
+    async def stream_events(self, agent, thread, input_data, model=None) -> dict | None:
         prev_token = None
         tool_calls = {}
+        streamed_ids = set()
+        resume = None
+
         async for token in agent_stream(
             agent=agent,
             thread=thread,
-            input={'messages': [prompt]},
+            input=input_data,
+            model=model,
         ):
-            # print('\nToken', token)
+            if token.get('subagent'):
+                continue
 
             match token['type']:
                 case 'text':
-                    if token['content'].get('role') == 'user':
+                    content = token['content']
+                    if content.get('role') == 'user':
                         continue
-                    if token['content'].get('reasoning'):
-                        if not prev_token or prev_token['type'] != 'text' or prev_token['content']['id'] != token['content']['id']:
+                    msg_id = content.get('id')
+                    if content.get('replace') and msg_id in streamed_ids:
+                        # Message already printed while streaming
+                        continue
+                    if content.get('reasoning'):
+                        if not prev_token or prev_token['type'] != 'text' or prev_token['content'].get('id') != msg_id:
                             self.newline_if_needed(prev_token)
                             self.stdout.write(self.style_reasoning('Reasoning: '), ending='')
-                        self.stdout.write(self.style_reasoning(str(token['content']['reasoning'])), ending='')
-                    if token['content'].get('text'):
+                        self.stdout.write(self.style_reasoning(str(content['reasoning'])), ending='')
+                    if content.get('text'):
                         if prev_token and prev_token['type'] == 'text' and prev_token['content'].get('reasoning'):
                             self.newline_if_needed(prev_token)
-                        self.stdout.write(str(token['content']['text']), ending='')
+                        self.stdout.write(str(content['text']), ending='')
+                    if msg_id and (content.get('text') or content.get('reasoning')):
+                        streamed_ids.add(msg_id)
                     prev_token = token
                 case 'tool_call':
                     tool_calls[token['content']['id']] = token
                 case 'tool_call_status':
-                    tc = tool_calls.pop(token['content']['id'], {})['content'] | token['content']
-
+                    prev = tool_calls.pop(token['content']['id'], {}).get('content', {})
+                    tc = prev | token['content']
                     self.newline_if_needed(prev_token)
-                    color = self.style.ERROR if tc['status'] == 'error' else self.style.SUCCESS
-                    self.stdout.write(color(f'[Tool Call: {tc["name"]}({tc["args"]}) - {token["content"]["status"]}]'))
+                    color = self.style.ERROR if tc.get('status') == 'error' else self.style.SUCCESS
+                    name = tc.get('name', '?')
+                    args = tc.get('args', {})
+                    status = token['content'].get('status')
+                    self.stdout.write(color(f'[Tool Call: {name}({args}) - {status}]'))
                     prev_token = token
-                case 'metadata':
+                case 'interrupt':
+                    self.newline_if_needed(prev_token)
+                    resume = {}
+                    for item in token['content']:
+                        interrupt_id = item['id']
+                        value = item.get('value') or {}
+                        question = value.get('question') or str(value)
+                        options = value.get('options') or []
+                        self.stdout.write(self.style.WARNING(f'[Interrupt] {question}'))
+                        if options:
+                            self.stdout.write(self.style.WARNING(f'  Options: {", ".join(str(o) for o in options)}'))
+                        try:
+                            answer = input('Answer> ')
+                        except (EOFError, KeyboardInterrupt):
+                            answer = ''
+                        resume[interrupt_id] = answer
+                    prev_token = token
+                case 'error':
+                    self.newline_if_needed(prev_token)
+                    self.stdout.write(self.style.ERROR(f'[Error: {token["content"]}]'))
+                    prev_token = token
+                case 'metadata' | 'snapshot' | 'run_status':
                     pass
                 case _:
                     self.stdout.write(self.style.WARNING(f'[Unknown Token: {token}]'))
+
         self.newline_if_needed(prev_token)
         self.stdout.write('')
+        return resume
 
     def newline_if_needed(self, prev_token=None):
         if prev_token and prev_token['type'] == 'text' and \
