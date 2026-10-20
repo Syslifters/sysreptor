@@ -135,6 +135,6 @@ fi
 
 if [[ "${#WAIT_PIDS[@]}" -eq 0 ]]; then
     echo "Nothing to start" >&2
-    exit 1
+    exit 0
 fi
 wait -n "${WAIT_PIDS[@]}"
