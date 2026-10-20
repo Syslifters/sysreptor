@@ -55,11 +55,15 @@ from sysreptor.utils.utils import copy_keys, omit_keys
 @dataclasses.dataclass
 class ProjectContext:
     project_id: str|UUID
-    user_id: str|UUID
+    user: PentestUser
     section_id: str|UUID|None = None
     finding_id: str|UUID|None = None
     note_id: str|UUID|None = None
     model: str|None = None
+
+    @property
+    def user_id(self) -> UUID:
+        return self.user.id
 
 
 @dataclasses.dataclass

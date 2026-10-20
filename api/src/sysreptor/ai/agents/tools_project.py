@@ -23,7 +23,6 @@ from sysreptor.pentests.serializers.project import (
     PentestFindingSerializer,
     ReportSectionSerializer,
 )
-from sysreptor.users.models import PentestUser
 from sysreptor.utils.fielddefinition.types import FieldDataType
 from sysreptor.utils.fielddefinition.utils import get_field_value_and_definition, set_value_at_path
 
@@ -135,7 +134,7 @@ def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, temp
     """
 
     project = get_project(runtime.context.project_id)
-    user = PentestUser.objects.get(id=runtime.context.user_id)
+    user = runtime.context.user
     if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
         raise ValidationError('You do not have write permissions')
 
@@ -184,7 +183,7 @@ def create_note(
             the note is appended at the end of its sibling group.
     """
     project = get_project(runtime.context.project_id)
-    user = PentestUser.objects.get(id=runtime.context.user_id)
+    user = runtime.context.user
     if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
         raise ValidationError('You do not have write permissions')
 
@@ -213,7 +212,7 @@ def create_note(
 
 def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContext]) -> dict:
     project = get_project(runtime.context.project_id)
-    user = PentestUser.objects.get(id=runtime.context.user_id)
+    user = runtime.context.user
     if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
         raise ValidationError('You do not have write permissions')
 
