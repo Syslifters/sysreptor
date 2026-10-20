@@ -37,7 +37,7 @@
             v-for="interrupt in agent.interrupts.value"
             :key="interrupt.id"
             :interrupt="interrupt"
-            @resume="agent.resume"
+            @resume="onResume"
             class="mb-2"
           />
         </template>
@@ -300,6 +300,13 @@ async function sendMessage() {
   if (res === 'success') {
     formMessage.value = '';
   }
+}
+
+function onResume(resumePayload: Record<string, any>) {
+  agent.resume(resumePayload, {
+    agent: localSettings.reportingChatAgent,
+    model: aiAgentModel.value,
+  });
 }
 
 function onKeyPress(e: KeyboardEvent) {

@@ -844,7 +844,7 @@ export function useAiAgentChat(options: {
     });
   }
 
-  async function resume(resumePayload: Record<string, any>) {
+  async function resume(resumePayload: Record<string, any>, opts?: { agent?: string; model?: string|null }) {
     if (inProgress.value || !options.storeState.threadId) {
       return;
     }
@@ -855,6 +855,8 @@ export function useAiAgentChat(options: {
       ...options.body,
       id: options.storeState.threadId,
       resume: resumePayload,
+      agent: opts?.agent || options.body.agent,
+      model: opts?.model || options.body.model,
     });
   }
 
