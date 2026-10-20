@@ -3,8 +3,9 @@ import logging
 
 import httpx
 import tenacity
+
+from sysreptor.conf.taskiq import background_task
 from sysreptor.plugins import configuration
-from sysreptor.utils.utils import run_in_background
 
 from .models import WebhookEventType
 
@@ -23,6 +24,7 @@ async def send_webhook_request(client: httpx.AsyncClient, webhook, data):
     return response
 
 
+@background_task('send_webhook_requests')
 async def send_webhook_requests(data, webhooks_to_send):
     try:
         async with httpx.AsyncClient(timeout=10, follow_redirects=False) as client:
@@ -32,7 +34,7 @@ async def send_webhook_requests(data, webhooks_to_send):
             res = await asyncio.gather(*request_tasks, return_exceptions=True)
             exceptions = [r for r in res if isinstance(r, Exception)]
             if exceptions:
-                raise ExceptionGroup('Webhook errors', exceptions)  # noqa: F821
+                raise ExceptionGroup('Webhook errors', exceptions)
     except Exception as ex:
         logging.exception(ex)
 
@@ -47,12 +49,11 @@ async def send_webhooks(event_type: WebhookEventType, data):
             e_field = s[1] if len(s) > 1 else None
             fields = data.get('fields', [])
             if e_type == event_type and (
-                not e_field or 
+                not e_field or
                 any(f == e_field or f.startswith(e_field + '.') for f in fields)
             ):
                 webhooks_to_send.append(webhook)
                 break
 
     if webhooks_to_send:
-        run_in_background(send_webhook_requests)(data | {'event': event_type.value}, webhooks_to_send)
-
+        await send_webhook_requests(data | {'event': event_type.value}, webhooks_to_send)

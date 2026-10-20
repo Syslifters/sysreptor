@@ -1,10 +1,10 @@
 <template>
-  <span
+  <div
     class="chat-thinking-placeholder text-body-medium text-disabled"
     role="status"
   >
     <slot name="default">Thinking...</slot>
-  </span>
+  </div>
 </template>
 
 <style lang="scss" scoped>

@@ -7,6 +7,13 @@ from sysreptor.pentests.models import PentestProject, ProjectNotebookPage
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
 
 
+def truncate_title(text: str, max_length: int = 80) -> str:
+    collapsed = ' '.join((text or '').split())
+    if len(collapsed) <= max_length:
+        return collapsed
+    return collapsed[: max_length - 1].rstrip() + '…'
+
+
 @extend_schema_field(OpenApiTypes.STR)
 class ProjectRelatedField(OptionalPrimaryKeyRelatedField):
     def get_queryset(self):
@@ -22,7 +29,13 @@ class ChatThreadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ChatThread
-        fields = ['id', 'project', 'messages', 'interrupts']
+        fields = ['id', 'project', 'title', 'messages', 'interrupts', 'run_id', 'run_status', 'run_error']
+
+
+class ChatThreadListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatThread
+        fields = ['id', 'project', 'title', 'run_status', 'created', 'updated']
 
 
 class LLMAgentSerializer(serializers.Serializer):
@@ -54,15 +67,9 @@ class LLMAgentSerializer(serializers.Serializer):
         if model and not any(m['id'] == model for m in get_model_configs(include_hidden=False)):
             raise serializers.ValidationError('Invalid model')
 
-        # Set agent parameters
-        if resume is not None:
-            from langgraph.types import Command
-            attrs['input'] = Command(resume=resume)
-        else:
-            attrs['input'] = {'messages': messages}
-
         # Validate required parameters for agent type
-        attrs['agent'], thread_filters = self.get_agent(attrs)
+        agent_instance, thread_filters = self.get_agent(attrs)
+        attrs['agent_instance'] = agent_instance
 
         # Validate thread_id exists and belongs to user
         if thread_id:
@@ -75,8 +82,10 @@ class LLMAgentSerializer(serializers.Serializer):
             if not attrs['thread']:
                 raise serializers.ValidationError('Invalid id')
         else:
+            title = truncate_title(messages[0]) if messages else ''
             attrs['thread'] = ChatThread.objects.create(
                 user=self.context['request'].user,
+                title=title,
                 **thread_filters,
             )
         return super().validate(attrs)
@@ -91,19 +100,27 @@ class LLMAgentSerializer(serializers.Serializer):
         else:
             raise serializers.ValidationError('Invalid agent type')
 
-    def stream(self):
-        from sysreptor.ai.agents import agent_stream
+    async def start(self):
+        from sysreptor.ai.models import AgentRunStatus
+        from sysreptor.ai.runs import end_run, start_run
+        from sysreptor.ai.tasks import run_agent
 
-        thread = self.validated_data.get('thread')
-        if not thread.id:
-            # Create new thread
-            thread.save()
+        thread = self.validated_data['thread']
+        messages = self.validated_data.get('messages') or []
+        message = messages[0] if messages else None
 
-        return agent_stream(
-            agent=self.validated_data['agent'],
-            input=self.validated_data['input'],
-            context=self.validated_data.get('context', {}),
-            model=self.validated_data.get('model'),
-            thread=thread,
-        )
-
+        run_id = await start_run(thread=thread)
+        try:
+            await run_agent(
+                thread_id=str(thread.id),
+                run_id=str(run_id),
+                agent=self.validated_data['agent'],
+                model=self.validated_data.get('model'),
+                message=message,
+                resume=self.validated_data.get('resume'),
+                context=self.validated_data.get('context') or {},
+            )
+        except Exception:
+            await end_run(thread=thread, status=AgentRunStatus.ERROR, error='Failed to enqueue agent run')
+            raise
+        return thread.id, run_id

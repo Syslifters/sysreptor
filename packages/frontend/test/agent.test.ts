@@ -4,6 +4,7 @@ import {
   MessageRole,
   StreamEventType,
   ToolCallStatus,
+  applyStreamEvent,
   buildChangedFiles,
   getToolFilePath,
   parseProjectFilePath,
@@ -19,7 +20,7 @@ const { mockFetch, mockChatStream } = vi.hoisted(() => {
   function mockChatStream(events: StreamEvent[]) {
     mockFetch.mockReset();
     mockFetch.mockImplementation(async (url: string, opts?: { method?: string; responseType?: string }) => {
-      if (url === '/api/v1/utils/chat/' && opts?.method === 'POST' && opts?.responseType === 'stream') {
+      if (url.includes('/stream/') && opts?.method === 'GET' && opts?.responseType === 'stream') {
         return new ReadableStream({
           start(controller) {
             const body = events.map(e => `event: ${e.type}\ndata: ${JSON.stringify(e)}\n\n`).join('');
@@ -39,8 +40,7 @@ mockNuxtImport('$fetch', () => mockFetch);
 
 describe('agentStreaming', () => {
   describe('submitMessageStreamed', () => {
-    it('parses a full backend turn with metadata, text chunks, tool_call, and tool_call_status', async () => {
-      const threadId = 'thread-123';
+    it('parses a full backend turn with snapshot, text chunks, tool_call, and tool_call_status', async () => {
       const assistantId = 'asst-1';
       const toolCallId = 'tool-1';
       const finalAssistantId = 'asst-2';
@@ -51,7 +51,16 @@ describe('agentStreaming', () => {
       };
 
       mockChatStream([
-        { type: StreamEventType.METADATA, content: { thread_id: threadId } },
+        {
+          type: StreamEventType.SNAPSHOT,
+          content: {
+            messages: [],
+            interrupts: [],
+            run_id: 'run-1',
+            run_status: 'running',
+          },
+        },
+        { type: StreamEventType.TEXT, content: { id: 'user-1', role: MessageRole.USER, text: 'Update it', replace: true } },
         { type: StreamEventType.TEXT, content: { id: assistantId, role: MessageRole.ASSISTANT, text: 'Let me ' }, subagent: null },
         { type: StreamEventType.TEXT, content: { id: assistantId, role: MessageRole.ASSISTANT, text: 'update.' }, subagent: null },
         {
@@ -78,15 +87,16 @@ describe('agentStreaming', () => {
           subagent: null,
         },
         { type: StreamEventType.TEXT, content: { id: finalAssistantId, role: MessageRole.ASSISTANT, text: 'Done.' }, subagent: null },
+        { type: StreamEventType.RUN_STATUS, content: { status: 'completed' } },
       ]);
 
       const messageHistory: ChatHistoryEntry[] = [];
       const result = await submitMessageStreamed({
-        body: { agent: 'project_agent' },
+        url: '/api/v1/utils/chat/thread-123/stream/',
         messageHistory,
       });
 
-      expect(result.metadata.thread_id).toBe(threadId);
+      expect(result.status).toBe('completed');
 
       const assistant = messageHistory.find(m => m.id === assistantId);
       expect(assistant?.text).toBe('Let me update.');
@@ -100,11 +110,47 @@ describe('agentStreaming', () => {
       expect(finalAssistant?.text).toBe('Done.');
     });
 
+    it('snapshot replaces history but keeps trailing optimistic user message', () => {
+      const messageHistory: ChatHistoryEntry[] = [
+        { id: 'local-user', role: MessageRole.USER, text: 'Hi' },
+      ];
+      const state = { interrupts: [], error: null as string | null, status: null as string | null };
+      applyStreamEvent(messageHistory, state, {
+        type: StreamEventType.SNAPSHOT,
+        content: {
+          messages: [
+            { id: 'prev', role: MessageRole.ASSISTANT, text: 'Earlier' },
+          ],
+          interrupts: [],
+          run_id: 'run-1',
+          run_status: 'running',
+        },
+      });
+      expect(messageHistory.map(m => m.id)).toEqual(['prev', 'local-user']);
+    });
+
+    it('replace snapshots overwrite streamed text', () => {
+      const messageHistory: ChatHistoryEntry[] = [];
+      const state = { interrupts: [], error: null as string | null, status: null as string | null };
+      applyStreamEvent(messageHistory, state, {
+        type: StreamEventType.TEXT,
+        content: { id: 'a1', role: MessageRole.ASSISTANT, text: 'partial' },
+      });
+      applyStreamEvent(messageHistory, state, {
+        type: StreamEventType.TEXT,
+        content: { id: 'a1', role: MessageRole.ASSISTANT, text: 'full text', replace: true },
+      });
+      expect(messageHistory[0]?.text).toBe('full text');
+    });
+
     it('accumulates incremental text and reasoning chunks for the same message id', async () => {
       const assistantId = 'asst-1';
 
       mockChatStream([
-        { type: StreamEventType.METADATA, content: { thread_id: 'thread-1' } },
+        {
+          type: StreamEventType.SNAPSHOT,
+          content: { messages: [], interrupts: [], run_id: 'run-1', run_status: 'running' },
+        },
         {
           type: StreamEventType.TEXT,
           content: {
@@ -122,7 +168,7 @@ describe('agentStreaming', () => {
 
       const messageHistory: ChatHistoryEntry[] = [];
       await submitMessageStreamed({
-        body: { agent: 'project_agent' },
+        url: '/api/v1/utils/chat/thread-1/stream/',
         messageHistory,
       });
 
@@ -136,7 +182,10 @@ describe('agentStreaming', () => {
       const taskId = 'task-1';
 
       mockChatStream([
-        { type: StreamEventType.METADATA, content: { thread_id: 'thread-1' } },
+        {
+          type: StreamEventType.SNAPSHOT,
+          content: { messages: [], interrupts: [], run_id: 'run-1', run_status: 'running' },
+        },
         {
           type: StreamEventType.TOOL_CALL,
           content: {
@@ -170,7 +219,7 @@ describe('agentStreaming', () => {
 
       const messageHistory: ChatHistoryEntry[] = [];
       await submitMessageStreamed({
-        body: { agent: 'project_agent' },
+        url: '/api/v1/utils/chat/thread-1/stream/',
         messageHistory,
       });
 
@@ -191,7 +240,10 @@ describe('agentStreaming', () => {
       const analyzeId = 'analyze-image-1';
 
       mockChatStream([
-        { type: StreamEventType.METADATA, content: { thread_id: 'thread-1' } },
+        {
+          type: StreamEventType.SNAPSHOT,
+          content: { messages: [], interrupts: [], run_id: 'run-1', run_status: 'running' },
+        },
         {
           type: StreamEventType.TOOL_CALL,
           content: {
@@ -224,7 +276,7 @@ describe('agentStreaming', () => {
 
       const messageHistory: ChatHistoryEntry[] = [];
       await submitMessageStreamed({
-        body: { agent: 'project_agent' },
+        url: '/api/v1/utils/chat/thread-1/stream/',
         messageHistory,
       });
 
@@ -242,7 +294,10 @@ describe('agentStreaming', () => {
 
     it('returns the error event content and does not append to history', async () => {
       mockChatStream([
-        { type: StreamEventType.METADATA, content: { thread_id: 'thread-err' } },
+        {
+          type: StreamEventType.SNAPSHOT,
+          content: { messages: [], interrupts: [], run_id: 'run-1', run_status: 'running' },
+        },
         { type: StreamEventType.ERROR, content: 'Incorrect API key provided' },
       ]);
 
@@ -250,12 +305,12 @@ describe('agentStreaming', () => {
         { id: 'u1', role: MessageRole.USER, text: 'hello' },
       ];
       const result = await submitMessageStreamed({
-        body: { agent: 'project_ask' },
+        url: '/api/v1/utils/chat/thread-err/stream/',
         messageHistory,
       });
 
       expect(result.error).toBe('Incorrect API key provided');
-      expect(result.metadata.thread_id).toBe('thread-err');
+      // Snapshot cleared history (no messages in snapshot); trailing user kept
       expect(messageHistory).toHaveLength(1);
       expect(messageHistory[0].role).toBe(MessageRole.USER);
     });
@@ -406,10 +461,32 @@ describe('agentChanges', () => {
         }),
       ];
 
-      const accepted = { [filePath]: '2026-01-01T10:00:00+00:00' };
+      const accepted = { f1: '2026-01-01T10:00:00+00:00' };
       const files = buildChangedFiles(sessionMessages, accepted);
       expect(files).toHaveLength(1);
       expect(files[0].diffTimestamp).toBe('2026-01-01T11:00:00+00:00');
+    });
+
+    it('includes nested subagent write tools', () => {
+      const messages: ChatHistoryEntry[] = [
+        { id: 'u1', role: MessageRole.USER, text: 'go' },
+        toolMessage({
+          id: 'task-1',
+          name: 'task',
+          args: { description: 'edit' },
+          subagentMessages: [
+            toolMessage({
+              id: 't-nested',
+              name: 'update_field_value',
+              args: { file_path: '/project/reporting/findings/f1.yaml' },
+              timestamp: '2026-01-01T10:00:00+00:00',
+            }),
+          ],
+        }),
+      ];
+      const files = buildChangedFiles(messages);
+      expect(files).toHaveLength(1);
+      expect(files[0].filePath).toBe('/project/reporting/findings/f1.yaml');
     });
   });
 });

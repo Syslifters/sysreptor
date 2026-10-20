@@ -36,6 +36,7 @@ from sysreptor.tasks.models import (
     TaskStatus,
     periodic_task_registry,
 )
+from sysreptor.tasks.tasks import execute_periodic_task
 from sysreptor.tests.mock import (
     create_archived_project,
     create_project,
@@ -71,7 +72,7 @@ class TestPeriodicTaskScheduling:
             yield
 
     def run_tasks(self):
-        async_to_sync(PeriodicTask.objects.run_all_pending_tasks)()
+        async_to_sync(PeriodicTask.objects.schedule_pending_tasks)()
 
     def test_initial_run(self):
         PeriodicTask.objects.all().delete()
@@ -139,11 +140,20 @@ class TestPeriodicTaskScheduling:
         assert t.completed > start_time
         assert self.mock_task_success.call_count == 1
 
+    def test_stale_duplicate_execute_skipped(self):
+        PeriodicTask.objects.create(
+            id='task_success', status=TaskStatus.SUCCESS,
+            started=timezone.now() - timedelta(days=2), completed=timezone.now() - timedelta(days=2),
+        )
+        async_to_sync(execute_periodic_task)('task_success')
+        async_to_sync(execute_periodic_task)('task_success')
+        assert self.mock_task_success.call_count == 1
+
     def test_db_query_performance(self):
         self.run_tasks()
 
         with assertNumQueries(1):
-            async_to_sync(PeriodicTask.objects.run_all_pending_tasks)()
+            async_to_sync(PeriodicTask.objects.schedule_pending_tasks)()
 
 
 @pytest.mark.django_db()

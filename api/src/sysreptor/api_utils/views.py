@@ -4,6 +4,7 @@ from inspect import cleandoc
 
 from adrf.views import APIView as APIViewAsync
 from asgiref.sync import sync_to_async
+from channels.layers import channel_layers
 from django.conf import settings
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiTypes, extend_schema
@@ -37,7 +38,7 @@ from sysreptor.utils.fielddefinition.serializers import (
     serializer_from_field,
 )
 from sysreptor.utils.fielddefinition.types import CweField, FieldDefinition, serialize_field_definition
-from sysreptor.utils.utils import copy_keys, remove_duplicates, run_in_background
+from sysreptor.utils.utils import copy_keys, remove_duplicates
 
 log = logging.getLogger(__name__)
 
@@ -173,7 +174,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
             'languages': languages,
             'license': copy_keys(license.check_license(), ['type', 'error']),
             'features': {
-                'websockets': not settings.DISABLE_WEBSOCKETS,
+                'websockets': not settings.DISABLE_WEBSOCKETS and 'default' in channel_layers,
                 'forgot_password': license.is_professional() and configuration.FORGOT_PASSWORD_ENABLED and configuration.LOCAL_USER_AUTH_ENABLED and bool(settings.EMAIL_HOST) and '*' not in settings.ALLOWED_HOSTS,
             },
             'permissions': {},
@@ -231,8 +232,11 @@ class HealthcheckApiView(APIViewAsync):
         res = await sync_to_async(run_healthchecks)(settings.HEALTH_CHECKS)
 
         if res.status_code == 200:
-            # Run periodic tasks
-            run_in_background(PeriodicTask.objects.run_all_pending_tasks)()
+            # Schedule periodic tasks
+            try:
+                await PeriodicTask.objects.schedule_pending_tasks()
+            except Exception:
+                logging.exception('Error while scheduling periodic tasks')
 
         return res
 

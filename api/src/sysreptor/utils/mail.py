@@ -4,7 +4,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from lxml import etree
 
-from sysreptor.utils.utils import run_in_background
+from sysreptor.conf.taskiq import background_task
 
 
 def html_to_text(html):
@@ -18,6 +18,7 @@ def html_to_text(html):
     return '\n'.join(lines_cleaned)
 
 
+@background_task('send_mail')
 @sync_to_async(thread_sensitive=False)
 def send_mail(to: str|list[str], subject: str, template_name: str, template_context: dict):
     if not settings.EMAIL_HOST or not to:
@@ -37,8 +38,3 @@ def send_mail(to: str|list[str], subject: str, template_name: str, template_cont
     )
     mail.attach_alternative(body_html, 'text/html')
     mail.send()
-
-
-async def send_mail_in_background(*args, **kwargs):
-    run_in_background(send_mail)(*args, **kwargs)
-

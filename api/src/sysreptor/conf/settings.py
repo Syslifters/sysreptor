@@ -20,7 +20,6 @@ from pathlib import Path
 import redis
 from decouple import Csv, config
 from django.utils.csp import CSP
-from kombu import Queue
 
 from sysreptor.conf.plugins import ENABLED_PLUGINS_FIELD, load_plugins
 from sysreptor.utils.fielddefinition.types import (
@@ -207,14 +206,17 @@ DATABASES = {
 }
 
 
-# Websockets
+# Redis / Channels / WebSockets
 REDIS_URL = config('REDIS_URL', default=None)
 REDIS_CONNECTION_CONFIG = config('REDIS_CONNECTION_CONFIG', cast=json.loads, default='null')
-DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False) or (not REDIS_URL and not REDIS_CONNECTION_CONFIG)
-if not DISABLE_WEBSOCKETS:
+HAS_REDIS = bool(REDIS_URL or REDIS_CONNECTION_CONFIG)
+DISABLE_WEBSOCKETS = config('DISABLE_WEBSOCKETS', cast=bool, default=False)
+TASKIQ_ALWAYS_EAGER = False
+
+if HAS_REDIS:
     CHANNEL_LAYERS = {
         'default': {
-            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'BACKEND': 'channels_redis.pubsub.RedisPubSubChannelLayer',
             'CONFIG': {
                 'hosts': [{
                     'socket_timeout': None,
@@ -226,9 +228,7 @@ if not DISABLE_WEBSOCKETS:
                     },
                     'retry_on_timeout': True,
                     'retry_on_error': [redis.ConnectionError],
-                } | ( REDIS_CONNECTION_CONFIG or {'address': REDIS_URL})],
-                'capacity': 3000,
-                'expiry': 30,
+                } | (REDIS_CONNECTION_CONFIG or {'address': REDIS_URL})],
             },
         },
     }
@@ -527,12 +527,12 @@ if not CELERY_BROKER_URL and CELERY_BROKER_URL_FILE:
 CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='rpc://')
 
 
+# Execute tasks locally, if no broker is configured
+CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
+
 CELERY_RESULT_EXPIRES = timedelta(seconds=30)
 CELERY_TASK_DEFAULT_EXCHANGE = 'tasks'
 CELERY_TASK_QUEUES_NO_DECLARE = config('CELERY_TASK_QUEUES_NO_DECLARE', cast=bool, default=False)
-CELERY_TASK_QUEUES = [
-    Queue('rendering', routing_key='tasks.rendering', no_declare=CELERY_TASK_QUEUES_NO_DECLARE),
-]
 CELERY_TASK_ROUTES = {
     'sysreptor.render_pdf': {
         'exchange': CELERY_TASK_DEFAULT_EXCHANGE,
@@ -541,6 +541,11 @@ CELERY_TASK_ROUTES = {
     },
 }
 
+if CELERY_BROKER_URL:
+    from kombu import Queue
+    CELERY_TASK_QUEUES = [
+        Queue('rendering', routing_key='tasks.rendering', no_declare=CELERY_TASK_QUEUES_NO_DECLARE),
+    ]
 
 # Celery worker settings
 CELERY_SECURE_WORKER = config('CELERY_SECURE_WORKER', cast=bool, default=False)
@@ -557,9 +562,6 @@ if CELERY_SECURE_WORKER:
 CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 CELERY_WORKER_SEND_TASK_EVENTS = False
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
-
-# Execute tasks locally, if no broker is configured
-CELERY_TASK_ALWAYS_EAGER = not CELERY_BROKER_URL
 
 # Maximum time a PDF rendering task is allowed to run. If a task takes longer, it gets cancelled.
 # Set to 0 to disable the time limit

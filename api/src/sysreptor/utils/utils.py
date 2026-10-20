@@ -1,6 +1,4 @@
-import asyncio
 import json
-import logging
 import uuid
 from collections import OrderedDict
 from collections.abc import Iterable
@@ -8,9 +6,7 @@ from datetime import date, datetime
 from itertools import groupby
 from typing import Any
 
-from asgiref.sync import async_to_sync, sync_to_async
 from decouple import strtobool
-from django.db import close_old_connections, connections
 from django.utils import dateparse, timezone
 from django.utils.crypto import get_random_string
 from randomcolor import RandomColor
@@ -182,25 +178,3 @@ def groupby_to_dict(data: Iterable, key) -> dict:
 
 def get_random_color() -> str:
     return RandomColor(seed=get_random_string(8)).generate(luminosity='bright')[0]
-
-
-_background_tasks = set()
-def run_in_background(func):
-    def inner(*args, **kwargs):
-        def task_finished():
-            if not connections['default'].in_atomic_block:
-                close_old_connections()
-
-        @sync_to_async(thread_sensitive=False)
-        def wrapper():
-            try:
-                async_to_sync(func)(*args, **kwargs)
-            except Exception:
-                logging.exception(f'Error while running run_in_background({func.__name__})')
-            finally:
-                task_finished()
-
-        task = asyncio.create_task(wrapper())
-        _background_tasks.add(task)
-        task.add_done_callback(_background_tasks.discard)
-    return inner

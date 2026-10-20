@@ -2,6 +2,11 @@
 
 ## Upcoming
 * Add design for HTB CDEP certification
+* AI agent: support multiple agent tabs
+* AI agent: continue running agents in background
+* AI agent: show chat history of previous agents
+* AI agent: show subagent messages in history
+* Run tasks in background worker processes
 
 
 ## v2026.89 - 2026-10-14

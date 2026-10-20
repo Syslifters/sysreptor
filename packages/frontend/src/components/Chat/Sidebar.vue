@@ -1,199 +1,139 @@
 <template>
   <div class="h-100 d-flex flex-column">
     <div class="sidebar-header">
-      <v-list-item class="pt-0 pb-0">
-        <v-list-item-title class="text-title-large">
-          AI Chat
-        </v-list-item-title>
-        <template #append>
+      <div class="chat-header-row d-flex align-center">
+        <v-tabs
+          v-model="selectedTabId"
+          density="compact"
+          color="primary"
+          align-tabs="start"
+          show-arrows
+          center-active
+          class="chat-tabs flex-grow-1 align-self-stretch"
+        >
+          <v-tab
+            v-for="tab in chatTabs.tabsState.value.tabs"
+            :key="tab.id"
+            :value="tab.id"
+            slim
+            class="chat-tab"
+          >
+            <template v-if="tabStatusColor(tab.id)" #prepend>
+              <v-icon
+                icon="mdi-circle-medium"
+                size="12"
+                :color="tabStatusColor(tab.id)"
+              />
+            </template>
+            <span class="chat-tab-label text-truncate">{{ tabLabel(tab) }}</span>
+            <template #append>
+              <s-btn-icon
+                icon="mdi-close"
+                size="x-small"
+                density="compact"
+                class="chat-tab-close"
+                @click.stop="closeTab(tab.id)"
+              />
+            </template>
+          </v-tab>
+        </v-tabs>
+        <div class="chat-header-actions d-flex align-center flex-shrink-0">
           <s-btn-icon
             @click="newChat"
             icon="mdi-plus-circle"
-            v-tooltip.top="'New chat (Ctrl+L)'"
+            v-tooltip.top="'New agent (Ctrl+L)'"
             density="compact"
           />
-
+          <s-btn-icon
+            density="compact"
+            v-tooltip.top="'Agent history'"
+          >
+            <v-icon icon="mdi-history" />
+            <v-menu
+              v-model="historyMenuOpen"
+              activator="parent"
+              location="bottom end"
+              :close-on-content-click="true"
+            >
+              <v-list density="compact" min-width="260" max-width="320">
+                <v-list-item v-if="historyLoading">
+                  <template #prepend>
+                    <v-progress-circular indeterminate size="16" width="2" class="mr-2" />
+                  </template>
+                  <v-list-item-title class="text-disabled">Loading...</v-list-item-title>
+                </v-list-item>
+                <template v-else>
+                  <v-list-item
+                    v-for="thread in historyThreads"
+                    :key="thread.id"
+                    @click="chatTabs.open({ threadId: thread.id, title: thread.title || '' })"
+                  >
+                    <v-list-item-title class="text-body-medium text-truncate">
+                      {{ thread.title || 'New agent' }}
+                    </v-list-item-title>
+                    <v-list-item-subtitle class="text-body-small">
+                      {{ formatThreadCreated(thread.created) }}
+                    </v-list-item-subtitle>
+                    <template #append>
+                      <v-progress-circular
+                        v-if="thread.run_status === 'running'"
+                        indeterminate
+                        size="14"
+                        width="2"
+                        class="mr-1"
+                      />
+                      <v-icon
+                        v-else-if="historyStatusColor(thread.run_status)"
+                        icon="mdi-circle-medium"
+                        size="12"
+                        :color="historyStatusColor(thread.run_status)"
+                        class="mr-1"
+                      />
+                    </template>
+                  </v-list-item>
+                  <v-list-item v-if="historyThreads.length === 0" disabled>
+                    <v-list-item-title class="text-disabled">No previous agents</v-list-item-title>
+                  </v-list-item>
+                </template>
+              </v-list>
+            </v-menu>
+          </s-btn-icon>
+          
           <s-btn-icon @click="sidebarType = ReportingSidebarType.NONE">
             <v-icon size="x-large" icon="mdi-close" />
           </s-btn-icon>
-        </template>
-      </v-list-item>
+        </div>
+      </div>
       <v-divider />
     </div>
-    <div 
-      ref="messagesContainerRef" 
-      class="flex-grow-height overflow-y-auto pa-2"
-      v-mutate.sub.child.char="() => syncScroll()"
-      @scroll="onScrollMessages()"
-    >
-      <s-sidebar-empty-state
-        v-if="!hasModelsConfigured"
-        icon="mdi-creation-outline"
-        title="No LLM models configured"
-        text="Add LLM models in settings to use the AI Chat."
-        :action-text="auth.permissions.value.admin ? 'Open Settings' : undefined"
-        to="/settings/"
-      />
-      <s-sidebar-empty-state
-        v-else-if="agent.messageHistory.value.length === 0"
-        icon="mdi-creation-outline"
-        title="Start now with your AI chat"
-        text="Ask about findings, draft text, or review the report."
-      />
-      <template v-else>
-        <chat-message
-          v-for="(msg, idx) in agent.messageHistory.value"
-          :key="msg.id"
-          :msg="msg"
-          :project="props.project"
-          :is-streaming="isChatMessageStreaming(msg, {
-            inProgress: agent.inProgress.value,
-            isLastMessage: idx === agent.messageHistory.value.length - 1,
-          })"
-          :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory.value, idx)"
-        />
-        <template v-if="agent.interrupts.value.length > 0 && !agent.inProgress.value">
-          <chat-interrupt-prompt
-            v-for="interrupt in agent.interrupts.value"
-            :key="interrupt.id"
-            :interrupt="interrupt"
-            @resume="agent.resume"
-            class="mb-2"
-          />
-        </template>
-      </template>
-      <chat-reasoning-panel
-        v-if="agent.inProgress.value && agent.messageHistory.value.at(-1)?.role === MessageRole.USER"
-        :is-streaming="true"
-      />
 
-      <v-alert
-        v-if="agent.error.value"
-        type="error"
-        variant="tonal"
-        density="compact"
-        class="mt-2 mb-2"
-        :text="agent.error.value"
-      />
-    </div>
-    <div class="pa-2">
-      <s-card density="compact" variant="tonal" class="chat-compose-card">
-        <chat-changes-panel
-          v-if="apiSettings.isProfessionalLicense"
-          :project="props.project"
-          :changed-pages="runChangedPages"
-          :readonly="props.readonly"
-          @revert="onRevertPage"
-          @accept="agent.acceptChange"
-        />
-        <v-textarea
-          ref="messageTextareaRef"
-          v-model="form.message"
-          :readonly="!hasModelsConfigured || agent.inProgress.value"
-          @keypress="onKeyPress"
-          placeholder="Type a message..."
-          variant="solo"
-          density="compact"
-          flat
-          rows="1"
-          max-rows="8"
-          auto-grow
-          hide-details="auto"
-          spellcheck="false"
-          autofocus
-          class="textarea-message"
-          :class="{'generating': agent.inProgress.value}"
-        >
-          <template #append-inner>
-            <s-btn-icon
-              v-if="!agent.inProgress.value"
-              @click="sendMessage"
-              :disabled="!hasModelsConfigured || !form.message.trim()"
-              icon="mdi-send"
-              size="small"
-              density="compact"
-              v-tooltip="'Send message (Enter)'"
-            />
-            <div v-else class="btn-stop">
-              <v-progress-circular
-                indeterminate
-                :size="24"
-                :width="2"
-              />
-              <s-btn-icon
-                @click="agent.cancel()"
-                icon="mdi-stop"
-                size="small"
-                density="compact"
-              />
-              <v-tooltip activator="parent" text="Cancel" />
-            </div>
-          </template>
-          <template #details>
-            <div class="d-flex align-center flex-wrap ga-2">
-              <v-select
-                v-model="localSettings.reportingChatAgent"
-                :items="[
-                  { value: 'project_ask', title: 'Ask', icon: 'mdi-comment-question-outline', proOnly: false },
-                  { value: 'project_agent', title: 'Agent', icon: 'mdi-robot-outline', proOnly: true },
-                ]"
-                item-value="value"
-                item-title="title"
-                density="compact"
-                variant="plain"
-                hide-details
-                class="select-agent"
-              >
-                <template #selection="{ item }">
-                  <v-icon :icon="item.icon" size="x-small" class="mr-1" />
-                  {{ item.title }}
-                </template>
-                <template #item="{ props: itemProps, item }">
-                  <v-list-item 
-                    v-bind="itemProps" 
-                    density="compact"
-                    :disabled="item.proOnly && !apiSettings.isProfessionalLicense"
-                  >
-                    <template #prepend>
-                      <v-icon :icon="item.icon" />
-                    </template>
-                    <template #title>
-                      <pro-info v-if="item.proOnly">{{ item.title }}</pro-info>
-                      <span v-else>{{ item.title }}</span>
-                    </template>
-                  </v-list-item>
-                </template>
-              </v-select>
-              <v-divider vertical class="select-divider" />
-              <v-select
-                v-model="aiAgentModel"
-                :items="apiSettings.settings?.ai_agent_models || []"
-                item-value="id"
-                item-title="label"
-                density="compact"
-                variant="plain"
-                hide-details="auto"
-                placeholder="Model"
-                persistent-placeholder
-                no-data-text="No models available"
-                class="select-model"
-              />
-            </div>
-          </template>
-        </v-textarea>
-      </s-card>
-      <div v-if="apiSettings.settings!.ai_agent_disclaimer" class="w-100 text-center text-body-medium text-disabled text-truncate">
-        <i>{{ apiSettings.settings!.ai_agent_disclaimer }}</i>
-        <v-tooltip activator="parent" :text="apiSettings.settings!.ai_agent_disclaimer" />
-      </div>
-    </div>
+    <chat-thread
+      v-if="selectedTabId"
+      :key="selectedTabId"
+      ref="threadRef"
+      class="flex-grow-height"
+      :project="props.project"
+      :tab-id="selectedTabId"
+      :active="true"
+      :context="props.context"
+      :collab-flush="props.collabFlush"
+      :readonly="props.readonly"
+      :has-models-configured="hasModelsConfigured"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { pick, throttle } from 'lodash-es';
-import { getPageTitle, parseProjectFilePath, MessageRole, isChatMessageStreaming, isLastAssistantMessageInTurn, type AgentChangedPage } from '@/utils/agent';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import { parseCommentLocation, prettyFieldLabel } from '~/utils/comments';
+import { useProjectAiChatTabs } from '@/utils/agent';
+
+type HistoryThread = {
+  id: string;
+  title: string;
+  run_status: string|null;
+  created: string;
+};
 
 const props = defineProps<{
   project: PentestProject;
@@ -207,169 +147,95 @@ const sidebarType = defineModel<ReportingSidebarType>('sidebarType', { required:
 
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
-const auth = useAuth();
 const projectStore = useProjectStore();
+const chatTabs = useProjectAiChatTabs(props.project.id);
 
-const agent = projectStore.useReportingAgent({ project: props.project });
 const hasModelsConfigured = computed(() => (apiSettings.settings?.ai_agent_models?.length || 0) > 0);
 
-const runChangedPages = computed(() => {
-  const projectId = props.project.id;
-  const titles = {
-    findings: projectStore.findings(projectId),
-    sections: projectStore.sections(projectId),
-    notes: projectStore.notes(projectId),
-  };
-
-  return agent.changedFiles.value.flatMap((c) => {
-    const fileRef = parseProjectFilePath(c.filePath);
-    if (!fileRef) {
-      return [];
+const selectedTabId = computed({
+  get: () => chatTabs.tabsState.value.activeTabId,
+  set: (tabId: string | null) => {
+    if (tabId) {
+      chatTabs.select(tabId);
     }
-    return [{
-      filePath: c.filePath,
-      type: fileRef.type,
-      id: fileRef.id,
-      title: getPageTitle(fileRef, titles),
-      isCreated: c.isCreated,
-      diffTimestamp: c.diffTimestamp,
-    } satisfies AgentChangedPage];
-  });
+  },
 });
+const threadRef = useTemplateRef<any>('threadRef');
 
-async function onRevertPage(page: AgentChangedPage) {
-  const fileRef = parseProjectFilePath(page.filePath);
-  if (!fileRef || props.readonly) {
-    return;
+function tabLabel(tab: { id: string }) {
+  const state = projectStore.data[props.project.id]?.aiAgentThreads[tab.id];
+  return state?.title || 'New agent';
+}
+
+function tabStatusColor(tabId: string): string|undefined {
+  const state = projectStore.data[props.project.id]?.aiAgentThreads[tabId];
+  if (!state) {
+    return undefined;
   }
+  if (state.run || state.currentRequest) {
+    return 'primary';
+  }
+  if (state.error) {
+    return 'error';
+  }
+  if (state.interrupts?.length) {
+    return 'info';
+  }
+  return undefined;
+}
 
-  try {
-    if (page.isCreated) {
-      if (fileRef.type === 'finding') {
-        await projectStore.deleteFinding(props.project, { id: fileRef.id });
-      } else if (fileRef.type === 'note') {
-        await projectStore.deleteNote(props.project, { id: fileRef.id });
-      }
-    } else if (fileRef.type === 'finding') {
-      const historic = await $fetch<PentestFinding>(
-        `/api/v1/pentestprojects/${props.project.id}/history/${page.diffTimestamp}/findings/${fileRef.id}/`,
-      );
-      await $fetch(`/api/v1/pentestprojects/${props.project.id}/findings/${fileRef.id}/`, {
-        method: 'PATCH',
-        body: pick(historic, ['data']),
-      });
-    } else if (fileRef.type === 'section') {
-      const historic = await $fetch<ReportSection>(
-        `/api/v1/pentestprojects/${props.project.id}/history/${page.diffTimestamp}/sections/${fileRef.id}/`,
-      );
-      await $fetch(`/api/v1/pentestprojects/${props.project.id}/sections/${fileRef.id}/`, {
-        method: 'PATCH',
-        body: pick(historic, ['data']),
-      });
-    } else if (fileRef.type === 'note') {
-      const historic = await $fetch<ProjectNote>(
-        `/api/v1/pentestprojects/${props.project.id}/history/${page.diffTimestamp}/notes/${fileRef.id}/`,
-      );
-      await $fetch(`/api/v1/pentestprojects/${props.project.id}/notes/${fileRef.id}/`, {
-        method: 'PATCH',
-        body: pick(historic, ['title', 'text', 'checked', 'icon_emoji']),
-      });
-    }
+function historyStatusColor(status: string|null): string|undefined {
+  if (status === 'interrupted') {
+    return 'info';
+  }
+  if (status === 'error' || status === 'cancelled') {
+    return 'error';
+  }
+  return undefined;
+}
 
-    agent.acceptChange(page.filePath);
-  } catch (error) {
-    requestErrorToast({
-      error,
-      message: page.isCreated ? 'Failed to delete page' : 'Failed to revert changes',
-    });
+function closeTab(tabId: string) {
+  if (chatTabs.close(tabId)) {
+    sidebarType.value = ReportingSidebarType.NONE;
   }
 }
 
-const messagesContainerRef = useTemplateRef('messagesContainerRef');
-const isScrolledToBottom = ref(true);
-
-const aiAgentModel = computed({
-  get: () => apiSettings.settings?.ai_agent_models?.find(m => m.id === localSettings.reportingChatModel)?.id ?? apiSettings.settings?.ai_agent_models?.[0]?.id ?? null,
-  set: (value: string | null) => { localSettings.reportingChatModel = value; }
-});
-const form = ref({
-  message: '',
-});
-
-watch(() => [localSettings.reportingChatAgent, apiSettings.isProfessionalLicense], () => {
-  if (localSettings.reportingChatAgent === 'project_agent' && !apiSettings.isProfessionalLicense) {
-    localSettings.reportingChatAgent = 'project_ask';
-  }
-}, { immediate: true });
-
-async function sendMessage() {
-  if (!hasModelsConfigured.value || !form.value.message.trim()) {
-    return;
-  }
-
-  // Flush collab events such that the server/agent has the latest data
-  await Promise.resolve(props.collabFlush?.());
-
-  const promise = agent.submitMessage({
-    message: form.value.message, 
-    context: props.context,
-    agent: localSettings.reportingChatAgent,
-    model: aiAgentModel.value,
-  });
-
-  // Always scroll to bottom when sending a new message (after adding message to UI)
-  await syncScroll({ force: true });
-
-  const res = await promise;
-  if (res === 'success') {
-    // Clear message input on success. Else keep it for retry.
-    form.value.message = '';
-  }
+async function newChat() {
+  chatTabs.open();
+  await nextTick();
+  threadRef.value?.focus?.();
 }
 useKeyboardShortcut('ctrl+l', newChat);
-function onKeyPress(e: KeyboardEvent) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    // Submit on Enter
-    // Newline on Shift+Enter
-    e.preventDefault();
-    sendMessage();
-  }
-}
 
-const messageTextareaRef = useTemplateRef('messageTextareaRef');
-async function newChat() {
-  agent.reset();
-  await nextTick();
-  messageTextareaRef.value?.focus();
+const historyMenuOpen = ref(false);
+const historyLoading = ref(false);
+const historyThreads = ref<HistoryThread[]>([]);
+async function refreshHistoryList() {
+  historyLoading.value = true;
+  try {
+    const res = await $fetch<PaginatedResponse<HistoryThread>>('/api/v1/utils/chat/', {
+      method: 'GET',
+      query: { project: props.project.id },
+    });
+    historyThreads.value = res.results;
+  } catch (error) {
+    requestErrorToast({ error, message: 'Failed to load agent history' });
+  } finally {
+    historyLoading.value = false;
+  }
 }
+whenever(historyMenuOpen, refreshHistoryList);
 
-async function syncScroll(options?: { force?: boolean }) {
-  if (options?.force) {
-    isScrolledToBottom.value = true;
+function formatThreadCreated(created: string) {
+  try {
+    return formatDistanceToNow(parseISO(created), { addSuffix: true });
+  } catch {
+    return created;
   }
-  if (!messagesContainerRef.value || !isScrolledToBottom.value) {
-    return;
-  }
-  await nextTick();
-  messagesContainerRef.value!.scrollTop = messagesContainerRef.value!.scrollHeight;
 }
-onMounted(async () => {
-  syncScroll({ force: true });
-  if (hasModelsConfigured.value) {
-    await agent.loadHistory();
-  }
-});
-const onScrollMessages = throttle(() => {
-  if (!messagesContainerRef.value) {
-    return;
-  }
-  const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.value;
-  // Consider "at bottom" if within 100px of the bottom to account for rounding errors
-  isScrolledToBottom.value = scrollHeight - scrollTop - clientHeight < 50;
-}, 100);
 
 async function onPrefillPrompt(event: any) {
-  if (!hasModelsConfigured.value || agent.inProgress.value) {
+  if (!hasModelsConfigured.value) {
     return;
   }
 
@@ -393,9 +259,9 @@ async function onPrefillPrompt(event: any) {
     }
 
     if (entityKind && location) {
-      text = `Draft or rewrite the "${fieldLabel}" (${fieldId}) field in ${entityKind} "${title}" (ID ${location.id}). ` + 
-        `Base the text on other fields in this ${entityKind} and project notes; do not invent facts. ` + 
-        'Ask the user if required information is missing. ' + 
+      text = `Draft or rewrite the "${fieldLabel}" (${fieldId}) field in ${entityKind} "${title}" (ID ${location.id}). ` +
+        `Base the text on other fields in this ${entityKind} and project notes; do not invent facts. ` +
+        'Ask the user if required information is missing. ' +
         'Update only this field.';
     }
   }
@@ -403,77 +269,48 @@ async function onPrefillPrompt(event: any) {
     return;
   }
 
-  if (form.value.message.trim()) {
-    text = form.value.message.trimEnd() + '\n\n' + text;
-  }
-  form.value.message = text;
+  const tab = chatTabs.open();
+  const state = chatTabs.ensureThread(tab.id);
+  state.draftMessage = text;
 
   if (localSettings.reportingChatAgent !== 'project_agent' && apiSettings.isProfessionalLicense) {
     localSettings.reportingChatAgent = 'project_agent';
   }
 
   await nextTick();
-  messageTextareaRef.value?.focus();
+  threadRef.value?.focus?.();
 }
 const eventBusPrefillPrompt = useEventBus('ai:prefillPrompt');
 eventBusPrefillPrompt.on(onPrefillPrompt);
 onBeforeUnmount(() => {
   eventBusPrefillPrompt.off(onPrefillPrompt);
+  // Detach all streams for this project, do not cancel runs
+  chatTabs.detachAll();
 });
-
 </script>
 
 <style lang="scss" scoped>
-.message-text {
-  white-space: pre-wrap;
-  word-break: break-word;
+.chat-header-row {
+  min-width: 0;
 }
-.btn-stop {
-  position: relative;
-  display: inline-flex;
-
-  & > .v-progress-circular {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
+.chat-header-actions-spacer {
+  width: 0.25rem;
 }
-
-.textarea-message:deep() {
-  textarea {
-    font-size: 0.875rem;
-  }
-  .v-input__details {
-    padding-top: 0;
-  }
-  .v-messages {
-    display: none;
-  }
+.chat-tabs {
+  min-width: 0;
+  height: auto;
 }
-.textarea-message.generating:deep() {
-  textarea {
-    opacity: var(--v-disabled-opacity);
+.chat-tabs:deep() {
+  .v-btn {
+    text-transform: none;
+    letter-spacing: normal;
+    min-width: 0;
+    height: 100%;
   }
 }
 
-.select-agent:deep(), .select-model:deep() {
-  min-width: 6rem;
-
-  .v-field {
-    --v-input-control-height: 24px;
-    --v-input-padding-top: 0;
-  }
-  .v-field__input {
-    font-size: 0.875rem;
-  }
-}
-.select-divider {
-  margin-top: 0.2rem;
-  margin-bottom: 0.2rem;
-}
-
-.chat-compose-card:deep() {
-  overflow: hidden;
+.chat-tab-label {
+  max-width: 7rem;
+  display: inline-block;
 }
 </style>

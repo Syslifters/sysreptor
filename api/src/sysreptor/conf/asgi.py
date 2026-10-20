@@ -21,9 +21,9 @@ django_asgi_app = get_asgi_application()
 
 
 from sysreptor.conf.urls import websocket_urlpatterns  # noqa: E402
-from sysreptor.utils.elasticapm import DjangoASGITracingMiddleware  # noqa: E402
 
 if settings.ELASTIC_APM_ENABLED:
+    from sysreptor.utils.elasticapm import DjangoASGITracingMiddleware  # noqa: E402
     django_asgi_app = DjangoASGITracingMiddleware(django_asgi_app)
 
 application = ProtocolTypeRouter({

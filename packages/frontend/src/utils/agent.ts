@@ -1,4 +1,4 @@
-import type { PentestFinding, ProjectNote, ReportSection } from '#imports';
+import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from '#imports';
 
 export enum MessageRole {
   USER = 'user',
@@ -41,7 +41,6 @@ export type ToolCall = {
   args: Record<string, any>;
   status: ToolCallStatus;
   timestamp: string;
-  content?: string;
   output?: any|null;
   subagentMessages?: ChatHistoryEntry[];
 }
@@ -76,11 +75,13 @@ export function isChatMessageStreaming(
 
 export enum StreamEventType {
   METADATA = 'metadata',
+  SNAPSHOT = 'snapshot',
   TEXT = 'text',
   TOOL_CALL = 'tool_call',
   TOOL_CALL_STATUS = 'tool_call_status',
   INTERRUPT = 'interrupt',
   ERROR = 'error',
+  RUN_STATUS = 'run_status',
 }
 
 export type ChatInterrupt = {
@@ -100,8 +101,18 @@ export type StreamEvent = {
     thread_id: string;
   }
 } | {
+  type: StreamEventType.SNAPSHOT;
+  content: {
+    messages: ChatHistoryEntry[];
+    interrupts: ChatInterrupt[];
+    thread_id: string;
+    run_id?: string|null;
+    run_status?: string|null;
+    run_error?: string|null;
+  };
+} | {
   type: StreamEventType.TEXT;
-  content: AssistantMessage;
+  content: ChatHistoryEntry & { replace?: boolean };
   subagent?: string|null;
 } | {
   type: StreamEventType.TOOL_CALL;
@@ -117,14 +128,23 @@ export type StreamEvent = {
 } | {
   type: StreamEventType.ERROR;
   content: string;
+} | {
+  type: StreamEventType.RUN_STATUS;
+  content: {
+    status: string;
+    error?: string|null;
+    interrupts?: ChatInterrupt[];
+  };
+};
+
+export type ApplyStreamState = {
+  interrupts: ChatInterrupt[];
+  error: string | null;
+  status: string | null;
 };
 
 function isRequestAborted(error: any): boolean {
   return Boolean(error?.options?.signal?.aborted || error?.name === 'AbortError' || error?.message === 'Aborted by user');
-}
-
-export function formatAgentRequestError(error: any): string {
-  return formatRequestError({ error, message: 'AI chat request failed' }) || 'Unexpected error';
 }
 
 export function findToolCall(
@@ -153,7 +173,13 @@ function getSubagentMessageList(messages: ChatHistoryEntry[], subagent?: string 
     return messages;
   }
   const subagentToolCall = findToolCall(messages, subagent);
-  return subagentToolCall?.subagentMessages ?? [];
+  if (!subagentToolCall) {
+    return [];
+  }
+  if (!subagentToolCall.subagentMessages) {
+    subagentToolCall.subagentMessages = [];
+  }
+  return subagentToolCall.subagentMessages;
 }
 
 /**
@@ -172,9 +198,6 @@ export async function parseEventStream(
   let buffer = '';
 
   function handleEvent(message: SSEMessageEvent) {
-    if (message.event === 'error') {
-      reader.cancel();
-    }
     callbacks.onMessage?.(message);
   }
   
@@ -285,103 +308,321 @@ export async function fetchSSE(url: string, options: Partial<Parameters<typeof $
   await parseEventStream(stream, { onMessage }, fetchOptions.signal);
 }
 
+/**
+ * Apply one stream event onto messageHistory (mutates in place).
+ * Returns true when a terminal run_status was received.
+ */
+export function applyStreamEvent(
+  messageHistory: ChatHistoryEntry[],
+  state: ApplyStreamState,
+  data: StreamEvent,
+): boolean {
+  if (data.type === StreamEventType.METADATA) {
+    // TODO: Handle metadata events
+  } else if (data.type === StreamEventType.SNAPSHOT) {
+    const snapshotMessages = (data.content.messages || []).map(m => reactive({ ...m }));
+    const snapshotIds = new Set(snapshotMessages.map(m => m.id));
+    // Keep a trailing optimistic user message not yet in the checkpoint
+    const last = messageHistory[messageHistory.length - 1];
+    const lastSnapshotUser = [...snapshotMessages].reverse().find(m => m.role === MessageRole.USER);
+    const trailing = (
+      last?.role === MessageRole.USER
+      && !snapshotIds.has(last.id)
+      && lastSnapshotUser?.text !== last.text
+    ) ? [last] : [];
+    messageHistory.splice(0, messageHistory.length, ...snapshotMessages, ...trailing);
+    state.interrupts = data.content.interrupts || [];
+    state.error = data.content.run_error || null;
+  } else if (data.type === StreamEventType.TEXT) {
+    // Reconcile optimistic local user message (same text, different id)
+    if (data.content.role === MessageRole.USER && !data.subagent) {
+      const last = messageHistory[messageHistory.length - 1];
+      if (
+        last?.role === MessageRole.USER
+        && last.text === data.content.text
+        && last.id !== data.content.id
+      ) {
+        if (messageHistory.some(m => m.id === data.content.id)) {
+          // Server message already present (e.g. from snapshot); drop optimistic duplicate
+          messageHistory.pop();
+        } else {
+          last.id = data.content.id;
+          if (data.content.timestamp) {
+            last.timestamp = data.content.timestamp;
+          }
+        }
+        return false;
+      }
+    }
+
+    const messageList = getSubagentMessageList(messageHistory, data.subagent);
+    const currentMessage = messageList.find(m => m.id === data.content.id);
+    if (currentMessage) {
+      if (data.content.replace) {
+        Object.assign(currentMessage, data.content);
+      } else {
+        currentMessage.text = (currentMessage.text || '') + (data.content.text || '');
+        currentMessage.reasoning = (currentMessage.reasoning || '') + (data.content.reasoning || '');
+        if (data.content.timestamp && !currentMessage.timestamp) {
+          currentMessage.timestamp = data.content.timestamp;
+        }
+      }
+    } else {
+      messageList.push(reactive(data.content));
+    }
+  } else if (data.type === StreamEventType.TOOL_CALL) {
+    const messageList = getSubagentMessageList(messageHistory, data.subagent);
+    const existing = messageList.find(m => m.id === data.content.id);
+    if (existing?.tool_call) {
+      const subagentMessages = data.content.subagentMessages ?? existing.tool_call.subagentMessages;
+      Object.assign(existing.tool_call, data.content, { subagentMessages });
+    } else if (!existing) {
+      messageList.push(reactive({
+        id: data.content.id,
+        role: MessageRole.TOOL,
+        timestamp: data.content.timestamp,
+        tool_call: {
+          subagentMessages: [],
+          ...data.content,
+        },
+      }));
+    }
+  } else if (data.type === StreamEventType.TOOL_CALL_STATUS) {
+    const toolCall = findToolCall(messageHistory, data.content.id);
+    if (toolCall) {
+      Object.assign(toolCall, data.content);
+    }
+  } else if (data.type === StreamEventType.INTERRUPT) {
+    state.interrupts = data.content;
+  } else if (data.type === StreamEventType.ERROR) {
+    state.error = data.content;
+  } else if (data.type === StreamEventType.RUN_STATUS) {
+    state.status = data.content.status;
+    state.error = data.content.error || null;
+    state.interrupts = data.content.interrupts || [];
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Subscribe to a thread's SSE stream (snapshot + live tail).
+ */
 export async function submitMessageStreamed(options: {
-  body: {
-    agent: string;
-    id?: string|null;
-    messages?: string[];
-    resume?: Record<string, any>;
-    model?: string;
-    context?: Record<string, string|null|undefined>;
-    [key: string]: any;
-  },
-  messageHistory?: ChatHistoryEntry[],
+  url: string;
+  messageHistory?: ChatHistoryEntry[];
   signal?: AbortSignal;
 }) {
-  const metadata = {
-    thread_id: options.body.thread_id as string,
+  const streamState: ApplyStreamState = {
+    interrupts: [],
+    error: null,
+    status: null,
   };
-  const messages = [] as ChatHistoryEntry[];
-  const pendingToolCalls = [] as ToolCall[];
-  let interrupts: ChatInterrupt[] = [];
-  let error: string | null = null;
+  const messageHistory = options.messageHistory ?? [];
 
-  await fetchSSE("/api/v1/utils/chat/", {
-    method: "POST",
-    body: options.body,
+  await fetchSSE(options.url, {
+    method: 'GET',
     signal: options.signal,
     onMessage(event) {
       const data = JSON.parse(event.data) as StreamEvent;
-
-      if (data.type === StreamEventType.METADATA) {
-        Object.assign(metadata, data.content);
-      } else if (data.type === StreamEventType.TEXT) {
-        const messageList = getSubagentMessageList(options.messageHistory ?? [], data.subagent);
-        const currentMessage = messageList.find(m => m.id === data.content.id);
-        if (currentMessage) {
-          currentMessage.text = (currentMessage.text || '') + (data.content.text || '');
-          currentMessage.reasoning = (currentMessage.reasoning || '') + (data.content.reasoning || '');
-          if (data.content.timestamp && !currentMessage.timestamp) {
-            currentMessage.timestamp = data.content.timestamp;
-          }
-        } else {
-          const newMessage = reactive(data.content);
-          messageList.push(newMessage);
-          if (!data.subagent) { 
-            messages.push(newMessage);
-          }
-        }
-      } else if (data.type === StreamEventType.TOOL_CALL) {
-        const messageList = getSubagentMessageList(options.messageHistory ?? [], data.subagent);
-        messageList.push(reactive({
-          id: data.content.id,
-          role: MessageRole.TOOL,
-          timestamp: data.content.timestamp,
-          tool_call: {
-            ...data.content,
-            subagentMessages: [],
-          },
-        }));
-      } else if (data.type === StreamEventType.TOOL_CALL_STATUS) {
-        const toolCall = findToolCall(options.messageHistory ?? [], data.content.id);
-        if (toolCall) {
-          Object.assign(toolCall, data.content);
-        }
-      } else if (data.type === StreamEventType.INTERRUPT) {
-        interrupts = data.content;
-      } else if (data.type === StreamEventType.ERROR) {
-        error = data.content;
-      }
-    }
+      applyStreamEvent(messageHistory, streamState, data);
+    },
   });
 
   return {
-    metadata,
-    messages,
-    pendingToolCalls,
-    interrupts,
-    messageHistory: options.messageHistory,
-    error,
-  }
+    messages: messageHistory,
+    interrupts: streamState.interrupts,
+    messageHistory,
+    error: streamState.error,
+    status: streamState.status,
+  };
 }
 
 
 export type AiAgentStoreState = {
   threadId: string|null;
+  title: string;
+  draftMessage: string;
   messageHistory: ChatHistoryEntry[];
   interrupts: ChatInterrupt[];
   error: string|null;
+  run: { id: string } | null;
   currentRequest: {
     promise?: Promise<any>;
     abortController?: AbortController;
+    reconnectTimer?: ReturnType<typeof setTimeout>|null;
   }|null;
-  changesState: {
-    sessionStartIndex: number;
-    historyReady: boolean;
-    acceptedUpTo: Record<string, string>;
+}
+
+function truncateChatTitle(text: string, maxLength: number = 80): string {
+  const collapsed = (text || '').trim().replace(/\s+/g, ' ');
+  if (collapsed.length <= maxLength) {
+    return collapsed;
+  }
+  return collapsed.slice(0, maxLength - 1).replace(/\s+$/, '') + '…';
+}
+
+function createEmptyAiAgentStoreState(partial?: Partial<AiAgentStoreState>): AiAgentStoreState {
+  return {
+    threadId: null,
+    title: '',
+    draftMessage: '',
+    messageHistory: [],
+    interrupts: [],
+    error: null,
+    run: null,
+    currentRequest: null,
+    ...partial,
   };
 }
 
+export type AiChatTab = {
+  id: string;
+  threadId: string|null;
+};
+
+export type AiChatTabsState = {
+  tabs: AiChatTab[];
+  activeTabId: string|null;
+};
+
+const sessionTabsByProject = reactive<Record<string, AiChatTabsState>>({});
+
+function abortAiAgentRequest(state?: AiAgentStoreState|null) {
+  if (!state?.currentRequest) {
+    return;
+  }
+  if (state.currentRequest.reconnectTimer) {
+    clearTimeout(state.currentRequest.reconnectTimer);
+  }
+  state.currentRequest.abortController?.abort();
+  state.currentRequest = null;
+}
+
+function getPersistedThreadIds(projectId: string): string[] {
+  return useAiSettings().getOpenTabs(projectId);
+}
+
+function persistThreadIds(projectId: string) {
+  const threadIds = (sessionTabsByProject[projectId]?.tabs || [])
+    .map(t => t.threadId)
+    .filter((id): id is string => !!id);
+  useAiSettings().setOpenTabs(projectId, threadIds);
+}
+
+function getAiChatTabs(projectId: string): AiChatTabsState {
+  if (!sessionTabsByProject[projectId]) {
+    const tabs: AiChatTab[] = getPersistedThreadIds(projectId).map(threadId => ({
+      id: uuidv4(),
+      threadId,
+    }));
+    if (tabs.length === 0) {
+      tabs.push({ id: uuidv4(), threadId: null });
+    }
+    sessionTabsByProject[projectId] = {
+      tabs,
+      activeTabId: tabs[0]!.id,
+    };
+    for (const tab of tabs) {
+      ensureAiThreadState(projectId, tab.id, { threadId: tab.threadId });
+    }
+  }
+  return sessionTabsByProject[projectId]!;
+}
+
+function ensureAiThreadState(projectId: string, tabId: string, partial?: Partial<AiAgentStoreState>) {
+  const projectStore = useProjectStore();
+  projectStore.ensureExists(projectId);
+  const threads = projectStore.data[projectId]!.aiAgentThreads;
+  if (!threads[tabId]) {
+    threads[tabId] = createEmptyAiAgentStoreState(partial);
+  }
+  return threads[tabId]!;
+}
+
+export function useProjectAiChatTabs(projectId: string) {
+  const projectStore = useProjectStore();
+  const tabsState = getAiChatTabs(projectId);
+
+  function open(opts: { threadId?: string|null; title?: string } = {}) {
+    if (opts.threadId) {
+      const existing = tabsState.tabs.find(t => t.threadId === opts.threadId);
+      if (existing) {
+        tabsState.activeTabId = existing.id;
+        return existing;
+      }
+    }
+    const newTab: AiChatTab = {
+      id: uuidv4(),
+      threadId: opts.threadId ?? null,
+    };
+    tabsState.tabs.push(newTab);
+    tabsState.activeTabId = newTab.id;
+    ensureAiThreadState(projectId, newTab.id, {
+      threadId: newTab.threadId,
+      title: opts.title || '',
+    });
+    if (newTab.threadId) {
+      persistThreadIds(projectId);
+    }
+    return newTab;
+  }
+
+  function close(tabId: string): boolean {
+    const idx = tabsState.tabs.findIndex(t => t.id === tabId);
+    if (idx < 0) {
+      return tabsState.tabs.length === 0;
+    }
+    abortAiAgentRequest(projectStore.data[projectId]?.aiAgentThreads[tabId]);
+    delete projectStore.data[projectId]!.aiAgentThreads[tabId];
+    tabsState.tabs.splice(idx, 1);
+    persistThreadIds(projectId);
+    if (tabsState.tabs.length === 0) {
+      tabsState.activeTabId = null;
+      return true;
+    }
+    if (tabsState.activeTabId === tabId) {
+      tabsState.activeTabId = tabsState.tabs[Math.max(0, idx - 1)]!.id;
+    }
+    return false;
+  }
+
+  function closeByThreadId(threadId: string): boolean {
+    for (const tab of [...tabsState.tabs]) {
+      if (tab.threadId === threadId) {
+        close(tab.id);
+      }
+    }
+    return tabsState.tabs.length === 0;
+  }
+
+  function select(tabId: string) {
+    if (tabsState.tabs.some(t => t.id === tabId)) {
+      tabsState.activeTabId = tabId;
+    }
+  }
+
+  function detachAll() {
+    for (const state of Object.values(projectStore.data[projectId]?.aiAgentThreads || {})) {
+      abortAiAgentRequest(state);
+    }
+  }
+
+  // Reopening the sidebar after the last tab was closed needs a blank tab
+  if (tabsState.tabs.length === 0) {
+    open();
+  }
+
+  return {
+    tabsState: computed(() => getAiChatTabs(projectId)),
+    open,
+    close,
+    closeByThreadId,
+    select,
+    detachAll,
+    ensureThread: (tabId: string, partial?: Partial<AiAgentStoreState>) => ensureAiThreadState(projectId, tabId, partial),
+  };
+}
 
 export function useAiAgentChat(options: {
   storeState: AiAgentStoreState;
@@ -389,73 +630,189 @@ export function useAiAgentChat(options: {
     agent: string,
     [key: string]: any;
   };
-  threadId?: string;
 }) {
-  const inProgress = computed(() => !!options.storeState.currentRequest);
-  const changesState = computed(() => options.storeState.changesState);
-  const currentSessionMessages = computed(() => options.storeState.messageHistory.slice(changesState.value.sessionStartIndex));
-
-  function initChangesSession() {
-    if (!changesState.value.historyReady) {
-      // Only track changes made after history load (this browser session).
-      changesState.value.sessionStartIndex = options.storeState.messageHistory.length;
-      changesState.value.historyReady = true;
-    }
-  }
-
-  function resetChanges() {
-    changesState.value.sessionStartIndex = 0;
-    changesState.value.historyReady = true;
-    changesState.value.acceptedUpTo = {};
-  }
+  const aiSettings = useAiSettings();
+  const inProgress = computed(() => !!options.storeState.currentRequest || !!options.storeState.run);
+  const draftMessage = computed({
+    get: () => options.storeState.draftMessage,
+    set: (value: string) => { options.storeState.draftMessage = value; },
+  });
 
   function acceptChange(filePath: string) {
-    const latestTimestamp = getLatestWriteToolTimestamp(currentSessionMessages.value, filePath);
+    const threadId = options.storeState.threadId;
+    const entityId = parseProjectFilePath(filePath)?.id;
+    if (!threadId || !entityId) {
+      return;
+    }
+    const latestTimestamp = getLatestWriteToolTimestamp(options.storeState.messageHistory, filePath);
     if (!latestTimestamp) {
       return;
     }
-    changesState.value.acceptedUpTo = {
-      ...changesState.value.acceptedUpTo,
-      [filePath]: latestTimestamp,
-    };
+    aiSettings.acceptChangesUpTo(threadId, entityId, latestTimestamp);
   }
 
   const changedFiles = computed(() => {
-    if (!changesState.value.historyReady) {
+    const threadId = options.storeState.threadId;
+    if (!threadId) {
       return [];
     }
     return buildChangedFiles(
-      currentSessionMessages.value,
-      changesState.value.acceptedUpTo,
+      options.storeState.messageHistory,
+      aiSettings.getAcceptedChangesUpTo(threadId),
     );
   });
 
-  async function loadHistory(params: Record<string, any>) {
-    if (options.storeState.threadId) {
-      // Already loaded
-      initChangesSession();
+  function clearReconnectTimer() {
+    const s = options.storeState;
+    if (s.currentRequest?.reconnectTimer) {
+      clearTimeout(s.currentRequest.reconnectTimer);
+      s.currentRequest.reconnectTimer = null;
+    }
+  }
+
+  async function attachToRun(threadId: string, runId: string) {
+    const s = options.storeState;
+
+    if (
+      s.run?.id === runId
+      && s.currentRequest?.promise
+      && s.currentRequest.abortController
+      && !s.currentRequest.abortController.signal.aborted
+    ) {
+      // Already attached to this run
+      return await s.currentRequest.promise;
+    }
+
+    // Always abort a prior SSE before installing a new reader
+    const priorPromise = s.currentRequest?.promise;
+    abortAiAgentRequest(s);
+    priorPromise?.catch(() => {});
+
+    s.run = { id: runId };
+    let reconnectAttempt = 0;
+    const abortController = new AbortController();
+
+    const promise = (async () => {
+      while (!abortController.signal.aborted) {
+        try {
+          const out = await submitMessageStreamed({
+            url: `/api/v1/utils/chat/${threadId}/stream/`,
+            messageHistory: s.messageHistory,
+            signal: abortController.signal,
+          });
+          s.interrupts = out.interrupts;
+          s.error = out.error;
+          s.run = null;
+          return out;
+        } catch (error: any) {
+          if (isRequestAborted(error) || abortController.signal.aborted) {
+            throw error;
+          }
+          const delay = Math.min(30000, 1000 * (2 ** reconnectAttempt));
+          reconnectAttempt += 1;
+          await new Promise<void>((resolve) => {
+            if (s.currentRequest) {
+              s.currentRequest.reconnectTimer = setTimeout(resolve, delay);
+            } else {
+              setTimeout(resolve, delay);
+            }
+          });
+          clearReconnectTimer();
+        }
+      }
+      return { status: 'aborted', error: null, interrupts: s.interrupts };
+    })();
+
+    s.currentRequest = { promise, abortController, reconnectTimer: null };
+    try {
+      return await promise;
+    } finally {
+      if (s.currentRequest?.promise === promise) {
+        s.currentRequest = null;
+      }
+    }
+  }
+
+  async function refresh() {
+    const s = options.storeState;
+    if (!s.threadId) {
+      return;
+    }
+    if (s.currentRequest?.abortController) {
+      // Live SSE keeps this tab up to date
       return;
     }
 
+    const threadId = s.threadId;
     try {
-      const promise = $fetch<{
+      const response = await $fetch<{
         id: string;
+        title?: string;
         messages: ChatHistoryEntry[];
         interrupts?: ChatInterrupt[];
-      }>(`/api/v1/utils/chat/${options.storeState.threadId || 'latest'}/`, { method: 'GET', params, });
-      options.storeState.currentRequest = { promise };
-      const response = await promise;
-      options.storeState.threadId = response.id;
-      options.storeState.messageHistory = response.messages;
-      options.storeState.interrupts = response.interrupts ?? [];
+        run_id?: string|null;
+        run_status?: string|null;
+        run_error?: string|null;
+      }>(`/api/v1/utils/chat/${threadId}/`, { method: 'GET' });
+
+      // Ignore stale response if a send/attach started while fetching
+      if (s.threadId !== threadId || s.currentRequest?.abortController) {
+        return;
+      }
+
+      s.threadId = response.id;
+      s.title = response.title || s.title;
+      s.messageHistory = response.messages;
+      s.interrupts = response.interrupts ?? [];
+      s.error = response.run_error ?? null;
+
+      if (response.run_status === 'running' && response.run_id) {
+        void attachToRun(response.id, response.run_id);
+      } else {
+        s.run = null;
+      }
     } catch {
-      // ignore errors
-    } finally {
-      options.storeState.currentRequest = null;
+      // ignore errors (e.g. thread deleted)
     }
-    initChangesSession();
   }
-  
+
+  async function startRun(body: Record<string, any>) {
+    const s = options.storeState;
+    const abortController = new AbortController();
+    s.currentRequest = {
+      promise: Promise.resolve(null),
+      abortController,
+      reconnectTimer: null,
+    };
+    try {
+      const response = await $fetch<{ thread_id: string; run_id: string }>('/api/v1/utils/chat/', {
+        method: 'POST',
+        body,
+        signal: abortController.signal,
+      });
+      if (abortController.signal.aborted || s.currentRequest?.abortController !== abortController) {
+        return 'aborted';
+      }
+      s.threadId = response.thread_id;
+      const out = await attachToRun(response.thread_id, response.run_id);
+      if (out?.error || out?.status === 'error') {
+        return 'error';
+      } else if (out?.status === 'cancelled') {
+        return 'aborted';
+      }
+      return 'success';
+    } catch (error: any) {
+      if (s.currentRequest?.abortController === abortController) {
+        s.currentRequest = null;
+      }
+      if (isRequestAborted(error)) {
+        return 'aborted';
+      }
+      s.error = formatRequestError({ error, message: 'Agent request failed' }) || 'Unexpected error';
+      return 'error';
+    }
+  }
+
   async function submitMessage(opts: { message: string, context?: Record<string, string|null|undefined>, agent?: string, model?: string|null }) {
     const message = opts.message.trim();
     if (inProgress.value || !message) {
@@ -466,48 +823,25 @@ export function useAiAgentChat(options: {
     options.storeState.interrupts = [];
     options.storeState.error = null;
 
+    if (!options.storeState.threadId && !options.storeState.title) {
+      options.storeState.title = truncateChatTitle(message);
+    }
+
+    const messageId = uuidv4();
     options.storeState.messageHistory.push({
-      id: uuidv4(),
+      id: messageId,
       role: MessageRole.USER,
       text: message,
     });
 
-    try {
-      const abortController = new AbortController();
-      const promise = submitMessageStreamed({
-        body: {
-          ...options.body,
-          id: options.storeState.threadId,
-          messages: [message], 
-          context: opts.context,
-          agent: opts.agent || options.body.agent,
-          model: opts.model || options.body.model,
-        },
-        messageHistory: options.storeState.messageHistory,
-        signal: abortController.signal,
-      });
-      options.storeState.currentRequest = { promise, abortController };
-      const out = await promise;
-      options.storeState.threadId = out.metadata.thread_id;
-      options.storeState.interrupts = out.interrupts;
-      options.storeState.error = out.error;
-
-      if (abortController.signal.aborted) {
-        return 'aborted';
-      } else if (out.error) {
-        return 'error';
-      } else {
-        return 'success';
-      }
-    } catch (error) {
-      if (isRequestAborted(error)) {
-        return 'aborted';
-      }
-      options.storeState.error = formatAgentRequestError(error);
-      return 'error';
-    } finally {
-      options.storeState.currentRequest = null;
-    }
+    return await startRun({
+      ...options.body,
+      id: options.storeState.threadId,
+      messages: [message],
+      context: opts.context,
+      agent: opts.agent || options.body.agent,
+      model: opts.model || options.body.model,
+    });
   }
 
   async function resume(resumePayload: Record<string, any>) {
@@ -517,58 +851,52 @@ export function useAiAgentChat(options: {
 
     options.storeState.error = null;
 
-    try {
-      const abortController = new AbortController();
-      const promise = submitMessageStreamed({
-        body: {
-          ...options.body,
-          id: options.storeState.threadId,
-          resume: resumePayload,
-        },
-        messageHistory: options.storeState.messageHistory,
-        signal: abortController.signal,
-      });
-      options.storeState.currentRequest = { promise, abortController };
-      const out = await promise;
-      options.storeState.threadId = out.metadata.thread_id;
-      options.storeState.interrupts = out.interrupts;
-      options.storeState.error = out.error;
-
-      if (abortController.signal.aborted) {
-        return 'aborted';
-      } else if (out.error) {
-        return 'error';
-      } else {
-        return 'success';
-      }
-    } catch (error) {
-      if (isRequestAborted(error)) {
-        return 'aborted';
-      }
-      options.storeState.error = formatAgentRequestError(error);
-      return 'error';
-    } finally {
-      options.storeState.currentRequest = null;
-    }
+    return await startRun({
+      ...options.body,
+      id: options.storeState.threadId,
+      resume: resumePayload,
+    });
   }
 
-  function cancel() {
+  /** Abort only the local SSE subscription; the agent keeps running. */
+  function detach() {
+    clearReconnectTimer();
     options.storeState.currentRequest?.abortController?.abort();
     options.storeState.currentRequest = null;
   }
-  onUnmounted(() => cancel());
 
-  function reset() {
-    cancel();
-    options.storeState.threadId = null;
-    options.storeState.messageHistory = [];
-    options.storeState.interrupts = [];
-    options.storeState.error = null;
-    resetChanges();
+  /** Ask the server to stop the run, then wait for run_status. */
+  async function cancel() {
+    const s = options.storeState;
+    const threadId = s.threadId;
+    if (threadId && s.run) {
+      try {
+        await $fetch(`/api/v1/utils/chat/${threadId}/cancel/`, { 
+          method: 'POST', 
+          body: {},
+        });
+      } catch {
+        // ignore
+      }
+      // Let the stream finish with run_status(cancelled)
+      if (s.currentRequest?.promise) {
+        try {
+          await s.currentRequest.promise;
+        } catch {
+          // ignore
+        }
+      }
+    } else {
+      detach();
+    }
+    s.run = null;
+    s.interrupts = [];
   }
 
   return {
     threadId: computed(() => options.storeState.threadId),
+    title: computed(() => options.storeState.title),
+    draftMessage,
     messageHistory: computed(() => options.storeState.messageHistory),
     interrupts: computed(() => options.storeState.interrupts),
     error: computed(() => options.storeState.error),
@@ -576,11 +904,39 @@ export function useAiAgentChat(options: {
     inProgress,
     submitMessage,
     resume,
-    loadHistory,
-    reset,
+    refresh,
     cancel,
+    detach,
     acceptChange,
   }
+}
+
+export function useProjectAiChatTab(options: {
+  project: MaybeRefOrGetter<PentestProject>;
+  tabId: MaybeRefOrGetter<string>;
+}) {
+  const project = toValue(options.project);
+  const tabId = toValue(options.tabId);
+  const storeState = ensureAiThreadState(project.id, tabId);
+
+  watch(() => storeState.threadId, (threadId) => {
+    if (!threadId) {
+      return;
+    }
+    const tab = getAiChatTabs(project.id).tabs.find(t => t.id === tabId);
+    if (tab && tab.threadId !== threadId) {
+      tab.threadId = threadId;
+      persistThreadIds(project.id);
+    }
+  });
+
+  return useAiAgentChat({
+    storeState,
+    body: {
+      agent: 'project_ask',
+      project: project.id,
+    },
+  });
 }
 
 
@@ -702,7 +1058,7 @@ function isSuccessfulWriteTool(tool: ToolCall): boolean {
     && !!getToolFilePath(tool);
 }
 
-export function getLatestWriteToolTimestamp(
+function getLatestWriteToolTimestamp(
   messages: readonly ChatHistoryEntry[],
   filePath: string,
 ): string | null {
@@ -733,7 +1089,8 @@ export function buildChangedFiles(
       return;
     }
     const filePath = getToolFilePath(tool)!;
-    const acceptedUntil = acceptedUpTo[filePath];
+    const entityId = parseProjectFilePath(filePath)?.id;
+    const acceptedUntil = entityId ? acceptedUpTo[entityId] : undefined;
     if (acceptedUntil && tool.timestamp <= acceptedUntil) {
       return;
     }

@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import json
 import re
@@ -8,9 +9,11 @@ from uuid import uuid4
 
 import pytest
 from asgiref.sync import async_to_sync
+from channels.layers import InMemoryChannelLayer
 from deepagents.backends import CompositeBackend, StateBackend
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
+from django.utils import timezone
 from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall
 from langchain.tools import ToolRuntime
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -41,8 +44,23 @@ from sysreptor.ai.agents.tools_project import (
     update_field_value,
     update_markdown_field,
 )
-from sysreptor.ai.models import ChatThread, LangchainCheckpoint, LangchainCheckpointBlob, LangchainCheckpointWrite
-from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints
+from sysreptor.ai.models import (
+    AgentRunStatus,
+    ChatThread,
+    LangchainCheckpoint,
+    LangchainCheckpointBlob,
+    LangchainCheckpointWrite,
+)
+from sysreptor.ai.runs import (
+    HEARTBEAT_TTL_SECONDS,
+    AgentRunWorker,
+    PendingEventBuffer,
+    send_ai_stream_event,
+    start_run,
+    subscribe_thread,
+    throttle_ai_stream_events,
+)
+from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints, cleanup_stale_agent_runs
 from sysreptor.conf.settings import validate_ai_agent_models
 from sysreptor.pentests.models import NoteType
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
@@ -100,6 +118,40 @@ def mock_llm_response(messages: list|None = None, model = None):
         yield
 
 
+@contextlib.contextmanager
+def capture_stream_events():
+    sent = []
+
+    class FakeLayer:
+        async def group_send(self, group, message):
+            if isinstance(message, dict) and message.get('event') is not None:
+                sent.append(message['event'])
+
+        async def send(self, channel, message):
+            return None
+
+        async def new_channel(self):
+            return 'specific.test'
+
+        async def group_add(self, group, channel):
+            return None
+
+        async def group_discard(self, group, channel):
+            return None
+
+        async def receive(self, channel):
+            await asyncio.sleep(3600)
+
+    with mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=FakeLayer()):
+        yield sent
+
+
+def post_chat(client, data):
+    with capture_stream_events() as events:
+        res = client.post(reverse('chatthread-list'), data=data)
+    return res, list(events)
+
+
 @async_to_sync()
 async def parse_sse_events(response):
     events = []
@@ -121,14 +173,48 @@ def to_tokens(text):
 
 
 def to_message_chunks(event):
-    out = []
+    deltas = []
+    base_content = omit_keys(event['content'], ['text', 'reasoning', 'replace'])
     for chunk in to_tokens(event['content'].get('reasoning', '')):
         if chunk:
-            out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'reasoning': chunk}})
+            deltas.append(event | {'content': base_content | {'reasoning': chunk}})
     for chunk in to_tokens(event['content'].get('text', '')):
         if chunk:
-            out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'text': chunk}})
-    out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'id': mock.ANY, 'timestamp': mock.ANY}})
+            deltas.append(event | {'content': base_content | {'text': chunk}})
+
+    # Final assembled snapshot replaces streamed deltas (includes full text)
+    snapshot_content = omit_keys(event['content'], ['replace']) | {'id': mock.ANY, 'timestamp': mock.ANY, 'replace': True}
+    return [*deltas, event | {'content': snapshot_content}]
+
+
+@pytest.fixture(autouse=True)
+def disable_ai_stream_throttling(request):
+    """Pass through stream events immediately (no interval buffering/coalescing)."""
+    if request.node.name == 'test_throttle_ai_stream_events':
+        yield
+        return
+
+    async def immediate_yield(stream, interval=0.5):
+        async for event in stream:
+            yield event
+
+    with mock.patch('sysreptor.ai.runs.throttle_ai_stream_events', new=immediate_yield):
+        yield
+
+
+def wrap_stream_events(inner_events, *, user_message: str | None = mock.ANY, status: str = 'completed', error=None, interrupts: list | None = None):
+    """Prefix user text and suffix run_status around agent stream events."""
+    out = []
+    if user_message is not None:
+        out.append({
+            'type': 'text',
+            'content': {'id': mock.ANY, 'role': 'user', 'text': user_message, 'timestamp': mock.ANY, 'replace': True},
+        })
+    out.extend(inner_events)
+    out.append({
+        'type': 'run_status',
+        'content': {'status': status, 'error': error, 'interrupts': interrupts or []},
+    })
     return out
 
 
@@ -175,7 +261,7 @@ class TestProjectAgent:
         self.client = api_client(user=self.user)
 
     def send_message(self, message: str, context: dict = None, thread_id: str = None):
-        res = self.client.post(reverse('chatthread-list'), data={
+        res, events = post_chat(self.client, {
             'id': thread_id,
             'agent': 'project_agent',
             'project': self.project.id,
@@ -183,7 +269,7 @@ class TestProjectAgent:
             'context': context or {},
         })
         assert res.status_code == 200
-        return parse_sse_events(res)
+        return res.data['thread_id'], events
 
     def test_agent_flow(self):
         executive_summary = self.project.sections.get(section_id='executive_summary')
@@ -205,24 +291,21 @@ class TestProjectAgent:
             AIMessage(content='The executive summary has been updated successfully. How else can I help you?'),
         ]
         with mock_llm_response(messages=llm_messages):
-            events = self.send_message(user_messages[0])
-            assert_events_equal(events, [
-                {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+            thread_id, events = self.send_message(user_messages[0])
+            assert_events_equal(events, wrap_stream_events([
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[0].content}}),
-            ])
-            thread_id = events[0]['content']['thread_id']
+            ], user_message=user_messages[0]))
 
-            events = self.send_message(user_messages[1], thread_id=thread_id)
-            assert_events_equal(events, [
-                {'type': 'metadata', 'content': {'thread_id': thread_id}},
+            thread_id, events = self.send_message(user_messages[1], thread_id=thread_id)
+            assert_events_equal(events, wrap_stream_events([
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}}),
                 {'type': 'tool_call', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
                 {'type': 'tool_call_status', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name']) | {'status': 'success', 'output': {}}},
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}}),
-            ])
+            ], user_message=user_messages[1]))
 
         # Verify chat history
-        res = self.client.get(reverse('chatthread-latest', query={'project': self.project.id}))
+        res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
         assert res.status_code == 200
         assert str(res.data['id']) == thread_id
         assert len(res.data['messages']) == 6
@@ -272,8 +355,7 @@ class TestProjectAgent:
             AIMessage('Final response'),
         ]))
         with mock_llm_response(model=model):
-            res = self.send_message(user_messages[0], context={'section_id': 'executive_summary'})
-            thread_id = res[0]['content']['thread_id']
+            thread_id, _events = self.send_message(user_messages[0], context={'section_id': 'executive_summary'})
             self.send_message(user_messages[1], context={'section_id': 'executive_summary'}, thread_id=thread_id)
             self.send_message(user_messages[2], context={'finding_id': finding.finding_id}, thread_id=thread_id)
 
@@ -317,10 +399,9 @@ class TestProjectAgent:
             AIMessage(content='Done.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            events = self.send_message('Use a subagent')
+            thread_id, events = self.send_message('Use a subagent')
 
-        assert_events_equal(events, [
-            {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+        assert_events_equal(events, wrap_stream_events([
             {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}, 'subagent': subagent_tool_call_id}),
             {'type': 'tool_call', 'content': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}, 'subagent': subagent_tool_call_id},
@@ -328,7 +409,17 @@ class TestProjectAgent:
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}, 'subagent': subagent_tool_call_id}),
             {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'success'}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[3].content}}),
-        ])
+        ], user_message='Use a subagent'))
+
+        # Persisted history nests subagent work under the task tool; root stays clean
+        res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
+        subagent_history = next(m['tool_call'] for m in res.data['messages'] if m.get('tool_call', {}).get('id') == subagent_tool_call_id)
+        assert [omit_keys(m, ['id', 'timestamp', 'tool_call.timestamp', 'tool_call.content']) for m in subagent_history['subagentMessages']] == [
+            {'role': 'user', 'text': task_call['args']['description']},
+            {'role': 'assistant', 'text': llm_messages[1].content},
+            {'role': 'tool', 'tool_call': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'success', 'output': {}}},
+            {'role': 'assistant', 'text': llm_messages[2].content},
+        ]
 
     def test_subagent_error_does_not_abort_main_agent(self):
         subagent_tool_call_id = 'subagent_tool_call_fail'
@@ -363,7 +454,7 @@ class TestProjectAgent:
             mock.patch('langchain.agents.middleware.model_retry.calculate_delay', return_value=0),
             mock_llm_response(messages=FailThenContinueMessages()),
         ):
-            events = self.send_message('Use a failing subagent')
+            _thread_id, events = self.send_message('Use a failing subagent')
 
         assert not any(e['type'] == 'error' for e in events)
         task_status = next(
@@ -371,13 +462,11 @@ class TestProjectAgent:
             if e['type'] == 'tool_call_status' and e['content'].get('id') == subagent_tool_call_id
         )
         assert task_status['content']['status'] == 'error'
-        assert task_status['content']['content'] == 'Error: Internal server error'
-        assert_events_equal(events, [
-            {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+        assert_events_equal(events, wrap_stream_events([
             {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
             {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'error'}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': 'Continued after subagent error.'}}),
-        ])
+        ], user_message='Use a failing subagent'))
 
 
 @pytest.mark.django_db()
@@ -389,7 +478,7 @@ class TestAskUserInterrupts:
         self.client = api_client(user=self.user)
 
     def send_message(self, message: str, thread_id: str = None):
-        res = self.client.post(reverse('chatthread-list'), data={
+        res, events = post_chat(self.client, {
             'id': thread_id,
             'agent': 'project_ask',
             'project': self.project.id,
@@ -397,10 +486,10 @@ class TestAskUserInterrupts:
             'context': {},
         })
         assert res.status_code == 200
-        return parse_sse_events(res)
+        return res.data['thread_id'], events
 
     def send_resume(self, resume, thread_id: str):
-        res = self.client.post(reverse('chatthread-list'), data={
+        res, events = post_chat(self.client, {
             'id': thread_id,
             'agent': 'project_ask',
             'project': self.project.id,
@@ -408,7 +497,7 @@ class TestAskUserInterrupts:
             'context': {},
         })
         assert res.status_code == 200
-        return parse_sse_events(res)
+        return res.data['thread_id'], events
 
     def test_ask_user_interrupt_flow(self):
         options = [
@@ -431,8 +520,7 @@ class TestAskUserInterrupts:
         ]
 
         with mock_llm_response(messages=llm_messages):
-            events = self.send_message('Write the report')
-            thread_id = events[0]['content']['thread_id']
+            thread_id, events = self.send_message('Write the report')
             interrupt_event = next(e for e in events if e['type'] == 'interrupt')
             interrupt_id = interrupt_event['content'][0]['id']
             assert interrupt_event['content'][0]['value'] == {
@@ -445,18 +533,15 @@ class TestAskUserInterrupts:
             assert res.status_code == 200
             assert res.data['interrupts'] == interrupt_event['content']
 
-            events = self.send_resume({
+            _thread_id, events = self.send_resume({
                 interrupt_id: 'Executive summary only',
             }, thread_id=thread_id)
             assert not any(e['type'] == 'interrupt' for e in events)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'ask_user'
             assert tool_status['content']['status'] == 'success'
-            content = tool_status['content']['content']
-            assert content == 'User answered: Executive summary only'
-            assert tool_status['content']['output'] == {
-                'answer': 'Executive summary only',
-            }
+            output = {'answer': 'Executive summary only'}
+            assert tool_status['content']['output'] == output
 
             res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
             assert res.status_code == 200
@@ -466,12 +551,12 @@ class TestAskUserInterrupts:
                 if m.get('role') == 'tool' and m.get('tool_call', {}).get('name') == 'ask_user'
             )
             assert tool_msg['tool_call']['status'] == 'success'
-            assert tool_msg['tool_call']['content'] == content
+            assert tool_msg['tool_call']['output'] == output
 
-            events = self.send_message('Ask again', thread_id=thread_id)
+            _thread_id, events = self.send_message('Ask again', thread_id=thread_id)
             assert any(e['type'] == 'interrupt' for e in events)
 
-            events = self.send_message('Never mind', thread_id=thread_id)
+            _thread_id, events = self.send_message('Never mind', thread_id=thread_id)
             assert not any(e['type'] == 'interrupt' for e in events)
             assert any(e['type'] == 'text' for e in events)
 
@@ -868,6 +953,7 @@ class TestProjectAgentTools:
             assert msg.additional_kwargs['output'] == {
                 'image': 'image.png',
                 'model': 'test:fake-model',
+                'message': msg.content,
             }
         else:
             assert msg.status == 'error'
@@ -925,7 +1011,7 @@ class TestAgentPermissions:
                 ]),
                 AIMessage(content='done'),
             ]):
-                res = client.post(reverse('chatthread-list'), data={
+                res, events = post_chat(client, {
                     'id': thread_id,
                     'agent': 'project_agent',
                     'project': project.id,
@@ -934,7 +1020,6 @@ class TestAgentPermissions:
                 })
                 if expected_read:
                     assert res.status_code == 200
-                    events = parse_sse_events(res)
                     tool_status = next(e for e in events if e['type'] == 'tool_call_status')['content']['status']
                     assert tool_status == ('success' if expected_write else 'error')
                 else:
@@ -944,8 +1029,90 @@ class TestAgentPermissions:
         res_thread = client.get(reverse('chatthread-detail', kwargs={'pk': thread.id}))
         assert res_thread.status_code in ([200] if expected_read else [403, 404])
 
-        res_latest = client.get(reverse('chatthread-latest', query={'project': project.id}))
-        assert res_latest.status_code in ([200] if expected_read else [403, 404])
+        # ChatThread list permissions
+        res_list = client.get(reverse('chatthread-list'), data={'project': project.id})
+        if expected_read:
+            assert res_list.status_code == 200
+            assert any(str(t['id']) == str(thread.id) for t in res_list.data['results'])
+        else:
+            assert res_list.status_code in [200, 403]
+            if res_list.status_code == 200:
+                assert not any(str(t['id']) == str(thread.id) for t in res_list.data['results'])
+
+
+@pytest.mark.django_db()
+class TestChatThreadTitleListDelete:
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.user = create_user()
+        self.other = create_user()
+        self.project = create_project(members=[self.user])
+        self.other_project = create_project(members=[self.user])
+        self.client = api_client(self.user)
+
+    def test_list_filters_by_project_and_user(self):
+        own = ChatThread.objects.create(
+            user=self.user, project=self.project, title='Own',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        other_project_thread = ChatThread.objects.create(
+            user=self.user, project=self.other_project, title='Other project',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        other_user_thread = ChatThread.objects.create(
+            user=self.other, project=self.project, title='Other user',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+
+        res = self.client.get(reverse('chatthread-list'), data={'project': self.project.id})
+        assert res.status_code == 200
+        ids = {str(t['id']) for t in res.data['results']}
+        assert str(own.id) in ids
+        assert str(other_project_thread.id) not in ids
+        assert str(other_user_thread.id) not in ids
+        assert all('title' in t and 'run_status' in t and 'created' in t for t in res.data['results'])
+
+    def test_delete_own_thread(self):
+        thread = ChatThread.objects.create(
+            user=self.user, project=self.project, title='Delete me',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        LangchainCheckpoint.objects.create(
+            thread=thread,
+            checkpoint={'id': str(uuid4()), 'channel_versions': {}, 'channel_values': {}},
+        )
+        res = self.client.delete(reverse('chatthread-detail', kwargs={'pk': thread.id}))
+        assert res.status_code == 204
+        assert not ChatThread.objects.filter(id=thread.id).exists()
+        assert not LangchainCheckpoint.objects.filter(thread_id=thread.id).exists()
+
+    def test_delete_other_users_thread_returns_404(self):
+        thread = ChatThread.objects.create(
+            user=self.other, project=self.project, title='Secret',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        res = self.client.delete(reverse('chatthread-detail', kwargs={'pk': thread.id}))
+        assert res.status_code == 404
+        assert ChatThread.objects.filter(id=thread.id).exists()
+
+    def test_delete_running_thread_cancels_run(self):
+        from django.utils import timezone
+
+        thread = ChatThread.objects.create(
+            user=self.user, project=self.project, title='Running',
+            run_id=uuid4(), run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=timezone.now(),
+        )
+        with capture_stream_events() as events:
+            res = self.client.delete(reverse('chatthread-detail', kwargs={'pk': thread.id}))
+        assert res.status_code == 204
+        assert not ChatThread.objects.filter(id=thread.id).exists()
+        assert any(
+            e['type'] == 'run_status'
+            and e['content']['status'] == 'cancelled'
+            and e['content']['error'] == 'Cancelled'
+            for e in events
+        )
 
 
 @pytest.mark.django_db()
@@ -964,6 +1131,28 @@ class TestAiCleanupTask:
             unreferenced_blob = LangchainCheckpointBlob.objects.create(
                 thread=thread, checkpoint_ns='',
                 channel='messages', version='1', type='json', blob=b'"v1"',
+            )
+
+            # Parent and subagent namespaces each keep their own latest checkpoint.
+            # A newer parent row must not cause the subagent latest (and its blobs) to be deleted.
+            subagent_ns = 'subagent:general-purpose:tool-1'
+            old_subagent = LangchainCheckpoint.objects.create(
+                thread=thread,
+                checkpoint_ns=subagent_ns,
+                checkpoint={'id': str(uuid4()), 'channel_versions': {'messages': '1'}, 'channel_values': {}},
+            )
+            current_subagent = LangchainCheckpoint.objects.create(
+                thread=thread,
+                checkpoint_ns=subagent_ns,
+                checkpoint={'id': str(uuid4()), 'channel_versions': {'messages': '2'}, 'channel_values': {}},
+            )
+            current_subagent_write = LangchainCheckpointWrite.objects.create(
+                thread=thread, checkpoint_ns=subagent_ns, checkpoint_id=current_subagent.checkpoint_id,
+                task_id='s2', idx=0, channel='messages', type='json', blob=b'"sub"',
+            )
+            referenced_subagent_blob = LangchainCheckpointBlob.objects.create(
+                thread=thread, checkpoint_ns=subagent_ns,
+                channel='messages', version='2', type='json', blob=b'"sub-v2"',
             )
 
             current = LangchainCheckpoint.objects.create(
@@ -987,10 +1176,54 @@ class TestAiCleanupTask:
         assert not LangchainCheckpoint.objects.filter(pk=old.pk).exists()
         assert not LangchainCheckpointWrite.objects.filter(pk=old_write.pk).exists()
         assert not LangchainCheckpointBlob.objects.filter(pk=unreferenced_blob.pk).exists()
+        assert not LangchainCheckpoint.objects.filter(pk=old_subagent.pk).exists()
 
         assert LangchainCheckpoint.objects.filter(pk=current.pk).exists()
         assert LangchainCheckpointWrite.objects.filter(pk=current_write.pk).exists()
         assert LangchainCheckpointBlob.objects.filter(pk=referenced_blob.pk).exists()
+        assert LangchainCheckpoint.objects.filter(pk=current_subagent.pk).exists()
+        assert LangchainCheckpointWrite.objects.filter(pk=current_subagent_write.pk).exists()
+        assert LangchainCheckpointBlob.objects.filter(pk=referenced_subagent_blob.pk).exists()
+
+    def test_cleanup_stale_agent_runs(self):
+        user = create_user()
+        project = create_project()
+        stale = ChatThread.objects.create(
+            user=user,
+            project=project,
+            run_id=uuid4(),
+            run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=timezone.now() - timedelta(seconds=HEARTBEAT_TTL_SECONDS * 2),
+        )
+        fresh = ChatThread.objects.create(
+            user=user,
+            project=project,
+            run_id=uuid4(),
+            run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=timezone.now(),
+        )
+        no_heartbeat = ChatThread.objects.create(
+            user=user,
+            project=project,
+            run_id=uuid4(),
+            run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=None,
+        )
+
+        cleanup_stale_agent_runs(task_info=PeriodicTaskInfo(
+            spec=next(filter(lambda t: t.id == 'cleanup_stale_agent_runs', periodic_task_registry.tasks)),
+            model=PeriodicTask(last_success=None),
+        ))
+
+        stale.refresh_from_db()
+        fresh.refresh_from_db()
+        no_heartbeat.refresh_from_db()
+        assert stale.run_status == AgentRunStatus.ERROR
+        assert stale.run_error == 'Agent aborted'
+        assert fresh.run_status == AgentRunStatus.RUNNING
+        assert fresh.run_error is None
+        assert no_heartbeat.run_status == AgentRunStatus.ERROR
+        assert no_heartbeat.run_error == 'Agent aborted'
 
 
 @pytest.mark.django_db()
@@ -1128,7 +1361,7 @@ class TestLLMModelSelection:
             data['model'] = model
         if thread_id is not None:
             data['id'] = thread_id
-        return self.client.post(reverse('chatthread-list'), data=data)
+        return post_chat(self.client, data)
 
     @pytest.mark.parametrize(('model', 'expected'), [
         ('model-a', True),
@@ -1143,11 +1376,11 @@ class TestLLMModelSelection:
     ])
     def test_model_selection(self, model, expected):
         with mock_llm_response(messages=[AIMessage(content='Hello')]):
-            res = self.send_message('Hi', model=model)
+            res, events = self.send_message('Hi', model=model)
             if expected:
                 assert res.status_code == 200
-                events = parse_sse_events(res)
-                assert events[0]['content']['thread_id']
+                assert res.data['thread_id']
+                assert events
             else:
                 assert res.status_code == 400
 
@@ -1157,12 +1390,12 @@ class TestLLMModelSelection:
     ])
     def test_switch_model_on_existing_thread(self):
         with mock_llm_response(messages=[AIMessage(content='Hello')]):
-            res = self.send_message('Hi', model='model-a')
+            res, _events = self.send_message('Hi', model='model-a')
             assert res.status_code == 200
-            thread_id = parse_sse_events(res)[0]['content']['thread_id']
+            thread_id = res.data['thread_id']
 
         with mock_llm_response(messages=[AIMessage(content='Hello again')]):
-            res = self.send_message('Follow up', model='model-b', thread_id=thread_id)
+            res, _events = self.send_message('Follow up', model='model-b', thread_id=thread_id)
             assert res.status_code == 200
 
 
@@ -1285,18 +1518,16 @@ class TestProjectFilesystemAgent:
             AIMessage(content=f'The finding title is {finding.title}.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_ask',
                 'project': project.id,
                 'messages': ['What is the finding title?'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'read_file'
             assert tool_status['content']['status'] == 'success'
-            assert finding.title in tool_status['content']['content']
 
     def test_agent_scratch_file_write_then_read(self):
         # Regular (non-/project) files use the read-write StateBackend.
@@ -1313,20 +1544,18 @@ class TestProjectFilesystemAgent:
             AIMessage(content='Saved and read back the plan.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_agent',
                 'project': project.id,
                 'messages': ['Write a plan to a scratch file and read it back'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             statuses = [e for e in events if e['type'] == 'tool_call_status']
             write_status = next(e for e in statuses if e['content']['name'] == 'write_file')
             assert write_status['content']['status'] == 'success'
             read_status = next(e for e in statuses if e['content']['name'] == 'read_file')
             assert read_status['content']['status'] == 'success'
-            assert 'step 1: investigate' in read_status['content']['content']
 
     def test_agent_write_project_path_read_only(self):
         # Writing into /project/ via the generic write tool is rejected with a helpful error.
@@ -1341,18 +1570,16 @@ class TestProjectFilesystemAgent:
             AIMessage(content='I cannot write there.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_agent',
                 'project': project.id,
                 'messages': ['Overwrite the finding file'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'write_file'
             assert tool_status['content']['status'] == 'error'
-            assert 'update_field_value' in tool_status['content']['content']
 
 
 DEMO_SKILL_MD = textwrap.dedent("""\
@@ -1401,14 +1628,13 @@ def get_agent_system_prompt(project, user):
     """Run a chat request and return the system prompt handed to the model."""
     model = FakeChatModel(messages=iter([AIMessage(content='ok')]))
     with mock_llm_response(model=model):
-        res = api_client(user=user).post(reverse('chatthread-list'), data={
+        res, _events = post_chat(api_client(user=user), {
             'agent': 'project_ask',
             'project': project.id,
             'messages': ['Hello'],
             'context': {},
         })
         assert res.status_code == 200
-        parse_sse_events(res)
     system = model.message_log[0]['messages'][0]
     assert system.type == 'system'
     return system.content if isinstance(system.content, str) else str(system.content)
@@ -1601,18 +1827,16 @@ class TestNotesAgentDirAgent:
             AIMessage(content='Loaded the demo skill.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_ask',
                 'project': project.id,
                 'messages': ['Load the demo skill'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'read_file'
             assert tool_status['content']['status'] == 'success'
-            assert 'Always start findings' in tool_status['content']['content']
 
     @pytest.mark.parametrize('with_agents_md', [True, False])
     def test_agents_md_in_system_prompt(self, with_agents_md):
@@ -1766,3 +1990,199 @@ class TestDjangoModelCheckpointer:
         assert 'seed' in history['messages']
         assert history['messages']['seed'] == [{'id': 1}]
         assert history['messages']['writes'] == [('w1', 'messages', {'id': 2})]
+
+
+@pytest.mark.django_db(transaction=True)
+class TestBackgroundAgentRuns:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.project = create_project(members=[self.user])
+        self.client = api_client(user=self.user)
+
+    def create_chatthread(self, **kwargs):
+        defaults = {
+            'user': self.user,
+            'project': self.project,
+            'run_id': uuid4(),
+            'run_status': AgentRunStatus.RUNNING,
+            'run_heartbeat_at': timezone.now(),
+        }
+        return ChatThread.objects.create(**(defaults | kwargs))
+
+    def test_thread_busy_returns_409(self):
+        thread = self.create_chatthread()
+        res = self.client.post(reverse('chatthread-list'), data={
+            'id': thread.id,
+            'agent': 'project_agent',
+            'project': self.project.id,
+            'messages': ['Hi'],
+        })
+        assert res.status_code == 409
+        assert res.data['code'] == 'thread_busy'
+        assert res.data['active_run'] == str(thread.run_id)
+
+    def test_cancel(self):
+        thread = self.create_chatthread()
+        with (
+            capture_stream_events() as events,
+            mock.patch('sysreptor.ai.runs.send_ai_control') as send_control,
+        ):
+            res = self.client.post(reverse('chatthread-cancel', kwargs={'pk': thread.id}))
+        assert res.status_code == 200
+        assert res.data['run_id'] == str(thread.run_id)
+        thread.refresh_from_db()
+        assert thread.run_status == AgentRunStatus.CANCELLED
+        assert thread.run_error == 'Cancelled'
+        assert any(
+            e['type'] == 'run_status'
+            and e['content']['status'] == 'cancelled'
+            and e['content']['error'] == 'Cancelled'
+            for e in events
+        )
+        send_control.assert_called_once()
+        assert self.client.post(reverse('chatthread-cancel', kwargs={'pk': thread.id})).status_code == 404
+
+    def test_pending_event_buffer(self):
+        buf = PendingEventBuffer()
+        buf.apply({'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'Hello'}, 'subagent': 'tc-1'})
+        buf.apply({'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': ' world'}})
+        buf.apply({'type': 'tool_call', 'content': {'id': 'tc-1', 'name': 'list_notes', 'status': 'pending'}})
+        buf.apply({'type': 'tool_call_status', 'content': {'id': 'tc-1', 'name': 'list_notes', 'status': 'success'}})
+        events = buf.events()
+        assert [(e['type'], e['content'].get('text') or e['content'].get('status')) for e in events] == [
+            ('text', 'Hello world'),
+            ('tool_call', 'success'),
+        ]
+        assert events[0]['subagent'] == 'tc-1'
+        assert events[0]['content']['replace'] is True
+        assert [e['type'] for e in buf.events(['text:m1'])] == ['tool_call']
+        assert buf.events(['text:m1', 'tool_call:tc-1']) == []
+
+        # replace=None keeps deltas unmarked; status-only uses tool_call:{id} key
+        buf2 = PendingEventBuffer()
+        buf2.apply({'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'Hi'}})
+        assert 'replace' not in buf2.events(replace=None)[0]['content']
+        buf2.apply({'type': 'tool_call_status', 'content': {'id': 'tc-2', 'name': 'list_notes', 'status': 'success'}})
+        assert [e['type'] for e in buf2.events()] == ['text', 'tool_call_status']
+        assert buf2.events(['tool_call:tc-2'])[0]['type'] == 'text'
+
+    def test_throttle_ai_stream_events(self):
+        @async_to_sync
+        async def collect(stream, **kwargs):
+            return [e async for e in throttle_ai_stream_events(stream, **kwargs)]
+
+        async def gen(events):
+            for e in events:
+                yield e
+
+        events = collect(gen([
+            {'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'A'}},
+            {'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'B'}},
+            {'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'AB', 'replace': True}},
+            {'type': 'tool_call', 'content': {'id': 'tc1', 'name': 'list_notes'}},
+            {'type': 'tool_call_status', 'content': {'id': 'tc1', 'name': 'list_notes', 'status': 'success'}},
+        ]), interval=60)
+        assert [(e['type'], e['content'].get('text') or e['content'].get('status') or e['content'].get('name')) for e in events] == [
+            ('text', 'A'),
+            ('text', 'AB'),
+            ('tool_call', 'list_notes'),
+            ('tool_call_status', 'success'),
+        ]
+
+    def test_reattach_receives_pending_events(self):
+        thread = self.create_chatthread()
+        layer = InMemoryChannelLayer()
+        worker = AgentRunWorker(thread, agent='project_ask', model=None, input_data={})
+        worker.channel_layer = layer
+        worker.pending.apply({'type': 'text', 'content': {'id': 'msg-1', 'role': 'assistant', 'text': 'Hello wor'}})
+        worker.pending.apply({'type': 'tool_call', 'content': {'id': 'tc-1', 'name': 'list_notes', 'status': 'pending'}})
+        worker.pending.apply({'type': 'text', 'content': {'id': 'covered', 'role': 'assistant', 'text': 'skip'}})
+
+        async def _run():
+            with (
+                mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=layer),
+                mock.patch('sysreptor.ai.agents.get_chat_history', return_value={
+                    'messages': [], 'interrupts': [], 'covered': ['text:covered'],
+                }),
+            ):
+                control_task = asyncio.create_task(worker.control_loop())
+                try:
+                    await asyncio.sleep(0.05)
+                    received = []
+                    async for event in subscribe_thread(thread):
+                        if not event:
+                            continue
+                        received.append(event)
+                        if event.get('type') == 'tool_call':
+                            async with worker.lock:
+                                await send_ai_stream_event(thread.run_id, {
+                                    'type': 'text', 'content': {'id': 'msg-1', 'role': 'assistant', 'text': 'ld'},
+                                })
+                                await send_ai_stream_event(thread.run_id, {
+                                    'type': 'run_status', 'content': {'status': 'completed'},
+                                })
+                        if event.get('type') == 'run_status':
+                            break
+                    return received
+                finally:
+                    control_task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await control_task
+
+        events = async_to_sync(_run)()
+        assert [e['type'] for e in events] == ['snapshot', 'text', 'tool_call', 'text', 'run_status']
+        assert events[1]['content']['text'] == 'Hello wor'
+        assert events[1]['content']['replace'] is True
+        assert events[2]['content']['id'] == 'tc-1'
+        assert not any(e.get('content', {}).get('id') == 'covered' for e in events)
+        assert events[-2]['content']['text'] == 'ld'
+        assert not events[-2]['content'].get('replace')
+        assert events[-1]['content']['status'] == 'completed'
+
+    def test_stream_finished_thread(self):
+        thread = self.create_chatthread(
+            run_status=AgentRunStatus.ERROR,
+            run_error='Error: Internal server error',
+            run_heartbeat_at=None,
+        )
+        events = parse_sse_events(self.client.get(reverse('chatthread-stream', kwargs={'pk': thread.id})))
+        assert events[0]['type'] == 'snapshot'
+        assert events[0]['content']['run_status'] == 'error'
+        assert events[0]['content']['run_error'] == 'Error: Internal server error'
+        assert events[-1]['type'] == 'run_status'
+        assert events[-1]['content']['status'] == 'error'
+        assert events[-1]['content']['error'] == 'Error: Internal server error'
+
+    def test_subscribe_ends_when_heartbeat_goes_stale(self):
+        """Live subscriber must not hang if the worker dies without run_status."""
+        thread = self.create_chatthread()
+
+        async def _run():
+            with (
+                mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=InMemoryChannelLayer()),
+                mock.patch('sysreptor.ai.runs.KEEPALIVE_INTERVAL_SECONDS', 0.05),
+                mock.patch('sysreptor.ai.agents.get_chat_history', return_value={'messages': [], 'interrupts': [], 'covered': []}),
+            ):
+                received = []
+                async for event in subscribe_thread(thread):
+                    if event is None:
+                        # Simulate worker death after the client attached.
+                        await ChatThread.objects.filter(pk=thread.pk).aupdate(
+                            run_heartbeat_at=timezone.now() - timedelta(seconds=HEARTBEAT_TTL_SECONDS + 5),
+                        )
+                        received.append(None)
+                        continue
+                    received.append(event)
+                    if event.get('type') == 'run_status':
+                        break
+                return received
+
+        events = async_to_sync(_run)()
+        assert events[0]['type'] == 'snapshot'
+        assert events[-1]['type'] == 'run_status'
+        assert events[-1]['content']['status'] == 'error'
+        assert events[-1]['content']['error'] == 'Agent aborted'
+        thread.refresh_from_db()
+        assert thread.run_status == AgentRunStatus.ERROR
+        assert thread.run_error == 'Agent aborted'
