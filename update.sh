@@ -2,7 +2,7 @@
 set -e  # exit on error
 error_cleanup() {
     if
-        [ "$created_backup" == "1" ]
+        [ "$rollback_allowed" == "1" ]
     then
         set +e
         echo cd "$script_location"
@@ -16,6 +16,8 @@ error_cleanup() {
         docker compose up -d
         echo "An error happened during installation."
         exit -3
+    elif [ "$rollback_allowed" == "0" ] && [ -d "$(dirname "$script_location")/$backup_copy" ]; then
+        echo "Old version backed up at $(dirname "$script_location")/$backup_copy. Fix the cause, then try: docker compose up"
     fi
     exit -4
 }
@@ -138,7 +140,7 @@ fi
 echo "Creating copy of your config files..."
 cd ..
 mv "$sysreptor_directory" "$backup_copy"
-created_backup=1
+rollback_allowed=1
 echo "Config backup located at $backup_copy"
 
 echo "Unpacking sysreptor.tar.gz..."
@@ -174,6 +176,8 @@ then
     fi
 fi
 
+# Rollback is unsafe from here: post_update.sh and DB migrations may change data irreversibly
+rollback_allowed=0
 if [ -x "${sysreptor_directory}/post_update.sh" ]; then
     echo "Running post-update script..."
     (cd "$sysreptor_directory" && ./post_update.sh)
@@ -188,6 +192,8 @@ if
     ! docker compose up -d
 then
     echo "Ups. Something did not work while building and launching your containers."
+    echo "Old version backed up at $(dirname "$script_location")/$backup_copy. Fix the cause, then try: docker compose up"
+    exit -8
 fi
 
 echo "Cleaning up your old docker images..."
