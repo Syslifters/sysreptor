@@ -29,7 +29,7 @@ Default: start server and worker (worker requires redis).
 EOF
 }
 
-OPTS="$(getopt -o h --long dev,server,worker,no-migrate,help -n "$(basename "$0")" -- "$@")" || {
+OPTS="$(getopt -o h --long dev,server,no-server,worker,no-worker,migrate,no-migrate,help -n "$(basename "$0")" -- "$@")" || {
     usage >&2
     exit 1
 }
