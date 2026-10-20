@@ -1,4 +1,5 @@
 import contextlib
+import ipaddress
 import re
 from datetime import date, datetime, timedelta
 from unittest import mock
@@ -142,7 +143,7 @@ def sanitize_context(data: dict):
     """
     Sanitize context for django template engine to only allow simple types
     """
-    if isinstance(data, str|int|float|bool|datetime|date|timedelta|UUID|None):
+    if isinstance(data, str|int|float|bool|datetime|date|timedelta|UUID|ipaddress.IPv4Address|ipaddress.IPv6Address|None):
         return data
     elif isinstance(data, list|tuple|set):
         return [sanitize_context(i) for i in data]
