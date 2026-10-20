@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable, Sequence
+from typing import Any
 
 from deepagents.backends.protocol import BackendProtocol
 from deepagents.middleware.subagents import (
@@ -10,12 +11,15 @@ from deepagents.middleware.subagents import (
     _subagent_tracing_context,
 )
 from django.utils import timezone
-from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse
+from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse, ToolCallRequest
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langchain_core.messages import merge_message_runs
 from langchain_core.runnables.config import merge_configs
 from langchain_core.tools import BaseTool
+from langgraph.types import Command
+
+from sysreptor.utils.history import history_context
 
 
 def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage) -> None:
@@ -98,6 +102,17 @@ class MergeConsecutiveMessagesMiddleware(AgentMiddleware):
         handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
     ) -> ModelResponse:
         return await handler(request.override(messages=merge_message_runs(request.messages)))
+
+
+class HistoryContextMiddleware(AgentMiddleware):
+    async def awrap_tool_call(
+        self,
+        request: ToolCallRequest,
+        handler: Callable[[ToolCallRequest], Awaitable[ToolMessage | Command[Any]]],
+    ) -> ToolMessage | Command[Any]:
+        user = getattr(getattr(getattr(request, 'runtime', None), 'context', None), 'user', None)
+        with history_context(history_user=user, set_history_date=False):
+            return await handler(request)
 
 
 def subagent_checkpoint_ns(subagent_type: str, tool_call_id: str) -> str:

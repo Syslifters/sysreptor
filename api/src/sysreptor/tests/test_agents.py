@@ -247,7 +247,7 @@ def project_filesystem_runtime(project, user):
     with mock.patch('sysreptor.ai.agents.filesystem.get_runtime') as m:
         m.return_value = mock.Mock(context=ProjectContext(
             project_id=str(project.id),
-            user_id=str(user.id),
+            user=user,
         ))
         yield
 
@@ -588,7 +588,7 @@ class TestProjectAgentTools:
         runtime = ToolRuntime(
             tool_call_id='tool_call_id_1',
             context=ProjectContext(
-                user_id=str(self.user.id),
+                user=self.user,
                 project_id=str(self.project.id),
                 model=model,
             ),
@@ -1304,7 +1304,7 @@ class TestLLMConfig:
                 'image': 'file0.png',
                 'runtime': ToolRuntime(
                     tool_call_id='t1',
-                    context=ProjectContext(user_id=str(user.id), project_id=str(project.id), model='main-model'),
+                    context=ProjectContext(user=user, project_id=str(project.id), model='main-model'),
                     state=None, config={}, store=None, stream_writer=None,
                 ),
             }).update['messages'][0]
