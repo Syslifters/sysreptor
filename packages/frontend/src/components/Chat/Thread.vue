@@ -15,45 +15,45 @@
         to="/settings/"
       />
       <s-sidebar-empty-state
-        v-else-if="agent.messageHistory.value.length === 0"
+        v-else-if="agent.messageHistory.length === 0"
         icon="mdi-creation-outline"
         title="Start now with your agent"
         text="Ask about findings, draft text, or review the report."
       />
       <template v-else>
         <chat-message
-          v-for="(msg, idx) in agent.messageHistory.value"
+          v-for="(msg, idx) in agent.messageHistory"
           :key="msg.id"
           :msg="msg"
           :project="props.project"
           :is-streaming="isChatMessageStreaming(msg, {
-            inProgress: agent.inProgress.value,
-            isLastMessage: idx === agent.messageHistory.value.length - 1,
+            inProgress: agent.inProgress,
+            isLastMessage: idx === agent.messageHistory.length - 1,
           })"
-          :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory.value, idx)"
+          :is-last-message="isLastAssistantMessageInTurn(agent.messageHistory, idx)"
         />
-        <template v-if="agent.interrupts.value.length > 0 && !agent.inProgress.value">
+        <template v-if="agent.interrupts.length > 0 && !agent.inProgress">
           <chat-interrupt-prompt
-            v-for="interrupt in agent.interrupts.value"
+            v-for="interrupt in agent.interrupts"
             :key="interrupt.id"
             :interrupt="interrupt"
-            @resume="agent.resume"
+            @resume="onResume"
             class="mb-2"
           />
         </template>
       </template>
       <chat-reasoning-panel
-        v-if="agent.inProgress.value && agent.messageHistory.value.at(-1)?.role === MessageRole.USER"
+        v-if="agent.inProgress && agent.messageHistory.at(-1)?.role === MessageRole.USER"
         :is-streaming="true"
       />
 
       <v-alert
-        v-if="agent.error.value"
+        v-if="agent.error"
         type="error"
         variant="tonal"
         density="compact"
         class="mt-2 mb-2"
-        :text="agent.error.value"
+        :text="agent.error"
       />
     </div>
     <div class="pa-2">
@@ -68,8 +68,8 @@
         />
         <v-textarea
           ref="messageTextareaRef"
-          v-model="formMessage"
-          :readonly="!hasModelsConfigured || agent.inProgress.value"
+          v-model="agent.draftMessage"
+          :readonly="!hasModelsConfigured || agent.inProgress"
           @keypress="onKeyPress"
           placeholder="Type a message..."
           variant="solo"
@@ -82,13 +82,13 @@
           spellcheck="false"
           :autofocus="props.active"
           class="textarea-message"
-          :class="{'generating': agent.inProgress.value}"
+          :class="{'generating': agent.inProgress}"
         >
           <template #append-inner>
             <s-btn-icon
-              v-if="!agent.inProgress.value"
+              v-if="!agent.inProgress"
               @click="sendMessage"
-              :disabled="!hasModelsConfigured || !formMessage.trim()"
+              :disabled="!hasModelsConfigured || !agent.draftMessage.trim()"
               icon="mdi-send"
               size="small"
               density="compact"
@@ -112,10 +112,10 @@
           <template #details>
             <div class="d-flex align-center flex-wrap ga-2">
               <v-select
-                v-model="localSettings.reportingChatAgent"
+                v-model="selectedAgent"
                 :items="[
-                  { value: 'project_ask', title: 'Ask', icon: 'mdi-comment-question-outline', proOnly: false },
-                  { value: 'project_agent', title: 'Agent', icon: 'mdi-robot-outline', proOnly: true },
+                  { value: AiAgentMode.PROJECT_ASK, title: 'Ask', icon: 'mdi-comment-question-outline', proOnly: false },
+                  { value: AiAgentMode.PROJECT_AGENT, title: 'Agent', icon: 'mdi-robot-outline', proOnly: true },
                 ]"
                 item-value="value"
                 item-title="title"
@@ -146,7 +146,7 @@
               </v-select>
               <v-divider vertical class="select-divider" />
               <v-select
-                v-model="aiAgentModel"
+                v-model="selectedModel"
                 :items="apiSettings.settings?.ai_agent_models || []"
                 item-value="id"
                 item-title="label"
@@ -184,13 +184,30 @@ const props = defineProps<{
   hasModelsConfigured: boolean;
 }>();
 
-const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
+const localSettings = useLocalSettings();
 const auth = useAuth();
 const projectStore = useProjectStore();
 
 const agent = useProjectAiChatTab({ project: props.project, tabId: props.tabId });
-const formMessage = agent.draftMessage;
+
+const selectedAgent = computed({
+  get: () => (agent.agent === AiAgentMode.PROJECT_AGENT && !apiSettings.isProfessionalLicense) ? AiAgentMode.PROJECT_ASK : agent.agent,
+  set: (value: AiAgentMode) => { agent.agent = value; },
+});
+const selectedModel = computed({
+  get: () => {
+    const models = apiSettings.settings?.ai_agent_models || [];
+    return models.find(m => m.id === agent.model)?.id
+      ?? models.find(m => m.id === localSettings.reportingChatModel)?.id
+      ?? models[0]?.id
+      ?? null;
+  },
+  set: (value: string|null) => {
+    agent.model = value;
+    localSettings.reportingChatModel = value;
+  },
+});
 
 const runChangedPages = computed(() => {
   const projectId = props.project.id;
@@ -200,7 +217,7 @@ const runChangedPages = computed(() => {
     notes: projectStore.notes(projectId),
   };
 
-  return agent.changedFiles.value.flatMap((c) => {
+  return agent.changedFiles.flatMap((c) => {
     const fileRef = parseProjectFilePath(c.filePath);
     if (!fileRef) {
       return [];
@@ -268,38 +285,35 @@ const messagesContainerRef = useTemplateRef('messagesContainerRef');
 const messageTextareaRef = useTemplateRef('messageTextareaRef');
 const isScrolledToBottom = ref(true);
 
-const aiAgentModel = computed({
-  get: () => apiSettings.settings?.ai_agent_models?.find(m => m.id === localSettings.reportingChatModel)?.id ?? apiSettings.settings?.ai_agent_models?.[0]?.id ?? null,
-  set: (value: string | null) => { localSettings.reportingChatModel = value; },
-});
-
-watch(() => [localSettings.reportingChatAgent, apiSettings.isProfessionalLicense], () => {
-  if (localSettings.reportingChatAgent === 'project_agent' && !apiSettings.isProfessionalLicense) {
-    localSettings.reportingChatAgent = 'project_ask';
-  }
-}, { immediate: true });
-
 async function sendMessage() {
-  if (!props.hasModelsConfigured || !formMessage.value.trim()) {
+  if (!props.hasModelsConfigured || !agent.draftMessage.trim()) {
     return;
   }
 
   await Promise.resolve(props.collabFlush?.());
 
-  const message = formMessage.value;
+  const message = agent.draftMessage;
   const promise = agent.submitMessage({
     message,
     context: props.context,
-    agent: localSettings.reportingChatAgent,
-    model: aiAgentModel.value,
+    agent: selectedAgent.value,
+    model: selectedModel.value,
   });
 
   await syncScroll({ force: true });
 
   const res = await promise;
   if (res === 'success') {
-    formMessage.value = '';
+    agent.draftMessage = '';
   }
+}
+
+function onResume(resumePayload: Record<string, any>) {
+  agent.resume(resumePayload, {
+    context: props.context,
+    agent: selectedAgent.value,
+    model: selectedModel.value,
+  });
 }
 
 function onKeyPress(e: KeyboardEvent) {
@@ -342,8 +356,8 @@ watch(() => props.active, async (active, wasActive) => {
 defineExpose({
   focus: () => messageTextareaRef.value?.focus(),
   refresh: () => agent.refresh(),
-  inProgress: agent.inProgress,
-  isEmpty: computed(() => !agent.threadId.value && agent.messageHistory.value.length === 0 && !agent.draftMessage.value.trim()),
+  inProgress: computed(() => agent.inProgress),
+  isEmpty: computed(() => !agent.threadId && agent.messageHistory.length === 0 && !agent.draftMessage.trim()),
 });
 </script>
 

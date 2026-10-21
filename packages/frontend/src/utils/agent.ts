@@ -1,4 +1,4 @@
-import type { PentestFinding, PentestProject, ProjectNote, ReportSection } from '#imports';
+import { AiAgentMode, type PentestFinding, type PentestProject, type ProjectNote, type ReportSection } from '#imports';
 
 export enum MessageRole {
   USER = 'user',
@@ -446,6 +446,8 @@ export type AiAgentStoreState = {
   messageHistory: ChatHistoryEntry[];
   interrupts: ChatInterrupt[];
   error: string|null;
+  agent: AiAgentMode;
+  model: string|null;
   run: { id: string } | null;
   currentRequest: {
     promise?: Promise<any>;
@@ -470,6 +472,8 @@ function createEmptyAiAgentStoreState(partial?: Partial<AiAgentStoreState>): AiA
     messageHistory: [],
     interrupts: [],
     error: null,
+    agent: useApiSettings().isProfessionalLicense ? AiAgentMode.PROJECT_AGENT : AiAgentMode.PROJECT_ASK,
+    model: useLocalSettings().reportingChatModel,
     run: null,
     currentRequest: null,
     ...partial,
@@ -626,17 +630,10 @@ export function useProjectAiChatTabs(projectId: string) {
 
 export function useAiAgentChat(options: {
   storeState: AiAgentStoreState;
-  body: {
-    agent: string,
-    [key: string]: any;
-  };
+  body: Record<string, any>;
 }) {
   const aiSettings = useAiSettings();
   const inProgress = computed(() => !!options.storeState.currentRequest || !!options.storeState.run);
-  const draftMessage = computed({
-    get: () => options.storeState.draftMessage,
-    set: (value: string) => { options.storeState.draftMessage = value; },
-  });
 
   function acceptChange(filePath: string) {
     const threadId = options.storeState.threadId;
@@ -748,6 +745,8 @@ export function useAiAgentChat(options: {
       const response = await $fetch<{
         id: string;
         title?: string;
+        agent?: AiAgentMode|null;
+        model?: string|null;
         messages: ChatHistoryEntry[];
         interrupts?: ChatInterrupt[];
         run_id?: string|null;
@@ -765,6 +764,12 @@ export function useAiAgentChat(options: {
       s.messageHistory = response.messages;
       s.interrupts = response.interrupts ?? [];
       s.error = response.run_error ?? null;
+      if (response.agent) {
+        s.agent = response.agent;
+      }
+      if (response.model) {
+        s.model = response.model;
+      }
 
       if (response.run_status === 'running' && response.run_id) {
         void attachToRun(response.id, response.run_id);
@@ -827,34 +832,45 @@ export function useAiAgentChat(options: {
       options.storeState.title = truncateChatTitle(message);
     }
 
-    const messageId = uuidv4();
     options.storeState.messageHistory.push({
-      id: messageId,
+      id: uuidv4(),
       role: MessageRole.USER,
       text: message,
     });
+
+    const agentMode = (opts.agent ?? options.storeState.agent) as AiAgentMode;
+    const model = opts.model ?? options.storeState.model;
+    options.storeState.agent = agentMode;
+    options.storeState.model = model;
 
     return await startRun({
       ...options.body,
       id: options.storeState.threadId,
       messages: [message],
       context: opts.context,
-      agent: opts.agent || options.body.agent,
-      model: opts.model || options.body.model,
+      agent: agentMode,
+      model,
     });
   }
 
-  async function resume(resumePayload: Record<string, any>) {
+  async function resume(resumePayload: Record<string, any>, opts?: { context?: Record<string, string|null|undefined>; agent?: string; model?: string|null }) {
     if (inProgress.value || !options.storeState.threadId) {
       return;
     }
 
     options.storeState.error = null;
+    const agentMode = (opts?.agent ?? options.storeState.agent) as AiAgentMode;
+    const model = opts?.model ?? options.storeState.model;
+    options.storeState.agent = agentMode;
+    options.storeState.model = model;
 
     return await startRun({
       ...options.body,
       id: options.storeState.threadId,
       resume: resumePayload,
+      context: opts?.context,
+      agent: agentMode,
+      model,
     });
   }
 
@@ -893,13 +909,15 @@ export function useAiAgentChat(options: {
     s.interrupts = [];
   }
 
-  return {
-    threadId: computed(() => options.storeState.threadId),
-    title: computed(() => options.storeState.title),
-    draftMessage,
-    messageHistory: computed(() => options.storeState.messageHistory),
-    interrupts: computed(() => options.storeState.interrupts),
-    error: computed(() => options.storeState.error),
+  return reactive({
+    threadId: toRef(options.storeState, 'threadId'),
+    title: toRef(options.storeState, 'title'),
+    draftMessage: toRef(options.storeState, 'draftMessage'),
+    messageHistory: toRef(options.storeState, 'messageHistory'),
+    interrupts: toRef(options.storeState, 'interrupts'),
+    error: toRef(options.storeState, 'error'),
+    agent: toRef(options.storeState, 'agent'),
+    model: toRef(options.storeState, 'model'),
     changedFiles,
     inProgress,
     submitMessage,
@@ -908,7 +926,7 @@ export function useAiAgentChat(options: {
     cancel,
     detach,
     acceptChange,
-  }
+  });
 }
 
 export function useProjectAiChatTab(options: {
@@ -932,10 +950,7 @@ export function useProjectAiChatTab(options: {
 
   return useAiAgentChat({
     storeState,
-    body: {
-      agent: 'project_ask',
-      project: project.id,
-    },
+    body: { project: project.id },
   });
 }
 

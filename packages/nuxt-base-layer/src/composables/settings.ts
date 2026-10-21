@@ -26,7 +26,6 @@ export const useLocalSettings = defineStore('settings', {
     reportingSidebarSizePx: 300,
     notesSidebarType: ReportingSidebarType.NONE,
     notesSidebarSizePx: 300,
-    reportingChatAgent: 'project_ask' as 'project_ask'|'project_agent',
     reportingChatModel: null as string | null,
     projectListOrdering: null as string|null,
     designListOrdering: null as string|null,

@@ -18,10 +18,17 @@ class AgentRunStatus(models.TextChoices):
     CANCELLED = 'cancelled', 'Cancelled'
 
 
+class AgentMode(models.TextChoices):
+    PROJECT_ASK = 'project_ask', 'Ask'
+    PROJECT_AGENT = 'project_agent', 'Agent'
+
+
 class ChatThread(BaseModel):
     user = models.ForeignKey(PentestUser, on_delete=models.CASCADE)
     project = models.ForeignKey(PentestProject, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=255, default='', blank=True)
+    agent = models.CharField(max_length=20, choices=AgentMode.choices, null=True, blank=True)
+    model = models.CharField(max_length=255, null=True, blank=True)
 
     run_id = models.UUIDField(null=True, blank=True, db_index=True)
     run_status = models.CharField(max_length=20, choices=AgentRunStatus.choices, null=True, blank=True)
