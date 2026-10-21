@@ -145,7 +145,6 @@ const props = defineProps<{
 
 const sidebarType = defineModel<ReportingSidebarType>('sidebarType', { required: true });
 
-const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 const chatTabs = useProjectAiChatTabs(props.project.id);
@@ -273,8 +272,8 @@ async function onPrefillPrompt(event: any) {
   const state = chatTabs.ensureThread(tab.id);
   state.draftMessage = text;
 
-  if (localSettings.reportingChatAgent !== 'project_agent' && apiSettings.isProfessionalLicense) {
-    localSettings.reportingChatAgent = 'project_agent';
+  if (apiSettings.isProfessionalLicense) {
+    state.agent = AiAgentMode.PROJECT_AGENT;
   }
 
   await nextTick();

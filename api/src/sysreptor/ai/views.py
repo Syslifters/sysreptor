@@ -85,7 +85,7 @@ class ChatThreadViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, viewset
         instance.refresh_from_db()
 
         data = get_chat_history(agent=get_agent('project_ask'), thread=instance)
-        data |= copy_keys(instance, ['title', 'run_id', 'run_status', 'run_error'])
+        data |= copy_keys(instance, ['title', 'agent', 'model', 'run_id', 'run_status', 'run_error'])
         data.pop('covered', None)
 
         return Response(data=data)
