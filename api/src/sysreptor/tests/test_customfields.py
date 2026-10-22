@@ -1009,4 +1009,30 @@ class TestDefaultNotes:
                 assert (str(n.parent.note_id) if n.parent else None) == dn['parent']
                 assertKeysEqual(dn, n, ['order', 'checked', 'icon_emoji', 'title', 'text'])
 
+    def test_default_notes_ignore_unknown_fields(self):
+        other_project = create_project(notes_kwargs=[])
+        user = create_user()
+        note_id = str(uuid4())
+        self.project_type.default_notes = [{
+            'id': note_id,
+            'parent': None,
+            'order': 1,
+            'checked': True,
+            'icon_emoji': None,
+            'title': 'Note title',
+            'text': 'Note text',
+            'project_id': str(other_project.id),
+            'assignee_id': str(user.id),
+            'created': '2020-01-01T00:00:00Z',
+        }]
+        self.project_type.save(update_fields=['default_notes'])
+
+        project = create_project(project_type=self.project_type)
+        note = project.notes.get(note_id=note_id)
+        assert note.checked is True
+        assert note.title == 'Note title'
+        assert note.text == 'Note text'
+        assert note.project_id == project.id
+        assert note.assignee_id is None
+
 
