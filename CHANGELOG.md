@@ -1,5 +1,9 @@
 # Changelog
 
+## v2026.95 - 2026-10-22
+* Security: Remove compromised "emSign" certificates from certificate stores in docker images
+
+
 ## v2026.89 - 2026-10-14
 * Fix duplicate module check in plugin loader
 * Prevent changing the design of readonly projects
