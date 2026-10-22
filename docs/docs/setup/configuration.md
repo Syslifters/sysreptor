@@ -33,6 +33,8 @@ Encrypt data at rest by configuring an encryption key. This will encrypt sensiti
 
 Database and file storage administrators cannot access encrypted data. The key is held in the web application. Data encryption at rest does not help against malicious actors with access to the web server.
 
+Redis is treated as application memory, not as a data store. It is not covered by data encryption at rest.
+
 You have to define one `DEFAULT_ENCRYPTION_KEY_ID` which will be used for data encryption. However, you can rotate your keys by defining multiple keys in `ENCRYPTION_KEYS`.  
 All specified keys are used for decrypting stored data.
 
