@@ -96,9 +96,7 @@ Easy peasy lemon squeezy.
 <br><br>
 <div style="text-align:center">
 
-[🔥 Set up now](/setup/installation){ .md-button }<br>
-
-[🦕 Book a Demo](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form){ .md-button }
+[🔥 Set up now](/setup/installation){ .md-button }
 
 </div>
 
