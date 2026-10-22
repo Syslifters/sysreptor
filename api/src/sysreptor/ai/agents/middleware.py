@@ -172,6 +172,6 @@ class CustomSubagentMiddleware(SubAgentMiddleware):
             config['configurable'].pop('checkpoint_id', None)
             with _subagent_tracing_context():
                 result = await subagent.ainvoke(subagent_state, config)
-            return return_command(result, runtime.tool_call_id)
+            return return_command(result, runtime.tool_call_id, subagent_state)
 
         return task

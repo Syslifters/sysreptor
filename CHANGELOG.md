@@ -9,6 +9,10 @@
 * Run tasks in background worker processes
 
 
+## v2026.95 - 2026-10-22
+* Security: Remove compromised eMudhra certificates from certificate stores
+
+
 ## v2026.89 - 2026-10-14
 * Fix duplicate module check in plugin loader
 * Prevent changing the design of readonly projects
