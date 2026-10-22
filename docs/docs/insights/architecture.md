@@ -31,8 +31,8 @@ SysReptor uses a PostgreSQL database for storing data persistently. The SysRepto
 If encryption is enabled, you must have the secret to be able to restore data from the database.
 
 ## Redis
-SysReptor uses the in-memory database Redis for temporarily storing information. This is (among others) necessary for synchronizing activities between users during report writing, allowing for example collaborative editing.  
-Data stored in Redis is mostly indexes and references and is not encypted.
+SysReptor uses Redis for temporarily storing information. This is (among others) necessary for synchronizing activities between users during report writing, allowing for example collaborative editing.  
+Redis is treated as application memory, not as a data store. It is not covered by data encryption at rest.
 
 ## Languagetool
 SysReptor Professional users can use the integrated spell check. This requires the [languagetool](https://languagetool.org/) container which provides a web API to receive text and to suggest improvements. Data received by languagetool in unencrypted and stored in memory and/or local caches.
