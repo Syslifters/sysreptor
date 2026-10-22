@@ -27,12 +27,3 @@ Moving from Professional to Community does not result in data loss. All data wil
 ::: info Non-superuser login is disabled
 Downgrading disables login for non-superusers. Community edition allows unlimited project access, so any account that can log in is a superuser and has access to every pentest project. These accounts previously had limited project access. Allowing them to log in would expose all projects.
 :::
-
-::: info <DocBadge icon="mdi:calendar" label="Book a demo" />
-
-Interested in SysReptor Professional?  
-Book a Teams call with us and get you questions answered.
-
-[Choose your time slot](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form)
-
-:::

@@ -62,15 +62,6 @@ You are a Professional customer and need support via a private channel?
 
 </div>
 
-::: info <DocBadge icon="mdi:calendar" label="Book a demo" /> 
-
-Interested in SysReptor Professional? Book a Teams call with us and get your questions answered.
-
-[Choose your time slot](https://cloud.syslifters.com/apps/appointments/pub/tBtAMcEwczA5CDMv/form){.doc-card__link}
-
-:::
-
-
 ## Contact Information
 
 <div>
