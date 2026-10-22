@@ -13,8 +13,8 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer"
   },
   "devDependencies": {
-    "nuxt": "~4.5",
-    "vuetify": "~4.2",
+    "nuxt": "~4.6",
+    "vuetify": "~4.3",
     "pinia": "^4.0",
 
     "sass-embedded": "^1.79.5",

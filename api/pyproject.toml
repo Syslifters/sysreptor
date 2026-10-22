@@ -63,7 +63,7 @@ dependencies = [
   "pytest-cov (~=7.0)",
 
   "pip-licenses-cli (~=4.0)",
-  "ruff (~=0.16)",
+  "ruff (~=0.17)",
 ]
 
 

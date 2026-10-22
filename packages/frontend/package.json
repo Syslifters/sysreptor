@@ -15,8 +15,8 @@
     "@sysreptor/nuxt-base-layer": "../nuxt-base-layer",
     "@sysreptor/markdown": "../markdown",
 
-    "nuxt": "~4.5",
-    "vuetify": "~4.2",
+    "nuxt": "~4.6",
+    "vuetify": "~4.3",
     "pinia": "^4.0",
 
     "sass-embedded": "^1.79.5",
@@ -42,9 +42,9 @@
     "@types/randomcolor": "^0.5.9",
     "eslint": "^10.0",
     "vitest": "^5.0",
-    "happy-dom": "^20.0.0",
+    "happy-dom": "^21.0.0",
     "vue-tsc": "^3.0.4",
-    "@playwright/test": "1.63.0"
+    "@playwright/test": "1.64.1"
   },
   "overrides": {
     "vue": "latest"

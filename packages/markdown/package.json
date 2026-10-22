@@ -30,7 +30,7 @@
     "@codemirror/lint": "~6.9",
     "@codemirror/search": "~6.7",
     "@codemirror/merge": "~6.12",
-    "@codemirror/language": "~6.12",
+    "@codemirror/language": "~6.13",
     "@codemirror/lang-markdown": "~6.5",
     "@codemirror/lang-html": "~6.4",
     "@codemirror/lang-vue": "~0.1.3",
@@ -39,7 +39,7 @@
     "@codemirror/lang-json": "~6.0",
 
     "mermaid": "^12.0.0",
-    "katex": "^0.18",
+    "katex": "^0.19",
     "z-schema": "^12.4.5"
   }
 }
