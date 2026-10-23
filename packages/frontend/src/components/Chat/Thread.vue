@@ -226,7 +226,7 @@ const runChangedPages = computed(() => {
       filePath: c.filePath,
       type: fileRef.type,
       id: fileRef.id,
-      title: getPageTitle(fileRef, titles),
+      title: getPageTitle(fileRef, titles, c.title),
       isCreated: c.isCreated,
       diffTimestamp: c.diffTimestamp,
     } satisfies AgentChangedPage];

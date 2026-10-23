@@ -32,6 +32,7 @@ from deepagents.backends.utils import (
 from django.core.exceptions import ValidationError
 from langgraph.runtime import Runtime, get_runtime
 
+from sysreptor.ai.agents.middleware import set_tool_output
 from sysreptor.pentests.models import (
     NoteType,
     PentestFinding,
@@ -175,30 +176,33 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
         try:
             match = self.FILE_PATH_RE.match(file_path)
             if not match:
-                return None
+                return None, None
 
             project = project or self._get_project(prefetch=False)
             if file_path == '/project.yaml':
-                return format_project_overview(project)
+                return format_project_overview(project), None
             elif finding_id := match.group('finding_id'):
                 finding = self._find_prefetched(project, 'findings', 'finding_id', finding_id) or \
                     PentestFinding.objects.select_related('assignee').filter(project_id=project.id, finding_id=finding_id).first()
-                return format_finding_data(finding) if finding else None
+                if finding:
+                    return format_finding_data(finding), {'id': str(finding.finding_id), 'title': finding.title or ''}
             elif section_id := match.group('section_id'):
                 section = self._find_prefetched(project, 'sections', 'section_id', section_id) or \
                     ReportSection.objects.select_related('assignee').filter(project_id=project.id, section_id=section_id).first()
-                return format_section_data(section) if section else None
+                if section:
+                    return format_section_data(section), {'id': str(section.section_id), 'title': section.title or ''}
             elif note_id := match.group('note_id'):
                 note = self._find_prefetched(project, 'notes', 'note_id', note_id) or \
                     ProjectNotebookPage.objects.select_related('parent', 'assignee').filter(project_id=project.id, note_id=note_id).first()
-                return format_note_data(note) if note else None
-            return None
+                if note:
+                    return format_note_data(note), {'id': str(note.note_id), 'title': note.title or ''}
+            return None, None
         except ValidationError:
-            return None
+            return None, None
 
     def _lazy_file(self, file_path: str, modified_at: str, project=None) -> LazyFileData:
         return LazyFileData(
-            loader=lambda fp=file_path: self._load_file_content(fp, project=project) or '',
+            loader=lambda fp=file_path: self._load_file_content(fp, project=project)[0] or '',
             modified_at=modified_at,
         )
 
@@ -247,8 +251,9 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
         return LsResult(entries=infos)
 
     def read(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
-        content = self._load_file_content(file_path)
+        content, output = self._load_file_content(file_path)
         if content is None:
+            set_tool_output(output)
             return ReadResult(error=FILE_NOT_FOUND)
         return _slice_read_result(create_file_data(content), offset, limit)
 

@@ -1031,20 +1031,20 @@ export function getPageTitle(
     findings: PentestFinding[];
     sections: ReportSection[];
     notes: ProjectNote[];
-    fallbackTitle?: string;
   },
+  fallbackTitle?: string|null
 ): string {
   if (fileRef.type === 'finding') {
     const finding = titles.findings.find(f => f.id === fileRef.id);
-    return finding?.data?.title ?? titles.fallbackTitle ?? fileRef.id;
+    return finding?.data?.title ?? fallbackTitle ?? fileRef.id;
   } else if (fileRef.type === 'section') {
     const section = titles.sections.find(s => s.id === fileRef.id);
-    return section?.label ?? titles.fallbackTitle ?? fileRef.id;
+    return section?.label ?? fallbackTitle ?? fileRef.id;
   } else if (fileRef.type === 'note') {
     const note = titles.notes.find(n => n.id === fileRef.id);
-    return note?.title ?? titles.fallbackTitle ?? fileRef.id;
+    return note?.title ?? fallbackTitle ?? fileRef.id;
   } else {
-    return titles.fallbackTitle ?? fileRef.id;
+    return fallbackTitle ?? fileRef.id;
   }
 }
 
@@ -1093,8 +1093,9 @@ export function buildChangedFiles(
   messages: readonly ChatHistoryEntry[],
   acceptedUpTo: Record<string, string> = {},
 ) {
-  const byPath = new Map<string, { 
+  const byPath = new Map<string, {
     filePath: string,
+    title?: string|null,
     diffTimestamp: string,
     isCreated: boolean,
   }>();
@@ -1117,8 +1118,14 @@ export function buildChangedFiles(
         existing.diffTimestamp = tool.timestamp;
       }
       existing.isCreated = existing.isCreated || isCreate;
+      existing.title = tool.output?.title;
     } else {
-      byPath.set(filePath, { filePath, diffTimestamp: tool.timestamp, isCreated: isCreate });
+      byPath.set(filePath, {
+        filePath,
+        diffTimestamp: tool.timestamp,
+        isCreated: isCreate,
+        title: tool.output?.title,
+      });
     }
   });
 

@@ -243,8 +243,7 @@ function getProjectPageTitle(fileRef: { type: string, id: string }, fallbackTitl
     findings: projectStore.findings(props.project?.id || ''),
     sections: projectStore.sections(props.project?.id || ''),
     notes: projectStore.notes(props.project?.id || ''),
-    fallbackTitle,
-  });
+  }, fallbackTitle);
 }
 
 function getFindingTitle(findingId: string, fallbackTitle?: string): string {

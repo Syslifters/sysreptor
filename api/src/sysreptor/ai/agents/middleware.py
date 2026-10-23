@@ -1,4 +1,6 @@
-from collections.abc import Awaitable, Callable, Sequence
+import contextlib
+import contextvars
+from collections.abc import Iterator, Sequence
 from typing import Any
 
 from deepagents.backends.protocol import BackendProtocol
@@ -11,7 +13,7 @@ from deepagents.middleware.subagents import (
     _subagent_tracing_context,
 )
 from django.utils import timezone
-from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse, ToolCallRequest
+from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langchain_core.messages import merge_message_runs
@@ -21,19 +23,41 @@ from langgraph.types import Command
 
 from sysreptor.utils.history import history_context
 
+_tool_output_bucket: contextvars.ContextVar[dict | None] = contextvars.ContextVar('tool_output_bucket', default=None)
 
-def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage) -> None:
+
+def set_tool_output(output: dict) -> None:
+    """Attach structured output for the current tool call (picked up by MessageTimestampMiddleware)."""
+    bucket = _tool_output_bucket.get()
+    if bucket is None:
+        return
+    bucket.update(output)
+
+
+@contextlib.contextmanager
+def capture_tool_output() -> Iterator[dict]:
+    """Context manager that collects set_tool_output() calls into a shared dict."""
+    bucket: dict = {}
+    token = _tool_output_bucket.set(bucket)
+    try:
+        yield bucket
+    finally:
+        _tool_output_bucket.reset(token)
+
+
+def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage, timestamp=None) -> None:
     if message.additional_kwargs.get('timestamp'):
         return
     message.additional_kwargs = {
         **(message.additional_kwargs or {}),
-        'timestamp': timezone.now().isoformat(),
+        'timestamp': (timestamp or timezone.now()).isoformat(),
     }
 
 
 class MessageTimestampMiddleware(AgentMiddleware[AgentState]):
     """
-    Stamp completion timestamps on user and assistant messages for the chat UI.
+    Stamp completion timestamps on user, assistant and tool messages for the chat UI.
+    Also attaches structured tool output set via set_tool_output().
     """
 
     async def abefore_agent(self, state, runtime):
@@ -49,6 +73,19 @@ class MessageTimestampMiddleware(AgentMiddleware[AgentState]):
                 stamp_message_timestamp(m)
             else:
                 break
+
+    async def awrap_tool_call(self, request, handler):
+        timestamp_before = timezone.now()
+        with capture_tool_output() as bucket:
+            result = await handler(request)
+
+        if isinstance(result, ToolMessage):
+            stamp_message_timestamp(result, timestamp=timestamp_before)
+            result.additional_kwargs = {
+                **(result.additional_kwargs or {}),
+                'output': dict(bucket),
+            }
+        return result
 
 
 class SelectConfiguredModelMiddleware(AgentMiddleware):
@@ -67,18 +104,10 @@ class SelectConfiguredModelMiddleware(AgentMiddleware):
             self._model_cache[model] = init_chat_model(model)
         return self._model_cache[model]
 
-    def wrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], ModelResponse],
-    ) -> ModelResponse:
+    def wrap_model_call(self, request, handler) -> ModelResponse:
         return handler(request.override(model=self._model_for_request(request)))
 
-    async def awrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
-    ) -> ModelResponse:
+    async def awrap_model_call(self, request, handler) -> ModelResponse:
         return await handler(request.override(model=self._model_for_request(request)))
 
 
@@ -89,27 +118,15 @@ class MergeConsecutiveMessagesMiddleware(AgentMiddleware):
     Required for LLM providers that enforce alternating user/assistant roles.
     """
 
-    def wrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], ModelResponse],
-    ) -> ModelResponse:
+    def wrap_model_call(self, request, handler) -> ModelResponse:
         return handler(request.override(messages=merge_message_runs(request.messages)))
 
-    async def awrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
-    ) -> ModelResponse:
+    async def awrap_model_call(self, request, handler) -> ModelResponse:
         return await handler(request.override(messages=merge_message_runs(request.messages)))
 
 
 class HistoryContextMiddleware(AgentMiddleware):
-    async def awrap_tool_call(
-        self,
-        request: ToolCallRequest,
-        handler: Callable[[ToolCallRequest], Awaitable[ToolMessage | Command[Any]]],
-    ) -> ToolMessage | Command[Any]:
+    async def awrap_tool_call(self, request, handler) -> ToolMessage | Command[Any]:
         user = getattr(getattr(getattr(request, 'runtime', None), 'context', None), 'user', None)
         with history_context(history_user=user, set_history_date=False):
             return await handler(request)
