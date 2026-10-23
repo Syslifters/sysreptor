@@ -11,6 +11,7 @@ from deepagents.backends.protocol import (
     FILE_NOT_FOUND,
     PERMISSION_DENIED,
     BackendProtocol,
+    DeleteResult,
     EditResult,
     FileData,
     FileDownloadResponse,
@@ -40,6 +41,7 @@ from sysreptor.pentests.models import (
     ProjectNotebookPage,
     ReportSection,
 )
+from sysreptor.pentests.permissions import ProjectSubresourcePermissions
 
 if TYPE_CHECKING:
     from sysreptor.ai.agents.project import ProjectContext
@@ -95,6 +97,9 @@ class ReadOnlyBackend(BackendProtocol):
     def upload_files(self, files: list[tuple[str, bytes]]) -> list[FileUploadResponse]:
         return [FileUploadResponse(path=path, error=PERMISSION_DENIED) for path, _ in files]
 
+    def delete(self, file_path: str) -> DeleteResult:
+        return DeleteResult(error=self._readonly_error(file_path))
+
     @sync_to_async
     def aread(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
         return self.read(file_path, offset=offset, limit=limit)
@@ -110,6 +115,10 @@ class ReadOnlyBackend(BackendProtocol):
     @sync_to_async
     def aglob(self, pattern: str, path: str | None = None) -> GlobResult:
         return self.glob(pattern, path)
+
+    @sync_to_async
+    def adelete(self, file_path: str) -> DeleteResult:
+        return self.delete(file_path)
 
     async def awrite(self, file_path: str, content: str) -> WriteResult:
         return self.write(file_path, content)
@@ -145,7 +154,7 @@ class LazyFileData(dict):
 
 class ProjectFilesystemBackend(ReadOnlyBackend):
     """
-    Read-only virtual filesystem mapping project data to files.
+    Virtual filesystem mapping project data to files.
     """
     PROJECT_ROOT = '/project'
     FILE_PATH_RE = re.compile(
@@ -223,8 +232,8 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
 
     def _readonly_error(self, file_path: str) -> str:
         return (
-            f"Error: Cannot modify '{file_path}': the project filesystem is read-only. "
-            'To change project content use the dedicated tools instead: '
+            f"Error: Cannot modify '{file_path}': the project filesystem does not support "
+            'write_file or edit_file. To change project content use the dedicated tools instead: '
             'update_field_value, update_markdown_field, or create_finding.'
         )
 
@@ -262,6 +271,45 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
 
     def glob(self, pattern: str, path: str | None = None) -> GlobResult:
         return _glob_files(self._build_files(prefetch=False), pattern, path)
+
+    def delete(self, file_path: str) -> DeleteResult:
+        match = self.FILE_PATH_RE.match(file_path)
+        if not match:
+            return DeleteResult(error=FILE_NOT_FOUND)
+
+        if not match.group('finding_id') and not match.group('note_id'):
+            return DeleteResult(error=(
+                f"Error: Cannot delete '{file_path}': delete is not supported for this resource. "
+                'Only findings and notes can be deleted.'
+            ))
+
+        runtime = self.runtime or _project_runtime()
+        project = self._get_project(prefetch=False)
+        user = runtime.context.user
+        if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
+            return DeleteResult(error='You do not have write permissions')
+
+        try:
+            if finding_id := match.group('finding_id'):
+                finding = self._find_prefetched(project, 'findings', 'finding_id', finding_id) or \
+                    PentestFinding.objects.filter(project_id=project.id, finding_id=finding_id).first()
+                if not finding:
+                    return DeleteResult(error=FILE_NOT_FOUND)
+                set_tool_output({'id': str(finding.finding_id), 'title': finding.title or ''})
+                finding.delete()
+                return DeleteResult(path=file_path)
+            if note_id := match.group('note_id'):
+                note = self._find_prefetched(project, 'notes', 'note_id', note_id) or \
+                    ProjectNotebookPage.objects.filter(project_id=project.id, note_id=note_id).first()
+                if not note:
+                    return DeleteResult(error=FILE_NOT_FOUND)
+                set_tool_output({'id': str(note.note_id), 'title': note.title or ''})
+                note.delete()
+                return DeleteResult(path=file_path)
+        except ValidationError:
+            return DeleteResult(error=FILE_NOT_FOUND)
+
+        return DeleteResult(error=FILE_NOT_FOUND)
 
 
 class NotesAgentsDirBackend(ReadOnlyBackend):

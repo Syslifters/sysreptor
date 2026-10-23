@@ -961,11 +961,12 @@ export type AgentChangedPage = {
   id: string;
   title: string;
   isCreated: boolean;
+  isDeleted: boolean;
   diffTimestamp: string;
 };
 
 export function getToolFilePath(tool: ToolCall): string | null {
-  if (['update_field_value', 'update_markdown_field'].includes(tool.name)) {
+  if (['update_field_value', 'update_markdown_field', 'delete'].includes(tool.name)) {
     return tool.args?.file_path || null;
   } else if (tool.name === 'create_finding' && tool.output?.id) {
     return `/project/reporting/findings/${tool.output.id}.yaml`;
@@ -1018,7 +1019,7 @@ export function getChangedPagePath(projectId: string, page: AgentChangedPage): s
   } else {
     return undefined;
   }
-  
+
   if (!page.isCreated) {
     basePath += `history/${page.diffTimestamp}/`;
   }
@@ -1066,6 +1067,7 @@ function isSuccessfulWriteTool(tool: ToolCall): boolean {
     'update_markdown_field',
     'create_finding',
     'create_note',
+    'delete',
   ]);
   return WRITE_TOOLS.has(tool.name)
     && tool.status === ToolCallStatus.SUCCESS
@@ -1098,6 +1100,7 @@ export function buildChangedFiles(
     title?: string|null,
     diffTimestamp: string,
     isCreated: boolean,
+    isDeleted: boolean,
   }>();
 
   walkToolCalls([...messages], (tool) => {
@@ -1112,18 +1115,21 @@ export function buildChangedFiles(
     }
 
     const isCreate = tool.name === 'create_finding' || tool.name === 'create_note';
+    const isDelete = tool.name === 'delete';
     const existing = byPath.get(filePath);
     if (existing) {
       if (tool.timestamp < existing.diffTimestamp) {
         existing.diffTimestamp = tool.timestamp;
       }
       existing.isCreated = existing.isCreated || isCreate;
+      existing.isDeleted = existing.isDeleted || isDelete;
       existing.title = tool.output?.title;
     } else {
       byPath.set(filePath, {
         filePath,
         diffTimestamp: tool.timestamp,
         isCreated: isCreate,
+        isDeleted: isDelete,
         title: tool.output?.title,
       });
     }

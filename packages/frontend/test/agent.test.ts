@@ -488,5 +488,35 @@ describe('agentChanges', () => {
       expect(files).toHaveLength(1);
       expect(files[0].filePath).toBe('/project/reporting/findings/f1.yaml');
     });
+
+    it('create then delete', () => {
+      const sessionMessages: ChatHistoryEntry[] = [
+        { id: 'u1', role: MessageRole.USER, text: 'create then delete' },
+        toolMessage({
+          id: 't1',
+          name: 'create_finding',
+          args: {},
+          output: { id: 'f1', title: 'Finding Title' },
+          timestamp: '2026-01-01T10:00:00+00:00',
+        }),
+        toolMessage({
+          id: 't2',
+          name: 'delete',
+          args: { file_path: '/project/reporting/findings/f1.yaml' },
+          output: { id: 'f1', title: 'Finding Title' },
+          timestamp: '2026-01-01T11:00:00+00:00',
+        }),
+      ];
+      const files = buildChangedFiles(sessionMessages);
+      expect(files).toHaveLength(1);
+      expect(files[0]).toMatchObject({
+        filePath: '/project/reporting/findings/f1.yaml',
+        isDeleted: true,
+        isCreated: true,
+        diffTimestamp: '2026-01-01T10:00:00+00:00',
+        title: 'Finding Title',
+      });
+    });
   });
+
 });

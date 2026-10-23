@@ -228,6 +228,7 @@ const runChangedPages = computed(() => {
       id: fileRef.id,
       title: getPageTitle(fileRef, titles, c.title),
       isCreated: c.isCreated,
+      isDeleted: c.isDeleted,
       diffTimestamp: c.diffTimestamp,
     } satisfies AgentChangedPage];
   });
@@ -246,6 +247,9 @@ async function onRevertPage(page: AgentChangedPage) {
       } else if (fileRef.type === 'note') {
         await projectStore.deleteNote(props.project, { id: fileRef.id });
       }
+    } else if (page.isDeleted) {
+      // Problems with reverting deleted pages: ID changes, text-only, not images
+      throw new Error('Restoring deleted pages is not supported');
     } else if (fileRef.type === 'finding') {
       const historic = await $fetch<PentestFinding>(
         `/api/v1/pentestprojects/${props.project.id}/history/${page.diffTimestamp}/findings/${fileRef.id}/`,
@@ -276,7 +280,10 @@ async function onRevertPage(page: AgentChangedPage) {
   } catch (error) {
     requestErrorToast({
       error,
-      message: page.isCreated ? 'Failed to delete page' : 'Failed to revert changes',
+      message: 
+      page.isCreated ? 'Failed to delete page' :
+      page.isDeleted ? 'Restoring deleted pages is not supported' :
+      'Failed to revert changes',
     });
   }
 }

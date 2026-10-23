@@ -14,7 +14,7 @@ from deepagents.backends import CompositeBackend, StateBackend
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import timezone
-from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall
+from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall, ToolMessage
 from langchain.tools import ToolRuntime
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
@@ -32,7 +32,7 @@ from sysreptor.ai.agents.filesystem import (
     NotesAgentsDirBackend,
     ProjectFilesystemBackend,
 )
-from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
+from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware, capture_tool_output
 from sysreptor.ai.agents.project import ProjectContext
 from sysreptor.ai.agents.tools import analyze_image
 from sysreptor.ai.agents.tools_project import (
@@ -56,13 +56,12 @@ from sysreptor.ai.runs import (
     AgentRunWorker,
     PendingEventBuffer,
     send_ai_stream_event,
-    start_run,
     subscribe_thread,
     throttle_ai_stream_events,
 )
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints, cleanup_stale_agent_runs
 from sysreptor.conf.settings import validate_ai_agent_models
-from sysreptor.pentests.models import NoteType
+from sysreptor.pentests.models import NoteType, PentestFinding, ProjectNotebookPage
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
@@ -72,6 +71,7 @@ from sysreptor.tests.mock import (
     create_user,
     mock_time,
     override_configuration,
+    update,
 )
 from sysreptor.utils.fielddefinition.utils import get_value_at_path
 from sysreptor.utils.utils import copy_keys, merge, omit_keys
@@ -597,12 +597,18 @@ class TestProjectAgentTools:
             store=None,
             stream_writer=None,
         )
-        res = async_to_sync(tool.ainvoke)(
-            input=kwargs | {
-                'runtime': runtime,
-            },
-        )
-        return res.update['messages'][0]
+        with capture_tool_output() as bucket:
+            res = async_to_sync(tool.ainvoke)(
+                input=kwargs | {
+                    'runtime': runtime,
+                },
+            )
+        msg = res if isinstance(res, ToolMessage) else res.update['messages'][0]
+        msg.additional_kwargs = {
+            **(msg.additional_kwargs or {}),
+            'output': dict(bucket),
+        }
+        return msg
 
     def test_tool_list_notes(self):
         contains_infos = [
@@ -1485,7 +1491,7 @@ class TestProjectFilesystemBackend:
     def test_read_only_write(self):
         result = self.backend.write('/project/reporting/findings/new.yaml', 'content')
         assert result.error is not None
-        assert 'read-only' in result.error.lower()
+        assert 'write_file' in result.error.lower()
         assert 'update_field_value' in result.error
         # The routed backend sees the prefix-stripped path
         assert '/reporting/findings/new.yaml' in result.error
@@ -1494,13 +1500,43 @@ class TestProjectFilesystemBackend:
         finding = self.project.findings.first()
         result = self.backend.edit(finding_path(finding.finding_id), 'old', 'new')
         assert result.error is not None
-        assert 'read-only' in result.error.lower()
+        assert 'edit_file' in result.error.lower()
+
+    @pytest.mark.parametrize('resource', ['finding', 'note'])
+    def test_delete_success(self, resource):
+        if resource == 'finding':
+            obj_id = self.project.findings.first().finding_id
+            path = finding_path(obj_id)
+            qs = PentestFinding.objects.filter(project_id=self.project.id, finding_id=obj_id)
+        elif resource == 'note':
+            obj_id = create_projectnotebookpage(project=self.project, title='Delete me', text='body').note_id
+            path = note_path(obj_id)
+            qs = ProjectNotebookPage.objects.filter(project_id=self.project.id, note_id=obj_id)
+        result = self.backend.delete(path)
+        assert not result.error
+        assert result.path == path
+        assert not qs.exists()
+
+    @pytest.mark.parametrize(('path', 'error_substr'), [
+        (section_path('other'), 'not supported'),
+        ('/project/project.yaml', 'not supported'),
+        (section_path('nonexistent'), 'not supported'),
+        ('/project/notes/nonexistent.yaml', 'file_not_found'),
+        ('/project/reporting/findings/nonexistent.yaml', 'file_not_found'),
+    ])
+    def test_delete_rejected(self, path, error_substr):
+        result = self.backend.delete(path)
+        assert error_substr in result.error.lower()
+
+    def test_delete_permission_denied(self):
+        update(self.project, readonly=True)
+        result = self.backend.delete(finding_path(self.project.findings.first().finding_id))
+        assert 'write permissions' in result.error.lower()
 
     def test_project_scoping(self):
         other_project = create_project(members=[self.user])
-        other_finding = other_project.findings.first()
-        result = self.backend.read(finding_path(other_finding.finding_id))
-        assert result.error is not None
+        result = self.backend.read(finding_path(other_project.findings.first().finding_id))
+        assert 'file_not_found' in result.error.lower()
 
 
 @pytest.mark.django_db()
@@ -1580,6 +1616,36 @@ class TestProjectFilesystemAgent:
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'write_file'
             assert tool_status['content']['status'] == 'error'
+
+    def test_agent_delete_includes_title_in_output(self):
+        user = create_user()
+        project = create_project(members=[user])
+        client = api_client(user=user)
+        finding = project.findings.first()
+        finding_title = finding.title
+        file_path = finding_path(finding.finding_id)
+        llm_messages = [
+            AIMessage(content='', tool_calls=[
+                ToolCall(id='tool_call_1', name='delete', args={'file_path': file_path}),
+            ]),
+            AIMessage(content='Deleted the finding.'),
+        ]
+        with mock_llm_response(messages=llm_messages):
+            res, events = post_chat(client, {
+                'agent': 'project_agent',
+                'project': project.id,
+                'messages': ['Delete the finding'],
+                'context': {},
+            })
+            assert res.status_code == 200
+            tool_status = next(e for e in events if e['type'] == 'tool_call_status')
+            assert tool_status['content']['name'] == 'delete'
+            assert tool_status['content']['status'] == 'success'
+            assert tool_status['content']['output'] == {
+                'id': str(finding.finding_id),
+                'title': finding_title,
+            }
+            assert not PentestFinding.objects.filter(project_id=project.id, finding_id=finding.finding_id).exists()
 
 
 DEMO_SKILL_MD = textwrap.dedent("""\
