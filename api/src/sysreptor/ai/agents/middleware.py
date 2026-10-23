@@ -26,8 +26,10 @@ from sysreptor.utils.history import history_context
 _tool_output_bucket: contextvars.ContextVar[dict | None] = contextvars.ContextVar('tool_output_bucket', default=None)
 
 
-def set_tool_output(output: dict) -> None:
+def set_tool_output(output: dict | None) -> None:
     """Attach structured output for the current tool call (picked up by MessageTimestampMiddleware)."""
+    if not output:
+        return
     bucket = _tool_output_bucket.get()
     if bucket is None:
         return

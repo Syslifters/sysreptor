@@ -175,7 +175,7 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
             return next((obj for obj in cache[relation] if str(getattr(obj, attr)) == value), None)
         return None
 
-    def _load_file_content(self, file_path: str, project=None) -> str | None:
+    def _load_file_content(self, file_path: str, project=None) -> tuple[str | None, dict | None]:
         from sysreptor.ai.agents.project import (
             format_finding_data,
             format_note_data,
@@ -262,8 +262,8 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
     def read(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
         content, output = self._load_file_content(file_path)
         if content is None:
-            set_tool_output(output)
             return ReadResult(error=FILE_NOT_FOUND)
+        set_tool_output(output)
         return _slice_read_result(create_file_data(content), offset, limit)
 
     def grep(self, pattern: str, path: str | None = None, glob: str | None = None) -> GrepResult:

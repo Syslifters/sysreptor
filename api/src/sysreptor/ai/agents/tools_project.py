@@ -279,6 +279,7 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
         'old_value': old_value,
         'definition': definition,
         'obj': obj,
+        'obj_id': obj_id,
     }
 
 
@@ -301,6 +302,7 @@ def update_at_path(info: dict, value):
         serializer = serializer_class(instance=obj, data={'data': updated_data}, partial=True, context={'project': obj.project})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+    set_tool_output({'id': info['obj_id'], 'title': obj.title})
 
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
