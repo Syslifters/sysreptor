@@ -477,7 +477,7 @@ def init_agent_project_base(
         ] + (additional_tools or []),
         middleware=[
             InjectProjectContextMiddleware(),
-            FilesystemMiddleware(backend=filesystem_backend, _permissions=permissions),
+            FilesystemMiddleware(backend=filesystem_backend, permissions=permissions),
             SkillsMiddleware(
                 backend=filesystem_backend,
                 sources=[NotesAgentsDirBackend.SKILLS_ROOT],

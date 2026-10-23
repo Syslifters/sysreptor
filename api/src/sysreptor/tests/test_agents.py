@@ -300,7 +300,7 @@ class TestProjectAgent:
             assert_events_equal(events, wrap_stream_events([
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}}),
                 {'type': 'tool_call', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
-                {'type': 'tool_call_status', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name']) | {'status': 'success', 'output': {}}},
+                {'type': 'tool_call_status', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}}),
             ], user_message=user_messages[1]))
 
@@ -314,7 +314,7 @@ class TestProjectAgent:
             {'role': 'assistant', 'text': llm_messages[0].content},
             {'role': 'user', 'text': user_messages[1]},
             {'role': 'assistant', 'text': llm_messages[1].content},
-            {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {}}},
+            {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
             {'role': 'assistant', 'text': llm_messages[2].content},
         ]
 
@@ -1424,6 +1424,12 @@ class TestProjectFilesystemBackend:
         paths = [e['path'] for e in result.entries or []]
         assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
 
+    def test_ls_empty_findings(self):
+        self.project.findings.all().delete()
+        result = self.backend.ls('/project/reporting/findings/')
+        assert result.error is None
+        assert result.entries == []
+
     def test_lazy_file_loading(self):
         with mock.patch('sysreptor.ai.agents.project.format_finding_data') as format_finding:
             self.backend.ls('/project/reporting/findings/')
@@ -1738,10 +1744,11 @@ class TestNotesAgentsDirBackend:
             yield
 
     @pytest.mark.parametrize(('setup', 'ls_path', 'expected_dirs'), [
-        (lambda p: None, '/.agents/', []),
+        (lambda p: None, '/.agents/', ['/.agents/skills/']),
         (lambda p: None, '/.agents/skills/', []),
         (create_agents_md_only, '/.agents/skills/', []),
-        (create_nested_agents_skill, '/.agents/', []),
+        (create_nested_agents_skill, '/.agents/', ['/.agents/skills/']),
+        (create_nested_agents_skill, '/.agents/skills/', []),
         (lambda p: create_skills_note_tree(p, {'incomplete': {'readme.md': 'no skill md'}}),
          '/.agents/skills/', ['/.agents/skills/incomplete/']),
         (lambda p: create_skills_note_tree(p, {'my/skill': {'SKILL.md': DEMO_SKILL_MD}}),

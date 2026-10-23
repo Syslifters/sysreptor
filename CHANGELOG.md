@@ -10,6 +10,10 @@
 * Run tasks in background worker processes
 
 
+## v2026.97 - 2026-10-25
+* Security: Update dependencies to fix vulnerabilities
+
+
 ## v2026.95 - 2026-10-22
 * Security: Remove compromised eMudhra certificates from certificate stores
 

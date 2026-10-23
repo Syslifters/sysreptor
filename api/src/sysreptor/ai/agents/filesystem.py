@@ -215,8 +215,15 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
             modified_at=modified_at,
         )
 
-    def _build_files(self, prefetch=True) -> dict[str, FileData]:
+    def _build_index(self, prefetch=True) -> tuple[dict[str, FileData], set[str]]:
         project = self._get_project(prefetch=prefetch)
+        dirs = set({
+            '/',
+            '/reporting',
+            '/reporting/findings',
+            '/reporting/sections',
+            '/notes',
+        })
         files: dict[str, FileData] = {
             '/project.yaml': self._lazy_file('/project.yaml', project.updated.isoformat(), project=project),
         }
@@ -228,7 +235,7 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
             files[path] = self._lazy_file(path, section.updated.isoformat(), project=project)
         for note in (project.notes.all() if prefetch else project.notes.only('note_id', 'updated').all()):
             files[f'/notes/{note.note_id}.yaml'] = self._lazy_file(f'/notes/{note.note_id}.yaml', note.updated.isoformat(), project=project)
-        return files
+        return files, dirs
 
     def _readonly_error(self, file_path: str) -> str:
         return (
@@ -238,25 +245,23 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
         )
 
     def ls(self, path: str) -> LsResult:
-        files = self._build_files(prefetch=False)
-        normalized_path = '/' if path in ('', '/') else (path if path.endswith('/') else path + '/')
-
-        infos: list[FileInfo] = []
-        subdirs: set[str] = set()
-        for k, fd in files.items():
-            if not k.startswith(normalized_path):
-                continue
-            relative = k[len(normalized_path):]
-            if '/' in relative:
-                subdirs.add(normalized_path + relative.split('/')[0] + '/')
-                continue
-            infos.append(FileInfo(path=k, is_dir=False, modified_at=fd.get('modified_at', '')))
-
-        infos.extend(FileInfo(path=subdir, is_dir=True) for subdir in sorted(subdirs))
-        infos.sort(key=lambda x: x.get('path', ''))
-
-        if not infos:
+        files, dirs = self._build_index(prefetch=False)
+        normalized = '/' if path in ('', '/') else (path if path.endswith('/') else path + '/')
+        if normalized != '/' and normalized[:-1] not in dirs:
             return LsResult(error=FILE_NOT_FOUND)
+
+        def is_direct_child(p: str) -> bool:
+            if not p.startswith(normalized):
+                return False
+            rest = p[len(normalized):]
+            return bool(rest) and '/' not in rest
+
+        infos = [FileInfo(path=d + '/', is_dir=True) for d in dirs if is_direct_child(d)]
+        infos += [
+            FileInfo(path=p, is_dir=False, modified_at=fd.get('modified_at', ''))
+            for p, fd in files.items() if is_direct_child(p)
+        ]
+        infos.sort(key=lambda x: x.get('path', ''))
         return LsResult(entries=infos)
 
     def read(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
@@ -267,10 +272,10 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
         return _slice_read_result(create_file_data(content), offset, limit)
 
     def grep(self, pattern: str, path: str | None = None, glob: str | None = None) -> GrepResult:
-        return grep_matches_from_files(self._build_files(), pattern, path if path is not None else '/', glob)
+        return grep_matches_from_files(self._build_index()[0], pattern, path if path is not None else '/', glob)
 
     def glob(self, pattern: str, path: str | None = None) -> GlobResult:
-        return _glob_files(self._build_files(prefetch=False), pattern, path)
+        return _glob_files(self._build_index()[0], pattern, path)
 
     def delete(self, file_path: str) -> DeleteResult:
         match = self.FILE_PATH_RE.match(file_path)
@@ -373,12 +378,15 @@ class NotesAgentsDirBackend(ReadOnlyBackend):
         notes = list(ProjectNotebookPage.objects.filter(project_id=runtime.context.project_id).order_by('parent_id', 'order'))
         by_parent = ProjectNotebookPage.objects.to_parent_dict(notes)
 
+        files: dict[str, FileData] = {}
+        dirs: set[str] = {
+            '/',
+            '/skills',
+        }
+
         agents = self._unique_children(by_parent, '').get(self.AGENTS_DIR_NAME)
         if not agents:
-            return {}, set()
-
-        files: dict[str, FileData] = {}
-        dirs: set[str] = set()
+            return files, dirs
 
         def walk(parent_id: str, prefix: str) -> None:
             for name, note in self._unique_children(by_parent, parent_id).items():
@@ -403,12 +411,13 @@ class NotesAgentsDirBackend(ReadOnlyBackend):
         files, dirs = self._build_index()
         normalized = '/' if path in ('', '/') else (path if path.endswith('/') else path + '/')
         if normalized != '/' and normalized[:-1] not in dirs:
-            if normalized.rstrip('/') == '/skills' and '/skills' not in files:
-                return LsResult(entries=[])
             return LsResult(error=FILE_NOT_FOUND)
 
         def is_direct_child(p: str) -> bool:
-            return p.startswith(normalized) and '/' not in p[len(normalized):]
+            if not p.startswith(normalized):
+                return False
+            rest = p[len(normalized):]
+            return bool(rest) and '/' not in rest
 
         infos: list[FileInfo] = [FileInfo(path=d + '/', is_dir=True) for d in dirs if is_direct_child(d)]
         infos += [
