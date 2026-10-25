@@ -1,5 +1,9 @@
 # Changelog
 
+## v2026.97 - 2026-10-25
+* Security: Update dependencies to fix vulnerabilities
+
+
 ## v2026.95 - 2026-10-22
 * Security: Remove compromised "emSign" certificates from certificate stores in docker images
 
