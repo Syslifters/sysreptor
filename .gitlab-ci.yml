@@ -281,7 +281,7 @@ release-prod:
     - git config --global user.email $GITHUB_USER_MAIL
     - git config --global user.name $GITHUB_USERNAME
     # Hotfix commits are not on public main; push SHA so gh --target resolves
-    - git push public "${CI_COMMIT_SHA}:refs/heads/hotfix/2026.95"
+    - git push public "${CI_COMMIT_SHA}:refs/heads/hotfix/2026.97"
     - "RELEASE_NOTES=$RELEASE_NOTES$(echo -n '\n\nClick here to go to the update instructions: https://docs.sysreptor.com/setup/updates/')"
     - gh release create "${VERSION_NUMBER}" /tmp/setup.tar.gz /tmp/setup.tar.gz.sigstore.json --title="${VERSION_NUMBER}" --target="${CI_COMMIT_SHA}" --notes="$RELEASE_NOTES"
     
