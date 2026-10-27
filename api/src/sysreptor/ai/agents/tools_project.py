@@ -5,6 +5,7 @@ from langchain.tools import ToolRuntime
 from rest_framework.filters import search_smart_split
 
 from sysreptor.ai.agents.filesystem import ProjectFilesystemBackend
+from sysreptor.ai.agents.middleware import set_tool_output
 from sysreptor.ai.agents.project import (
     NOTE_FIELD_DEFINITION,
     FakeRequest,
@@ -85,7 +86,7 @@ def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str = '')
 
 
 @agent_tool(parse_docstring=True)
-def read_template(runtime: ToolRuntime[ProjectContext], template_id: str) -> tuple[str, dict]:
+def read_template(runtime: ToolRuntime[ProjectContext], template_id: str) -> str:
     """
     Retrieve full structure and content of a finding template.
 
@@ -100,14 +101,15 @@ def read_template(runtime: ToolRuntime[ProjectContext], template_id: str) -> tup
     template = FindingTemplate.objects \
         .prefetch_related('translations') \
         .get(id=template_id)
-    return format_template_data(template=template), {
+    set_tool_output({
         'id': str(template.id),
         'title': template.main_translation.title,
-    }
+    })
+    return format_template_data(template=template)
 
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
-def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, template_id: str = '', template_language: str = '') -> tuple[str, dict]:
+def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, template_id: str = '', template_language: str = '') -> str:
     """
     Create a new finding in the project, optionally from a template.
 
@@ -154,10 +156,11 @@ def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, temp
 
     finding_data = ProjectFilesystemBackend(runtime=runtime).read(file_path=f'/reporting/findings/{finding.finding_id}.yaml').file_data.get('content', '')
     file_path = f'{ProjectFilesystemBackend.PROJECT_ROOT}/reporting/findings/{finding.finding_id}.yaml'
-    return f'Successfully created finding at {file_path}:\n' + finding_data, {
+    set_tool_output({
         'id': str(finding.finding_id),
         'title': finding.title,
-    }
+    })
+    return f'Successfully created finding at {file_path}:\n' + finding_data
 
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
@@ -166,7 +169,7 @@ def create_note(
     data: dict = None,
     parent: str = '',
     order: int | None = None,
-) -> tuple[str, dict]:
+) -> str:
     """
     Create a new note in the project.
 
@@ -204,10 +207,11 @@ def create_note(
         file_path=f'/notes/{note.note_id}.yaml',
     ).file_data.get('content', '')
     file_path = f'{ProjectFilesystemBackend.PROJECT_ROOT}/notes/{note.note_id}.yaml'
-    return f'Successfully created note at {file_path}:\n' + note_data, {
+    set_tool_output({
         'id': str(note.note_id),
         'title': note.title,
-    }
+    })
+    return f'Successfully created note at {file_path}:\n' + note_data
 
 
 def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContext]) -> dict:
@@ -275,6 +279,7 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
         'old_value': old_value,
         'definition': definition,
         'obj': obj,
+        'obj_id': obj_id,
     }
 
 
@@ -297,6 +302,7 @@ def update_at_path(info: dict, value):
         serializer = serializer_class(instance=obj, data={'data': updated_data}, partial=True, context={'project': obj.project})
         serializer.is_valid(raise_exception=True)
         serializer.save()
+    set_tool_output({'id': info['obj_id'], 'title': obj.title})
 
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})

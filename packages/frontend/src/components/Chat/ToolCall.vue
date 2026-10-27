@@ -83,6 +83,25 @@
         {{ getNoteTitle(props.value.output?.id, props.value.output?.title) }}
       </nuxt-link>
     </template>
+    <template v-else-if="props.value.name === 'delete' && props.project && projectFileRef">
+      <chat-tool-call-status :status="props.value.status" />
+      Delete
+      <template v-if="projectFileRef.type === 'finding'">
+        finding
+        <nuxt-link :to="`/projects/${props.project.id}/reporting/findings/${projectFileRef.id}/history/${props.value.timestamp}/`">
+          {{ getFindingTitle(projectFileRef.id, props.value.output?.title) }}
+        </nuxt-link>
+      </template>
+      <template v-else-if="projectFileRef.type === 'note'">
+        note
+        <nuxt-link :to="`/projects/${props.project.id}/notes/${projectFileRef.id}/history/${props.value.timestamp}/`">
+          {{ getNoteTitle(projectFileRef.id, props.value.output?.title) }}
+        </nuxt-link>
+      </template>
+      <template v-else>
+        {{ props.value.args.file_path || props.value.args.path }}
+      </template>
+    </template>
     <template v-else-if="props.value.name === 'ask_user'">
       <s-card
         v-if="props.value.status !== ToolCallStatus.PENDING"
@@ -166,7 +185,7 @@
       <chat-tool-call-status :status="props.value.status" />
       {{ props.value.name }} {{ props.value.args.path }}
     </template>
-    <template v-else-if="['read_file', 'write_file', 'edit_file'].includes(props.value.name)">
+    <template v-else-if="['read_file', 'write_file', 'edit_file', 'delete'].includes(props.value.name)">
       <chat-tool-call-status :status="props.value.status" />
       {{ capitalize(props.value.name.split('_')[0]) }} {{ props.value.args.file_path }}
     </template>
@@ -225,7 +244,7 @@ const subagentDisplayMessages = computed(() => {
   }
 });
 const projectFileRef = computed(() => {
-  if (!['read_file', 'update_field_value', 'update_markdown_field'].includes(props.value.name)) {
+  if (!['read_file', 'update_field_value', 'update_markdown_field', 'delete'].includes(props.value.name)) {
     return null;
   }
   const filePath = props.value.args?.file_path;
@@ -243,8 +262,7 @@ function getProjectPageTitle(fileRef: { type: string, id: string }, fallbackTitl
     findings: projectStore.findings(props.project?.id || ''),
     sections: projectStore.sections(props.project?.id || ''),
     notes: projectStore.notes(props.project?.id || ''),
-    fallbackTitle,
-  });
+  }, fallbackTitle);
 }
 
 function getFindingTitle(findingId: string, fallbackTitle?: string): string {

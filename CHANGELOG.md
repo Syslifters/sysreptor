@@ -6,7 +6,12 @@
 * AI agent: continue running agents in background
 * AI agent: show chat history of previous agents
 * AI agent: show subagent messages in history
+* AI agent: support deleting findings and notes
 * Run tasks in background worker processes
+
+
+## v2026.97 - 2026-10-25
+* Security: Update dependencies to fix vulnerabilities
 
 
 ## v2026.95 - 2026-10-22

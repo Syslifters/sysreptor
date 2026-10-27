@@ -14,7 +14,7 @@ from deepagents.backends import CompositeBackend, StateBackend
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
 from django.utils import timezone
-from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall
+from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall, ToolMessage
 from langchain.tools import ToolRuntime
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
@@ -32,7 +32,7 @@ from sysreptor.ai.agents.filesystem import (
     NotesAgentsDirBackend,
     ProjectFilesystemBackend,
 )
-from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
+from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware, capture_tool_output
 from sysreptor.ai.agents.project import ProjectContext
 from sysreptor.ai.agents.tools import analyze_image
 from sysreptor.ai.agents.tools_project import (
@@ -56,13 +56,12 @@ from sysreptor.ai.runs import (
     AgentRunWorker,
     PendingEventBuffer,
     send_ai_stream_event,
-    start_run,
     subscribe_thread,
     throttle_ai_stream_events,
 )
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints, cleanup_stale_agent_runs
 from sysreptor.conf.settings import validate_ai_agent_models
-from sysreptor.pentests.models import NoteType
+from sysreptor.pentests.models import NoteType, PentestFinding, ProjectNotebookPage
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
@@ -72,6 +71,7 @@ from sysreptor.tests.mock import (
     create_user,
     mock_time,
     override_configuration,
+    update,
 )
 from sysreptor.utils.fielddefinition.utils import get_value_at_path
 from sysreptor.utils.utils import copy_keys, merge, omit_keys
@@ -300,7 +300,7 @@ class TestProjectAgent:
             assert_events_equal(events, wrap_stream_events([
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}}),
                 {'type': 'tool_call', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
-                {'type': 'tool_call_status', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name']) | {'status': 'success', 'output': {}}},
+                {'type': 'tool_call_status', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}}),
             ], user_message=user_messages[1]))
 
@@ -314,7 +314,7 @@ class TestProjectAgent:
             {'role': 'assistant', 'text': llm_messages[0].content},
             {'role': 'user', 'text': user_messages[1]},
             {'role': 'assistant', 'text': llm_messages[1].content},
-            {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {}}},
+            {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
             {'role': 'assistant', 'text': llm_messages[2].content},
         ]
 
@@ -405,7 +405,7 @@ class TestProjectAgent:
             {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}, 'subagent': subagent_tool_call_id}),
             {'type': 'tool_call', 'content': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}, 'subagent': subagent_tool_call_id},
-            {'type': 'tool_call_status', 'content': copy_keys(read_section_call, ['id', 'name']) | {'status': 'success'}, 'subagent': subagent_tool_call_id},
+            {'type': 'tool_call_status', 'content': copy_keys(read_section_call, ['id', 'name']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}, 'subagent': subagent_tool_call_id},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}, 'subagent': subagent_tool_call_id}),
             {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'success'}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[3].content}}),
@@ -417,7 +417,7 @@ class TestProjectAgent:
         assert [omit_keys(m, ['id', 'timestamp', 'tool_call.timestamp', 'tool_call.content']) for m in subagent_history['subagentMessages']] == [
             {'role': 'user', 'text': task_call['args']['description']},
             {'role': 'assistant', 'text': llm_messages[1].content},
-            {'role': 'tool', 'tool_call': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'success', 'output': {}}},
+            {'role': 'tool', 'tool_call': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
             {'role': 'assistant', 'text': llm_messages[2].content},
         ]
 
@@ -464,7 +464,7 @@ class TestProjectAgent:
         assert task_status['content']['status'] == 'error'
         assert_events_equal(events, wrap_stream_events([
             {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
-            {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'error'}},
+            {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'error', 'output': {}}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': 'Continued after subagent error.'}}),
         ], user_message='Use a failing subagent'))
 
@@ -582,9 +582,6 @@ class TestProjectAgentTools:
             yield
 
     def run_tool(self, tool, model=None, **kwargs):
-        return self.run_tool_message(tool, model=model, **kwargs).content
-
-    def run_tool_message(self, tool, model=None, **kwargs):
         runtime = ToolRuntime(
             tool_call_id='tool_call_id_1',
             context=ProjectContext(
@@ -597,12 +594,18 @@ class TestProjectAgentTools:
             store=None,
             stream_writer=None,
         )
-        res = async_to_sync(tool.ainvoke)(
-            input=kwargs | {
-                'runtime': runtime,
-            },
-        )
-        return res.update['messages'][0]
+        with capture_tool_output() as bucket:
+            res = async_to_sync(tool.ainvoke)(
+                input=kwargs | {
+                    'runtime': runtime,
+                },
+            )
+        msg = res if isinstance(res, ToolMessage) else res.update['messages'][0]
+        msg.additional_kwargs = {
+            **(msg.additional_kwargs or {}),
+            'output': dict(bucket),
+        }
+        return msg
 
     def test_tool_list_notes(self):
         contains_infos = [
@@ -611,7 +614,7 @@ class TestProjectAgentTools:
         ]
         res = self.run_tool(list_notes)
         for info in contains_infos:
-            assert str(info) in res
+            assert str(info) in res.text
 
     def test_tool_read_template(self):
         template = create_template()
@@ -621,8 +624,9 @@ class TestProjectAgentTools:
             yaml_indent(template.main_translation.data['description'], spaces=8),
         ]
         res = self.run_tool(read_template, template_id=str(template.id))
+        assert res.additional_kwargs['output'] == {'id': str(template.id), 'title': template.main_translation.data['title']}
         for info in contains_infos:
-            assert str(info) in res
+            assert str(info) in res.text
 
     @pytest.mark.parametrize(('search_terms', 'expected_templates'), [
         ('', ['t1', 't2', 't3']),  # List all templates (no search terms)
@@ -642,13 +646,13 @@ class TestProjectAgentTools:
         if expected_templates:
             # Check that expected templates are in results
             for template_name in expected_templates:
-                assert str(templates[template_name].id) in res
+                assert str(templates[template_name].id) in res.text
             # Check that unexpected templates are not in results
             for template_name, template in templates.items():
                 if template_name not in expected_templates:
-                    assert str(template.id) not in res
+                    assert str(template.id) not in res.text
         else:
-            assert 'No matching templates found' in res
+            assert 'No matching templates found' in res.text
 
     @pytest.mark.parametrize(('field_path', 'new_value'), [
         # Simple field types
@@ -686,7 +690,8 @@ class TestProjectAgentTools:
             field=f'data.{field_path}',
             value=new_value,
         )
-        assert res == 'Updated successfully.'
+        assert res.text == 'Updated successfully.'
+        assert res.additional_kwargs['output'] == {'id': str(section.section_id), 'title': section.title}
 
         # Verify the update
         section.refresh_from_db()
@@ -702,9 +707,9 @@ class TestProjectAgentTools:
     ])
     def test_tool_update_field_value_invalid_paths(self, file_path, field, error_message):
         res = self.run_tool(update_field_value, file_path=file_path, field=field, value='test value')
-        assert 'Error:' in res
+        assert 'Error:' in res.text
         if error_message:
-            assert error_message in res
+            assert error_message in res.text
 
     @pytest.mark.parametrize(('initial_value', 'old_text', 'new_text', 'expected_result'), [
         ('# Heading\n\nSome content here.', 'Some content', 'Updated content', '# Heading\n\nUpdated content here.'),
@@ -729,9 +734,9 @@ class TestProjectAgentTools:
             old_text=old_text,
             new_text=new_text,
         )
-        assert res == 'Updated successfully'
-
         section.refresh_from_db()
+        assert res.text == 'Updated successfully'
+        assert res.additional_kwargs['output'] == {'id': str(section.section_id), 'title': section.title}
         assert section.data['field_markdown'] == expected_result
 
     @pytest.mark.parametrize(('field', 'new_value'), [
@@ -753,9 +758,9 @@ class TestProjectAgentTools:
             field=field,
             value=new_value,
         )
-        assert res == 'Updated successfully.'
-
         note.refresh_from_db()
+        assert res.text == 'Updated successfully.'
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': note.title}
         assert getattr(note, field) == new_value
 
     @pytest.mark.parametrize(('initial_value', 'old_text', 'new_text', 'expected_result'), [
@@ -772,9 +777,9 @@ class TestProjectAgentTools:
             old_text=old_text,
             new_text=new_text,
         )
-        assert res == 'Updated successfully'
-
         note.refresh_from_db()
+        assert res.text == 'Updated successfully'
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': note.title}
         assert note.text == expected_result
 
     def test_tool_update_note_text_excalidraw_denied(self):
@@ -789,8 +794,8 @@ class TestProjectAgentTools:
             field='text',
             value='attempted write',
         )
-        assert 'Error:' in res
-        assert 'excalidraw' in res.lower()
+        assert 'Error:' in res.text
+        assert 'excalidraw' in res.text.lower()
 
     @pytest.mark.parametrize(('initial_value', 'old_text', 'error_substring'), [
         ('Some content here', 'Non-existent text', 'Could not find'),
@@ -811,8 +816,8 @@ class TestProjectAgentTools:
             old_text=old_text,
             new_text='new text',
         )
-        assert 'Error:' in res
-        assert error_substring in res
+        assert 'Error:' in res.text
+        assert error_substring in res.text
 
     def test_tool_update_markdown_field_non_markdown_field(self):
         res = self.run_tool(
@@ -821,7 +826,7 @@ class TestProjectAgentTools:
             field='data.field_string',
             old_text='old',
             new_text='new',
-        )
+        ).text
         assert 'Error:' in res
         assert 'not of type markdown' in res
 
@@ -829,13 +834,11 @@ class TestProjectAgentTools:
         initial_count = self.project.findings.count()
         res = self.run_tool(create_finding)
 
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
-        assert finding is not None
+        assert 'Successfully created finding' in res.text
+        assert self.project.findings.count() == initial_count + 1
         # Verify finding data is in response
-        assert str(finding.finding_id) in res
+        assert str(finding.finding_id) in res.text
 
     def test_tool_create_finding_with_data(self):
         initial_count = self.project.findings.count()
@@ -846,10 +849,10 @@ class TestProjectAgentTools:
         }
         res = self.run_tool(create_finding, data=finding_data)
 
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
+        assert 'Successfully created finding' in res.content
+        assert self.project.findings.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(finding.finding_id), 'title': 'Custom Finding Title'}
         assert finding.data['title'] == 'Custom Finding Title'
         assert finding.data['cvss'] == 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
         assert finding.data['description'] == 'Custom description'
@@ -861,13 +864,12 @@ class TestProjectAgentTools:
             'recommendation': 'Template Recommendation',
         })
         initial_count = self.project.findings.count()
-
         res = self.run_tool(create_finding, data={}, template_id=str(template.id))
 
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
+        assert 'Successfully created finding' in res.text
+        assert self.project.findings.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(finding.finding_id), 'title': 'Template Title'}
         assert finding.data['title'] == 'Template Title'
         assert finding.data['description'] == 'Template Description'
         assert finding.data['recommendation'] == 'Template Recommendation'
@@ -884,13 +886,12 @@ class TestProjectAgentTools:
             'title': 'Overridden Title',
             'description': 'Overridden Description',
         }
-
         res = self.run_tool(create_finding, data=override_data, template_id=str(template.id))
-
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
+
+        assert 'Successfully created finding' in res.text
+        assert self.project.findings.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(finding.finding_id), 'title': 'Overridden Title'}
         assert finding.data['title'] == 'Overridden Title'
         assert finding.data['description'] == 'Overridden Description'
         # Non-overridden field should come from template
@@ -901,19 +902,18 @@ class TestProjectAgentTools:
         initial_count = self.project.notes.count()
         res = self.run_tool(create_note, data={'title': 'Agent Note', 'text': 'Note content from agent'})
 
-        assert 'Successfully created note' in res
-        assert self.project.notes.count() == initial_count + 1
-
         note = self.project.notes.order_by('-created').first()
+        assert self.project.notes.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': 'Agent Note'}
+        assert 'Successfully created note' in res.text
+        assert str(note.note_id) in res.text
         assert note.title == 'Agent Note'
         assert note.text == 'Note content from agent'
         assert note.parent is None
-        assert str(note.note_id) in res
 
     def test_tool_create_note_with_parent_and_order(self):
         parent = create_projectnotebookpage(project=self.project, title='Parent note', order=1)
         sibling = create_projectnotebookpage(project=self.project, parent=parent, title='Sibling', order=1, text='sibling')
-
         res = self.run_tool(
             create_note,
             data={'title': 'Child note', 'text': 'Nested content'},
@@ -921,8 +921,9 @@ class TestProjectAgentTools:
             order=1,
         )
 
-        assert 'Successfully created note' in res
         note = self.project.notes.order_by('-created').first()
+        assert 'Successfully created note' in res.text
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': 'Child note'}
         assert note.title == 'Child note'
         assert note.text == 'Nested content'
         assert note.parent_id == parent.id
@@ -945,15 +946,15 @@ class TestProjectAgentTools:
             'messages': [AIMessage(content='Screenshot shows SQL error on login form')],
         })
         with mock.patch('sysreptor.ai.agents.tools.create_agent', return_value=fake_agent):
-            msg = self.run_tool_message(analyze_image, image=image_ref, prompt='What error is shown?')
+            msg = self.run_tool(analyze_image, image=image_ref, prompt='What error is shown?')
 
         if expected:
             assert msg.status == 'success'
-            assert msg.content == 'Screenshot shows SQL error on login form'
+            assert msg.text == 'Screenshot shows SQL error on login form'
             assert msg.additional_kwargs['output'] == {
                 'image': 'image.png',
                 'model': 'test:fake-model',
-                'message': msg.content,
+                'message': msg.text,
             }
         else:
             assert msg.status == 'error'
@@ -1299,6 +1300,7 @@ class TestLLMConfig:
             mock.patch('sysreptor.ai.agents.tools.get_model_configs', return_value=models),
             mock.patch('sysreptor.ai.agents.tools.init_chat_model', return_value=mock.Mock()) as init_mock,
             mock.patch('sysreptor.ai.agents.tools.create_agent', return_value=fake_agent),
+            capture_tool_output() as bucket,
         ):
             msg = async_to_sync(analyze_image.ainvoke)({
                 'image': 'file0.png',
@@ -1307,7 +1309,11 @@ class TestLLMConfig:
                     context=ProjectContext(user=user, project_id=str(project.id), model='main-model'),
                     state=None, config={}, store=None, stream_writer=None,
                 ),
-            }).update['messages'][0]
+            })
+        msg.additional_kwargs = {
+            **(msg.additional_kwargs or {}),
+            'output': dict(bucket),
+        }
 
         if expected:
             assert msg.status == 'success'
@@ -1418,6 +1424,12 @@ class TestProjectFilesystemBackend:
         paths = [e['path'] for e in result.entries or []]
         assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
 
+    def test_ls_empty_findings(self):
+        self.project.findings.all().delete()
+        result = self.backend.ls('/project/reporting/findings/')
+        assert result.error is None
+        assert result.entries == []
+
     def test_lazy_file_loading(self):
         with mock.patch('sysreptor.ai.agents.project.format_finding_data') as format_finding:
             self.backend.ls('/project/reporting/findings/')
@@ -1485,7 +1497,7 @@ class TestProjectFilesystemBackend:
     def test_read_only_write(self):
         result = self.backend.write('/project/reporting/findings/new.yaml', 'content')
         assert result.error is not None
-        assert 'read-only' in result.error.lower()
+        assert 'write_file' in result.error.lower()
         assert 'update_field_value' in result.error
         # The routed backend sees the prefix-stripped path
         assert '/reporting/findings/new.yaml' in result.error
@@ -1494,13 +1506,43 @@ class TestProjectFilesystemBackend:
         finding = self.project.findings.first()
         result = self.backend.edit(finding_path(finding.finding_id), 'old', 'new')
         assert result.error is not None
-        assert 'read-only' in result.error.lower()
+        assert 'edit_file' in result.error.lower()
+
+    @pytest.mark.parametrize('resource', ['finding', 'note'])
+    def test_delete_success(self, resource):
+        if resource == 'finding':
+            obj_id = self.project.findings.first().finding_id
+            path = finding_path(obj_id)
+            qs = PentestFinding.objects.filter(project_id=self.project.id, finding_id=obj_id)
+        elif resource == 'note':
+            obj_id = create_projectnotebookpage(project=self.project, title='Delete me', text='body').note_id
+            path = note_path(obj_id)
+            qs = ProjectNotebookPage.objects.filter(project_id=self.project.id, note_id=obj_id)
+        result = self.backend.delete(path)
+        assert not result.error
+        assert result.path == path
+        assert not qs.exists()
+
+    @pytest.mark.parametrize(('path', 'error_substr'), [
+        (section_path('other'), 'not supported'),
+        ('/project/project.yaml', 'not supported'),
+        (section_path('nonexistent'), 'not supported'),
+        ('/project/notes/nonexistent.yaml', 'file_not_found'),
+        ('/project/reporting/findings/nonexistent.yaml', 'file_not_found'),
+    ])
+    def test_delete_rejected(self, path, error_substr):
+        result = self.backend.delete(path)
+        assert error_substr in result.error.lower()
+
+    def test_delete_permission_denied(self):
+        update(self.project, readonly=True)
+        result = self.backend.delete(finding_path(self.project.findings.first().finding_id))
+        assert 'write permissions' in result.error.lower()
 
     def test_project_scoping(self):
         other_project = create_project(members=[self.user])
-        other_finding = other_project.findings.first()
-        result = self.backend.read(finding_path(other_finding.finding_id))
-        assert result.error is not None
+        result = self.backend.read(finding_path(other_project.findings.first().finding_id))
+        assert 'file_not_found' in result.error.lower()
 
 
 @pytest.mark.django_db()
@@ -1580,6 +1622,36 @@ class TestProjectFilesystemAgent:
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'write_file'
             assert tool_status['content']['status'] == 'error'
+
+    def test_agent_delete_includes_title_in_output(self):
+        user = create_user()
+        project = create_project(members=[user])
+        client = api_client(user=user)
+        finding = project.findings.first()
+        finding_title = finding.title
+        file_path = finding_path(finding.finding_id)
+        llm_messages = [
+            AIMessage(content='', tool_calls=[
+                ToolCall(id='tool_call_1', name='delete', args={'file_path': file_path}),
+            ]),
+            AIMessage(content='Deleted the finding.'),
+        ]
+        with mock_llm_response(messages=llm_messages):
+            res, events = post_chat(client, {
+                'agent': 'project_agent',
+                'project': project.id,
+                'messages': ['Delete the finding'],
+                'context': {},
+            })
+            assert res.status_code == 200
+            tool_status = next(e for e in events if e['type'] == 'tool_call_status')
+            assert tool_status['content']['name'] == 'delete'
+            assert tool_status['content']['status'] == 'success'
+            assert tool_status['content']['output'] == {
+                'id': str(finding.finding_id),
+                'title': finding_title,
+            }
+            assert not PentestFinding.objects.filter(project_id=project.id, finding_id=finding.finding_id).exists()
 
 
 DEMO_SKILL_MD = textwrap.dedent("""\
@@ -1672,10 +1744,11 @@ class TestNotesAgentsDirBackend:
             yield
 
     @pytest.mark.parametrize(('setup', 'ls_path', 'expected_dirs'), [
-        (lambda p: None, '/.agents/', []),
+        (lambda p: None, '/.agents/', ['/.agents/skills/']),
         (lambda p: None, '/.agents/skills/', []),
         (create_agents_md_only, '/.agents/skills/', []),
-        (create_nested_agents_skill, '/.agents/', []),
+        (create_nested_agents_skill, '/.agents/', ['/.agents/skills/']),
+        (create_nested_agents_skill, '/.agents/skills/', []),
         (lambda p: create_skills_note_tree(p, {'incomplete': {'readme.md': 'no skill md'}}),
          '/.agents/skills/', ['/.agents/skills/incomplete/']),
         (lambda p: create_skills_note_tree(p, {'my/skill': {'SKILL.md': DEMO_SKILL_MD}}),

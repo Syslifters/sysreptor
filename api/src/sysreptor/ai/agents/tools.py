@@ -14,7 +14,7 @@ from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
 from langchain_core.runnables.config import merge_configs
 from langgraph.errors import GraphInterrupt
-from langgraph.types import Command, interrupt
+from langgraph.types import interrupt
 from pydantic import Field
 
 from sysreptor.ai.agents.base import (
@@ -24,12 +24,13 @@ from sysreptor.ai.agents.base import (
     init_chat_model,
     to_yaml,
 )
-from sysreptor.ai.agents.middleware import stamp_message_timestamp, subagent_checkpoint_ns
+from sysreptor.ai.agents.middleware import set_tool_output, subagent_checkpoint_ns
 from sysreptor.ai.agents.project import ProjectContext, get_project
 
 
 def agent_tool(metadata=None, **kwargs):
     def decorator(func: Callable) -> Callable:
+        tool_name = kwargs.get('name') or func.__name__
         if not iscoroutinefunction(func):
             func = sync_to_async(func)
 
@@ -38,20 +39,16 @@ def agent_tool(metadata=None, **kwargs):
         async def tool_func(*tool_args, runtime: ToolRuntime, **tool_kwargs):
             out = ToolMessage(
                 content='',
+                name=tool_name,
                 status='error',
                 tool_call_id=runtime.tool_call_id,
             )
-            stamp_message_timestamp(out)
 
             try:
-                res_output = None
                 res_content = await func(*tool_args, runtime=runtime, **tool_kwargs)
-                if isinstance(res_content, tuple):
-                    res_content, res_output = res_content
                 if not isinstance(res_content, str):
                     res_content = to_yaml(res_content)
                 out.content = res_content
-                out.additional_kwargs['output'] = res_output or {}
                 out.status = 'success'
             except GraphInterrupt:
                 raise
@@ -60,9 +57,7 @@ def agent_tool(metadata=None, **kwargs):
                 if not out.content:
                     logging.exception(ex)
                     out.content = 'Error: Unexpected error'
-            return Command(update={
-                'messages': [out],
-            })
+            return out
         tool_func.metadata = (tool_func.metadata or {}) | (metadata or {})
         return tool_func
     return decorator
@@ -73,7 +68,7 @@ async def ask_user(
     runtime: ToolRuntime[ProjectContext],
     question: Annotated[str, Field(min_length=1)],
     options: Annotated[list[str], Field(min_length=2)],
-) -> tuple[str, dict]:
+) -> str:
     """
     Ask the user a clarifying question and wait for their answer.
 
@@ -92,8 +87,8 @@ async def ask_user(
     })
     if not isinstance(answer, str) or not answer.strip():
         raise ValidationError('Answer must be a non-empty string')
-    content = f'User answered: {answer}'
-    return content, {'answer': answer}
+    set_tool_output({'answer': answer})
+    return f'User answered: {answer}'
 
 
 @agent_tool(parse_docstring=True)
@@ -101,7 +96,7 @@ async def analyze_image(
     runtime: ToolRuntime[ProjectContext],
     image: str,
     prompt: str = '',
-) -> tuple[str, dict]:
+) -> str:
     """
     Analyze a project screenshot or image with a vision model and return a text summary.
 
@@ -195,4 +190,5 @@ async def analyze_image(
     output = ((ai_messages[-1].text if ai_messages else '') or '').strip()
     if not output:
         raise ValidationError('Image analysis failed: empty model response.')
-    return output, {'image': filename, 'model': vision_model_id, 'message': output}
+    set_tool_output({'image': filename, 'model': vision_model_id, 'message': output})
+    return output
