@@ -127,6 +127,7 @@ class LLMAgentSerializer(serializers.Serializer):
                 message=message,
                 resume=self.validated_data.get('resume'),
                 context=self.validated_data.get('context') or {},
+                admin_permissions_enabled=self.context['request'].user.is_admin,
             )
         except Exception:
             await end_run(thread=thread, status=AgentRunStatus.ERROR, error='Failed to enqueue agent run')

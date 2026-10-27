@@ -61,7 +61,7 @@ from sysreptor.ai.runs import (
 )
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints, cleanup_stale_agent_runs
 from sysreptor.conf.settings import validate_ai_agent_models
-from sysreptor.pentests.models import NoteType, PentestFinding, ProjectNotebookPage
+from sysreptor.pentests.models import NoteType, PentestFinding, ProjectMemberInfo, ProjectNotebookPage
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
@@ -2259,3 +2259,56 @@ class TestBackgroundAgentRuns:
         thread.refresh_from_db()
         assert thread.run_status == AgentRunStatus.ERROR
         assert thread.run_error == 'Agent aborted'
+
+    @pytest.mark.parametrize(('setup', 'mutate', 'admin_permissions_enabled', 'expected_status'), [
+        ('member', lambda s: None, False, AgentRunStatus.RUNNING),
+        ('member', lambda s: ProjectMemberInfo.objects.filter(project=s.project, user=s.user).delete(), False, AgentRunStatus.ERROR),
+        ('member', lambda s: update(s.user, is_active=False), False, AgentRunStatus.ERROR),
+        ('member', lambda s: s.project.delete(), False, None),
+        ('admin', lambda s: None, True, AgentRunStatus.RUNNING),
+        ('admin', lambda s: None, False, AgentRunStatus.ERROR),
+    ])
+    def test_watch_access(self, setup, mutate, admin_permissions_enabled, expected_status):
+        if setup == 'admin':
+            thread = self.create_chatthread(
+                user=create_user(is_superuser=True),
+                project=create_project(members=[]),
+            )
+        else:
+            thread = self.create_chatthread()
+        mutate(self)
+
+        worker = AgentRunWorker(
+            thread,
+            agent='project_ask',
+            model=None,
+            input_data={},
+            admin_permissions_enabled=admin_permissions_enabled,
+        )
+        initial_heartbeat = thread.run_heartbeat_at
+
+        async def _run():
+            with (
+                mock.patch.object(worker, 'drive', new=asyncio.Event().wait),
+                mock.patch('sysreptor.ai.runs.HEARTBEAT_INTERVAL_SECONDS', 0),
+                mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=InMemoryChannelLayer()),
+            ):
+                run_task = asyncio.create_task(worker.run())
+                done, _ = await asyncio.wait({run_task}, timeout=1)
+                if expected_status == AgentRunStatus.RUNNING:
+                    assert not done
+                    current = await ChatThread.objects.aget(pk=thread.pk)
+                    assert current.run_status == AgentRunStatus.RUNNING
+                    assert current.run_heartbeat_at != initial_heartbeat
+                    run_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await run_task
+
+        async_to_sync(_run)()
+        if expected_status is None:
+            assert not ChatThread.objects.filter(pk=thread.id).exists()
+        elif expected_status == AgentRunStatus.RUNNING:
+            pass  # Already tested above
+        else:
+            thread.refresh_from_db()
+            assert thread.run_status == expected_status
