@@ -8,7 +8,15 @@
     "lint": "npm run lint --workspaces --if-present"
   },
   "devDependencies": {
-    "license-checker-rseidelsohn": "^4.4.2",
+    "license-checker-rseidelsohn": "^5.0.0",
     "sass-embedded": "^1.79.5"
+  },
+  "allowScripts": {
+    "file:../../../packages/nuxt-base-layer": true,
+    "file:../../../packages/plugin-base-layer": true,
+    "@sysreptor/nuxt-base-layer@0.0.0": true,
+    "@sysreptor/plugin-base-layer@0.0.0": true,
+    "esbuild@0.28.2": true,
+    "vue-demi@0.14.10": true
   }
 }

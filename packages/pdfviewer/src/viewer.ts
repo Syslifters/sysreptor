@@ -417,7 +417,7 @@ class PDFViewerApplicationClass {
     this.eventBus.on("pagechanging", (e: { pageNumber: number }) => {
       // Update the page number input field and buttons
       config.toolbar.pageNumber.value = e.pageNumber.toString();
-    }, true);
+    });
     this.eventBus.on("scalechanging", (e: { scale: number, presetValue?: string }) => {
       // Listen for scale changes to update the customScaleOption
       const customScaleOption = config.toolbar.customScaleOption;
@@ -507,7 +507,7 @@ class PDFViewerApplicationClass {
         key = "pdfjs-invalid-file-error";
       }
       
-      const msg = await this.l10n.get(key, null, reason?.message);
+      const msg = await this.l10n.get(key) || reason?.message;
       this.error(msg, { message: reason?.message });
     }
   }
