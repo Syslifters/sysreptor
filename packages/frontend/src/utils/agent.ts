@@ -705,13 +705,18 @@ export function useAiAgentChat(options: {
           if (isRequestAborted(error) || abortController.signal.aborted) {
             throw error;
           }
-          const delay = Math.min(30000, 1000 * (2 ** reconnectAttempt));
+          // One reconnect attempt; show an error if that also fails
+          if (reconnectAttempt >= 1) {
+            s.error = formatRequestError({ error, message: 'Connection lost' }) || 'Connection lost';
+            s.run = null;
+            return { status: 'error', error: s.error, interrupts: s.interrupts };
+          }
           reconnectAttempt += 1;
           await new Promise<void>((resolve) => {
             if (s.currentRequest) {
-              s.currentRequest.reconnectTimer = setTimeout(resolve, delay);
+              s.currentRequest.reconnectTimer = setTimeout(resolve, 1000);
             } else {
-              setTimeout(resolve, delay);
+              setTimeout(resolve, 1000);
             }
           });
           clearReconnectTimer();
