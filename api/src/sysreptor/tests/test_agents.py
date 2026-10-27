@@ -252,7 +252,7 @@ def project_filesystem_runtime(project, user):
         yield
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectAgent:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -469,7 +469,7 @@ class TestProjectAgent:
         ], user_message='Use a failing subagent'))
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestAskUserInterrupts:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -565,7 +565,7 @@ class TestAskUserInterrupts:
             assert res.data['interrupts'] == []
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectAgentTools:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -960,7 +960,7 @@ class TestProjectAgentTools:
             assert msg.status == 'error'
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestAgentPermissions:
     @pytest.mark.parametrize(('user_name', 'project_name', 'expected_read', 'expected_write'), [
         ('member', 'project', True, True),
@@ -1041,7 +1041,7 @@ class TestAgentPermissions:
                 assert not any(str(t['id']) == str(thread.id) for t in res_list.data['results'])
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestChatThreadTitleListDelete:
     @pytest.fixture(autouse=True)
     def _setup(self):
@@ -1116,7 +1116,7 @@ class TestChatThreadTitleListDelete:
         )
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestAiCleanupTask:
     def test_cleanup_old_langchain_checkpoints(self):
         with mock_time(before=timedelta(days=2)):
@@ -1227,7 +1227,7 @@ class TestAiCleanupTask:
         assert no_heartbeat.run_error == 'Agent aborted'
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestLLMConfig:
     @override_configuration(AI_AGENT_MODELS=[])
     @mock.patch.dict('os.environ', {'AI_AGENT_MODEL': ''})
@@ -1348,7 +1348,7 @@ class TestLLMConfig:
         ]
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestLLMModelSelection:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -1405,7 +1405,7 @@ class TestLLMModelSelection:
             assert res.status_code == 200
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectFilesystemBackend:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -1545,7 +1545,7 @@ class TestProjectFilesystemBackend:
         assert 'file_not_found' in result.error.lower()
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectFilesystemAgent:
     def test_agent_read_file_flow(self):
         user = create_user()
@@ -1727,7 +1727,7 @@ def test_normalize_note_filename(title, expected):
     assert NotesAgentsDirBackend.normalize_note_filename(title) == expected
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestNotesAgentsDirBackend:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -1867,7 +1867,7 @@ class TestNotesAgentsDirBackend:
         assert any(m['path'].endswith('/demo-skill/SKILL.md') for m in (glob.matches or []))
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestNotesAgentDirAgent:
     @pytest.mark.parametrize('with_skill', [
         True,
@@ -1930,7 +1930,7 @@ class TestNotesAgentDirAgent:
 
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestDjangoModelCheckpointer:
     def setup_method(self):
         self.thread = ChatThread.objects.create(

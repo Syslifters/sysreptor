@@ -6,7 +6,7 @@ import unicodedata
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from deepagents.backends.protocol import (
     FILE_NOT_FOUND,
     PERMISSION_DENIED,
@@ -100,23 +100,23 @@ class ReadOnlyBackend(BackendProtocol):
     def delete(self, file_path: str) -> DeleteResult:
         return DeleteResult(error=self._readonly_error(file_path))
 
-    @sync_to_async
+    @database_sync_to_async
     def aread(self, file_path: str, offset: int = 0, limit: int = 2000) -> ReadResult:
         return self.read(file_path, offset=offset, limit=limit)
 
-    @sync_to_async
+    @database_sync_to_async
     def als(self, path: str) -> LsResult:
         return self.ls(path)
 
-    @sync_to_async
+    @database_sync_to_async
     def agrep(self, pattern: str, path: str | None = None, glob: str | None = None) -> GrepResult:
         return self.grep(pattern, path, glob)
 
-    @sync_to_async
+    @database_sync_to_async
     def aglob(self, pattern: str, path: str | None = None) -> GlobResult:
         return self.glob(pattern, path)
 
-    @sync_to_async
+    @database_sync_to_async
     def adelete(self, file_path: str) -> DeleteResult:
         return self.delete(file_path)
 
@@ -450,6 +450,6 @@ class NotesAgentsDirBackend(ReadOnlyBackend):
                 responses.append(FileDownloadResponse(path=path, content=(file_data.get('content') or '').encode('utf-8'), error=None))
         return responses
 
-    @sync_to_async
+    @database_sync_to_async
     def adownload_files(self, paths: list[str]) -> list[FileDownloadResponse]:
         return self.download_files(paths)

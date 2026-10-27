@@ -1,10 +1,11 @@
 import asyncio
 import logging
+from functools import wraps
 from typing import Any
 
-from asgiref.sync import sync_to_async
+from asgiref.sync import ThreadSensitiveContext, iscoroutinefunction
+from channels.db import aclose_old_connections
 from django.conf import settings
-from django.db import close_old_connections, connections
 from taskiq import TaskiqMiddleware
 from taskiq.brokers.inmemory_broker import InMemoryBroker
 from taskiq.decor import AsyncTaskiqDecoratedTask
@@ -18,20 +19,14 @@ class DjangoDBMiddleware(TaskiqMiddleware):
 
     async def pre_execute(self, message: TaskiqMessage) -> TaskiqMessage:
         logging.info(f'Executing background task {message.task_name}')
-        await _close_old_connections()
+        await aclose_old_connections()
         return message
 
     async def post_execute(self, message: TaskiqMessage, result: TaskiqResult) -> None:
-        await _close_old_connections()
+        await aclose_old_connections()
 
     async def on_error(self, message: TaskiqMessage, result: TaskiqResult, exception: BaseException) -> None:
-        await _close_old_connections()
-
-
-@sync_to_async
-def _close_old_connections():
-    if not connections['default'].in_atomic_block:
-        close_old_connections()
+        await aclose_old_connections()
 
 
 def _create_broker():
@@ -103,12 +98,25 @@ class BackgroundAsyncTaskiqDecoratedTask(AsyncTaskiqDecoratedTask):
 def background_task(task_name: str, reraise_on_enqueue_error: bool = True, **labels: Any):
     """Register a background task; ``await task(...)`` enqueues it outside worker processes."""
     def decorator(func):
+        if not iscoroutinefunction(func):
+            raise TypeError(f'background_task "{task_name}" requires an async function')
+
+        @wraps(func)
+        async def run_with_db_context(*args: Any, **kwargs: Any) -> Any:
+            # Isolate sync ORM work per concurrent task so each agent can lease its own
+            # pool connection; database_sync_to_async returns it after each ORM burst.
+            async with ThreadSensitiveContext():
+                try:
+                    return await func(*args, **kwargs)
+                finally:
+                    await aclose_old_connections()
+
         old_decorator_class = broker.decorator_class
         broker.decorator_class = BackgroundAsyncTaskiqDecoratedTask
         try:
             task = broker.task(task_name=task_name, **{
                 'ack_type': 'when_received',
-             } | labels)(func)
+             } | labels)(run_with_db_context)
             task.reraise_on_enqueue_error = reraise_on_enqueue_error
             return task
         finally:
