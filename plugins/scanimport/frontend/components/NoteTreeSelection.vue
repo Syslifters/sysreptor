@@ -30,7 +30,7 @@
               />
             </div>
             <div class="note-icon">
-              <v-icon v-if="selectedNoteIds.includes(note.id)" size="small" class="text-disabled" icon="mdi-checkbox-marked" />
+              <v-icon v-if="selectedNoteIdsRef.includes(note.id)" size="small" class="text-disabled" icon="mdi-checkbox-marked" />
               <v-icon v-else size="small" class="text-disabled" icon="mdi-checkbox-blank-outline" />
             </div>
           </template>
@@ -57,13 +57,13 @@ const props = defineProps<{
 
 // Local reactive variable synced to model
 const selectedNoteIdsModel = defineModel<string[]>('selectedNoteIds', { default: () => [] });
-const selectedNoteIds = ref<string[]>([]);
+const selectedNoteIdsRef = ref<string[]>([]);
 watch(selectedNoteIdsModel, (newValue) => {
-  if (!isEqual(newValue, selectedNoteIds.value)) {
-    selectedNoteIds.value = [...(newValue || [])];
+  if (!isEqual(newValue, selectedNoteIdsRef.value)) {
+    selectedNoteIdsRef.value = [...(newValue || [])];
   }
 }, { immediate: true });
-watch(selectedNoteIds, (newValue) => { 
+watch(selectedNoteIdsRef, (newValue) => { 
   if (!isEqual(newValue, selectedNoteIdsModel.value)) {
     selectedNoteIdsModel.value = [...newValue];
   }
@@ -130,16 +130,16 @@ function selectNote(note?: NoteBase|null, value: boolean = true) {
 
   if (value) {
     // Select note and parents
-    selectedNoteIds.value = selectedNoteIds.value.concat([note.id]);
+    selectedNoteIdsRef.value = selectedNoteIdsRef.value.concat([note.id]);
     for (
       let n = note as (typeof note|null);
       n;
       n = getNoteGroupById(n.parent, props.noteGroup)?.note as (typeof note|null)
     ) {
-      selectedNoteIds.value.push(n.id);
+      selectedNoteIdsRef.value.push(n.id);
     }
   } else {
-    selectedNoteIds.value = selectedNoteIds.value.filter(id => id !== note.id);
+    selectedNoteIdsRef.value = selectedNoteIdsRef.value.filter(id => id !== note.id);
   }
   
   // Select children
@@ -165,14 +165,14 @@ function onClickNote(event: MouseEvent|KeyboardEvent, note?: NoteBase, stat?: an
         .slice(Math.min(idxSelectionStart, idxSelectionEnd), Math.max(idxSelectionStart, idxSelectionEnd) + 1)
         .map((s: any) => (s.data as NoteGroup<NoteBase>[0]|null)?.note)
         .filter(n => !!n) ?? [];
-      const allSelected = notesToSelect.every(s => s && selectedNoteIds.value.includes(s.id));
+      const allSelected = notesToSelect.every(s => s && selectedNoteIdsRef.value.includes(s.id));
       notesToSelect.forEach(s => selectNote(s, !allSelected));
     }
 
     lastSelectedNoteId.value = note.id;
     event.preventDefault();
   } else {
-    selectNote(note, !selectedNoteIds.value.includes(note.id));
+    selectNote(note, !selectedNoteIdsRef.value.includes(note.id));
     lastSelectedNoteId.value = note.id;
     event.preventDefault()
   }
