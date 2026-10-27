@@ -14,6 +14,7 @@ from django.utils import timezone
 from rest_framework.exceptions import APIException
 
 from sysreptor.ai.models import AgentRunStatus, ChatThread
+from sysreptor.users.models import PentestUser
 
 logger = logging.getLogger(__name__)
 
@@ -230,6 +231,7 @@ class AgentRunWorker:
         model: str | None,
         input_data: Any,
         context: dict | None = None,
+        admin_permissions_enabled: bool = False,
     ):
         self.thread = thread
         self.run_id = thread.run_id
@@ -237,6 +239,8 @@ class AgentRunWorker:
         self.model = model
         self.input_data = input_data
         self.context = context or {}
+        self.admin_permissions_enabled = admin_permissions_enabled
+        self.thread.user.admin_permissions_enabled = admin_permissions_enabled
         self.pending = PendingEventBuffer()
         self.lock = asyncio.Lock()
         self.result: dict = {'status': AgentRunStatus.COMPLETED}
@@ -316,12 +320,21 @@ class AgentRunWorker:
                 return None
 
             try:
+                user = await PentestUser.objects \
+                    .only_active() \
+                    .filter(pk=self.thread.user_id) \
+                    .afirst()
+                if user:
+                    user.admin_permissions_enabled = self.admin_permissions_enabled
+                    self.thread.user = user
+
                 current = await ChatThread.objects \
                     .filter(id=self.thread.id) \
                     .filter(run_id=self.run_id) \
                     .filter(run_status=AgentRunStatus.RUNNING) \
+                    .only_permitted(user) \
                     .afirst()
-                if not current:
+                if not current or not user:
                     # Cancel or stale-marking already published run_status
                     agent_task.cancel()
                     return None
