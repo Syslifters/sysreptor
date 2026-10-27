@@ -120,7 +120,7 @@ test-api:
   extends: .depends_docker
   services:
     - docker:29.6.1-dind
-    - postgres:14
+    - postgres:18
   artifacts:
     when: always
     paths:
