@@ -8,7 +8,7 @@ from datetime import timedelta
 from typing import Any
 from uuid import UUID, uuid4
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 from django.utils import timezone
 from rest_framework.exceptions import APIException
@@ -292,7 +292,7 @@ class AgentRunWorker:
     async def drive(self) -> None:
         from sysreptor.ai.agents import agent_stream, get_agent
 
-        agent_instance = await sync_to_async(get_agent)(self.agent)
+        agent_instance = await database_sync_to_async(get_agent)(self.agent)
         async for event in throttle_ai_stream_events(agent_stream(
             agent=agent_instance,
             input=self.input_data,
@@ -309,6 +309,39 @@ class AgentRunWorker:
                 self.result['error'] = event.get('content')
             await self.send(event)
 
+    @database_sync_to_async
+    def _watch_tick(self) -> bool:
+        """
+        Heartbeat + access check. Returns False if the run should be cancelled.
+        Uses database_sync_to_async so the pool connection is released afterwards
+        (same pattern as websocket consumers).
+        """
+        user = PentestUser.objects \
+            .only_active() \
+            .filter(pk=self.thread.user_id) \
+            .first()
+        if not user:
+            return False
+
+        user.admin_permissions_enabled = self.admin_permissions_enabled
+        self.thread.user = user
+
+        current = ChatThread.objects \
+            .filter(id=self.thread.id) \
+            .filter(run_id=self.run_id) \
+            .filter(run_status=AgentRunStatus.RUNNING) \
+            .only_permitted(user) \
+            .first()
+        if not current:
+            return False
+
+        ChatThread.objects \
+            .filter(id=self.thread.id) \
+            .filter(run_id=self.run_id) \
+            .filter(run_status=AgentRunStatus.RUNNING) \
+            .update(run_heartbeat_at=timezone.now())
+        return True
+
     async def watch(self) -> str | None:
         agent_task = self._agent_task
         if agent_task is None:
@@ -320,30 +353,10 @@ class AgentRunWorker:
                 return None
 
             try:
-                user = await PentestUser.objects \
-                    .only_active() \
-                    .filter(pk=self.thread.user_id) \
-                    .afirst()
-                if user:
-                    user.admin_permissions_enabled = self.admin_permissions_enabled
-                    self.thread.user = user
-
-                current = await ChatThread.objects \
-                    .filter(id=self.thread.id) \
-                    .filter(run_id=self.run_id) \
-                    .filter(run_status=AgentRunStatus.RUNNING) \
-                    .only_permitted(user) \
-                    .afirst()
-                if not current or not user:
+                if not await self._watch_tick():
                     # Cancel or stale-marking already published run_status
                     agent_task.cancel()
                     return None
-
-                await ChatThread.objects \
-                    .filter(id=self.thread.id) \
-                    .filter(run_id=self.run_id) \
-                    .filter(run_status=AgentRunStatus.RUNNING) \
-                    .aupdate(run_heartbeat_at=timezone.now())
             except Exception:
                 logger.exception('Agent run watch error')
 
@@ -388,11 +401,15 @@ async def end_run(thread: ChatThread, status: str, error: str|None = None, inter
     Atomically move a run from RUNNING to a terminal status and publish run_status.
     Returns True if this call performed the transition.
     """
-    updated = await ChatThread.objects \
-        .filter(id=thread.id) \
-        .filter(run_id=thread.run_id) \
-        .filter(run_status=AgentRunStatus.RUNNING) \
-        .aupdate(run_status=status, run_error=error)
+    @database_sync_to_async
+    def update_status():
+        return ChatThread.objects \
+            .filter(id=thread.id) \
+            .filter(run_id=thread.run_id) \
+            .filter(run_status=AgentRunStatus.RUNNING) \
+            .update(run_status=status, run_error=error)
+
+    updated = await update_status()
     if not updated:
         return False
     thread.run_status = status
@@ -471,7 +488,7 @@ async def subscribe_thread(thread: ChatThread) -> AsyncIterator[dict | None]:
     channel = None
     group = None
     try:
-        history = await sync_to_async(get_chat_history)(
+        history = await database_sync_to_async(get_chat_history)(
             agent=get_agent('project_ask'),
             thread=thread,
         )

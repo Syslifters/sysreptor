@@ -4,7 +4,7 @@ import itertools
 import textwrap
 from uuid import UUID
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from deepagents.backends import CompositeBackend, StateBackend
 from deepagents.middleware._utils import append_to_system_message
 from deepagents.middleware.filesystem import FilesystemMiddleware, FilesystemPermission
@@ -292,7 +292,7 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
             'info': None,
         }
 
-    @sync_to_async()
+    @database_sync_to_async
     def abefore_agent(self, state, runtime):
         # Inject short info (ID, title) about the current section/finding
         # Stored in history
@@ -334,7 +334,7 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
         request = request.override(system_message=append_to_system_message(request.system_message, CONTEXT_SYSTEM_PROMPT))
 
         # Live context about current project and section/finding/note
-        current_page = await sync_to_async(self._get_current_file)(runtime=request.runtime)
+        current_page = await database_sync_to_async(self._get_current_file)(runtime=request.runtime)
         context_message = HumanMessage(content='\n'.join([
             '<context>',
             '## Current Project',

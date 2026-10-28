@@ -42,7 +42,8 @@ class TestConfiguration:
                 extra_info={'secret': True},
             ),
             StringField(id='FIELD_INTERNAL', default='default', extra_info={'internal': True}),
-        ])), mock.patch('sysreptor.conf.plugins.available_plugins', new=[]):
+        ])), mock.patch('sysreptor.conf.plugins.available_plugins', new=[]), \
+            mock.patch('sysreptor.api_utils.views.reload_server'):
             configuration.clear_cache()
             yield
 

@@ -7,6 +7,7 @@
 * AI agent: show chat history of previous agents
 * AI agent: show subagent messages in history
 * AI agent: support deleting findings and notes
+* AI agent: cancel agents when user's access was revoked
 * Run tasks in background worker processes
 
 

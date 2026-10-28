@@ -8,7 +8,7 @@ from collections.abc import Iterator, Mapping, Sequence
 from typing import Any
 from uuid import UUID
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
 from django.db.models import OuterRef, Q, Subquery
@@ -548,26 +548,26 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
             result[ch] = entry
         return result
 
-    @sync_to_async
+    @database_sync_to_async
     def aget_tuple(self, *args, **kwargs):
         return self.get_tuple(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def aget_delta_channel_history(self, *args, **kwargs):
         return self.get_delta_channel_history(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def alist(self, *args, **kwargs):
         return list(self.list(*args, **kwargs))
 
-    @sync_to_async
+    @database_sync_to_async
     def aput(self, *args, **kwargs):
         return self.put(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def aput_writes(self, *args, **kwargs):
         return self.put_writes(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def adelete_thread(self, *args, **kwargs):
         return self.delete_thread(*args, **kwargs)

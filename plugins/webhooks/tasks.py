@@ -1,8 +1,11 @@
 import asyncio
+import functools
 import logging
 
 import httpx
 import tenacity
+from asgiref.sync import async_to_sync, sync_to_async
+from django.db import transaction
 
 from sysreptor.conf.taskiq import background_task
 from sysreptor.plugins import configuration
@@ -56,4 +59,8 @@ async def send_webhooks(event_type: WebhookEventType, data):
                 break
 
     if webhooks_to_send:
-        await send_webhook_requests(data | {'event': event_type.value}, webhooks_to_send)
+        await sync_to_async(transaction.on_commit)(functools.partial(
+            async_to_sync(send_webhook_requests),
+            data | {'event': event_type.value},
+            webhooks_to_send,
+        ))

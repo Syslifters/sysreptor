@@ -1,6 +1,7 @@
 from datetime import timedelta
 from uuid import UUID, uuid4
 
+from channels.db import database_sync_to_async
 from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
 from langchain.messages import HumanMessage
@@ -97,12 +98,16 @@ async def run_agent(
     thread_id = UUID(str(thread_id))
     run_id = UUID(str(run_id))
 
-    thread = await ChatThread.objects \
-        .filter(id=thread_id) \
-        .filter(run_id=run_id) \
-        .filter(run_status=AgentRunStatus.RUNNING) \
-        .select_related('user', 'project') \
-        .afirst()
+    @database_sync_to_async
+    def load_thread():
+        return ChatThread.objects \
+            .filter(id=thread_id) \
+            .filter(run_id=run_id) \
+            .filter(run_status=AgentRunStatus.RUNNING) \
+            .select_related('user', 'project') \
+            .first()
+
+    thread = await load_thread()
     if not thread:
         # ChatThread deleted or run_id mismatched
         return

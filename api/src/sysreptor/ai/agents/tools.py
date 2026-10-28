@@ -7,7 +7,8 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Annotated
 
-from asgiref.sync import iscoroutinefunction, sync_to_async
+from asgiref.sync import iscoroutinefunction
+from channels.db import database_sync_to_async
 from django.core.exceptions import ValidationError
 from langchain.agents import create_agent
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
@@ -32,7 +33,7 @@ def agent_tool(metadata=None, **kwargs):
     def decorator(func: Callable) -> Callable:
         tool_name = kwargs.get('name') or func.__name__
         if not iscoroutinefunction(func):
-            func = sync_to_async(func)
+            func = database_sync_to_async(func)
 
         @tool(**kwargs)
         @wraps(func)
@@ -126,7 +127,7 @@ async def analyze_image(
         """)
     default_user_prompt = 'Analyze this screenshot for pentest evidence and reproduction details.'
 
-    @sync_to_async
+    @database_sync_to_async
     def prepare():
         # Resolve vision model. Use current model if not configured.
         active_model_id = runtime.context.model or get_default_model_id()
