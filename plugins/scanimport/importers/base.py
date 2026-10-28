@@ -43,7 +43,8 @@ class BaseImporter:
         results = FindingTemplate.objects \
             .annotate(has_matching_tag=RawSQL("EXISTS (SELECT 1 FROM unnest(tags) AS tag WHERE tag LIKE %s)", [f'{prefix}%'])) \
             .filter(has_matching_tag=True) \
-            .prefetch_related('translations')
+            .prefetch_related('translations') \
+            .order_by('created')
         return list(results)
     
     def select_template_translation(self, templates: list[FindingTemplate], language: Language|None = None, additional_info: dict|None = None) -> FindingTemplateTranslation:

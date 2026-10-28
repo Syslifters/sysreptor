@@ -320,9 +320,11 @@ class AgentRunWorker:
             .only_active() \
             .filter(pk=self.thread.user_id) \
             .first()
-        if user:
-            user.admin_permissions_enabled = self.admin_permissions_enabled
-            self.thread.user = user
+        if not user:
+            return False
+
+        user.admin_permissions_enabled = self.admin_permissions_enabled
+        self.thread.user = user
 
         current = ChatThread.objects \
             .filter(id=self.thread.id) \
@@ -330,7 +332,7 @@ class AgentRunWorker:
             .filter(run_status=AgentRunStatus.RUNNING) \
             .only_permitted(user) \
             .first()
-        if not current or not user:
+        if not current:
             return False
 
         ChatThread.objects \

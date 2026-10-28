@@ -14,7 +14,7 @@ from sysreptor.tests.mock import (
 from ..models import WebhookEventType
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestWebhooksCalled:
     @pytest.fixture(autouse=True)
     def setUp(self):

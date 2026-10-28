@@ -59,7 +59,7 @@ def override_periodic_tasks(tasks):
         periodic_task_registry.tasks = tasks_restore
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestPeriodicTaskScheduling:
     @pytest.fixture(autouse=True)
     def setUp(self):
