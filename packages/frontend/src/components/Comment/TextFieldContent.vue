@@ -151,8 +151,11 @@ defineExpose({
   }
 
   .cm-scroller {
-    // Hide scrollbar
-    overflow: hidden;
+    // Hide scrollbar but allow scrolling
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
     // Prevent cutting off spellcheck error underline
     padding-bottom: 1px;
   }
