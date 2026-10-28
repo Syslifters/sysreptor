@@ -446,3 +446,47 @@ class TestHtmlRendering:
         assert res.filename == f"custom_filename_{self.project.data['title']}.pdf"
         assert res.other['html_meta']['sysreptor-othermeta'] == 'value'
         assert not res.messages
+
+    def test_pdf_metadata(self):
+        self.project_type.report_template = """
+            <teleport to="head">
+                <meta name="generator" content="SysReptor" />
+                <meta name="keywords" content="AI-assisted, pentest report" />
+                <meta name="dcterms.created" content="2024-01-15T10:00:00Z" />
+                <meta name="Iptc4xmpExt:DigitalSourceType" content="https://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia" />
+                <meta name="Iptc4xmpExt:AISystemUsed" content="SysReptor AI" />
+                <meta name="Iptc4xmpExt:AISystemVersionUsed" content="1.0" />
+            </teleport>
+            <section><h1>{{ report.title }}</h1></section>
+        """
+        res = async_to_sync(render_pdf)(project=self.project)
+        assert not res.messages
+        assert res.other['html_meta']['Iptc4xmpExt:DigitalSourceType'] == \
+            'https://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia'
+        assert res.other['html_meta']['Iptc4xmpExt:AISystemUsed'] == 'SysReptor AI'
+        assert res.other['html_meta']['Iptc4xmpExt:AISystemVersionUsed'] == '1.0'
+
+        with pikepdf.Pdf.open(io.BytesIO(res.pdf)) as pdf:
+            assert dict(pdf.docinfo) == {}
+            assert '/Metadata' in pdf.Root
+            xmp = pdf.Root.Metadata.read_bytes()
+            assert b'http://iptc.org/std/Iptc4xmpExt/2008-02-29/' in xmp
+            assert b'trainedAlgorithmicMedia' in xmp
+            assert b'SysReptor AI' in xmp
+            assert b'AISystemVersionUsed' in xmp
+            assert b'<xmp:CreatorTool>SysReptor</xmp:CreatorTool>' in xmp
+            assert b'<xmp:CreateDate>2024-01-15T10:00:00Z</xmp:CreateDate>' in xmp
+            assert b'<pdf:Keywords>AI-assisted, pentest report</pdf:Keywords>' in xmp
+            assert b'WeasyPrint' not in xmp
+            assert b'pdfuaid' in xmp
+
+    def test_pdf_xmp_without_iptc_strips_weasyprint_producer(self):
+        res = async_to_sync(render_pdf)(project=self.project)
+        assert not res.messages
+        with pikepdf.Pdf.open(io.BytesIO(res.pdf)) as pdf:
+            assert dict(pdf.docinfo) == {}
+            xmp = pdf.Root.Metadata.read_bytes()
+            assert b'WeasyPrint' not in xmp
+            assert b'CreateDate' not in xmp
+            assert b'ModifyDate' not in xmp
+            assert b'pdfuaid' in xmp
