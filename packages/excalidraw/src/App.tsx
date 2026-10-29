@@ -96,6 +96,7 @@ export default function App() {
         autoFocus={true}
         viewModeEnabled={!isConnected || isReadonly}
         theme={isDarkTheme ? 'dark' : 'light'}
+        validateEmbeddable={false}
         UIOptions={{
           canvasActions: {
             toggleTheme: false,

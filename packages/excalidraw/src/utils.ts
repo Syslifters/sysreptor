@@ -46,6 +46,11 @@ export function isSyncableElement(element: OrderedExcalidrawElement): boolean {
 }
 
 
+export function filterExcalidrawElements<T extends { type: string }>(elements: readonly T[]): T[] {
+  return elements.filter((el) => el.type !== 'iframe');
+}
+
+
 export function isInitializedImageElement(element: ExcalidrawElement | null): element is InitializedExcalidrawImageElement {
   return !!element && element.type === "image" && !!element.fileId;
 }
