@@ -2,6 +2,7 @@
   <iframe
     ref="iframeRef"
     :src="iframeSrc"
+    sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation"
     @load="onIframeLoaded"
     class="iframe-container"
     :class="{
