@@ -451,7 +451,7 @@ class TestHtmlRendering:
         self.project_type.report_template = """
             <teleport to="head">
                 <meta name="generator" content="SysReptor" />
-                <meta name="keywords" content="AI-assisted, pentest report" />
+                <meta name="keywords" content="ai-generated, pentest-report" />
                 <meta name="dcterms.created" content="2024-01-15T10:00:00Z" />
                 <meta name="Iptc4xmpExt:DigitalSourceType" content="https://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia" />
                 <meta name="Iptc4xmpExt:AISystemUsed" content="SysReptor AI" />
@@ -461,32 +461,26 @@ class TestHtmlRendering:
         """
         res = async_to_sync(render_pdf)(project=self.project)
         assert not res.messages
-        assert res.other['html_meta']['Iptc4xmpExt:DigitalSourceType'] == \
-            'https://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia'
-        assert res.other['html_meta']['Iptc4xmpExt:AISystemUsed'] == 'SysReptor AI'
-        assert res.other['html_meta']['Iptc4xmpExt:AISystemVersionUsed'] == '1.0'
 
         with pikepdf.Pdf.open(io.BytesIO(res.pdf)) as pdf:
-            assert dict(pdf.docinfo) == {}
             assert '/Metadata' in pdf.Root
             xmp = pdf.Root.Metadata.read_bytes()
-            assert b'http://iptc.org/std/Iptc4xmpExt/2008-02-29/' in xmp
-            assert b'trainedAlgorithmicMedia' in xmp
-            assert b'SysReptor AI' in xmp
-            assert b'AISystemVersionUsed' in xmp
             assert b'<xmp:CreatorTool>SysReptor</xmp:CreatorTool>' in xmp
             assert b'<xmp:CreateDate>2024-01-15T10:00:00Z</xmp:CreateDate>' in xmp
-            assert b'<pdf:Keywords>AI-assisted, pentest report</pdf:Keywords>' in xmp
+            assert b'<pdf:Keywords>ai-generated, pentest-report</pdf:Keywords>' in xmp
+            assert b'xmlns:Iptc4xmpExt="http://iptc.org/std/Iptc4xmpExt/2008-02-29/"' in xmp
+            assert b'<Iptc4xmpExt:DigitalSourceType>https://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia</Iptc4xmpExt:DigitalSourceType>' in xmp
+            assert b'<Iptc4xmpExt:AISystemUsed>SysReptor AI</Iptc4xmpExt:AISystemUsed>' in xmp
+            assert b'<Iptc4xmpExt:AISystemVersionUsed>1.0</Iptc4xmpExt:AISystemVersionUsed>' in xmp
             assert b'WeasyPrint' not in xmp
-            assert b'pdfuaid' in xmp
 
-    def test_pdf_xmp_without_iptc_strips_weasyprint_producer(self):
+    def test_no_default_pdf_metadata(self):
+        self.project_type.report_template = ""
         res = async_to_sync(render_pdf)(project=self.project)
         assert not res.messages
         with pikepdf.Pdf.open(io.BytesIO(res.pdf)) as pdf:
             assert dict(pdf.docinfo) == {}
             xmp = pdf.Root.Metadata.read_bytes()
-            assert b'WeasyPrint' not in xmp
-            assert b'CreateDate' not in xmp
-            assert b'ModifyDate' not in xmp
-            assert b'pdfuaid' in xmp
+            for f in ['Producer', 'WeasyPrint', 'Title', 'Author', 'Subject', 'Keywords', 'CreatorTool', 'CreateDate', 'ModifyDate']:
+                assert f.encode() not in xmp
+
