@@ -55,7 +55,7 @@ Signup is separate from login:
 ::: details Which certifications does the free SysReptor Labs support?
 We currently provide the following report designs:
 
-* **Hack The Box:** CPTS, CWES, CDSA, CWEE, CAPE, CJCA, CWPE, COAE
+* **Hack The Box:** CPTS, CWES, CDSA, CWEE, CAPE, CJCA, CWPE, COAE, CDEP
 * **OffSec:** OSCP+, OSEP, OSWP, OSWA, OSWE, OSED, OSMR, OSEE, OSDA, OSIR, OSTH, OSAI
 
 Demo PDFs and designs are listed on [HTB reporting](/htb-reporting-with-sysreptor), [OffSec reporting](/offsec-reporting-with-sysreptor), and [demo reports](/demo-reports).

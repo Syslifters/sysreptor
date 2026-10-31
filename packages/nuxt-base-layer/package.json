@@ -23,14 +23,14 @@
     "base64-arraybuffer": "^1.0.2",
     "js-file-download": "^0.4.12",
     "lodash-es": "^4.17.21",
-    "url-join": "^5.0.0",
+    "url-join": "^6.0.0",
     "uuid": "^14",
     "zxcvbn": "^4.4.2",
     "date-fns": "^4.1.0"
   },
   "devDependencies": {
-    "nuxt": "~4.5",
-    "vuetify": "~4.2",
+    "nuxt": "~4.6",
+    "vuetify": "~4.3",
     
     "@types/node": "^24",
     "@types/uuid": "^10.0.0",
@@ -41,8 +41,8 @@
     "vue-tsc": "^3.0.4"
   },
   "peerDependencies": {
-    "nuxt": "~4.5",
-    "vuetify": "~4.2",
+    "nuxt": "~4.6",
+    "vuetify": "~4.3",
     "pinia": "^4.0"
   }
 }

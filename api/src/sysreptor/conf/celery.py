@@ -22,6 +22,12 @@ celery_app.config_from_object('django.conf:settings', namespace='CELERY')
 celery_app.autodiscover_tasks()
 
 
+@signals.import_modules.connect()
+def import_rendering_tasks(*args, **kwargs):
+    # Nested package is not picked up by app-level autodiscover (`app.tasks`).
+    from sysreptor.pentests.rendering import tasks_celery  # noqa: F401
+
+
 @signals.setup_logging.connect()
 def setup_logging(*args, **kwargs):
     import logging.config

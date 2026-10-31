@@ -1,23 +1,65 @@
-from collections.abc import Awaitable, Callable
+import contextlib
+import contextvars
+from collections.abc import Iterator, Sequence
+from typing import Any
 
+from deepagents.backends.protocol import BackendProtocol
+from deepagents.middleware.subagents import (
+    _FORK_RECURSION_REFUSAL,
+    _FORKED_CONTEXT_KEY,
+    CompiledSubAgent,
+    SubAgent,
+    SubAgentMiddleware,
+    _subagent_tracing_context,
+)
 from django.utils import timezone
 from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
+from langchain.tools import ToolRuntime, tool
 from langchain_core.messages import merge_message_runs
+from langchain_core.runnables.config import merge_configs
+from langchain_core.tools import BaseTool
+from langgraph.types import Command
+
+from sysreptor.utils.history import history_context
+
+_tool_output_bucket: contextvars.ContextVar[dict | None] = contextvars.ContextVar('tool_output_bucket', default=None)
 
 
-def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage) -> None:
+def set_tool_output(output: dict | None) -> None:
+    """Attach structured output for the current tool call (picked up by MessageTimestampMiddleware)."""
+    if not output:
+        return
+    bucket = _tool_output_bucket.get()
+    if bucket is None:
+        return
+    bucket.update(output)
+
+
+@contextlib.contextmanager
+def capture_tool_output() -> Iterator[dict]:
+    """Context manager that collects set_tool_output() calls into a shared dict."""
+    bucket: dict = {}
+    token = _tool_output_bucket.set(bucket)
+    try:
+        yield bucket
+    finally:
+        _tool_output_bucket.reset(token)
+
+
+def stamp_message_timestamp(message: HumanMessage | AIMessage | ToolMessage, timestamp=None) -> None:
     if message.additional_kwargs.get('timestamp'):
         return
     message.additional_kwargs = {
         **(message.additional_kwargs or {}),
-        'timestamp': timezone.now().isoformat(),
+        'timestamp': (timestamp or timezone.now()).isoformat(),
     }
 
 
 class MessageTimestampMiddleware(AgentMiddleware[AgentState]):
     """
-    Stamp completion timestamps on user and assistant messages for the chat UI.
+    Stamp completion timestamps on user, assistant and tool messages for the chat UI.
+    Also attaches structured tool output set via set_tool_output().
     """
 
     async def abefore_agent(self, state, runtime):
@@ -33,6 +75,19 @@ class MessageTimestampMiddleware(AgentMiddleware[AgentState]):
                 stamp_message_timestamp(m)
             else:
                 break
+
+    async def awrap_tool_call(self, request, handler):
+        timestamp_before = timezone.now()
+        with capture_tool_output() as bucket:
+            result = await handler(request)
+
+        if isinstance(result, ToolMessage):
+            stamp_message_timestamp(result, timestamp=timestamp_before)
+            result.additional_kwargs = {
+                **(result.additional_kwargs or {}),
+                'output': dict(bucket),
+            }
+        return result
 
 
 class SelectConfiguredModelMiddleware(AgentMiddleware):
@@ -51,18 +106,10 @@ class SelectConfiguredModelMiddleware(AgentMiddleware):
             self._model_cache[model] = init_chat_model(model)
         return self._model_cache[model]
 
-    def wrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], ModelResponse],
-    ) -> ModelResponse:
+    def wrap_model_call(self, request, handler) -> ModelResponse:
         return handler(request.override(model=self._model_for_request(request)))
 
-    async def awrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
-    ) -> ModelResponse:
+    async def awrap_model_call(self, request, handler) -> ModelResponse:
         return await handler(request.override(model=self._model_for_request(request)))
 
 
@@ -73,16 +120,77 @@ class MergeConsecutiveMessagesMiddleware(AgentMiddleware):
     Required for LLM providers that enforce alternating user/assistant roles.
     """
 
-    def wrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], ModelResponse],
-    ) -> ModelResponse:
+    def wrap_model_call(self, request, handler) -> ModelResponse:
         return handler(request.override(messages=merge_message_runs(request.messages)))
 
-    async def awrap_model_call(
-        self,
-        request: ModelRequest,
-        handler: Callable[[ModelRequest], Awaitable[ModelResponse]],
-    ) -> ModelResponse:
+    async def awrap_model_call(self, request, handler) -> ModelResponse:
         return await handler(request.override(messages=merge_message_runs(request.messages)))
+
+
+class HistoryContextMiddleware(AgentMiddleware):
+    async def awrap_tool_call(self, request, handler) -> ToolMessage | Command[Any]:
+        user = getattr(getattr(getattr(request, 'runtime', None), 'context', None), 'user', None)
+        with history_context(history_user=user, set_history_date=False):
+            return await handler(request)
+
+
+def subagent_checkpoint_ns(subagent_type: str, tool_call_id: str) -> str:
+    return f'subagent:{subagent_type}:{tool_call_id}'
+
+
+class CustomSubagentMiddleware(SubAgentMiddleware):
+    def __init__(
+        self,
+        *,
+        backend: BackendProtocol,
+        subagents: Sequence[SubAgent | CompiledSubAgent],
+        system_prompt: str | None = None,
+        task_description: str | None = None,
+        private_state_keys: frozenset[str] | None = None,
+        state_schema: type | None = None,
+    ) -> None:
+        super().__init__(
+            backend=backend,
+            subagents=subagents,
+            system_prompt=system_prompt,
+            task_description=task_description,
+            private_state_keys=private_state_keys,
+            state_schema=state_schema,
+        )
+        self.tools = [self._replace_task_tool(self.tools[0])]
+
+    def _replace_task_tool(self, original: BaseTool) -> BaseTool:
+        coro = original.coroutine
+        if not coro or not coro.__closure__ or not coro.__code__.co_freevars:
+            raise RuntimeError('task tool coroutine is not a closure')
+
+        free = dict(zip(coro.__code__.co_freevars, (c.cell_contents for c in coro.__closure__), strict=True))
+        validate_and_prepare = free['_validate_and_prepare_state']
+        return_command = free['_return_command_with_state_update']
+        graphs = free['subagent_graphs']
+
+        @tool(
+            description=original.description,
+            args_schema=original.args_schema,
+            infer_schema=False,
+        )
+        async def task(description: str, subagent_type: str, runtime: ToolRuntime):
+            if runtime.state.get(_FORKED_CONTEXT_KEY):
+                return _FORK_RECURSION_REFUSAL
+            if subagent_type not in graphs:
+                allowed = ', '.join(f'`{k}`' for k in graphs)
+                return f'We cannot invoke subagent {subagent_type} because it does not exist, the only allowed types are {allowed}'
+            if not runtime.tool_call_id:
+                raise ValueError('Tool call ID is required for subagent invocation')
+
+            subagent, subagent_state = validate_and_prepare(subagent_type, description, runtime)
+            config = merge_configs(runtime.config, {'configurable': {'ls_agent_type': 'subagent'}})
+            config['configurable'] = dict(config.get('configurable') or {}) | {
+                'checkpoint_ns': subagent_checkpoint_ns(subagent_type, runtime.tool_call_id),
+            }
+            config['configurable'].pop('checkpoint_id', None)
+            with _subagent_tracing_context():
+                result = await subagent.ainvoke(subagent_state, config)
+            return return_command(result, runtime.tool_call_id, subagent_state)
+
+        return task

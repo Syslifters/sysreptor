@@ -8,10 +8,10 @@ from collections.abc import Iterator, Mapping, Sequence
 from typing import Any
 from uuid import UUID
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import connection
-from django.db.models import Q, Subquery
+from django.db.models import OuterRef, Q, Subquery
 from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.base import (
     WRITES_IDX_MAP,
@@ -106,16 +106,31 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
             .order_by('task_id', 'idx')
         return [(row.task_id, row.channel, self.serde.loads_typed((row.type, row.blob))) for row in rows]
 
-    def format_checkpoint_tuple(self, checkpoint: LangchainCheckpoint) -> CheckpointTuple:
+    def format_checkpoint_tuple(
+        self,
+        checkpoint: LangchainCheckpoint,
+        *,
+        channel_values_from_blobs: dict[str, Any] | None = None,
+        pending_writes: list[tuple[str, str, Any]] | None = None,
+    ) -> CheckpointTuple:
         checkpoint_data = dict(checkpoint.checkpoint or {})
         channel_versions = checkpoint_data.get('channel_versions') or {}
         channel_values = dict(checkpoint_data.get('channel_values') or {})
-        channel_values.update(self._load_blobs(
-            thread_id=str(checkpoint.thread_id),
-            checkpoint_ns=checkpoint.checkpoint_ns or '',
-            channel_versions=channel_versions,
-        ))
+        if channel_values_from_blobs is None:
+            channel_values_from_blobs = self._load_blobs(
+                thread_id=str(checkpoint.thread_id),
+                checkpoint_ns=checkpoint.checkpoint_ns or '',
+                channel_versions=channel_versions,
+            )
+        channel_values.update(channel_values_from_blobs)
         checkpoint_data['channel_values'] = channel_values
+
+        if pending_writes is None:
+            pending_writes = self._load_writes(
+                thread_id=str(checkpoint.thread_id),
+                checkpoint_ns=checkpoint.checkpoint_ns or '',
+                checkpoint_id=str(checkpoint.checkpoint_id),
+            )
 
         return CheckpointTuple(
             config={
@@ -130,11 +145,7 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
                     'checkpoint_id': str(checkpoint.parent_checkpoint_id),
                 },
             } if checkpoint.parent_checkpoint_id else None,
-            pending_writes=self._load_writes(
-                thread_id=str(checkpoint.thread_id),
-                checkpoint_ns=checkpoint.checkpoint_ns or '',
-                checkpoint_id=str(checkpoint.checkpoint_id),
-            ),
+            pending_writes=pending_writes,
         )
 
     def get_tuple(self, config: RunnableConfig) -> CheckpointTuple | None:
@@ -156,6 +167,80 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
         if not checkpoint:
             return None
         return self.format_checkpoint_tuple(checkpoint=checkpoint)
+
+    def get_latest_tuples_by_namespaces(self, thread_id: str, namespaces: Sequence[str]) -> dict[str, CheckpointTuple]:
+        namespaces = [ns for ns in dict.fromkeys(namespaces) if ns]
+        if not namespaces:
+            return {}
+
+        latest_pk = LangchainCheckpoint.objects \
+            .filter(thread_id=str(thread_id)) \
+            .filter(checkpoint_ns=OuterRef('checkpoint_ns')) \
+            .order_by('-created') \
+            .values('pk')[:1]
+
+        checkpoints = list(LangchainCheckpoint.objects
+            .filter(thread_id=str(thread_id))
+            .filter(checkpoint_ns__in=namespaces)
+            .filter(pk=Subquery(latest_pk)))
+        if not checkpoints:
+            return {}
+
+        blob_q = Q()
+        has_blob_lookups = False
+        for checkpoint in checkpoints:
+            versions = (checkpoint.checkpoint or {}).get('channel_versions') or {}
+            ns = checkpoint.checkpoint_ns or ''
+            for channel, version in versions.items():
+                blob_q |= Q(checkpoint_ns=ns, channel=channel, version=str(version))
+                has_blob_lookups = True
+
+        blobs_by_ns: dict[str, dict[str, Any]] = {c.checkpoint_ns or '': {} for c in checkpoints}
+        if has_blob_lookups:
+            for row in LangchainCheckpointBlob.objects.filter(thread_id=str(thread_id)).filter(blob_q):
+                if row.type == 'empty':
+                    continue
+                ns = row.checkpoint_ns or ''
+                blobs_by_ns.setdefault(ns, {})[row.channel] = self.serde.loads_typed((row.type, row.blob or b''))
+
+        write_q = Q()
+        for checkpoint in checkpoints:
+            write_q |= Q(
+                checkpoint_ns=checkpoint.checkpoint_ns or '',
+                checkpoint_id=checkpoint.checkpoint_id,
+            )
+        writes_by_key: dict[tuple[str, Any], list[tuple[str, str, Any]]] = {
+            (c.checkpoint_ns or '', c.checkpoint_id): [] for c in checkpoints
+        }
+        for row in LangchainCheckpointWrite.objects.filter(thread_id=str(thread_id)).filter(write_q).order_by('task_id', 'idx'):
+            key = (row.checkpoint_ns or '', row.checkpoint_id)
+            writes_by_key.setdefault(key, []).append((
+                row.task_id,
+                row.channel,
+                self.serde.loads_typed((row.type, row.blob))),
+            )
+
+        return {
+            (checkpoint.checkpoint_ns or ''): self.format_checkpoint_tuple(
+                checkpoint,
+                channel_values_from_blobs=blobs_by_ns.get(checkpoint.checkpoint_ns or '', {}),
+                pending_writes=writes_by_key.get((checkpoint.checkpoint_ns or '', checkpoint.checkpoint_id), []),
+            )
+            for checkpoint in checkpoints
+        }
+
+    def get_values_by_namespaces(self, thread_id: str, namespaces: Sequence[str]) -> dict[str, dict[str, Any]]:
+        out: dict[str, dict[str, Any]] = {}
+        for ns, tup in self.get_latest_tuples_by_namespaces(thread_id, namespaces).items():
+            state = dict(tup.checkpoint.get('channel_values') or {})
+            for _task_id, channel, value in tup.pending_writes or []:
+                current = state.get(channel)
+                if isinstance(current, list):
+                    state[channel] = current + (value if isinstance(value, list) else [value])
+                else:
+                    state[channel] = value
+            out[ns] = state
+        return out
 
     def list(self, config: RunnableConfig, *, filter: dict[str, Any] | None = None, before: RunnableConfig | None = None, limit: int | None = None) -> Iterator[CheckpointTuple]:
         filters = {k: str(v) for k, v in copy_keys(config['configurable'], ['thread_id', 'checkpoint_ns']).items() if v is not None}
@@ -463,26 +548,26 @@ class DjangoModelCheckpointer(BaseCheckpointSaver):
             result[ch] = entry
         return result
 
-    @sync_to_async
+    @database_sync_to_async
     def aget_tuple(self, *args, **kwargs):
         return self.get_tuple(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def aget_delta_channel_history(self, *args, **kwargs):
         return self.get_delta_channel_history(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def alist(self, *args, **kwargs):
         return list(self.list(*args, **kwargs))
 
-    @sync_to_async
+    @database_sync_to_async
     def aput(self, *args, **kwargs):
         return self.put(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def aput_writes(self, *args, **kwargs):
         return self.put_writes(*args, **kwargs)
 
-    @sync_to_async
+    @database_sync_to_async
     def adelete_thread(self, *args, **kwargs):
         return self.delete_thread(*args, **kwargs)

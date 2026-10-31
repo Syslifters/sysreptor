@@ -1,20 +1,22 @@
-import json
 
-from rest_framework import renderers, viewsets
+from asgiref.sync import async_to_sync
+from channels.layers import channel_layers
+from rest_framework import mixins, renderers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from sysreptor.ai.models import ChatThread
+from sysreptor.ai.models import AgentRunStatus, ChatThread
+from sysreptor.ai.runs import (
+    cancel_run,
+    ensure_thread_not_stale,
+    to_subscriber_sse,
+)
 from sysreptor.utils.api import StreamingHttpResponseAsync, ViewSetAsync
 from sysreptor.utils.configuration import configuration
-
-
-async def to_server_sent_events(generator):
-    async for event in generator:
-        yield f'event: {event['type']}\ndata: {json.dumps(event)}\n\n'.encode()
+from sysreptor.utils.utils import copy_keys
 
 
 class EventStreamRenderer(renderers.BaseRenderer):
@@ -29,62 +31,85 @@ class ChatThreadPermissions(BasePermission):
     def has_permission(self, request, view):
         if not configuration.AI_AGENT_ENABLED:
             raise PermissionDenied('AI agent chat is disabled in settings')
+        if view.action in ['list', 'retrieve']:
+            return True
+        if 'default' not in channel_layers:
+            return False
         from sysreptor.ai.agents.base import get_model_configs
         if not get_model_configs(include_hidden=False):
             raise PermissionDenied('No LLM models configured in settings')
         return True
 
 
-class ChatThreadViewSet(viewsets.GenericViewSet, ViewSetAsync):
+class ChatThreadViewSet(mixins.ListModelMixin, mixins.DestroyModelMixin, viewsets.GenericViewSet, ViewSetAsync):
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [ChatThreadPermissions]
 
     def get_queryset(self):
-        return ChatThread.objects \
+        qs = ChatThread.objects \
             .only_permitted(self.request.user) \
-            .filter_has_checkpoints()
+            .filter_visible() \
+            .order_by('-created')
+        if self.action == 'list':
+            project = self.request.GET.get('project')
+            if project:
+                qs = qs.filter(project_id=project)
+        return qs
 
     def get_serializer_class(self):
-        from sysreptor.ai.serializers import ChatThreadSerializer, LLMAgentSerializer
+        from sysreptor.ai.serializers import ChatThreadListSerializer, ChatThreadSerializer, LLMAgentSerializer
         if self.action == 'create':
             return LLMAgentSerializer
+        if self.action == 'list':
+            return ChatThreadListSerializer
         return ChatThreadSerializer
 
     def get_renderers(self):
-        if self.action == 'create':
+        if self.action == 'stream':
             return [EventStreamRenderer()]
         return super().get_renderers()
 
     async def create(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
-        return StreamingHttpResponseAsync(
-            streaming_content=to_server_sent_events(serializer.stream()),
-            content_type='text/event-stream',
-        )
+        thread_id, run_id = await serializer.start()
+        return Response({
+            'thread_id': str(thread_id),
+            'run_id': str(run_id),
+        }, status=status.HTTP_200_OK)
 
     def retrieve(self, request, *args, **kwargs):
         from sysreptor.ai.agents import get_agent, get_chat_history
 
         instance = self.get_object()
-        history = get_chat_history(agent=get_agent('project_ask'), thread=instance)
-        return Response(data=history)
 
-    @action(detail=False, methods=['get'])
-    def latest(self, request, *args, **kwargs):
-        from sysreptor.ai.agents import get_agent, get_chat_history
+        async_to_sync(ensure_thread_not_stale)(instance)
+        instance.refresh_from_db()
 
-        if not request.GET.get('project'):
-            raise ValidationError('project is required')
+        data = get_chat_history(agent=get_agent('project_ask'), thread=instance)
+        data |= copy_keys(instance, ['title', 'agent', 'model', 'run_id', 'run_status', 'run_error'])
+        data.pop('covered', None)
 
-        # Get latest thread for project
-        thread = self.get_queryset() \
-            .filter(project_id=request.GET['project']) \
-            .order_by('-created') \
-            .first()
-        if not thread:
-            raise NotFound()
+        return Response(data=data)
 
-        history = get_chat_history(agent=get_agent('project_ask'), thread=thread)
-        return Response(data=history)
+    def perform_destroy(self, instance):
+        if instance.run_status == AgentRunStatus.RUNNING:
+            async_to_sync(cancel_run)(instance)
+        instance.delete()
+
+    @action(detail=True, methods=['post'])
+    async def cancel(self, request, *args, **kwargs):
+        thread = await self.aget_object()
+        run_id = await cancel_run(thread)
+        if not run_id:
+            raise NotFound('No active run')
+        return Response({'status': 'ok', 'run_id': str(run_id)})
+
+    @action(detail=True, methods=['get'], url_path='stream')
+    async def stream(self, request, *args, **kwargs):
+        thread = await self.aget_object()
+        return StreamingHttpResponseAsync(
+            streaming_content=to_subscriber_sse(thread),
+            content_type='text/event-stream',
+        )
 
     def handle_exception(self, exc):
         # Event stream renderers do not render exceptions, so re-perform content

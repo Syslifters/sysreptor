@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import json
 import re
@@ -8,10 +9,12 @@ from uuid import uuid4
 
 import pytest
 from asgiref.sync import async_to_sync
+from channels.layers import InMemoryChannelLayer
 from deepagents.backends import CompositeBackend, StateBackend
 from django.contrib.auth.models import AnonymousUser
 from django.urls import reverse
-from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall
+from django.utils import timezone
+from langchain.messages import AIMessage, AIMessageChunk, HumanMessage, ToolCall, ToolMessage
 from langchain.tools import ToolRuntime
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.fake_chat_models import GenericFakeChatModel
@@ -29,7 +32,7 @@ from sysreptor.ai.agents.filesystem import (
     NotesAgentsDirBackend,
     ProjectFilesystemBackend,
 )
-from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware
+from sysreptor.ai.agents.middleware import SelectConfiguredModelMiddleware, capture_tool_output
 from sysreptor.ai.agents.project import ProjectContext
 from sysreptor.ai.agents.tools import analyze_image
 from sysreptor.ai.agents.tools_project import (
@@ -41,10 +44,24 @@ from sysreptor.ai.agents.tools_project import (
     update_field_value,
     update_markdown_field,
 )
-from sysreptor.ai.models import ChatThread, LangchainCheckpoint, LangchainCheckpointBlob, LangchainCheckpointWrite
-from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints
+from sysreptor.ai.models import (
+    AgentRunStatus,
+    ChatThread,
+    LangchainCheckpoint,
+    LangchainCheckpointBlob,
+    LangchainCheckpointWrite,
+)
+from sysreptor.ai.runs import (
+    HEARTBEAT_TTL_SECONDS,
+    AgentRunWorker,
+    PendingEventBuffer,
+    send_ai_stream_event,
+    subscribe_thread,
+    throttle_ai_stream_events,
+)
+from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints, cleanup_stale_agent_runs
 from sysreptor.conf.settings import validate_ai_agent_models
-from sysreptor.pentests.models import NoteType
+from sysreptor.pentests.models import NoteType, PentestFinding, ProjectMemberInfo, ProjectNotebookPage
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
@@ -54,6 +71,7 @@ from sysreptor.tests.mock import (
     create_user,
     mock_time,
     override_configuration,
+    update,
 )
 from sysreptor.utils.fielddefinition.utils import get_value_at_path
 from sysreptor.utils.utils import copy_keys, merge, omit_keys
@@ -100,6 +118,40 @@ def mock_llm_response(messages: list|None = None, model = None):
         yield
 
 
+@contextlib.contextmanager
+def capture_stream_events():
+    sent = []
+
+    class FakeLayer:
+        async def group_send(self, group, message):
+            if isinstance(message, dict) and message.get('event') is not None:
+                sent.append(message['event'])
+
+        async def send(self, channel, message):
+            return None
+
+        async def new_channel(self):
+            return 'specific.test'
+
+        async def group_add(self, group, channel):
+            return None
+
+        async def group_discard(self, group, channel):
+            return None
+
+        async def receive(self, channel):
+            await asyncio.sleep(3600)
+
+    with mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=FakeLayer()):
+        yield sent
+
+
+def post_chat(client, data):
+    with capture_stream_events() as events:
+        res = client.post(reverse('chatthread-list'), data=data)
+    return res, list(events)
+
+
 @async_to_sync()
 async def parse_sse_events(response):
     events = []
@@ -121,14 +173,48 @@ def to_tokens(text):
 
 
 def to_message_chunks(event):
-    out = []
+    deltas = []
+    base_content = omit_keys(event['content'], ['text', 'reasoning', 'replace'])
     for chunk in to_tokens(event['content'].get('reasoning', '')):
         if chunk:
-            out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'reasoning': chunk}})
+            deltas.append(event | {'content': base_content | {'reasoning': chunk}})
     for chunk in to_tokens(event['content'].get('text', '')):
         if chunk:
-            out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'text': chunk}})
-    out.append(event | {'content': omit_keys(event['content'], ['text', 'reasoning']) | {'id': mock.ANY, 'timestamp': mock.ANY}})
+            deltas.append(event | {'content': base_content | {'text': chunk}})
+
+    # Final assembled snapshot replaces streamed deltas (includes full text)
+    snapshot_content = omit_keys(event['content'], ['replace']) | {'id': mock.ANY, 'timestamp': mock.ANY, 'replace': True}
+    return [*deltas, event | {'content': snapshot_content}]
+
+
+@pytest.fixture(autouse=True)
+def disable_ai_stream_throttling(request):
+    """Pass through stream events immediately (no interval buffering/coalescing)."""
+    if request.node.name == 'test_throttle_ai_stream_events':
+        yield
+        return
+
+    async def immediate_yield(stream, interval=0.5):
+        async for event in stream:
+            yield event
+
+    with mock.patch('sysreptor.ai.runs.throttle_ai_stream_events', new=immediate_yield):
+        yield
+
+
+def wrap_stream_events(inner_events, *, user_message: str | None = mock.ANY, status: str = 'completed', error=None, interrupts: list | None = None):
+    """Prefix user text and suffix run_status around agent stream events."""
+    out = []
+    if user_message is not None:
+        out.append({
+            'type': 'text',
+            'content': {'id': mock.ANY, 'role': 'user', 'text': user_message, 'timestamp': mock.ANY, 'replace': True},
+        })
+    out.extend(inner_events)
+    out.append({
+        'type': 'run_status',
+        'content': {'status': status, 'error': error, 'interrupts': interrupts or []},
+    })
     return out
 
 
@@ -161,12 +247,12 @@ def project_filesystem_runtime(project, user):
     with mock.patch('sysreptor.ai.agents.filesystem.get_runtime') as m:
         m.return_value = mock.Mock(context=ProjectContext(
             project_id=str(project.id),
-            user_id=str(user.id),
+            user=user,
         ))
         yield
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectAgent:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -175,7 +261,7 @@ class TestProjectAgent:
         self.client = api_client(user=self.user)
 
     def send_message(self, message: str, context: dict = None, thread_id: str = None):
-        res = self.client.post(reverse('chatthread-list'), data={
+        res, events = post_chat(self.client, {
             'id': thread_id,
             'agent': 'project_agent',
             'project': self.project.id,
@@ -183,7 +269,7 @@ class TestProjectAgent:
             'context': context or {},
         })
         assert res.status_code == 200
-        return parse_sse_events(res)
+        return res.data['thread_id'], events
 
     def test_agent_flow(self):
         executive_summary = self.project.sections.get(section_id='executive_summary')
@@ -205,24 +291,21 @@ class TestProjectAgent:
             AIMessage(content='The executive summary has been updated successfully. How else can I help you?'),
         ]
         with mock_llm_response(messages=llm_messages):
-            events = self.send_message(user_messages[0])
-            assert_events_equal(events, [
-                {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+            thread_id, events = self.send_message(user_messages[0])
+            assert_events_equal(events, wrap_stream_events([
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[0].content}}),
-            ])
-            thread_id = events[0]['content']['thread_id']
+            ], user_message=user_messages[0]))
 
-            events = self.send_message(user_messages[1], thread_id=thread_id)
-            assert_events_equal(events, [
-                {'type': 'metadata', 'content': {'thread_id': thread_id}},
+            thread_id, events = self.send_message(user_messages[1], thread_id=thread_id)
+            assert_events_equal(events, wrap_stream_events([
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}}),
                 {'type': 'tool_call', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
-                {'type': 'tool_call_status', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name']) | {'status': 'success', 'output': {}}},
+                {'type': 'tool_call_status', 'content': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
                 *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}}),
-            ])
+            ], user_message=user_messages[1]))
 
         # Verify chat history
-        res = self.client.get(reverse('chatthread-latest', query={'project': self.project.id}))
+        res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
         assert res.status_code == 200
         assert str(res.data['id']) == thread_id
         assert len(res.data['messages']) == 6
@@ -231,7 +314,7 @@ class TestProjectAgent:
             {'role': 'assistant', 'text': llm_messages[0].content},
             {'role': 'user', 'text': user_messages[1]},
             {'role': 'assistant', 'text': llm_messages[1].content},
-            {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {}}},
+            {'role': 'tool', 'tool_call': copy_keys(llm_messages[1].tool_calls[0], ['id', 'name', 'args']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
             {'role': 'assistant', 'text': llm_messages[2].content},
         ]
 
@@ -272,8 +355,7 @@ class TestProjectAgent:
             AIMessage('Final response'),
         ]))
         with mock_llm_response(model=model):
-            res = self.send_message(user_messages[0], context={'section_id': 'executive_summary'})
-            thread_id = res[0]['content']['thread_id']
+            thread_id, _events = self.send_message(user_messages[0], context={'section_id': 'executive_summary'})
             self.send_message(user_messages[1], context={'section_id': 'executive_summary'}, thread_id=thread_id)
             self.send_message(user_messages[2], context={'finding_id': finding.finding_id}, thread_id=thread_id)
 
@@ -317,18 +399,27 @@ class TestProjectAgent:
             AIMessage(content='Done.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            events = self.send_message('Use a subagent')
+            thread_id, events = self.send_message('Use a subagent')
 
-        assert_events_equal(events, [
-            {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+        assert_events_equal(events, wrap_stream_events([
             {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[1].content}, 'subagent': subagent_tool_call_id}),
             {'type': 'tool_call', 'content': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}, 'subagent': subagent_tool_call_id},
-            {'type': 'tool_call_status', 'content': copy_keys(read_section_call, ['id', 'name']) | {'status': 'success'}, 'subagent': subagent_tool_call_id},
+            {'type': 'tool_call_status', 'content': copy_keys(read_section_call, ['id', 'name']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}, 'subagent': subagent_tool_call_id},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[2].content}, 'subagent': subagent_tool_call_id}),
             {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'success'}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': llm_messages[3].content}}),
-        ])
+        ], user_message='Use a subagent'))
+
+        # Persisted history nests subagent work under the task tool; root stays clean
+        res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
+        subagent_history = next(m['tool_call'] for m in res.data['messages'] if m.get('tool_call', {}).get('id') == subagent_tool_call_id)
+        assert [omit_keys(m, ['id', 'timestamp', 'tool_call.timestamp', 'tool_call.content']) for m in subagent_history['subagentMessages']] == [
+            {'role': 'user', 'text': task_call['args']['description']},
+            {'role': 'assistant', 'text': llm_messages[1].content},
+            {'role': 'tool', 'tool_call': copy_keys(read_section_call, ['id', 'name', 'args']) | {'status': 'success', 'output': {'id': 'executive_summary', 'title': 'Executive Summary'}}},
+            {'role': 'assistant', 'text': llm_messages[2].content},
+        ]
 
     def test_subagent_error_does_not_abort_main_agent(self):
         subagent_tool_call_id = 'subagent_tool_call_fail'
@@ -363,7 +454,7 @@ class TestProjectAgent:
             mock.patch('langchain.agents.middleware.model_retry.calculate_delay', return_value=0),
             mock_llm_response(messages=FailThenContinueMessages()),
         ):
-            events = self.send_message('Use a failing subagent')
+            _thread_id, events = self.send_message('Use a failing subagent')
 
         assert not any(e['type'] == 'error' for e in events)
         task_status = next(
@@ -371,16 +462,14 @@ class TestProjectAgent:
             if e['type'] == 'tool_call_status' and e['content'].get('id') == subagent_tool_call_id
         )
         assert task_status['content']['status'] == 'error'
-        assert task_status['content']['content'] == 'Error: Internal server error'
-        assert_events_equal(events, [
-            {'type': 'metadata', 'content': {'thread_id': mock.ANY}},
+        assert_events_equal(events, wrap_stream_events([
             {'type': 'tool_call', 'content': copy_keys(task_call, ['id', 'name', 'args']) | {'status': 'pending', 'output': None}},
-            {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'error'}},
+            {'type': 'tool_call_status', 'content': copy_keys(task_call, ['id', 'name']) | {'status': 'error', 'output': {}}},
             *to_message_chunks({'type': 'text', 'content': {'role': 'assistant', 'text': 'Continued after subagent error.'}}),
-        ])
+        ], user_message='Use a failing subagent'))
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestAskUserInterrupts:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -389,7 +478,7 @@ class TestAskUserInterrupts:
         self.client = api_client(user=self.user)
 
     def send_message(self, message: str, thread_id: str = None):
-        res = self.client.post(reverse('chatthread-list'), data={
+        res, events = post_chat(self.client, {
             'id': thread_id,
             'agent': 'project_ask',
             'project': self.project.id,
@@ -397,10 +486,10 @@ class TestAskUserInterrupts:
             'context': {},
         })
         assert res.status_code == 200
-        return parse_sse_events(res)
+        return res.data['thread_id'], events
 
     def send_resume(self, resume, thread_id: str):
-        res = self.client.post(reverse('chatthread-list'), data={
+        res, events = post_chat(self.client, {
             'id': thread_id,
             'agent': 'project_ask',
             'project': self.project.id,
@@ -408,7 +497,7 @@ class TestAskUserInterrupts:
             'context': {},
         })
         assert res.status_code == 200
-        return parse_sse_events(res)
+        return res.data['thread_id'], events
 
     def test_ask_user_interrupt_flow(self):
         options = [
@@ -431,8 +520,7 @@ class TestAskUserInterrupts:
         ]
 
         with mock_llm_response(messages=llm_messages):
-            events = self.send_message('Write the report')
-            thread_id = events[0]['content']['thread_id']
+            thread_id, events = self.send_message('Write the report')
             interrupt_event = next(e for e in events if e['type'] == 'interrupt')
             interrupt_id = interrupt_event['content'][0]['id']
             assert interrupt_event['content'][0]['value'] == {
@@ -445,18 +533,15 @@ class TestAskUserInterrupts:
             assert res.status_code == 200
             assert res.data['interrupts'] == interrupt_event['content']
 
-            events = self.send_resume({
+            _thread_id, events = self.send_resume({
                 interrupt_id: 'Executive summary only',
             }, thread_id=thread_id)
             assert not any(e['type'] == 'interrupt' for e in events)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'ask_user'
             assert tool_status['content']['status'] == 'success'
-            content = tool_status['content']['content']
-            assert content == 'User answered: Executive summary only'
-            assert tool_status['content']['output'] == {
-                'answer': 'Executive summary only',
-            }
+            output = {'answer': 'Executive summary only'}
+            assert tool_status['content']['output'] == output
 
             res = self.client.get(reverse('chatthread-detail', kwargs={'pk': thread_id}))
             assert res.status_code == 200
@@ -466,12 +551,12 @@ class TestAskUserInterrupts:
                 if m.get('role') == 'tool' and m.get('tool_call', {}).get('name') == 'ask_user'
             )
             assert tool_msg['tool_call']['status'] == 'success'
-            assert tool_msg['tool_call']['content'] == content
+            assert tool_msg['tool_call']['output'] == output
 
-            events = self.send_message('Ask again', thread_id=thread_id)
+            _thread_id, events = self.send_message('Ask again', thread_id=thread_id)
             assert any(e['type'] == 'interrupt' for e in events)
 
-            events = self.send_message('Never mind', thread_id=thread_id)
+            _thread_id, events = self.send_message('Never mind', thread_id=thread_id)
             assert not any(e['type'] == 'interrupt' for e in events)
             assert any(e['type'] == 'text' for e in events)
 
@@ -480,7 +565,7 @@ class TestAskUserInterrupts:
             assert res.data['interrupts'] == []
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectAgentTools:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -497,13 +582,10 @@ class TestProjectAgentTools:
             yield
 
     def run_tool(self, tool, model=None, **kwargs):
-        return self.run_tool_message(tool, model=model, **kwargs).content
-
-    def run_tool_message(self, tool, model=None, **kwargs):
         runtime = ToolRuntime(
             tool_call_id='tool_call_id_1',
             context=ProjectContext(
-                user_id=str(self.user.id),
+                user=self.user,
                 project_id=str(self.project.id),
                 model=model,
             ),
@@ -512,12 +594,18 @@ class TestProjectAgentTools:
             store=None,
             stream_writer=None,
         )
-        res = async_to_sync(tool.ainvoke)(
-            input=kwargs | {
-                'runtime': runtime,
-            },
-        )
-        return res.update['messages'][0]
+        with capture_tool_output() as bucket:
+            res = async_to_sync(tool.ainvoke)(
+                input=kwargs | {
+                    'runtime': runtime,
+                },
+            )
+        msg = res if isinstance(res, ToolMessage) else res.update['messages'][0]
+        msg.additional_kwargs = {
+            **(msg.additional_kwargs or {}),
+            'output': dict(bucket),
+        }
+        return msg
 
     def test_tool_list_notes(self):
         contains_infos = [
@@ -526,7 +614,7 @@ class TestProjectAgentTools:
         ]
         res = self.run_tool(list_notes)
         for info in contains_infos:
-            assert str(info) in res
+            assert str(info) in res.text
 
     def test_tool_read_template(self):
         template = create_template()
@@ -536,8 +624,9 @@ class TestProjectAgentTools:
             yaml_indent(template.main_translation.data['description'], spaces=8),
         ]
         res = self.run_tool(read_template, template_id=str(template.id))
+        assert res.additional_kwargs['output'] == {'id': str(template.id), 'title': template.main_translation.data['title']}
         for info in contains_infos:
-            assert str(info) in res
+            assert str(info) in res.text
 
     @pytest.mark.parametrize(('search_terms', 'expected_templates'), [
         ('', ['t1', 't2', 't3']),  # List all templates (no search terms)
@@ -557,13 +646,13 @@ class TestProjectAgentTools:
         if expected_templates:
             # Check that expected templates are in results
             for template_name in expected_templates:
-                assert str(templates[template_name].id) in res
+                assert str(templates[template_name].id) in res.text
             # Check that unexpected templates are not in results
             for template_name, template in templates.items():
                 if template_name not in expected_templates:
-                    assert str(template.id) not in res
+                    assert str(template.id) not in res.text
         else:
-            assert 'No matching templates found' in res
+            assert 'No matching templates found' in res.text
 
     @pytest.mark.parametrize(('field_path', 'new_value'), [
         # Simple field types
@@ -601,7 +690,8 @@ class TestProjectAgentTools:
             field=f'data.{field_path}',
             value=new_value,
         )
-        assert res == 'Updated successfully.'
+        assert res.text == 'Updated successfully.'
+        assert res.additional_kwargs['output'] == {'id': str(section.section_id), 'title': section.title}
 
         # Verify the update
         section.refresh_from_db()
@@ -617,9 +707,9 @@ class TestProjectAgentTools:
     ])
     def test_tool_update_field_value_invalid_paths(self, file_path, field, error_message):
         res = self.run_tool(update_field_value, file_path=file_path, field=field, value='test value')
-        assert 'Error:' in res
+        assert 'Error:' in res.text
         if error_message:
-            assert error_message in res
+            assert error_message in res.text
 
     @pytest.mark.parametrize(('initial_value', 'old_text', 'new_text', 'expected_result'), [
         ('# Heading\n\nSome content here.', 'Some content', 'Updated content', '# Heading\n\nUpdated content here.'),
@@ -644,9 +734,9 @@ class TestProjectAgentTools:
             old_text=old_text,
             new_text=new_text,
         )
-        assert res == 'Updated successfully'
-
         section.refresh_from_db()
+        assert res.text == 'Updated successfully'
+        assert res.additional_kwargs['output'] == {'id': str(section.section_id), 'title': section.title}
         assert section.data['field_markdown'] == expected_result
 
     @pytest.mark.parametrize(('field', 'new_value'), [
@@ -668,9 +758,9 @@ class TestProjectAgentTools:
             field=field,
             value=new_value,
         )
-        assert res == 'Updated successfully.'
-
         note.refresh_from_db()
+        assert res.text == 'Updated successfully.'
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': note.title}
         assert getattr(note, field) == new_value
 
     @pytest.mark.parametrize(('initial_value', 'old_text', 'new_text', 'expected_result'), [
@@ -687,9 +777,9 @@ class TestProjectAgentTools:
             old_text=old_text,
             new_text=new_text,
         )
-        assert res == 'Updated successfully'
-
         note.refresh_from_db()
+        assert res.text == 'Updated successfully'
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': note.title}
         assert note.text == expected_result
 
     def test_tool_update_note_text_excalidraw_denied(self):
@@ -704,8 +794,8 @@ class TestProjectAgentTools:
             field='text',
             value='attempted write',
         )
-        assert 'Error:' in res
-        assert 'excalidraw' in res.lower()
+        assert 'Error:' in res.text
+        assert 'excalidraw' in res.text.lower()
 
     @pytest.mark.parametrize(('initial_value', 'old_text', 'error_substring'), [
         ('Some content here', 'Non-existent text', 'Could not find'),
@@ -726,8 +816,8 @@ class TestProjectAgentTools:
             old_text=old_text,
             new_text='new text',
         )
-        assert 'Error:' in res
-        assert error_substring in res
+        assert 'Error:' in res.text
+        assert error_substring in res.text
 
     def test_tool_update_markdown_field_non_markdown_field(self):
         res = self.run_tool(
@@ -736,7 +826,7 @@ class TestProjectAgentTools:
             field='data.field_string',
             old_text='old',
             new_text='new',
-        )
+        ).text
         assert 'Error:' in res
         assert 'not of type markdown' in res
 
@@ -744,13 +834,11 @@ class TestProjectAgentTools:
         initial_count = self.project.findings.count()
         res = self.run_tool(create_finding)
 
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
-        assert finding is not None
+        assert 'Successfully created finding' in res.text
+        assert self.project.findings.count() == initial_count + 1
         # Verify finding data is in response
-        assert str(finding.finding_id) in res
+        assert str(finding.finding_id) in res.text
 
     def test_tool_create_finding_with_data(self):
         initial_count = self.project.findings.count()
@@ -761,10 +849,10 @@ class TestProjectAgentTools:
         }
         res = self.run_tool(create_finding, data=finding_data)
 
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
+        assert 'Successfully created finding' in res.content
+        assert self.project.findings.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(finding.finding_id), 'title': 'Custom Finding Title'}
         assert finding.data['title'] == 'Custom Finding Title'
         assert finding.data['cvss'] == 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
         assert finding.data['description'] == 'Custom description'
@@ -776,13 +864,12 @@ class TestProjectAgentTools:
             'recommendation': 'Template Recommendation',
         })
         initial_count = self.project.findings.count()
-
         res = self.run_tool(create_finding, data={}, template_id=str(template.id))
 
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
+        assert 'Successfully created finding' in res.text
+        assert self.project.findings.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(finding.finding_id), 'title': 'Template Title'}
         assert finding.data['title'] == 'Template Title'
         assert finding.data['description'] == 'Template Description'
         assert finding.data['recommendation'] == 'Template Recommendation'
@@ -799,13 +886,12 @@ class TestProjectAgentTools:
             'title': 'Overridden Title',
             'description': 'Overridden Description',
         }
-
         res = self.run_tool(create_finding, data=override_data, template_id=str(template.id))
-
-        assert 'Successfully created finding' in res
-        assert self.project.findings.count() == initial_count + 1
-
         finding = self.project.findings.order_by('-created').first()
+
+        assert 'Successfully created finding' in res.text
+        assert self.project.findings.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(finding.finding_id), 'title': 'Overridden Title'}
         assert finding.data['title'] == 'Overridden Title'
         assert finding.data['description'] == 'Overridden Description'
         # Non-overridden field should come from template
@@ -816,19 +902,18 @@ class TestProjectAgentTools:
         initial_count = self.project.notes.count()
         res = self.run_tool(create_note, data={'title': 'Agent Note', 'text': 'Note content from agent'})
 
-        assert 'Successfully created note' in res
-        assert self.project.notes.count() == initial_count + 1
-
         note = self.project.notes.order_by('-created').first()
+        assert self.project.notes.count() == initial_count + 1
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': 'Agent Note'}
+        assert 'Successfully created note' in res.text
+        assert str(note.note_id) in res.text
         assert note.title == 'Agent Note'
         assert note.text == 'Note content from agent'
         assert note.parent is None
-        assert str(note.note_id) in res
 
     def test_tool_create_note_with_parent_and_order(self):
         parent = create_projectnotebookpage(project=self.project, title='Parent note', order=1)
         sibling = create_projectnotebookpage(project=self.project, parent=parent, title='Sibling', order=1, text='sibling')
-
         res = self.run_tool(
             create_note,
             data={'title': 'Child note', 'text': 'Nested content'},
@@ -836,8 +921,9 @@ class TestProjectAgentTools:
             order=1,
         )
 
-        assert 'Successfully created note' in res
         note = self.project.notes.order_by('-created').first()
+        assert 'Successfully created note' in res.text
+        assert res.additional_kwargs['output'] == {'id': str(note.note_id), 'title': 'Child note'}
         assert note.title == 'Child note'
         assert note.text == 'Nested content'
         assert note.parent_id == parent.id
@@ -860,20 +946,21 @@ class TestProjectAgentTools:
             'messages': [AIMessage(content='Screenshot shows SQL error on login form')],
         })
         with mock.patch('sysreptor.ai.agents.tools.create_agent', return_value=fake_agent):
-            msg = self.run_tool_message(analyze_image, image=image_ref, prompt='What error is shown?')
+            msg = self.run_tool(analyze_image, image=image_ref, prompt='What error is shown?')
 
         if expected:
             assert msg.status == 'success'
-            assert msg.content == 'Screenshot shows SQL error on login form'
+            assert msg.text == 'Screenshot shows SQL error on login form'
             assert msg.additional_kwargs['output'] == {
                 'image': 'image.png',
                 'model': 'test:fake-model',
+                'message': msg.text,
             }
         else:
             assert msg.status == 'error'
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestAgentPermissions:
     @pytest.mark.parametrize(('user_name', 'project_name', 'expected_read', 'expected_write'), [
         ('member', 'project', True, True),
@@ -925,7 +1012,7 @@ class TestAgentPermissions:
                 ]),
                 AIMessage(content='done'),
             ]):
-                res = client.post(reverse('chatthread-list'), data={
+                res, events = post_chat(client, {
                     'id': thread_id,
                     'agent': 'project_agent',
                     'project': project.id,
@@ -934,7 +1021,6 @@ class TestAgentPermissions:
                 })
                 if expected_read:
                     assert res.status_code == 200
-                    events = parse_sse_events(res)
                     tool_status = next(e for e in events if e['type'] == 'tool_call_status')['content']['status']
                     assert tool_status == ('success' if expected_write else 'error')
                 else:
@@ -944,11 +1030,93 @@ class TestAgentPermissions:
         res_thread = client.get(reverse('chatthread-detail', kwargs={'pk': thread.id}))
         assert res_thread.status_code in ([200] if expected_read else [403, 404])
 
-        res_latest = client.get(reverse('chatthread-latest', query={'project': project.id}))
-        assert res_latest.status_code in ([200] if expected_read else [403, 404])
+        # ChatThread list permissions
+        res_list = client.get(reverse('chatthread-list'), data={'project': project.id})
+        if expected_read:
+            assert res_list.status_code == 200
+            assert any(str(t['id']) == str(thread.id) for t in res_list.data['results'])
+        else:
+            assert res_list.status_code in [200, 403]
+            if res_list.status_code == 200:
+                assert not any(str(t['id']) == str(thread.id) for t in res_list.data['results'])
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
+class TestChatThreadTitleListDelete:
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self.user = create_user()
+        self.other = create_user()
+        self.project = create_project(members=[self.user])
+        self.other_project = create_project(members=[self.user])
+        self.client = api_client(self.user)
+
+    def test_list_filters_by_project_and_user(self):
+        own = ChatThread.objects.create(
+            user=self.user, project=self.project, title='Own',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        other_project_thread = ChatThread.objects.create(
+            user=self.user, project=self.other_project, title='Other project',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        other_user_thread = ChatThread.objects.create(
+            user=self.other, project=self.project, title='Other user',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+
+        res = self.client.get(reverse('chatthread-list'), data={'project': self.project.id})
+        assert res.status_code == 200
+        ids = {str(t['id']) for t in res.data['results']}
+        assert str(own.id) in ids
+        assert str(other_project_thread.id) not in ids
+        assert str(other_user_thread.id) not in ids
+        assert all('title' in t and 'run_status' in t and 'created' in t for t in res.data['results'])
+
+    def test_delete_own_thread(self):
+        thread = ChatThread.objects.create(
+            user=self.user, project=self.project, title='Delete me',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        LangchainCheckpoint.objects.create(
+            thread=thread,
+            checkpoint={'id': str(uuid4()), 'channel_versions': {}, 'channel_values': {}},
+        )
+        res = self.client.delete(reverse('chatthread-detail', kwargs={'pk': thread.id}))
+        assert res.status_code == 204
+        assert not ChatThread.objects.filter(id=thread.id).exists()
+        assert not LangchainCheckpoint.objects.filter(thread_id=thread.id).exists()
+
+    def test_delete_other_users_thread_returns_404(self):
+        thread = ChatThread.objects.create(
+            user=self.other, project=self.project, title='Secret',
+            run_id=uuid4(), run_status=AgentRunStatus.COMPLETED,
+        )
+        res = self.client.delete(reverse('chatthread-detail', kwargs={'pk': thread.id}))
+        assert res.status_code == 404
+        assert ChatThread.objects.filter(id=thread.id).exists()
+
+    def test_delete_running_thread_cancels_run(self):
+        from django.utils import timezone
+
+        thread = ChatThread.objects.create(
+            user=self.user, project=self.project, title='Running',
+            run_id=uuid4(), run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=timezone.now(),
+        )
+        with capture_stream_events() as events:
+            res = self.client.delete(reverse('chatthread-detail', kwargs={'pk': thread.id}))
+        assert res.status_code == 204
+        assert not ChatThread.objects.filter(id=thread.id).exists()
+        assert any(
+            e['type'] == 'run_status'
+            and e['content']['status'] == 'cancelled'
+            and e['content']['error'] == 'Cancelled'
+            for e in events
+        )
+
+
+@pytest.mark.django_db(transaction=True)
 class TestAiCleanupTask:
     def test_cleanup_old_langchain_checkpoints(self):
         with mock_time(before=timedelta(days=2)):
@@ -964,6 +1132,28 @@ class TestAiCleanupTask:
             unreferenced_blob = LangchainCheckpointBlob.objects.create(
                 thread=thread, checkpoint_ns='',
                 channel='messages', version='1', type='json', blob=b'"v1"',
+            )
+
+            # Parent and subagent namespaces each keep their own latest checkpoint.
+            # A newer parent row must not cause the subagent latest (and its blobs) to be deleted.
+            subagent_ns = 'subagent:general-purpose:tool-1'
+            old_subagent = LangchainCheckpoint.objects.create(
+                thread=thread,
+                checkpoint_ns=subagent_ns,
+                checkpoint={'id': str(uuid4()), 'channel_versions': {'messages': '1'}, 'channel_values': {}},
+            )
+            current_subagent = LangchainCheckpoint.objects.create(
+                thread=thread,
+                checkpoint_ns=subagent_ns,
+                checkpoint={'id': str(uuid4()), 'channel_versions': {'messages': '2'}, 'channel_values': {}},
+            )
+            current_subagent_write = LangchainCheckpointWrite.objects.create(
+                thread=thread, checkpoint_ns=subagent_ns, checkpoint_id=current_subagent.checkpoint_id,
+                task_id='s2', idx=0, channel='messages', type='json', blob=b'"sub"',
+            )
+            referenced_subagent_blob = LangchainCheckpointBlob.objects.create(
+                thread=thread, checkpoint_ns=subagent_ns,
+                channel='messages', version='2', type='json', blob=b'"sub-v2"',
             )
 
             current = LangchainCheckpoint.objects.create(
@@ -987,13 +1177,57 @@ class TestAiCleanupTask:
         assert not LangchainCheckpoint.objects.filter(pk=old.pk).exists()
         assert not LangchainCheckpointWrite.objects.filter(pk=old_write.pk).exists()
         assert not LangchainCheckpointBlob.objects.filter(pk=unreferenced_blob.pk).exists()
+        assert not LangchainCheckpoint.objects.filter(pk=old_subagent.pk).exists()
 
         assert LangchainCheckpoint.objects.filter(pk=current.pk).exists()
         assert LangchainCheckpointWrite.objects.filter(pk=current_write.pk).exists()
         assert LangchainCheckpointBlob.objects.filter(pk=referenced_blob.pk).exists()
+        assert LangchainCheckpoint.objects.filter(pk=current_subagent.pk).exists()
+        assert LangchainCheckpointWrite.objects.filter(pk=current_subagent_write.pk).exists()
+        assert LangchainCheckpointBlob.objects.filter(pk=referenced_subagent_blob.pk).exists()
+
+    def test_cleanup_stale_agent_runs(self):
+        user = create_user()
+        project = create_project()
+        stale = ChatThread.objects.create(
+            user=user,
+            project=project,
+            run_id=uuid4(),
+            run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=timezone.now() - timedelta(seconds=HEARTBEAT_TTL_SECONDS * 2),
+        )
+        fresh = ChatThread.objects.create(
+            user=user,
+            project=project,
+            run_id=uuid4(),
+            run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=timezone.now(),
+        )
+        no_heartbeat = ChatThread.objects.create(
+            user=user,
+            project=project,
+            run_id=uuid4(),
+            run_status=AgentRunStatus.RUNNING,
+            run_heartbeat_at=None,
+        )
+
+        cleanup_stale_agent_runs(task_info=PeriodicTaskInfo(
+            spec=next(filter(lambda t: t.id == 'cleanup_stale_agent_runs', periodic_task_registry.tasks)),
+            model=PeriodicTask(last_success=None),
+        ))
+
+        stale.refresh_from_db()
+        fresh.refresh_from_db()
+        no_heartbeat.refresh_from_db()
+        assert stale.run_status == AgentRunStatus.ERROR
+        assert stale.run_error == 'Agent aborted'
+        assert fresh.run_status == AgentRunStatus.RUNNING
+        assert fresh.run_error is None
+        assert no_heartbeat.run_status == AgentRunStatus.ERROR
+        assert no_heartbeat.run_error == 'Agent aborted'
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestLLMConfig:
     @override_configuration(AI_AGENT_MODELS=[])
     @mock.patch.dict('os.environ', {'AI_AGENT_MODEL': ''})
@@ -1066,15 +1300,20 @@ class TestLLMConfig:
             mock.patch('sysreptor.ai.agents.tools.get_model_configs', return_value=models),
             mock.patch('sysreptor.ai.agents.tools.init_chat_model', return_value=mock.Mock()) as init_mock,
             mock.patch('sysreptor.ai.agents.tools.create_agent', return_value=fake_agent),
+            capture_tool_output() as bucket,
         ):
             msg = async_to_sync(analyze_image.ainvoke)({
                 'image': 'file0.png',
                 'runtime': ToolRuntime(
                     tool_call_id='t1',
-                    context=ProjectContext(user_id=str(user.id), project_id=str(project.id), model='main-model'),
+                    context=ProjectContext(user=user, project_id=str(project.id), model='main-model'),
                     state=None, config={}, store=None, stream_writer=None,
                 ),
-            }).update['messages'][0]
+            })
+        msg.additional_kwargs = {
+            **(msg.additional_kwargs or {}),
+            'output': dict(bucket),
+        }
 
         if expected:
             assert msg.status == 'success'
@@ -1109,7 +1348,7 @@ class TestLLMConfig:
         ]
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestLLMModelSelection:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -1128,7 +1367,7 @@ class TestLLMModelSelection:
             data['model'] = model
         if thread_id is not None:
             data['id'] = thread_id
-        return self.client.post(reverse('chatthread-list'), data=data)
+        return post_chat(self.client, data)
 
     @pytest.mark.parametrize(('model', 'expected'), [
         ('model-a', True),
@@ -1143,11 +1382,11 @@ class TestLLMModelSelection:
     ])
     def test_model_selection(self, model, expected):
         with mock_llm_response(messages=[AIMessage(content='Hello')]):
-            res = self.send_message('Hi', model=model)
+            res, events = self.send_message('Hi', model=model)
             if expected:
                 assert res.status_code == 200
-                events = parse_sse_events(res)
-                assert events[0]['content']['thread_id']
+                assert res.data['thread_id']
+                assert events
             else:
                 assert res.status_code == 400
 
@@ -1157,16 +1396,16 @@ class TestLLMModelSelection:
     ])
     def test_switch_model_on_existing_thread(self):
         with mock_llm_response(messages=[AIMessage(content='Hello')]):
-            res = self.send_message('Hi', model='model-a')
+            res, _events = self.send_message('Hi', model='model-a')
             assert res.status_code == 200
-            thread_id = parse_sse_events(res)[0]['content']['thread_id']
+            thread_id = res.data['thread_id']
 
         with mock_llm_response(messages=[AIMessage(content='Hello again')]):
-            res = self.send_message('Follow up', model='model-b', thread_id=thread_id)
+            res, _events = self.send_message('Follow up', model='model-b', thread_id=thread_id)
             assert res.status_code == 200
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectFilesystemBackend:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -1184,6 +1423,12 @@ class TestProjectFilesystemBackend:
         result = self.backend.ls('/project/reporting/findings/')
         paths = [e['path'] for e in result.entries or []]
         assert any(p.endswith(f'/{finding.finding_id}.yaml') for p in paths)
+
+    def test_ls_empty_findings(self):
+        self.project.findings.all().delete()
+        result = self.backend.ls('/project/reporting/findings/')
+        assert result.error is None
+        assert result.entries == []
 
     def test_lazy_file_loading(self):
         with mock.patch('sysreptor.ai.agents.project.format_finding_data') as format_finding:
@@ -1252,7 +1497,7 @@ class TestProjectFilesystemBackend:
     def test_read_only_write(self):
         result = self.backend.write('/project/reporting/findings/new.yaml', 'content')
         assert result.error is not None
-        assert 'read-only' in result.error.lower()
+        assert 'write_file' in result.error.lower()
         assert 'update_field_value' in result.error
         # The routed backend sees the prefix-stripped path
         assert '/reporting/findings/new.yaml' in result.error
@@ -1261,16 +1506,46 @@ class TestProjectFilesystemBackend:
         finding = self.project.findings.first()
         result = self.backend.edit(finding_path(finding.finding_id), 'old', 'new')
         assert result.error is not None
-        assert 'read-only' in result.error.lower()
+        assert 'edit_file' in result.error.lower()
+
+    @pytest.mark.parametrize('resource', ['finding', 'note'])
+    def test_delete_success(self, resource):
+        if resource == 'finding':
+            obj_id = self.project.findings.first().finding_id
+            path = finding_path(obj_id)
+            qs = PentestFinding.objects.filter(project_id=self.project.id, finding_id=obj_id)
+        elif resource == 'note':
+            obj_id = create_projectnotebookpage(project=self.project, title='Delete me', text='body').note_id
+            path = note_path(obj_id)
+            qs = ProjectNotebookPage.objects.filter(project_id=self.project.id, note_id=obj_id)
+        result = self.backend.delete(path)
+        assert not result.error
+        assert result.path == path
+        assert not qs.exists()
+
+    @pytest.mark.parametrize(('path', 'error_substr'), [
+        (section_path('other'), 'not supported'),
+        ('/project/project.yaml', 'not supported'),
+        (section_path('nonexistent'), 'not supported'),
+        ('/project/notes/nonexistent.yaml', 'file_not_found'),
+        ('/project/reporting/findings/nonexistent.yaml', 'file_not_found'),
+    ])
+    def test_delete_rejected(self, path, error_substr):
+        result = self.backend.delete(path)
+        assert error_substr in result.error.lower()
+
+    def test_delete_permission_denied(self):
+        update(self.project, readonly=True)
+        result = self.backend.delete(finding_path(self.project.findings.first().finding_id))
+        assert 'write permissions' in result.error.lower()
 
     def test_project_scoping(self):
         other_project = create_project(members=[self.user])
-        other_finding = other_project.findings.first()
-        result = self.backend.read(finding_path(other_finding.finding_id))
-        assert result.error is not None
+        result = self.backend.read(finding_path(other_project.findings.first().finding_id))
+        assert 'file_not_found' in result.error.lower()
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestProjectFilesystemAgent:
     def test_agent_read_file_flow(self):
         user = create_user()
@@ -1285,18 +1560,16 @@ class TestProjectFilesystemAgent:
             AIMessage(content=f'The finding title is {finding.title}.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_ask',
                 'project': project.id,
                 'messages': ['What is the finding title?'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'read_file'
             assert tool_status['content']['status'] == 'success'
-            assert finding.title in tool_status['content']['content']
 
     def test_agent_scratch_file_write_then_read(self):
         # Regular (non-/project) files use the read-write StateBackend.
@@ -1313,20 +1586,18 @@ class TestProjectFilesystemAgent:
             AIMessage(content='Saved and read back the plan.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_agent',
                 'project': project.id,
                 'messages': ['Write a plan to a scratch file and read it back'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             statuses = [e for e in events if e['type'] == 'tool_call_status']
             write_status = next(e for e in statuses if e['content']['name'] == 'write_file')
             assert write_status['content']['status'] == 'success'
             read_status = next(e for e in statuses if e['content']['name'] == 'read_file')
             assert read_status['content']['status'] == 'success'
-            assert 'step 1: investigate' in read_status['content']['content']
 
     def test_agent_write_project_path_read_only(self):
         # Writing into /project/ via the generic write tool is rejected with a helpful error.
@@ -1341,18 +1612,46 @@ class TestProjectFilesystemAgent:
             AIMessage(content='I cannot write there.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_agent',
                 'project': project.id,
                 'messages': ['Overwrite the finding file'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'write_file'
             assert tool_status['content']['status'] == 'error'
-            assert 'update_field_value' in tool_status['content']['content']
+
+    def test_agent_delete_includes_title_in_output(self):
+        user = create_user()
+        project = create_project(members=[user])
+        client = api_client(user=user)
+        finding = project.findings.first()
+        finding_title = finding.title
+        file_path = finding_path(finding.finding_id)
+        llm_messages = [
+            AIMessage(content='', tool_calls=[
+                ToolCall(id='tool_call_1', name='delete', args={'file_path': file_path}),
+            ]),
+            AIMessage(content='Deleted the finding.'),
+        ]
+        with mock_llm_response(messages=llm_messages):
+            res, events = post_chat(client, {
+                'agent': 'project_agent',
+                'project': project.id,
+                'messages': ['Delete the finding'],
+                'context': {},
+            })
+            assert res.status_code == 200
+            tool_status = next(e for e in events if e['type'] == 'tool_call_status')
+            assert tool_status['content']['name'] == 'delete'
+            assert tool_status['content']['status'] == 'success'
+            assert tool_status['content']['output'] == {
+                'id': str(finding.finding_id),
+                'title': finding_title,
+            }
+            assert not PentestFinding.objects.filter(project_id=project.id, finding_id=finding.finding_id).exists()
 
 
 DEMO_SKILL_MD = textwrap.dedent("""\
@@ -1401,14 +1700,13 @@ def get_agent_system_prompt(project, user):
     """Run a chat request and return the system prompt handed to the model."""
     model = FakeChatModel(messages=iter([AIMessage(content='ok')]))
     with mock_llm_response(model=model):
-        res = api_client(user=user).post(reverse('chatthread-list'), data={
+        res, _events = post_chat(api_client(user=user), {
             'agent': 'project_ask',
             'project': project.id,
             'messages': ['Hello'],
             'context': {},
         })
         assert res.status_code == 200
-        parse_sse_events(res)
     system = model.message_log[0]['messages'][0]
     assert system.type == 'system'
     return system.content if isinstance(system.content, str) else str(system.content)
@@ -1429,7 +1727,7 @@ def test_normalize_note_filename(title, expected):
     assert NotesAgentsDirBackend.normalize_note_filename(title) == expected
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestNotesAgentsDirBackend:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -1446,10 +1744,11 @@ class TestNotesAgentsDirBackend:
             yield
 
     @pytest.mark.parametrize(('setup', 'ls_path', 'expected_dirs'), [
-        (lambda p: None, '/.agents/', []),
+        (lambda p: None, '/.agents/', ['/.agents/skills/']),
         (lambda p: None, '/.agents/skills/', []),
         (create_agents_md_only, '/.agents/skills/', []),
-        (create_nested_agents_skill, '/.agents/', []),
+        (create_nested_agents_skill, '/.agents/', ['/.agents/skills/']),
+        (create_nested_agents_skill, '/.agents/skills/', []),
         (lambda p: create_skills_note_tree(p, {'incomplete': {'readme.md': 'no skill md'}}),
          '/.agents/skills/', ['/.agents/skills/incomplete/']),
         (lambda p: create_skills_note_tree(p, {'my/skill': {'SKILL.md': DEMO_SKILL_MD}}),
@@ -1568,7 +1867,7 @@ class TestNotesAgentsDirBackend:
         assert any(m['path'].endswith('/demo-skill/SKILL.md') for m in (glob.matches or []))
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestNotesAgentDirAgent:
     @pytest.mark.parametrize('with_skill', [
         True,
@@ -1601,18 +1900,16 @@ class TestNotesAgentDirAgent:
             AIMessage(content='Loaded the demo skill.'),
         ]
         with mock_llm_response(messages=llm_messages):
-            res = client.post(reverse('chatthread-list'), data={
+            res, events = post_chat(client, {
                 'agent': 'project_ask',
                 'project': project.id,
                 'messages': ['Load the demo skill'],
                 'context': {},
             })
             assert res.status_code == 200
-            events = parse_sse_events(res)
             tool_status = next(e for e in events if e['type'] == 'tool_call_status')
             assert tool_status['content']['name'] == 'read_file'
             assert tool_status['content']['status'] == 'success'
-            assert 'Always start findings' in tool_status['content']['content']
 
     @pytest.mark.parametrize('with_agents_md', [True, False])
     def test_agents_md_in_system_prompt(self, with_agents_md):
@@ -1633,7 +1930,7 @@ class TestNotesAgentDirAgent:
 
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestDjangoModelCheckpointer:
     def setup_method(self):
         self.thread = ChatThread.objects.create(
@@ -1766,3 +2063,252 @@ class TestDjangoModelCheckpointer:
         assert 'seed' in history['messages']
         assert history['messages']['seed'] == [{'id': 1}]
         assert history['messages']['writes'] == [('w1', 'messages', {'id': 2})]
+
+
+@pytest.mark.django_db(transaction=True)
+class TestBackgroundAgentRuns:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.project = create_project(members=[self.user])
+        self.client = api_client(user=self.user)
+
+    def create_chatthread(self, **kwargs):
+        defaults = {
+            'user': self.user,
+            'project': self.project,
+            'run_id': uuid4(),
+            'run_status': AgentRunStatus.RUNNING,
+            'run_heartbeat_at': timezone.now(),
+        }
+        return ChatThread.objects.create(**(defaults | kwargs))
+
+    def test_thread_busy_returns_409(self):
+        thread = self.create_chatthread()
+        res = self.client.post(reverse('chatthread-list'), data={
+            'id': thread.id,
+            'agent': 'project_agent',
+            'project': self.project.id,
+            'messages': ['Hi'],
+        })
+        assert res.status_code == 409
+        assert res.data['code'] == 'thread_busy'
+        assert res.data['active_run'] == str(thread.run_id)
+
+    def test_cancel(self):
+        thread = self.create_chatthread()
+        with (
+            capture_stream_events() as events,
+            mock.patch('sysreptor.ai.runs.send_ai_control') as send_control,
+        ):
+            res = self.client.post(reverse('chatthread-cancel', kwargs={'pk': thread.id}))
+        assert res.status_code == 200
+        assert res.data['run_id'] == str(thread.run_id)
+        thread.refresh_from_db()
+        assert thread.run_status == AgentRunStatus.CANCELLED
+        assert thread.run_error == 'Cancelled'
+        assert any(
+            e['type'] == 'run_status'
+            and e['content']['status'] == 'cancelled'
+            and e['content']['error'] == 'Cancelled'
+            for e in events
+        )
+        send_control.assert_called_once()
+        assert self.client.post(reverse('chatthread-cancel', kwargs={'pk': thread.id})).status_code == 404
+
+    def test_pending_event_buffer(self):
+        buf = PendingEventBuffer()
+        buf.apply({'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'Hello'}, 'subagent': 'tc-1'})
+        buf.apply({'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': ' world'}})
+        buf.apply({'type': 'tool_call', 'content': {'id': 'tc-1', 'name': 'list_notes', 'status': 'pending'}})
+        buf.apply({'type': 'tool_call_status', 'content': {'id': 'tc-1', 'name': 'list_notes', 'status': 'success'}})
+        events = buf.events()
+        assert [(e['type'], e['content'].get('text') or e['content'].get('status')) for e in events] == [
+            ('text', 'Hello world'),
+            ('tool_call', 'success'),
+        ]
+        assert events[0]['subagent'] == 'tc-1'
+        assert events[0]['content']['replace'] is True
+        assert [e['type'] for e in buf.events(['text:m1'])] == ['tool_call']
+        assert buf.events(['text:m1', 'tool_call:tc-1']) == []
+
+        # replace=None keeps deltas unmarked; status-only uses tool_call:{id} key
+        buf2 = PendingEventBuffer()
+        buf2.apply({'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'Hi'}})
+        assert 'replace' not in buf2.events(replace=None)[0]['content']
+        buf2.apply({'type': 'tool_call_status', 'content': {'id': 'tc-2', 'name': 'list_notes', 'status': 'success'}})
+        assert [e['type'] for e in buf2.events()] == ['text', 'tool_call_status']
+        assert buf2.events(['tool_call:tc-2'])[0]['type'] == 'text'
+
+    def test_throttle_ai_stream_events(self):
+        @async_to_sync
+        async def collect(stream, **kwargs):
+            return [e async for e in throttle_ai_stream_events(stream, **kwargs)]
+
+        async def gen(events):
+            for e in events:
+                yield e
+
+        events = collect(gen([
+            {'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'A'}},
+            {'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'B'}},
+            {'type': 'text', 'content': {'id': 'm1', 'role': 'assistant', 'text': 'AB', 'replace': True}},
+            {'type': 'tool_call', 'content': {'id': 'tc1', 'name': 'list_notes'}},
+            {'type': 'tool_call_status', 'content': {'id': 'tc1', 'name': 'list_notes', 'status': 'success'}},
+        ]), interval=60)
+        assert [(e['type'], e['content'].get('text') or e['content'].get('status') or e['content'].get('name')) for e in events] == [
+            ('text', 'A'),
+            ('text', 'AB'),
+            ('tool_call', 'list_notes'),
+            ('tool_call_status', 'success'),
+        ]
+
+    def test_reattach_receives_pending_events(self):
+        thread = self.create_chatthread()
+        layer = InMemoryChannelLayer()
+        worker = AgentRunWorker(thread, agent='project_ask', model=None, input_data={})
+        worker.channel_layer = layer
+        worker.pending.apply({'type': 'text', 'content': {'id': 'msg-1', 'role': 'assistant', 'text': 'Hello wor'}})
+        worker.pending.apply({'type': 'tool_call', 'content': {'id': 'tc-1', 'name': 'list_notes', 'status': 'pending'}})
+        worker.pending.apply({'type': 'text', 'content': {'id': 'covered', 'role': 'assistant', 'text': 'skip'}})
+
+        async def _run():
+            with (
+                mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=layer),
+                mock.patch('sysreptor.ai.agents.get_chat_history', return_value={
+                    'messages': [], 'interrupts': [], 'covered': ['text:covered'],
+                }),
+            ):
+                control_task = asyncio.create_task(worker.control_loop())
+                try:
+                    await asyncio.sleep(0.05)
+                    received = []
+                    async for event in subscribe_thread(thread):
+                        if not event:
+                            continue
+                        received.append(event)
+                        if event.get('type') == 'tool_call':
+                            async with worker.lock:
+                                await send_ai_stream_event(thread.run_id, {
+                                    'type': 'text', 'content': {'id': 'msg-1', 'role': 'assistant', 'text': 'ld'},
+                                })
+                                await send_ai_stream_event(thread.run_id, {
+                                    'type': 'run_status', 'content': {'status': 'completed'},
+                                })
+                        if event.get('type') == 'run_status':
+                            break
+                    return received
+                finally:
+                    control_task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await control_task
+
+        events = async_to_sync(_run)()
+        assert [e['type'] for e in events] == ['snapshot', 'text', 'tool_call', 'text', 'run_status']
+        assert events[1]['content']['text'] == 'Hello wor'
+        assert events[1]['content']['replace'] is True
+        assert events[2]['content']['id'] == 'tc-1'
+        assert not any(e.get('content', {}).get('id') == 'covered' for e in events)
+        assert events[-2]['content']['text'] == 'ld'
+        assert not events[-2]['content'].get('replace')
+        assert events[-1]['content']['status'] == 'completed'
+
+    def test_stream_finished_thread(self):
+        thread = self.create_chatthread(
+            run_status=AgentRunStatus.ERROR,
+            run_error='Error: Internal server error',
+            run_heartbeat_at=None,
+        )
+        events = parse_sse_events(self.client.get(reverse('chatthread-stream', kwargs={'pk': thread.id})))
+        assert events[0]['type'] == 'snapshot'
+        assert events[0]['content']['run_status'] == 'error'
+        assert events[0]['content']['run_error'] == 'Error: Internal server error'
+        assert events[-1]['type'] == 'run_status'
+        assert events[-1]['content']['status'] == 'error'
+        assert events[-1]['content']['error'] == 'Error: Internal server error'
+
+    def test_subscribe_ends_when_heartbeat_goes_stale(self):
+        """Live subscriber must not hang if the worker dies without run_status."""
+        thread = self.create_chatthread()
+
+        async def _run():
+            with (
+                mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=InMemoryChannelLayer()),
+                mock.patch('sysreptor.ai.runs.KEEPALIVE_INTERVAL_SECONDS', 0.05),
+                mock.patch('sysreptor.ai.agents.get_chat_history', return_value={'messages': [], 'interrupts': [], 'covered': []}),
+            ):
+                received = []
+                async for event in subscribe_thread(thread):
+                    if event is None:
+                        # Simulate worker death after the client attached.
+                        await ChatThread.objects.filter(pk=thread.pk).aupdate(
+                            run_heartbeat_at=timezone.now() - timedelta(seconds=HEARTBEAT_TTL_SECONDS + 5),
+                        )
+                        received.append(None)
+                        continue
+                    received.append(event)
+                    if event.get('type') == 'run_status':
+                        break
+                return received
+
+        events = async_to_sync(_run)()
+        assert events[0]['type'] == 'snapshot'
+        assert events[-1]['type'] == 'run_status'
+        assert events[-1]['content']['status'] == 'error'
+        assert events[-1]['content']['error'] == 'Agent aborted'
+        thread.refresh_from_db()
+        assert thread.run_status == AgentRunStatus.ERROR
+        assert thread.run_error == 'Agent aborted'
+
+    @pytest.mark.parametrize(('setup', 'mutate', 'admin_permissions_enabled', 'expected_status'), [
+        ('member', lambda s: None, False, AgentRunStatus.RUNNING),
+        ('member', lambda s: ProjectMemberInfo.objects.filter(project=s.project, user=s.user).delete(), False, AgentRunStatus.ERROR),
+        ('member', lambda s: update(s.user, is_active=False), False, AgentRunStatus.ERROR),
+        ('member', lambda s: s.project.delete(), False, None),
+        ('admin', lambda s: None, True, AgentRunStatus.RUNNING),
+        ('admin', lambda s: None, False, AgentRunStatus.ERROR),
+    ])
+    def test_watch_access(self, setup, mutate, admin_permissions_enabled, expected_status):
+        if setup == 'admin':
+            thread = self.create_chatthread(
+                user=create_user(is_superuser=True),
+                project=create_project(members=[]),
+            )
+        else:
+            thread = self.create_chatthread()
+        mutate(self)
+
+        worker = AgentRunWorker(
+            thread,
+            agent='project_ask',
+            model=None,
+            input_data={},
+            admin_permissions_enabled=admin_permissions_enabled,
+        )
+        initial_heartbeat = thread.run_heartbeat_at
+
+        async def _run():
+            with (
+                mock.patch.object(worker, 'drive', new=asyncio.Event().wait),
+                mock.patch('sysreptor.ai.runs.HEARTBEAT_INTERVAL_SECONDS', 0),
+                mock.patch('sysreptor.ai.runs.get_channel_layer', return_value=InMemoryChannelLayer()),
+            ):
+                run_task = asyncio.create_task(worker.run())
+                done, _ = await asyncio.wait({run_task}, timeout=1)
+                if expected_status == AgentRunStatus.RUNNING:
+                    assert not done
+                    current = await ChatThread.objects.aget(pk=thread.pk)
+                    assert current.run_status == AgentRunStatus.RUNNING
+                    assert current.run_heartbeat_at != initial_heartbeat
+                    run_task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await run_task
+
+        async_to_sync(_run)()
+        if expected_status is None:
+            assert not ChatThread.objects.filter(pk=thread.id).exists()
+        elif expected_status == AgentRunStatus.RUNNING:
+            pass  # Already tested above
+        else:
+            thread.refresh_from_db()
+            assert thread.run_status == expected_status

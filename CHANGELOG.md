@@ -2,6 +2,25 @@
 
 ## Upcoming
 * Fix `update.sh` so a failed container start is retried on the next run
+* Add design for HTB CDEP certification
+* AI agent: support multiple agent tabs
+* AI agent: continue running agents in background
+* AI agent: show chat history of previous agents
+* AI agent: show subagent messages in history
+* AI agent: support deleting findings and notes
+* AI agent: cancel agents when user's access was revoked
+* Run tasks in background worker processes
+
+
+## v2026.97 - 2026-10-25
+* Security: Update dependencies to fix vulnerabilities
+
+
+## v2026.95 - 2026-10-22
+* Security: Remove compromised eMudhra certificates from certificate stores
+
+
+## v2026.89 - 2026-10-14
 * Fix duplicate module check in plugin loader
 * Prevent changing the design of readonly projects
 * Prevent updating shared root note title

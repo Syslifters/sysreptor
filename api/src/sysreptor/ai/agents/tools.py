@@ -7,13 +7,15 @@ from collections.abc import Callable
 from functools import wraps
 from typing import Annotated
 
-from asgiref.sync import iscoroutinefunction, sync_to_async
+from asgiref.sync import iscoroutinefunction
+from channels.db import database_sync_to_async
 from django.core.exceptions import ValidationError
 from langchain.agents import create_agent
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
+from langchain_core.runnables.config import merge_configs
 from langgraph.errors import GraphInterrupt
-from langgraph.types import Command, interrupt
+from langgraph.types import interrupt
 from pydantic import Field
 
 from sysreptor.ai.agents.base import (
@@ -23,34 +25,31 @@ from sysreptor.ai.agents.base import (
     init_chat_model,
     to_yaml,
 )
-from sysreptor.ai.agents.middleware import stamp_message_timestamp
+from sysreptor.ai.agents.middleware import set_tool_output, subagent_checkpoint_ns
 from sysreptor.ai.agents.project import ProjectContext, get_project
 
 
 def agent_tool(metadata=None, **kwargs):
     def decorator(func: Callable) -> Callable:
+        tool_name = kwargs.get('name') or func.__name__
         if not iscoroutinefunction(func):
-            func = sync_to_async(func)
+            func = database_sync_to_async(func)
 
         @tool(**kwargs)
         @wraps(func)
         async def tool_func(*tool_args, runtime: ToolRuntime, **tool_kwargs):
             out = ToolMessage(
                 content='',
+                name=tool_name,
                 status='error',
                 tool_call_id=runtime.tool_call_id,
             )
-            stamp_message_timestamp(out)
 
             try:
-                res_output = None
                 res_content = await func(*tool_args, runtime=runtime, **tool_kwargs)
-                if isinstance(res_content, tuple):
-                    res_content, res_output = res_content
                 if not isinstance(res_content, str):
                     res_content = to_yaml(res_content)
                 out.content = res_content
-                out.additional_kwargs['output'] = res_output or {}
                 out.status = 'success'
             except GraphInterrupt:
                 raise
@@ -59,9 +58,7 @@ def agent_tool(metadata=None, **kwargs):
                 if not out.content:
                     logging.exception(ex)
                     out.content = 'Error: Unexpected error'
-            return Command(update={
-                'messages': [out],
-            })
+            return out
         tool_func.metadata = (tool_func.metadata or {}) | (metadata or {})
         return tool_func
     return decorator
@@ -72,7 +69,7 @@ async def ask_user(
     runtime: ToolRuntime[ProjectContext],
     question: Annotated[str, Field(min_length=1)],
     options: Annotated[list[str], Field(min_length=2)],
-) -> tuple[str, dict]:
+) -> str:
     """
     Ask the user a clarifying question and wait for their answer.
 
@@ -91,8 +88,8 @@ async def ask_user(
     })
     if not isinstance(answer, str) or not answer.strip():
         raise ValidationError('Answer must be a non-empty string')
-    content = f'User answered: {answer}'
-    return content, {'answer': answer}
+    set_tool_output({'answer': answer})
+    return f'User answered: {answer}'
 
 
 @agent_tool(parse_docstring=True)
@@ -100,7 +97,7 @@ async def analyze_image(
     runtime: ToolRuntime[ProjectContext],
     image: str,
     prompt: str = '',
-) -> tuple[str, dict]:
+) -> str:
     """
     Analyze a project screenshot or image with a vision model and return a text summary.
 
@@ -130,7 +127,7 @@ async def analyze_image(
         """)
     default_user_prompt = 'Analyze this screenshot for pentest evidence and reproduction details.'
 
-    @sync_to_async
+    @database_sync_to_async
     def prepare():
         # Resolve vision model. Use current model if not configured.
         active_model_id = runtime.context.model or get_default_model_id()
@@ -170,14 +167,21 @@ async def analyze_image(
         return llm, human_message, filename, vision_model_id
 
     llm, human_message, filename, vision_model_id = await prepare()
+    # Nested agent so astream_events assigns a non-empty namespace (like task subagents)
+    if not runtime.tool_call_id:
+        raise ValueError('Tool call ID is required for analyze_image')
+    config = merge_configs(runtime.config, {})
+    config['configurable'] = dict(config.get('configurable') or {}) | {
+        'checkpoint_ns': subagent_checkpoint_ns('analyze_image', runtime.tool_call_id),
+    }
+    config['configurable'].pop('checkpoint_id', None)
     try:
-        # Nested agent so astream_events assigns a non-empty namespace (like task subagents).
         vision_agent = create_agent(
             model=llm,
             system_prompt=system_prompt,
             tools=[],
         )
-        result = await vision_agent.ainvoke({'messages': [human_message]})
+        result = await vision_agent.ainvoke({'messages': [human_message]}, config)
     except Exception as ex:
         logging.exception('analyze_image failed for %s with model %s', filename, vision_model_id)
         detail = format_agent_error(ex).removeprefix('Error: ')
@@ -187,4 +191,5 @@ async def analyze_image(
     output = ((ai_messages[-1].text if ai_messages else '') or '').strip()
     if not output:
         raise ValidationError('Image analysis failed: empty model response.')
-    return output, {'image': filename, 'model': vision_model_id}
+    set_tool_output({'image': filename, 'model': vision_model_id, 'message': output})
+    return output

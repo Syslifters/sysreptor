@@ -10,20 +10,31 @@ from sysreptor.utils import license
 log = logging.getLogger(__name__)
 
 
+def is_task_pending(model, spec) -> bool:
+    from sysreptor.tasks.models import TaskStatus
+
+    if not model:
+        return True
+    if model.status == TaskStatus.QUEUED:
+        return True
+    if model.status == TaskStatus.RUNNING and model.started > timezone.now() - spec.max_runtime:
+        return False
+    if model.status == TaskStatus.FAILED and model.started > timezone.now() - spec.retry:
+        return False
+    if model.status == TaskStatus.SUCCESS and model.started > timezone.now() - spec.schedule:
+        return False
+    return True
+
+
 class PeriodicTaskQuerySet(models.QuerySet):
     async def get_pending_tasks(self):
-        from sysreptor.tasks.models import PeriodicTaskInfo, TaskStatus, periodic_task_registry
+        from sysreptor.tasks.models import PeriodicTaskInfo, periodic_task_registry
         task_specs = {t.id: t for t in periodic_task_registry.tasks}
         task_models = {t.id: t async for t in self.filter(id__in=task_specs.keys())}
         out = []
         for t_id, spec in task_specs.items():
             model = task_models.get(t_id)
-            # Remove non-pending tasks
-            if model and model.status != TaskStatus.QUEUED and (
-                (model.status == TaskStatus.RUNNING and model.started > timezone.now() - spec.max_runtime) or \
-                (model.status == TaskStatus.FAILED and model.started > timezone.now() - spec.retry) or \
-                (model.status == TaskStatus.SUCCESS and model.started > timezone.now() - spec.schedule)
-            ):
+            if not is_task_pending(model, spec):
                 continue
             out.append(PeriodicTaskInfo(spec=spec, model=model))
         return out
@@ -81,9 +92,11 @@ class PeriodicTaskManager(models.Manager.from_queryset(PeriodicTaskQuerySet)):
 
         await task_info.model.asave()
 
-    async def run_all_pending_tasks(self):
+    async def schedule_pending_tasks(self):
+        from sysreptor.tasks.tasks import execute_periodic_task
+
         for t in await self.get_pending_tasks():
-            await self.run_task(t)
+            await execute_periodic_task(t.id)
 
 
 class LicenseActivationInfoManager(models.Manager.from_queryset(models.QuerySet)):

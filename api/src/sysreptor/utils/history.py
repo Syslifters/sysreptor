@@ -228,7 +228,10 @@ def history_context(override_existing=False, history_date=None, set_history_date
             if k in restore_map:
                 setattr(HistoricalRecords.context, k, restore_map[k])
             else:
-                delattr(HistoricalRecords.context, k)
+                try:
+                    delattr(HistoricalRecords.context, k)
+                except AttributeError:
+                    pass
 
 
 def bulk_delete_with_history(model, objs, history_date=None, history_change_reason=None):

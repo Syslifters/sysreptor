@@ -26,6 +26,11 @@ class ChatThreadQuerySet(models.QuerySet):
             .annotate_has_checkpoints() \
             .filter(has_checkpoints=True)
 
+    def filter_visible(self):
+        return self \
+            .annotate_has_checkpoints() \
+            .filter(models.Q(has_checkpoints=True) | models.Q(run_id__isnull=False))
+
 
 class ChatThreadManager(models.Manager.from_queryset(ChatThreadQuerySet)):
     pass

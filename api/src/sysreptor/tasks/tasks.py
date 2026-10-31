@@ -1,15 +1,56 @@
 import json
 import logging
+import os
+import signal
 from datetime import timedelta
 
 import httpx
+import psutil
 from asgiref.sync import sync_to_async
+from django.conf import settings
 from django.core.management import call_command
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import dateparse
 
-from sysreptor.tasks.models import LicenseActivationInfo, TaskStatus, periodic_task
+from sysreptor.conf.taskiq import background_task
+from sysreptor.tasks.models import (
+    LicenseActivationInfo,
+    PeriodicTask,
+    PeriodicTaskInfo,
+    TaskStatus,
+    periodic_task,
+    periodic_task_registry,
+)
 from sysreptor.utils import license
+
+
+@background_task('execute_periodic_task')
+async def execute_periodic_task(task_id: str):
+    from sysreptor.tasks.querysets import is_task_pending
+
+    spec = next((t for t in periodic_task_registry.tasks if t.id == task_id), None)
+    if not spec:
+        logging.warning(f'Unknown periodic task "{task_id}"')
+        return
+
+    model = await PeriodicTask.objects.filter(id=task_id).afirst()
+    # Drop stale duplicate messages that arrive after another worker already ran.
+    if not is_task_pending(model, spec):
+        return
+    await PeriodicTask.objects.run_task(PeriodicTaskInfo(spec=spec, model=model))
+
+
+@background_task('reload_workers')
+async def reload_workers():
+    if settings.TASKIQ_ALWAYS_EAGER:
+        return
+
+    parent = psutil.Process(os.getppid())
+    if parent.name() == 'taskiq':
+        logging.info('Reloading taskiq workers')
+        os.kill(parent.pid, signal.SIGHUP)
+    else:
+        logging.warning(f'Taskiq worker reload skipped: parent is not taskiq ({parent.name()})')
 
 
 @periodic_task(id='clear_sessions', schedule=timedelta(days=1))

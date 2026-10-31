@@ -7,7 +7,7 @@ from decouple import config
 from deepagents._tools import _apply_tool_description_overrides
 from deepagents.backends import StateBackend
 from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
-from deepagents.middleware.subagents import GENERAL_PURPOSE_SUBAGENT, SubAgentMiddleware
+from deepagents.middleware.subagents import GENERAL_PURPOSE_SUBAGENT
 from deepagents.middleware.summarization import create_summarization_middleware
 from deepagents.profiles import GeneralPurposeSubagentProfile
 from deepagents.profiles.harness.harness_profiles import (
@@ -24,7 +24,7 @@ from langchain.agents.middleware import (
     TodoListMiddleware,
     ToolErrorMiddleware,
 )
-from langchain.messages import AIMessage, AnyMessage, HumanMessage, ToolMessage
+from langchain.messages import AIMessage, AIMessageChunk, AnyMessage, HumanMessage, ToolMessage
 from langchain_core._api import suppress_langchain_beta_warning
 from langchain_core.exceptions import LangChainException
 from langgraph.config import get_config
@@ -33,14 +33,16 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from sysreptor.ai.agents.checkpointer import DjangoModelCheckpointer
 from sysreptor.ai.agents.middleware import (
+    CustomSubagentMiddleware,
+    HistoryContextMiddleware,
     MergeConsecutiveMessagesMiddleware,
     MessageTimestampMiddleware,
     SelectConfiguredModelMiddleware,
     stamp_message_timestamp,
+    subagent_checkpoint_ns,
 )
-from sysreptor.ai.models import ChatThread, LangchainCheckpoint
+from sysreptor.ai.models import AgentRunStatus, ChatThread, LangchainCheckpoint
 from sysreptor.utils.configuration import configuration
-from sysreptor.utils.history import history_context
 from sysreptor.utils.utils import copy_keys, omit_keys
 
 
@@ -153,6 +155,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         PatchToolCallsMiddleware(),
         create_summarization_middleware(model=default_model, backend=backend),
         MessageTimestampMiddleware(),
+        HistoryContextMiddleware(),
         ModelRetryMiddleware(max_retries=2, on_failure='error'),
         ToolErrorMiddleware(on_error=lambda ex, request: format_agent_error(ex)),
     ] + profile.materialize_extra_middleware() + middleware + [
@@ -180,7 +183,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
         system_prompt=system_prompt + '\n\n' + _apply_profile_prompt(profile, ''),
         tools=tools,
         middleware=middleware + [
-            SubAgentMiddleware(backend=backend, subagents=subagents),
+            CustomSubagentMiddleware(backend=backend, subagents=subagents),
         ],
         checkpointer=DjangoModelCheckpointer(),
         **kwargs,
@@ -217,120 +220,134 @@ def format_message(m: AnyMessage) -> dict|None:
                 'id': m.tool_call_id,
                 'name': m.name,
                 'status': m.status,
-                'content': m.content,
-                **copy_keys(m.additional_kwargs or {}, ['timestamp', 'output']),
+                'timestamp': m.additional_kwargs.get('timestamp'),
+                'output': m.additional_kwargs.get('output') or ({'message': m.content} if m.name in ['task'] else {}),
             },
         }
     return None
 
 
+def user_message_event(input) -> dict | None:
+    msg = (input.get('messages') or [None])[0] if isinstance(input, dict) else None
+    if isinstance(msg, HumanMessage):
+        stamp_message_timestamp(msg)
+        if formatted := format_message(msg):
+            return {'type': 'text', 'content': {**formatted, 'replace': True}}
+    return None
+
+
 async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]|None = None, model: str | None = None, **kwargs):
     try:
-        with history_context(history_user=thread.user, set_history_date=False):
-            yield {'type': 'metadata', 'content': {'thread_id': str(thread.id)}}
+        if event := user_message_event(input):
+            yield event
 
-            pending_tool_call_ids = []
-            namespace_to_tool_call_id = {}
-            message_id_by_run: dict[str, str] = {}
-            with suppress_langchain_beta_warning():
-                stream = await agent.astream_events(
-                    input,
-                    config={
-                        'configurable': {
-                            'thread_id': str(thread.id),
-                        },
+        pending_tool_call_ids = []
+        namespace_to_tool_call_id = {}
+        message_id_by_run: dict[str, str] = {}
+        with suppress_langchain_beta_warning():
+            stream = await agent.astream_events(
+                input,
+                config={
+                    'configurable': {
+                        'thread_id': str(thread.id),
                     },
-                    context=agent.context_schema(**(context or {}) | {
-                        'user_id': thread.user_id,
-                        'project_id': thread.project_id,
-                        'model': model or get_default_model_id(),
-                    }),
-                    durability='exit',
-                    version='v3',
-                    transformers=[UpdatesTransformer],
-                    **kwargs,
-                )
-                async for event in stream:
-                    method = event['method']
-                    namespace = event['params']['namespace']
-                    chunk = event['params']['data']
+                },
+                context=agent.context_schema(**(context or {}) | {
+                    'user': thread.user,
+                    'project_id': thread.project_id,
+                    'model': model or get_default_model_id(),
+                }),
+                durability='async',
+                version='v3',
+                transformers=[UpdatesTransformer],
+                **kwargs,
+            )
+            async for event in stream:
+                method = event['method']
+                namespace = event['params']['namespace']
+                chunk = event['params']['data']
 
-                    # Map subagent namespace to tool call id
-                    # https://github.com/langchain-ai/langgraph/issues/6714
-                    meta = {
-                        'subagent': None,
+                # Map subagent namespace to tool call id
+                # https://github.com/langchain-ai/langgraph/issues/6714
+                meta = {
+                    'subagent': None,
+                }
+                if namespace and (src := namespace[0] if isinstance(namespace[0], str) else str(namespace[0])):
+                    root_ns = src.split('|', 1)[0]
+                    if root_ns.startswith('subagent:') and root_ns.count(':') >= 2:
+                        parsed_id = root_ns.split(':', 2)[2]
+                        namespace_to_tool_call_id.setdefault(src, parsed_id)
+                        if parsed_id in pending_tool_call_ids:
+                            pending_tool_call_ids.remove(parsed_id)
+                    elif src not in namespace_to_tool_call_id and pending_tool_call_ids:
+                        namespace_to_tool_call_id[src] = pending_tool_call_ids.pop(0)
+                    meta['subagent'] = namespace_to_tool_call_id.get(src)
+
+                # Stream messages and tool calls
+                if method == 'messages' and isinstance(chunk, tuple) and len(chunk) == 2:
+                    payload, msg_metadata = chunk
+                    run_id = str((msg_metadata if isinstance(msg_metadata, dict) else {}).get('run_id', ''))
+                    if isinstance(payload, dict) and payload.get('event') == 'message-start':
+                        if payload.get('role') != 'tool' and run_id and (msg_id := payload.get('id') or payload.get('message_id')):
+                            message_id_by_run[run_id] = msg_id
+                    elif isinstance(payload, dict) and payload.get('event') == 'content-block-delta' and (msg_id := message_id_by_run.get(run_id)):
+                        delta = payload.get('delta') or {}
+                        if delta.get('type') == 'text-delta' and 'text' in delta:
+                            yield {'type': 'text', 'content': {'id': msg_id, 'role': 'assistant', 'text': delta['text']}, **meta}
+                        elif delta.get('type') == 'reasoning-delta' and 'reasoning' in delta:
+                            yield {'type': 'text', 'content': {'id': msg_id, 'role': 'assistant', 'reasoning': delta['reasoning']}, **meta}
+                    elif isinstance(payload, AIMessage) and not isinstance(payload, AIMessageChunk) and (m := format_message(payload)):
+                        yield {'type': 'text', 'content': {**m, 'replace': True}, **meta}
+                elif method == 'updates' and isinstance(chunk, dict) and (raw_interrupt := chunk.get('__interrupt__')):
+                    interrupts = raw_interrupt if isinstance(raw_interrupt, list | tuple) else (raw_interrupt,)
+                    yield {
+                        'type': 'interrupt',
+                        'content': [{'id': i.id, 'value': i.value} for i in interrupts],
                     }
-                    if namespace and (src := namespace[0] if isinstance(namespace[0], str) else str(namespace[0])):
-                        if src not in namespace_to_tool_call_id and pending_tool_call_ids:
-                            namespace_to_tool_call_id[src] = pending_tool_call_ids.pop(0)
-                        meta['subagent'] = namespace_to_tool_call_id.get(src)
-
-                    # Stream messages and tool calls
-                    if method == 'messages' and isinstance(chunk, tuple) and len(chunk) == 2:
-                        payload, msg_metadata = chunk
-                        run_id = str((msg_metadata if isinstance(msg_metadata, dict) else {}).get('run_id', ''))
-                        if isinstance(payload, dict) and payload.get('event') == 'message-start':
-                            if payload.get('role') != 'tool' and run_id and (msg_id := payload.get('id') or payload.get('message_id')):
-                                message_id_by_run[run_id] = msg_id
-                        elif isinstance(payload, dict) and payload.get('event') == 'content-block-delta' and (msg_id := message_id_by_run.get(run_id)):
-                            delta = payload.get('delta') or {}
-                            if delta.get('type') == 'text-delta' and 'text' in delta:
-                                yield {'type': 'text', 'content': {'id': msg_id, 'role': 'assistant', 'text': delta['text']}, **meta}
-                            elif delta.get('type') == 'reasoning-delta' and 'reasoning' in delta:
-                                yield {'type': 'text', 'content': {'id': msg_id, 'role': 'assistant', 'reasoning': delta['reasoning']}, **meta}
-                        elif isinstance(payload, AIMessage) and (m := format_message(payload)):
-                            yield {'type': 'text', 'content': m, **meta}
-                    elif method == 'updates' and isinstance(chunk, dict) and (raw_interrupt := chunk.get('__interrupt__')):
-                        interrupts = raw_interrupt if isinstance(raw_interrupt, list | tuple) else (raw_interrupt,)
+                elif method == 'updates' and isinstance(chunk, dict) and \
+                    (messages := (chunk.get('model') or {}).get('messages')) and len(messages) >= 1 and isinstance(messages[0], AIMessage):
+                    ai_message = messages[0]
+                    stamp_message_timestamp(ai_message)
+                    if formatted := format_message(ai_message):
                         yield {
-                            'type': 'interrupt',
-                            'content': [{'id': i.id, 'value': i.value} for i in interrupts],
+                            'type': 'text',
+                            'content': {
+                                **formatted,
+                                'timestamp': ai_message.additional_kwargs.get('timestamp') or timezone.now().isoformat(),
+                                'replace': True,
+                            },
+                            **meta,
                         }
-                    elif method == 'updates' and isinstance(chunk, dict) and \
-                        (messages := (chunk.get('model') or {}).get('messages')) and len(messages) >= 1 and isinstance(messages[0], AIMessage):
-                        ai_message = messages[0]
-                        stamp_message_timestamp(ai_message)
-                        if any(filter(lambda b: b.get('type') in ['text', 'reasoning'], ai_message.content_blocks)):
-                            yield {
-                                'type': 'text',
-                                'content': {
-                                    'id': ai_message.id,
-                                    'role': 'assistant',
-                                    'timestamp': ai_message.additional_kwargs.get('timestamp') or timezone.now().isoformat(),
-                                },
-                                **meta,
-                            }
 
-                        for c in ai_message.tool_calls:
-                            if not c.get('id'):
-                                continue
-                            if c.get('name') in ['task', 'analyze_image'] and isinstance(c.get('args'), dict):
-                                pending_tool_call_ids.append(c['id'])
+                    for c in ai_message.tool_calls:
+                        if not c.get('id'):
+                            continue
+                        if c.get('name') in ['task', 'analyze_image'] and isinstance(c.get('args'), dict):
+                            pending_tool_call_ids.append(c['id'])
+                        yield {
+                            'type': 'tool_call',
+                            'content': {
+                                'status': 'pending',
+                                'timestamp': ai_message.additional_kwargs.get('timestamp') or timezone.now().isoformat(),
+                                'output': None,
+                                **copy_keys(c, ['id', 'name', 'args']),
+                            },
+                            **meta,
+                        }
+                elif method == 'updates' and isinstance(chunk, dict) and (messages := (chunk.get('tools') or {}).get('messages')):
+                    for c in messages:
+                        if isinstance(c, ToolMessage):
+                            stamp_message_timestamp(c)
                             yield {
-                                'type': 'tool_call',
+                                'type': 'tool_call_status',
                                 'content': {
-                                    'status': 'pending',
-                                    'timestamp': ai_message.additional_kwargs.get('timestamp') or timezone.now().isoformat(),
-                                    'output': None,
-                                    **copy_keys(c, ['id', 'name', 'args']),
+                                    'id': c.tool_call_id,
+                                    'name': c.name,
+                                    'status': c.status,
+                                    **copy_keys(c.additional_kwargs or {}, ['timestamp', 'output']),
                                 },
                                 **meta,
                             }
-                    elif method == 'updates' and isinstance(chunk, dict) and (messages := (chunk.get('tools') or {}).get('messages')):
-                        for c in messages:
-                            if isinstance(c, ToolMessage):
-                                stamp_message_timestamp(c)
-                                yield {
-                                    'type': 'tool_call_status',
-                                    'content': {
-                                        'id': c.tool_call_id,
-                                        'name': c.name,
-                                        'status': c.status,
-                                        'content': c.content,
-                                        **copy_keys(c.additional_kwargs or {}, ['timestamp', 'output']),
-                                    },
-                                    **meta,
-                                }
     except Exception as ex:
         logging.exception(ex)
         msg = format_agent_error(ex)
@@ -341,35 +358,100 @@ async def agent_stream(agent, input, thread: ChatThread, context: dict[str, str]
         raise ex
 
 
-def get_chat_history(agent, thread: ChatThread):
-    thread_exists = LangchainCheckpoint.objects \
-        .filter(thread=thread) \
-        .exists()
-    if not thread_exists:
-        raise LangchainCheckpoint.DoesNotExist()
+def covered_keys_from_messages(messages: list) -> list[str]:
+    """Buffer keys (text:{id} / tool_call:{id}) already present in a history snapshot."""
+    covered = set()
+    for m in messages:
+        if isinstance(m, HumanMessage | AIMessage) and m.id:
+            covered.add(f'text:{m.id}')
+        elif isinstance(m, ToolMessage) and m.tool_call_id and m.status != 'pending':
+            covered.add(f'tool_call:{m.tool_call_id}')
+    return list(covered)
 
-    state = agent.get_state(config={'configurable': {'thread_id': str(thread.id)}})
+
+def format_history_messages(raw_messages: list, pending_status='error') -> list[dict]:
     messages = []
     tool_calls = []
-    for m in state.values.get('messages', []):
+    finished_tool_calls = {m.tool_call_id for m in raw_messages if isinstance(m, ToolMessage) and m.tool_call_id}
+    for m in raw_messages:
         if isinstance(m, AIMessage):
             for tc in m.tool_calls:
                 tool_calls.append(copy_keys(tc, ['id', 'name', 'args']))
 
         formatted = format_message(m)
-        if not formatted:
-            continue
+        if formatted:
+            if isinstance(m, ToolMessage):
+                existing_tc = next((tc for tc in tool_calls if tc['id'] == m.tool_call_id), None)
+                formatted['tool_call'].update({
+                    'args': existing_tc['args'] if existing_tc else {},
+                })
+            messages.append(formatted)
 
-        if isinstance(m, ToolMessage):
-            existing_tc = next((tc for tc in tool_calls if tc['id'] == m.tool_call_id), None)
-            formatted['tool_call'].update({
-                'args': existing_tc['args'] if existing_tc else {},
-            })
-        messages.append(formatted)
+        # Emit pending/incomplete tool calls that have no ToolMessage yet
+        if isinstance(m, AIMessage):
+            for tc in m.tool_calls:
+                tid = tc.get('id')
+                if not tid or tid in finished_tool_calls:
+                    continue
+                messages.append({
+                    'id': tid,
+                    'role': 'tool',
+                    'timestamp': m.additional_kwargs.get('timestamp'),
+                    'tool_call': {
+                        'id': tid,
+                        'name': tc.get('name'),
+                        'args': tc.get('args') or {},
+                        'status': pending_status,
+                        'output': None,
+                    },
+                })
+    return messages
+
+
+def get_chat_history(agent, thread: ChatThread):
+    thread_exists = LangchainCheckpoint.objects \
+        .filter(thread=thread) \
+        .exists()
+    if not thread_exists:
+        return {
+            'id': thread.id,
+            'project': thread.project_id,
+            'messages': [],
+            'interrupts': [],
+            'covered': [],
+        }
+
+    state = agent.get_state(config={'configurable': {'thread_id': str(thread.id)}})
+    raw_messages = state.values.get('messages', [])
+    covered = set(covered_keys_from_messages(raw_messages))
+
+    pending_status = 'pending' if thread.run_status in [AgentRunStatus.RUNNING, AgentRunStatus.INTERRUPTED] else 'error'
+    messages = format_history_messages(raw_messages, pending_status=pending_status)
+
+    # Nest task-tool subagent histories (deterministic checkpoint_ns; analyze_image is not hydrated).
+    task_tools = [
+        m for m in messages
+        if m.get('role') == 'tool'
+        and (m.get('tool_call') or {}).get('name') == 'task'
+        and (m.get('tool_call') or {}).get('id')
+    ]
+    if task_tools:
+        ns_by_tool_id = {
+            tc['id']: subagent_checkpoint_ns((tc.get('args') or {}).get('subagent_type'), tc['id'])
+            for m in task_tools
+            if (tc := m['tool_call'])
+        }
+        namespaces_values = agent.checkpointer.get_values_by_namespaces(str(thread.id), list(ns_by_tool_id.values()))
+        for m in task_tools:
+            tc = m['tool_call']
+            if raw_messages := namespaces_values.get(ns_by_tool_id[tc['id']], {}).get('messages'):
+                tc['subagentMessages'] = format_history_messages(raw_messages, pending_status=pending_status)
+                covered.update(covered_keys_from_messages(raw_messages))
 
     return {
         'id': thread.id,
         'project': thread.project_id,
         'messages': messages,
         'interrupts': [{'id': i.id, 'value': i.value} for i in state.interrupts],
+        'covered': list(covered),
     }

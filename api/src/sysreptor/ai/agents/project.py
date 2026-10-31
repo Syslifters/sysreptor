@@ -4,10 +4,10 @@ import itertools
 import textwrap
 from uuid import UUID
 
-from asgiref.sync import sync_to_async
+from channels.db import database_sync_to_async
 from deepagents.backends import CompositeBackend, StateBackend
 from deepagents.middleware._utils import append_to_system_message
-from deepagents.middleware.filesystem import FilesystemMiddleware
+from deepagents.middleware.filesystem import FilesystemMiddleware, FilesystemPermission
 from deepagents.middleware.memory import MemoryMiddleware
 from deepagents.middleware.skills import SkillsMiddleware
 from django.db.models import Prefetch
@@ -55,11 +55,15 @@ from sysreptor.utils.utils import copy_keys, omit_keys
 @dataclasses.dataclass
 class ProjectContext:
     project_id: str|UUID
-    user_id: str|UUID
+    user: PentestUser
     section_id: str|UUID|None = None
     finding_id: str|UUID|None = None
     note_id: str|UUID|None = None
     model: str|None = None
+
+    @property
+    def user_id(self) -> UUID:
+        return self.user.id
 
 
 @dataclasses.dataclass
@@ -288,7 +292,7 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
             'info': None,
         }
 
-    @sync_to_async()
+    @database_sync_to_async
     def abefore_agent(self, state, runtime):
         # Inject short info (ID, title) about the current section/finding
         # Stored in history
@@ -330,7 +334,7 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
         request = request.override(system_message=append_to_system_message(request.system_message, CONTEXT_SYSTEM_PROMPT))
 
         # Live context about current project and section/finding/note
-        current_page = await sync_to_async(self._get_current_file)(runtime=request.runtime)
+        current_page = await database_sync_to_async(self._get_current_file)(runtime=request.runtime)
         context_message = HumanMessage(content='\n'.join([
             '<context>',
             '## Current Project',
@@ -361,7 +365,11 @@ class InjectProjectContextMiddleware(AgentMiddleware[AgentState, ProjectContext]
         return await handler(request)
 
 
-def init_agent_project_base(additional_system_prompt: str = None, additional_tools: list = None):
+def init_agent_project_base(
+    additional_system_prompt: str = None,
+    additional_tools: list = None,
+    permissions: list[FilesystemPermission] | None = None,
+):
     from sysreptor.ai.agents.tools import analyze_image, ask_user
     from sysreptor.ai.agents.tools_project import list_notes, list_templates, read_template
 
@@ -469,7 +477,7 @@ def init_agent_project_base(additional_system_prompt: str = None, additional_too
         ] + (additional_tools or []),
         middleware=[
             InjectProjectContextMiddleware(),
-            FilesystemMiddleware(backend=filesystem_backend),
+            FilesystemMiddleware(backend=filesystem_backend, permissions=permissions),
             SkillsMiddleware(
                 backend=filesystem_backend,
                 sources=[NotesAgentsDirBackend.SKILLS_ROOT],
@@ -489,10 +497,17 @@ def init_agent_project_ask():
         additional_system_prompt=textwrap.dedent("""\
         ## Ask Mode
         You are in Ask mode: read-only. You can view project structure, findings, sections, and
-        notes but cannot create or edit anything. Provide information, answer questions, and
-        offer insights. Do not suggest calling write or update tools — you do not have them in
-        this mode.
+        notes but cannot create, edit, or delete anything. Provide information, answer questions, and
+        offer insights. Do not suggest calling write, update, or delete tools on project
+        content. Those operations are denied in Ask mode.
         """).strip(),
+        permissions=[
+            FilesystemPermission(
+                operations=['write'],
+                paths=['/**'],
+                mode='deny',
+            ),
+        ],
     )
 
 

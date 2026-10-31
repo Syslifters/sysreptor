@@ -276,12 +276,22 @@ class TestNmapImporter:
         # Should show hostname table when hostnames are present
         assert '| Hostname | IP | Port | Service | Version |' in notes[0].text
 
+        # IP objects must survive template sanitizing and render as addresses
+        for ip in ('142.250.180.228', '34.249.200.254'):
+            assert ip in notes[0].text
+            host_note = next(n for n in notes if n.parent == notes[0] and str(n.title) == ip)
+            assert ip in host_note.text
+            assert '| None |' not in host_note.text
+        assert '| None |' not in notes[0].text
+
     def test_parse_notes_without_hostname(self):
         with NMAP_GREPABLE_PATH.open('rb') as f:
             notes = self.importer.parse_notes([f])
 
         # Should show simpler table when no hostnames are present
         assert '| Host | Port | Service | Version |' in notes[0].text
+        assert '| 127.0.0.1 |' in notes[0].text
+        assert '| None |' not in notes[0].text
 
     def test_empty_file_handling(self):
         empty_xml = SimpleUploadedFile("empty.xml", b"""<?xml version="1.0"?><nmaprun></nmaprun>""")

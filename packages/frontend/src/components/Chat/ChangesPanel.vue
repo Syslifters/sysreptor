@@ -28,6 +28,7 @@
             <v-list-item-title class="text-body-medium text-truncate">  
               {{ page.title }}
               <span v-if="page.isCreated" class="text-disabled ml-1">(new)</span>
+              <span v-else-if="page.isDeleted" class="text-disabled ml-1">(deleted)</span>
             </v-list-item-title>
             <template #append>
               <div class="d-flex align-center ga-3">
@@ -40,6 +41,13 @@
                   size="x-small"
                   density="compact"
                   tooltip-text="Delete"
+                />
+                <s-btn-icon
+                  v-else-if="page.isDeleted"
+                  icon="mdi-undo"
+                  :disabled="true"
+                  size="x-small"
+                  density="compact"
                 />
                 <s-btn-icon
                   v-else

@@ -589,7 +589,8 @@ def test_api_requests(username, name, perform_request, options, expected):
             }),
         ), mock.patch('sysreptor.pentests.rendering.render.render_pdf_impl', mock_render_pdf), \
         mock.patch('sysreptor.api_utils.serializers.LanguageToolSerializerBase.languagetool_request', mock_languagetool_request), \
-        mock.patch('sysreptor.tasks.tasks.activate_license', return_value=None):
+        mock.patch('sysreptor.tasks.tasks.activate_license', return_value=None), \
+        mock.patch('sysreptor.api_utils.views.reload_server'):
         user_map = {
             'public': lambda: None,
             'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(is_guest=True),

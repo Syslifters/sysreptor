@@ -460,7 +460,7 @@ class TestAPITokenCreateAdminPermissions:
         assert 'admin_permissions_enabled' in res.data
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db(transaction=True)
 class TestForgotPassword:
     @pytest.fixture(autouse=True)
     def setUp(self):

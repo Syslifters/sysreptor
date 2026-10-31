@@ -29,6 +29,7 @@ CHANNEL_LAYERS = {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+DISABLE_WEBSOCKETS = False
 EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 EMAIL_HOST = 'localhost'
 
@@ -49,6 +50,7 @@ ENCRYPTION_PLAINTEXT_FALLBACK = True
 ELASTIC_APM_ENABLED = False
 ELASTIC_APM_RUM_ENABLED = False
 CELERY_TASK_ALWAYS_EAGER = True
+TASKIQ_ALWAYS_EAGER = True
 NOTIFICATION_IMPORT_URL = None
 SPELLCHECK_URL = None
 
@@ -86,13 +88,10 @@ chat_models.init_chat_model = lambda *args, **kwargs: GenericFakeChatModel(messa
 
 # Disable license check
 from sysreptor.conf import plugins  # noqa: E402
-from sysreptor.utils import license, mail  # noqa: E402
+from sysreptor.utils import license  # noqa: E402
 
 license.check_license = lambda **kwargs: {'type': license.LicenseType.PROFESSIONAL, 'users': 1000, 'name': 'Company Name'}
 plugins.can_load_professional_plugins = lambda *args, **kwargs: True
-
-# Use blocking mail sending for tests
-mail.send_mail_in_background = mail.send_mail
 
 
 # Always enable some plugins during tests

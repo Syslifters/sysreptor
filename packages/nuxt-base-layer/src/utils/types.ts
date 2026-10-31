@@ -700,3 +700,7 @@ export type ImageEditorSettings = {
   strokeWidth: number;
 }
 
+export enum AiAgentMode {
+  PROJECT_ASK = 'project_ask',
+  PROJECT_AGENT = 'project_agent',
+}
