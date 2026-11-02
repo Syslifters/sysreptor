@@ -90,6 +90,7 @@ export default defineConfig({
           { text: 'Findings', link: '/designer/findings' },
           { text: 'Formatting Utilities', link: '/designer/formatting-utils' },
           { text: 'Filenames', link: '/designer/filenames' },
+          { text: 'PDF Metadata', link: '/designer/pdf-metadata' },
           { text: 'Debugging', link: '/designer/debugging' },
           {
             text: 'Samples',
