@@ -11,6 +11,7 @@
 * Run tasks in background worker processes
 * Allow setting PDF metadata via HTML meta tags in designs (https://docs.sysreptor.com/designer/pdf-metadata)
 * Warning when default django SECRET_KEY is configured
+* Invalidate user sessions on deactivate
 
 
 ## v2026.97 - 2026-10-25
