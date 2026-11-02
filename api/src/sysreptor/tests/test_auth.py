@@ -599,6 +599,12 @@ class TestPasswordChangeSessionRevocation:
         assert client.get(reverse('pentestuser-self')).status_code == 200
         assert not Session.objects.filter(session_key=other.session_key).exists()
 
+    def test_deactivate_user_revokes_all_sessions(self):
+        self.create_user_session()
+        self.create_user_session()
+        update(self.user, is_active=False)
+        assert not Session.objects.filter(user=self.user).exists()
+
 
 @pytest.mark.django_db()
 class TestUserPermissionAssignment:

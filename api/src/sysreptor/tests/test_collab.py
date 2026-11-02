@@ -677,6 +677,23 @@ class TestProjectNotesDbSync:
             res1 = await self.client1.receive_output()
             assert res1['type'] == 'websocket.close'
 
+    async def test_user_deactivated_write(self):
+        await sync_to_async(update)(self.user1, is_active=False)
+
+        await self.client1.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.checked', 'value': True})
+        res = await self.client1.receive_output()
+        assert res['type'] == 'websocket.close'
+
+    async def test_user_deactivated_read(self):
+        await sync_to_async(update)(self.user1, is_active=False)
+
+        with mock_time(after=timedelta(minutes=2)):
+            await self.client2.send_json_to({'type': CollabEventType.UPDATE_KEY, 'path': self.note_path_prefix + '.checked', 'value': True})
+            await self.client2.receive_json_from()
+
+            res1 = await self.client1.receive_output()
+            assert res1['type'] == 'websocket.close'
+
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio()
