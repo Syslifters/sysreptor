@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# A failed container start must be retryable: the next update.sh run starts
-# containers again instead of reporting that the release is already installed.
+# After a failed container start, the next update.sh run must not report the
+# release as installed: it checks that sysreptor-app runs the configured image.
 set -eu
 
 root=$(cd -- "$(dirname "$0")/.." && pwd)
-work=$(mktemp -d)
+work=$(cd "$(mktemp -d)" && pwd -P)
 trap 'rm -rf "$work"' EXIT
 
 if ! date -Iseconds >/dev/null 2>&1; then
@@ -47,6 +47,10 @@ printf '%s\n' "$*" >> "$DOCKER_LOG"
 case "$1 $2" in
     "compose version") exit 0 ;;
     "compose up") exit "${COMPOSE_UP_RC:-0}" ;;
+    "inspect --format")
+        [ -n "${STUB_APP_STATE:-}" ] || exit 1
+        printf '%s\n' "$STUB_APP_STATE"
+        ;;
 esac
 exit 0
 EOF
@@ -82,17 +86,32 @@ if [ "$rc" -eq 0 ]; then fail "failed start exited 0"; fi
 if grep -q 'Successfully updated.' "$out"; then fail "failed start printed success"; fi
 if grep -q '^rmi ' "$DOCKER_LOG"; then fail "failed start removed images"; fi
 grep -qx 'SYSREPTOR_VERSION=2026.86' "$install/deploy/.env" || fail "new version was not kept"
-grep -qx 'PREVIOUS_SYSREPTOR_VERSION=2026.80' "$install/deploy/.update-incomplete" || fail "previous version was not recorded"
 
-: > "$CURL_LOG"
-: > "$DOCKER_LOG"
-COMPOSE_UP_RC=0
-rc=0
-bash "$install/update.sh" >"$out" 2>&1 || rc=$?
-if [ "$rc" -ne 0 ]; then fail "retry exited $rc"; fi
-if grep -q 'already installed' "$out"; then fail "retry treated the release as installed"; fi
-if grep -q 'setup.tar.gz' "$CURL_LOG"; then fail "retry downloaded a tarball"; fi
-grep -qx 'compose up -d' "$DOCKER_LOG" || fail "retry did not start containers"
-grep -qx 'rmi syslifters/sysreptor:2026.80' "$DOCKER_LOG" || fail "retry did not remove the previous image"
-if [ -e "$install/deploy/.update-incomplete" ]; then fail "retry left the marker"; fi
-grep -q 'Successfully updated.' "$out" || fail "retry did not succeed"
+# Runs update.sh with the release already in deploy/.env. It must change nothing.
+second_run() {
+    : > "$CURL_LOG"
+    : > "$DOCKER_LOG"
+    export STUB_APP_STATE=$1
+    rc=0
+    bash "$install/update.sh" >"$out" 2>&1 || rc=$?
+    if [ "$rc" -ne 0 ]; then fail "second run exited $rc"; fi
+    if grep -q 'setup.tar.gz' "$CURL_LOG"; then fail "second run downloaded a tarball"; fi
+    if grep -q '^compose up' "$DOCKER_LOG"; then fail "second run started containers"; fi
+    if grep -q '^rmi ' "$DOCKER_LOG"; then fail "second run removed images"; fi
+}
+
+assert_not_running() {
+    if grep -q 'already installed' "$out"; then fail "$1: reported the release as installed"; fi
+    grep -q 'sysreptor-app is not running that image' "$out" || fail "$1: did not say so"
+    grep -qF "cd \"$install/deploy\" && docker compose up -d" "$out" || fail "$1: did not print the command"
+}
+
+second_run ''
+assert_not_running "no container"
+second_run 'false syslifters/sysreptor:2026.86'
+assert_not_running "stopped container"
+second_run 'true syslifters/sysreptor:2026.80'
+assert_not_running "old image still running"
+
+second_run 'true syslifters/sysreptor:2026.86'
+grep -q 'already installed' "$out" || fail "running release was not reported as installed"

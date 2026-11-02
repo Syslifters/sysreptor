@@ -1,7 +1,7 @@
 # Changelog
 
 ## Upcoming
-* Fix `update.sh` so a failed container start is retried on the next run
+* Fix `update.sh` reporting a release as installed when `sysreptor-app` is not running it
 * Add design for HTB CDEP certification
 * AI agent: support multiple agent tabs
 * AI agent: continue running agents in background
