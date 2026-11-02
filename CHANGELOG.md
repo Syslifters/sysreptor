@@ -10,6 +10,7 @@
 * AI agent: cancel agents when user's access was revoked
 * Run tasks in background worker processes
 * Allow setting PDF metadata via HTML meta tags in designs (https://docs.sysreptor.com/designer/pdf-metadata)
+* Warning when default django SECRET_KEY is configured
 
 
 ## v2026.97 - 2026-10-25
