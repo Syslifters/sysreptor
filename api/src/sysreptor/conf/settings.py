@@ -51,7 +51,8 @@ MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 # See https://docs.djangoproject.com/en/stable/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-ygvn9(x==kcv#r%pccf4rlzyz7_1v1b83$19&b2lsj6uz$mbro')
+SECRET_KEY_PLACEHOLDER = 'TODO-change-me-Z6cuMithzO0fMn3ZqJ7nTg0YJznoHiJXoJCNngQM4Kqzzd3fiYKdVx9ZidvTzqsm'  # noqa: S105
+SECRET_KEY = config('SECRET_KEY', default=SECRET_KEY_PLACEHOLDER)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool, default=False)
