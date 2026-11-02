@@ -31,4 +31,6 @@ body {
 .ToolIcon__LaserPointer {
   display: none !important;
 }
-
+.dropdown-menu-item[data-testid="lib-dropdown--remove"] {
+  display: none !important;
+}

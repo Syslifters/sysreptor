@@ -126,6 +126,7 @@ export default defineNuxtConfig({
                   '.mjs': 'application/javascript; charset=utf-8',
                   '.css': 'text/css; charset=utf-8',
                   '.html': 'text/html; charset=utf-8',
+                  '.woff2': 'font/woff2',
                 };
                 res.setHeader('Content-Type', mimeTypes[ext] || 'application/octet-stream');
                 createReadStream(filePath).on('error', next).pipe(res);

@@ -12,7 +12,7 @@ import {
 import { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { ExcalidrawElement, OrderedExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import { RemoteExcalidrawElement } from "@excalidraw/excalidraw/data/reconcile";
-import { isSyncableElement } from "./utils";
+import { filterExcalidrawElements, isSyncableElement } from "./utils";
 import { FileManager } from "./files";
 
 
@@ -372,11 +372,11 @@ export class ExcalidrawSysreptorCollab extends PureComponent<CollabProps> {
   }
 
   private handleRemoteSceneUpdate(remoteElements: readonly ExcalidrawElement[]) {
-    const reconciledElements = reconcileElements(
+    const reconciledElements = filterExcalidrawElements(reconcileElements(
       this.excalidrawAPI.getSceneElementsIncludingDeleted(),
       restoreElements(remoteElements, null) as RemoteExcalidrawElement[],
       this.excalidrawAPI.getAppState(),
-    );
+    ));
     this.lastUpdateVersion = hashElementsVersion(reconciledElements);
     this.excalidrawAPI.updateScene({
       elements: reconciledElements,
