@@ -25,6 +25,12 @@ def check_configuration(sender, **kwargs):
     for msg in EncryptionKey.check_config(settings):
         logging.warning(msg)
 
+    if settings.SECRET_KEY == settings.SECRET_KEY_PLACEHOLDER:
+        logging.warning(
+            'SECRET_KEY is not set or placeholder. '
+            'For production environments, set SECRET_KEY to a unique secret value.',
+        )
+
     if '*' in settings.ALLOWED_HOSTS:
         logging.warning(
             'ALLOWED_HOSTS is not configured. For production environments, set ALLOWED_HOSTS to your domain name(s); '

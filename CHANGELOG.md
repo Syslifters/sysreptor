@@ -2,7 +2,9 @@
 
 ## Upcoming
 * Fix `update.sh` reporting a release as installed when `sysreptor-app` is not running it
-* Add design for HTB CDEP certification
+
+
+## v2026.102 - 2026-11-04
 * AI agent: support multiple agent tabs
 * AI agent: continue running agents in background
 * AI agent: show chat history of previous agents
@@ -10,6 +12,11 @@
 * AI agent: support deleting findings and notes
 * AI agent: cancel agents when user's access was revoked
 * Run tasks in background worker processes
+* Allow setting PDF metadata via HTML meta tags in designs (https://docs.sysreptor.com/designer/pdf-metadata)
+* Warning when default django SECRET_KEY is configured
+* Invalidate user sessions on deactivate
+* Excalidraw iframe hardening
+* Add design for HTB CDEP certification
 
 
 ## v2026.97 - 2026-10-25

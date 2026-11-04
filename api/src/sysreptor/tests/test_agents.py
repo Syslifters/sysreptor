@@ -1289,9 +1289,6 @@ class TestLLMConfig:
             {'id': 'main-model', 'provider': 'test', 'model': 'main-model', 'api_key': 'k', 'vision_model': vision_model},
             {'id': 'vision-model', 'provider': 'test', 'model': 'vision-model', 'api_key': 'k', 'hidden': True},
         ]
-        assert validate_ai_agent_models([json.dumps(m) for m in models]) is (
-            not isinstance(vision_model, str) or vision_model in {m['id'] for m in models}
-        )
 
         user = create_user()
         project = create_project(members=[user])

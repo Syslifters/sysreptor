@@ -1,7 +1,7 @@
 from django.db.models import signals
 from django.dispatch import receiver
 
-from sysreptor.users.models import APIToken, PentestUser
+from sysreptor.users.models import APIToken, PentestUser, Session
 from sysreptor.utils import license
 
 
@@ -9,6 +9,12 @@ from sysreptor.utils import license
 def user_reset_failed_mfa_attempts_on_reactivate(sender, instance, *args, **kwargs):
     if instance.get_field_diff('is_active') == (False, True):
         instance.failed_mfa_attempts = 0
+
+
+@receiver(signals.post_save, sender=PentestUser)
+def user_clear_sessions_on_deactivate(sender, instance, *args, **kwargs):
+    if instance.get_field_diff('is_active') == (True, False):
+        Session.objects.clear_for_user(instance)
 
 
 @receiver(signals.pre_save, sender=PentestUser)

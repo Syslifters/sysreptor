@@ -199,11 +199,15 @@ FROM --platform=$BUILDPLATFORM api-test AS api-statics
 # Generate static frontend files
 # Post-process django files (for admin, API browser) and post-process them (e.g. add unique file hash)
 # Do not post-process nuxt files, because they already have hash names (and django failes to post-process them)
-RUN python3 manage.py collectstatic --no-input --clear
+# Ephemeral SECRET_KEY for collectstatic only; not stored as an image ENV
+RUN SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+    python3 manage.py collectstatic --no-input --clear
 COPY --from=frontend /app/packages/frontend/dist/index.html /app/packages/frontend/dist/static/ /app/api/src/frontend/static/
 COPY --from=plugin-builder --chown=user:user /app/plugins/ /app/plugins/
 RUN mv /app/api/src/frontend/static/index.html /app/api/src/frontend/index.html \
-    && ENABLED_PLUGINS='*' python3 manage.py collectstatic --no-input --no-post-process
+    && SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(64))')" \
+       ENABLED_PLUGINS='*' \
+       python3 manage.py collectstatic --no-input --no-post-process
 
 
 FROM api-test AS api

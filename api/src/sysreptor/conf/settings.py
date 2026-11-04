@@ -19,6 +19,7 @@ from pathlib import Path
 
 import redis
 from decouple import Csv, config
+from django.core.exceptions import ValidationError
 from django.utils.csp import CSP
 
 from sysreptor.conf.plugins import ENABLED_PLUGINS_FIELD, load_plugins
@@ -51,7 +52,8 @@ MEDIA_ROOT.mkdir(parents=True, exist_ok=True)
 # See https://docs.djangoproject.com/en/stable/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-ygvn9(x==kcv#r%pccf4rlzyz7_1v1b83$19&b2lsj6uz$mbro')
+SECRET_KEY_PLACEHOLDER = 'TODO-change-me-Z6cuMithzO0fMn3ZqJ7nTg0YJznoHiJXoJCNngQM4Kqzzd3fiYKdVx9ZidvTzqsm'  # noqa: S105
+SECRET_KEY = config('SECRET_KEY', default=SECRET_KEY_PLACEHOLDER)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', cast=bool, default=False)
@@ -733,11 +735,18 @@ def validate_ai_agent_models(models_json: list) -> bool:
     models = [json.loads(m) for m in models_json]
     model_ids = [m['id'] for m in models]
     if not is_unique(model_ids):
-        return False
+        raise ValidationError('Duplicate model IDs')
     for m in models:
         vision_model = m.get('vision_model')
         if isinstance(vision_model, str) and vision_model not in model_ids:
-            return False
+            raise ValidationError(f'vision_model "{vision_model}" is not a valid model ID')
+    return True
+
+
+def validate_status_definitions(status_definitions: list) -> bool:
+    status_ids = [s['id'] for s in status_definitions]
+    if not is_unique(status_ids):
+        raise ValidationError('Duplicate status IDs')
     return True
 
 
@@ -773,7 +782,7 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
             {"id": "needs-improvement", "label": "Needs improvement", "icon": "mdi-exclamation-thick"},
         ],
         required=False,
-        extra_info={'group': 'other', 'professional_only': True, 'validate': lambda l: len(l) == len(set([s['id'] for s in l]))},
+        extra_info={'group': 'other', 'professional_only': True, 'validate': validate_status_definitions},
         help_text='Define custom statuses for findings and sections. In addition to the statuses defined here the statuses "in-progress" and "finished" are also available.',
     ),
 

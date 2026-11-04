@@ -45,7 +45,7 @@ async def reload_workers():
     if settings.TASKIQ_ALWAYS_EAGER:
         return
 
-    parent = psutil.Process(os.getppid())
+    parent = psutil.Process(os.getpid()).parent().parent()
     if parent.name() == 'taskiq':
         logging.info('Reloading taskiq workers')
         os.kill(parent.pid, signal.SIGHUP)
