@@ -28,6 +28,7 @@ from sysreptor.api_utils.serializers import (
 from sysreptor.conf import plugins
 from sysreptor.pentests.models import Language, ProjectMemberRole, ReviewStatus
 from sysreptor.tasks.models import PeriodicTask
+from sysreptor.users.auth import ProjectAPITokenAuthentication
 from sysreptor.users.models import AuthIdentity
 from sysreptor.users.roles import get_all_roles
 from sysreptor.users.serializers import get_oauth
@@ -153,7 +154,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
         }).get(*args, **kwargs)
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
-    @action(detail=False, url_name='settings', url_path='settings', authentication_classes=api_settings.DEFAULT_AUTHENTICATION_CLASSES)
+    @action(detail=False, url_name='settings', url_path='settings', authentication_classes=api_settings.DEFAULT_AUTHENTICATION_CLASSES + [ProjectAPITokenAuthentication])
     def settings_endpoint(self, request, *args, **kwargs):
         languages = [{
             'code': l.value,

@@ -269,7 +269,6 @@ class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins
         from sysreptor.pentests.models import PentestProject
 
         return self.get_user().api_tokens.prefetch_related(
-            Prefetch('projects', queryset=PentestProject.objects.only('id')),
             Prefetch(
                 'projects', queryset=PentestProject.objects.only_permitted(self.request.user).only('id', 'name'),
                 to_attr='visible_projects',

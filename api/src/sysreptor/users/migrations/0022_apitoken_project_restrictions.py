@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('users', '0022_apitoken_project_restrictions'),
+        ('users', '0021_user_roles'),
         ('pentests', '0072_blindtrigramtoken_token_project_idx'),
     ]
 

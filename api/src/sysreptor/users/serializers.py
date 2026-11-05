@@ -15,8 +15,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.utils import timezone
-from drf_spectacular.utils import OpenApiTypes, extend_schema_field
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from rest_framework.relations import MANY_RELATION_KWARGS
 
 from sysreptor import signals as sysreptor_signals
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
@@ -448,7 +449,22 @@ class AuthIdentitySerializer(serializers.ModelSerializer):
         return super().create(validated_data | {'user': self.context['user']})
 
 
-@extend_schema_field(OpenApiTypes.UUID)
+class APITokenProjectSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+
+
+class APITokenVisibleProjectListField(serializers.ManyRelatedField):
+    def get_attribute(self, instance):
+        if getattr(instance, 'pk', None) is None:
+            return []
+        projects = getattr(instance, 'visible_projects', None)
+        if projects is None:
+            projects = instance.projects.only_permitted(self.context['request'].user).only('id', 'name')
+        return projects
+
+
+@extend_schema_field(APITokenProjectSerializer)
 class APITokenProjectField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         from sysreptor.pentests.models import PentestProject
@@ -457,25 +473,36 @@ class APITokenProjectField(serializers.PrimaryKeyRelatedField):
         user = PentestUser.objects.get(pk=self.context['request'].user.pk)
         return PentestProject.objects.only_permitted(user)
 
+    @classmethod
+    def many_init(cls, *args, **kwargs):
+        list_kwargs = {'child_relation': cls(*args, **kwargs)}
+        for key in kwargs:
+            if key in MANY_RELATION_KWARGS:
+                list_kwargs[key] = kwargs[key]
+        return APITokenVisibleProjectListField(**list_kwargs)
+
+    def to_internal_value(self, data):
+        if not isinstance(data, dict) or 'id' not in data:
+            self.fail('incorrect_type', data_type=type(data).__name__)
+        return super().to_internal_value(data['id'])
+
+    def to_representation(self, value):
+        return {'id': str(value.pk), 'name': value.name}
+
+    def use_pk_only_optimization(self):
+        return False
+
 
 class APITokenSerializer(serializers.ModelSerializer):
-    projects = APITokenProjectField(many=True, required=False)
-    project_details = serializers.SerializerMethodField()
+    projects = APITokenProjectField(many=True, read_only=True)
 
     class Meta:
         model = APIToken
         fields = [
             'id', 'created', 'updated', 'name', 'expire_date', 'last_used', 'admin_permissions_enabled',
-            'is_project_restricted', 'projects', 'project_details', 'read_only',
+            'is_project_restricted', 'projects', 'read_only',
         ]
         read_only_fields = ['is_project_restricted']
-
-    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
-    def get_project_details(self, instance):
-        projects = getattr(instance, 'visible_projects', None)
-        if projects is None:
-            projects = instance.projects.only_permitted(self.context['request'].user)
-        return [{'id': str(p.id), 'name': p.name} for p in projects]
 
     def validate_expire_date(self, value):
         if value and value < timezone.now().date():
@@ -485,6 +512,7 @@ class APITokenSerializer(serializers.ModelSerializer):
 
 class APITokenCreateSerializer(APITokenSerializer):
     token = serializers.ReadOnlyField(source='token_formatted')
+    projects = APITokenProjectField(many=True, required=False)
 
     class Meta(APITokenSerializer.Meta):
         fields = APITokenSerializer.Meta.fields + ['token']
@@ -496,20 +524,17 @@ class APITokenCreateSerializer(APITokenSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        restricted = bool(attrs.get('projects'))
-        attrs['is_project_restricted'] = restricted
-        if restricted:
+        is_project_restricted = bool(attrs.get('projects'))
+        attrs['is_project_restricted'] = is_project_restricted
+        if is_project_restricted:
             if not license.is_professional():
                 raise license.LicenseError('Project-restricted API tokens require a Professional license.')
             if attrs.get('admin_permissions_enabled'):
                 raise serializers.ValidationError({'admin_permissions_enabled': 'Project-restricted tokens cannot enable admin permissions.'})
             attrs.setdefault('read_only', True)
-            if 'expire_date' not in attrs:
-                today = timezone.now().date()
-                year, month = (today.year + 1, 1) if today.month == 12 else (today.year, today.month + 1)
-                attrs['expire_date'] = today.replace(year=year, month=month, day=min(today.day, calendar.monthrange(year, month)[1]))
-        elif attrs.get('read_only'):
-            raise serializers.ValidationError({'read_only': 'Read-only access requires a project restriction.'})
+        else:
+            if attrs.get('read_only'):
+                raise serializers.ValidationError({'read_only': 'Read-only access requires a project restriction.'})
         return attrs
 
     @transaction.atomic

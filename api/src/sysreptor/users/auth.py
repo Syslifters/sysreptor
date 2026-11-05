@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from rest_framework import authentication, exceptions
 
+from sysreptor.users.roles import Permission
 from sysreptor.utils import license
 
 
@@ -53,11 +54,23 @@ class UnsaltedSHA3_256PasswordHasher(BasePasswordHasher):
 class APITokenAuthentication(authentication.BaseAuthentication):
     keyword = 'Bearer'
 
-    def authenticate(self, request):
+    def parse_apitoken(self, request):
+        """
+        Decode the Bearer header and fetch the token row.
+
+        Cached on the request so ProjectAPITokenAuthentication and APITokenAuthentication
+        share one decode and DB fetch. Validation is intentionally not cached.
+        """
         from sysreptor.users.models import APIToken
 
+        _APITOKEN_LOOKUP_SENTINEL = object()
+        cached = getattr(request, '_apitoken_lookup', _APITOKEN_LOOKUP_SENTINEL)
+        if cached is not _APITOKEN_LOOKUP_SENTINEL:
+            return cached
+
         auth = authentication.get_authorization_header(request).split()
-        if not auth or auth[0].lower() != self.keyword.lower().encode():
+        if not auth or auth[0].lower() != b'bearer':
+            request._apitoken_lookup = None
             return None
 
         try:
@@ -68,6 +81,7 @@ class APITokenAuthentication(authentication.BaseAuthentication):
             token_id, token_key = b64decode(auth[1][len(APIToken.TOKEN_PREFIX.encode()):]).decode().split(':')
             token_id = UUID(token_id)
         except Exception as ex:
+            # Do not cache malformed headers: AuthenticationFailed must be raised every time.
             raise exceptions.AuthenticationFailed('Invalid token header format.') from ex
 
         token = APIToken.objects \
@@ -75,9 +89,17 @@ class APITokenAuthentication(authentication.BaseAuthentication):
             .defer('user__password') \
             .filter(id=token_id) \
             .first() or APIToken()
+
         # always validate token to prevent timing attacks (even if it does not exist)
         if not token.validate_token(token_key):
             raise exceptions.AuthenticationFailed('Invalid API token')
+
+        # cache parsed token on request
+        # to prevent duplicate parsing and DB lookups for global and project-restricted tokens
+        request._apitoken_lookup = token
+        return request._apitoken_lookup
+
+    def validate_token(self, token):
         if not token.user.is_active:
             raise exceptions.AuthenticationFailed('User disabled or deleted.')
         if token.expire_date and token.expire_date < timezone.now().date():
@@ -86,24 +108,60 @@ class APITokenAuthentication(authentication.BaseAuthentication):
             raise exceptions.AuthenticationFailed('Project-restricted API tokens require a Professional license.')
         license.validate_login_allowed(token.user)
 
-        token.user.api_token = token
-        if token.is_project_restricted:
-            from sysreptor.users.token_permissions import check_project_token_permissions
-
-            token.user.admin_permissions_enabled = False
-            check_project_token_permissions(request, token)
-        elif token.user.is_superuser and token.admin_permissions_enabled:
-            token.user.admin_permissions_enabled = True
-
-        # Update API token last used date. Throttle updates on frequent requests.
+    def update_apitoken_last_used(self, token):
         if not token.last_used or token.last_used < timezone.now() - timezone.timedelta(minutes=5):
             token.last_used = timezone.now()
             token.save(update_fields=['last_used'])
 
+    def authenticate(self, request):
+        token = self.parse_apitoken(request)
+        if not token:
+            return None
+
+        self.validate_token(token)
+        user = token.user
+        user.api_token = token
+
+        if token.is_project_restricted:
+            return None
+
+        # Enable admin permissions if the token has them enabled.
+        if user.is_superuser and token.admin_permissions_enabled:
+            user.admin_permissions_enabled = True
+
+        self.update_apitoken_last_used(token)
         return token.user, token
 
     def authenticate_header(self, request):
         return self.keyword
+
+
+class ProjectAPITokenAuthentication(APITokenAuthentication):
+    """
+    Accepts project-restricted API tokens only
+    """
+
+    def authenticate(self, request):
+        token = self.parse_apitoken(request)
+        if not token:
+            return None
+
+        self.validate_token(token)
+        user = token.user
+        user.api_token = token
+
+        if not token.is_project_restricted:
+            return None
+
+        # Strip privileged roles for this request only. Do not persist these changes.
+        user.admin_permissions_enabled = False
+        user.is_superuser = False
+        user.is_staff = False
+        user.is_system_user = False
+        user.restrict_permissions([Permission.PROJECT_READ] + ([Permission.PROJECT_EDIT_CONTENT] if not token.read_only else []))
+
+        self.update_apitoken_last_used(token)
+        return user, token
 
 
 def forbidden_with_apitoken_auth(request):
@@ -114,3 +172,22 @@ def forbidden_with_apitoken_auth(request):
             code='permission_denied_with_apitoken_auth',
         )
     return True
+
+
+def get_api_token(request_or_user):
+    from sysreptor.users.models import APIToken, PentestUser
+    if isinstance(request_or_user, PentestUser):
+        return getattr(request_or_user, 'api_token', None)
+    elif isinstance(request_or_user.auth, APIToken):
+        return request_or_user.auth
+    return None
+
+
+def is_project_api_token(request):
+    token = get_api_token(request)
+    return token and token.is_project_restricted
+
+
+def is_readonly_project_api_token(request):
+    token = get_api_token(request)
+    return token and token.is_project_restricted and token.read_only
