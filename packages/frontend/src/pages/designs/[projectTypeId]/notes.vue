@@ -195,7 +195,7 @@ function updateNoteChecked(note: NoteBase) {
   }
 }
 async function selectNote(note: NoteBase|null) {
-  currentNote.value = note;
+  currentNote.value = note ? projectType.value.default_notes.find(n => n.id === note.id) || null : null;
   await nextTick();
   textRef.value?.focus();
 }
