@@ -10,6 +10,14 @@ from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
 
 
+def _is_eligible_user(user) -> bool:
+    if not user or getattr(user, 'is_anonymous', True):
+        return False
+    if getattr(user, 'is_system_user', False):
+        return False
+    return True
+
+
 def check_sensitive_operation_timeout(request):
     """
     Check if the current session was fully authenticated (password + MFA) before a short period of time (settings.SENSITIVE_OPERATION_REAUTHENTICATION_TIMEOUT).
@@ -24,12 +32,44 @@ def check_sensitive_operation_timeout(request):
     raise exceptions.PermissionDenied(detail='Autentication timeout for sensitive operation. Log in again.', code='reauth-required')
 
 
+class UserSubresourcePermissions(permissions.BasePermission):
+    @classmethod
+    def has_read_permissions(cls, target_user, user) -> bool:
+        if user == target_user:
+            return True
+        if not _is_eligible_user(user):
+            return False
+        if 'user_manager' not in user.scope:
+            return False
+        return True
+
+    @classmethod
+    def has_write_permissions(cls, target_user, user) -> bool:
+        if not cls.has_read_permissions(target_user=target_user, user=user):
+            return False
+        if target_user == user:
+            return True
+        if 'user_manager' not in user.scope:
+            return False
+        if target_user.is_system_user:
+            return False
+        if target_user.is_superuser and not user.is_admin:
+            return False
+        return True
+
+    def has_permission(self, request, view):
+        target_user = view.get_user()
+        if request.method in permissions.SAFE_METHODS:
+            return self.has_read_permissions(target_user=target_user, user=request.user)
+        return self.has_write_permissions(target_user=target_user, user=request.user)
+
+
 class UserViewSetPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
         if view.action == 'destroy':
-            return request.user.is_admin or request.user.is_user_manager
+            return 'user_manager' in request.user.scope
         elif view.action == 'self':
             # Allow updating your own user
             return True
@@ -40,21 +80,15 @@ class UserViewSetPermissions(permissions.BasePermission):
         elif view.action == 'disable_admin_permissions':
             forbidden_with_apitoken_auth(request)
             return license.ProfessionalLicenseRequired().has_permission(request, view) and request.user.is_admin
-        return request.user.is_user_manager or request.user.is_admin
+        return 'user_manager' in request.user.scope
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if obj.is_system_user and obj != request.user:
-            return False
-        if obj.is_superuser and not request.user.is_admin:
-            # Prevent user_managers from updating superusers
-            # This would be a privilege escalation
-            return False
         if view.action == 'destroy' and request.user == obj:
             # Prevent deleting yourself
             return False
-        return True
+        return UserSubresourcePermissions.has_write_permissions(target_user=obj, user=request.user)
 
 
 class MFAMethodViewSetPermissons(permissions.BasePermission):
@@ -68,26 +102,25 @@ class MFAMethodViewSetPermissons(permissions.BasePermission):
             check_sensitive_operation_timeout(request)
             return True
 
-        if not request.user.is_admin and not request.user.is_user_manager:
-            return False
         if request.method in permissions.SAFE_METHODS:
-            return True
+            return UserSubresourcePermissions.has_read_permissions(target_user=user, user=request.user)
         if view.action not in ['list', 'retrieve', 'destroy']:
             return False
-        if request.user.is_user_manager and user.is_superuser:
-            return False
-        return True
+        return UserSubresourcePermissions.has_write_permissions(target_user=user, user=request.user)
 
 
 class AuthIdentityViewSetPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         user = view.get_user()
         if request.method in permissions.SAFE_METHODS:
-            return request.user.is_admin or request.user.is_user_manager or user == request.user
-        else:
-            if user.is_system_user:
-                return False
-            return request.user.is_admin or (request.user.is_user_manager and not user.is_superuser)
+            return UserSubresourcePermissions.has_read_permissions(target_user=user, user=request.user)
+
+        # Users cannot edit their own identities; only user managers / admins can
+        if not UserSubresourcePermissions.has_write_permissions(target_user=user, user=request.user):
+            return False
+        if 'user_manager' not in request.user.scope:
+            return False
+        return True
 
 
 class APITokenViewSetPermissions(permissions.BasePermission):
@@ -96,15 +129,11 @@ class APITokenViewSetPermissions(permissions.BasePermission):
         user = view.get_user()
         if view.kwargs.get('pentestuser_pk') == 'self':
             return check_sensitive_operation_timeout(request)
-        if not request.user.is_admin and not request.user.is_user_manager:
-            return False
         if request.method in permissions.SAFE_METHODS:
-            return True
+            return UserSubresourcePermissions.has_read_permissions(target_user=user, user=request.user)
         if view.action not in ['list', 'retrieve', 'destroy']:
             return False
-        if request.user.is_user_manager and user.is_superuser:
-            return False
-        return True
+        return UserSubresourcePermissions.has_write_permissions(target_user=user, user=request.user)
 
 
 class MFALoginInProgressAuthentication(authentication.BaseAuthentication):

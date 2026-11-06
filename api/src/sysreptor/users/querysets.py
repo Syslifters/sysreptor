@@ -10,8 +10,6 @@ from fido2.server import AttestedCredentialData
 from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import AuthenticatorAttachment, PublicKeyCredentialUserEntity, UserVerificationRequirement
 
-from sysreptor.utils.configuration import configuration
-
 
 class SessionQueryset(models.QuerySet):
     def filter(self, *args, **kwargs):
@@ -63,14 +61,13 @@ class PentestUserQuerySet(models.QuerySet):
         from sysreptor.users.models import PentestUser
         if not user or user.is_anonymous:
             return self.none()
-        if user.is_guest and not configuration.GUEST_USERS_CAN_SEE_ALL_USERS and not (user.is_superuser or user.is_user_manager):
-            # Only show users that are members in projects where the guest user is also a member
-            return self \
-                .filter(
-                    models.Q(pk=user.pk) |
-                    models.Q(pk__in=PentestUser.objects.filter(projectmemberinfo__project__members__user=user)))
-        else:
+        if 'see_all_users' in user.scope:
             return self
+        # Only show users that are members in projects where the restricted user is also a member
+        return self \
+            .filter(
+                models.Q(pk=user.pk) |
+                models.Q(pk__in=PentestUser.objects.filter(projectmemberinfo__project__members__user=user)))
 
     def annotate_mfa_enabled(self):
         from sysreptor.users.models import MFAMethod
@@ -109,7 +106,7 @@ class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQu
 
 class APITokenQuerySet(models.QuerySet):
     def only_permitted(self, user):
-        if user.is_admin or user.is_user_manager:
+        if 'user_manager' in user.scope:
             return self
         return self.filter(user=user)
 
@@ -124,7 +121,7 @@ class APITokenManager(models.Manager.from_queryset(APITokenQuerySet)):
 
 class MFAMethodQuerySet(models.QuerySet):
     def only_permitted(self, user):
-        if user.is_admin or user.is_user_manager:
+        if 'user_manager' in user.scope:
             return self
         return self.filter(user=user)
 
