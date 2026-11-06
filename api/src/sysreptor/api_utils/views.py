@@ -211,13 +211,15 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'ai_agent': bool(configuration.AI_AGENT_ENABLED),
             },
             'permissions': public_settings['permissions'] | {
-                'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
-                'guest_users_can_create_projects': configuration.GUEST_USERS_CAN_CREATE_PROJECTS,
-                'guest_users_can_delete_projects': configuration.GUEST_USERS_CAN_DELETE_PROJECTS,
-                'guest_users_can_update_project_settings': configuration.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
-                'guest_users_can_edit_projects': configuration.GUEST_USERS_CAN_EDIT_PROJECTS,
-                'guest_users_can_share_notes': configuration.GUEST_USERS_CAN_SHARE_NOTES,
-                'guest_users_can_see_all_users': configuration.GUEST_USERS_CAN_SEE_ALL_USERS,
+                'default_user_permissions': {
+                    'can_create_projects': configuration.DEFAULT_PERMISSION_CAN_CREATE_PROJECTS,
+                    'can_import_projects': configuration.DEFAULT_PERMISSION_CAN_IMPORT_PROJECTS,
+                    'can_edit_projects': configuration.DEFAULT_PERMISSION_CAN_EDIT_PROJECTS,
+                    'can_update_project_settings': configuration.DEFAULT_PERMISSION_CAN_UPDATE_PROJECT_SETTINGS,
+                    'can_delete_projects': configuration.DEFAULT_PERMISSION_CAN_DELETE_PROJECTS,
+                    'can_see_all_users': configuration.DEFAULT_PERMISSION_CAN_SEE_ALL_USERS,
+                    'can_share_notes': configuration.DEFAULT_PERMISSION_CAN_SHARE_NOTES,
+                },
                 'project_members_can_archive_projects': configuration.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
             },
         })

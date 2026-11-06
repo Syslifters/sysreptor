@@ -11,22 +11,27 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     permissions(state) {
       const apiSettings = useApiSettings();
+      const scope = state.user?.scope || [];
       return {
         superuser: state.user?.is_superuser || false,
-        admin: state.user?.scope.includes('admin') || false,
-        user_manager: state.user?.scope.includes('user_manager') || false,
-        designer: state.user?.scope.includes('designer') || false,
-        template_editor: state.user?.scope.includes('template_editor') || false,
+        admin: scope.includes('admin'),
+        user_manager: scope.includes('user_manager'),
+        designer: scope.includes('designer'),
+        template_editor: scope.includes('template_editor'),
         private_designs: (state.user && apiSettings.settings?.features.private_designs) || false,
-        create_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_create_projects))) || false,
-        import_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_import_projects))) || false,
-        delete_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_delete_projects))) || false,
-        update_project_settings: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_update_project_settings))) || false,
-        edit_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_edit_projects))) || false,
-        share_project_notes: (apiSettings.settings?.features.sharing && state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_share_notes))) || false,
-        share_user_notes: (apiSettings.settings?.features.sharing && state.user && (!state.user.is_guest || state.user.scope.includes('admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_share_notes))) || false,
-        archive_projects: (apiSettings.settings?.features.archiving && state.user && (state.user.scope.includes('project_admin') || state.user.is_global_archiver || (apiSettings.settings?.permissions.project_members_can_archive_projects && !state.user.is_guest) || (apiSettings.settings?.permissions.project_members_can_archive_projects && state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_update_project_settings))) || false,
-        view_backup: (apiSettings.isProfessionalLicense && state.user?.scope.includes('admin')) || false,
+        create_projects: scope.includes('create_projects'),
+        import_projects: scope.includes('import_projects'),
+        delete_projects: scope.includes('delete_projects'),
+        update_project_settings: scope.includes('update_project_settings'),
+        edit_projects: scope.includes('edit_projects'),
+        share_project_notes: (apiSettings.settings?.features.sharing && scope.includes('share_notes')) || false,
+        share_user_notes: (apiSettings.settings?.features.sharing && scope.includes('share_notes')) || false,
+        archive_projects: (apiSettings.settings?.features.archiving && state.user && (
+          scope.includes('project_admin') ||
+          state.user.is_global_archiver ||
+          (apiSettings.settings?.permissions.project_members_can_archive_projects && scope.includes('update_project_settings'))
+        )) || false,
+        view_backup: (apiSettings.isProfessionalLicense && scope.includes('admin')) || false,
       };
     },
   },

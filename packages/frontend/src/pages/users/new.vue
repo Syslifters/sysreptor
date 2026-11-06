@@ -82,9 +82,9 @@ const userForm = ref<User & { password: string|null }>({
   is_user_manager: false,
   is_designer: false,
   is_template_editor: false,
-  is_guest: false,
   is_system_user: false,
   is_global_archiver: false,
+  ...apiSettings.settings!.permissions.default_user_permissions,
 } as any);
 const identityForm = ref({
   provider: null,

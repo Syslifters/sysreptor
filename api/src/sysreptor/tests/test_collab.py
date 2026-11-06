@@ -44,6 +44,7 @@ from sysreptor.tests.mock import (
     create_project,
     create_project_type,
     create_projectnotebookpage,
+    create_restricted_user,
     create_shareinfo,
     create_user,
     create_usernotebookpage,
@@ -1531,7 +1532,7 @@ class TestConsumerPermissions:
     async def test_project_permissions(self, user_name, project_name, expected_read, expected_write):
         def setup_db():
             user_member = create_user()
-            user_guest = create_user(is_guest=True)
+            user_guest = create_restricted_user()
             users = {
                 'member': user_member,
                 'guest': user_guest,
@@ -1547,26 +1548,25 @@ class TestConsumerPermissions:
                 'readonly': create_project(members=[user_member, user_guest], notes_kwargs=notes_kwargs, readonly=True),
             }
             return user, projects[project_name]
-        with override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False):
-            user, project = await sync_to_async(setup_db)()
-            note_excalidraw = await project.notes.filter(type=NoteType.EXCALIDRAW).afirst()
+        user, project = await sync_to_async(setup_db)()
+        note_excalidraw = await project.notes.filter(type=NoteType.EXCALIDRAW).afirst()
 
-            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
-            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
-            assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/{note_excalidraw.note_id}/excalidraw/', user, event={'type': CollabEventType.UPDATE_EXCALIDRAW, 'elements': []}) == (expected_read, expected_write)
+        assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/reporting/', user) == (expected_read, expected_write)
+        assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/', user) == (expected_read, expected_write)
+        assert await self.ws_connect(f'/api/ws/pentestprojects/{project.id}/notes/{note_excalidraw.note_id}/excalidraw/', user, event={'type': CollabEventType.UPDATE_EXCALIDRAW, 'elements': []}) == (expected_read, expected_write)
 
-            client = api_client(user)
-            res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
-            assert res.status_code == (200 if expected_read else 403)
-            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
-            res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-            assert res.status_code == (200 if expected_write else 403)
+        client = api_client(user)
+        res = await sync_to_async(client.get)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}))
+        assert res.status_code == (200 if expected_read else 403)
+        client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
+        res = await sync_to_async(client.post)(reverse('projectreporting-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected_write else 403)
 
-            res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
-            assert res.status_code == (200 if expected_read else 403)
-            client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
-            res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
-            assert res.status_code == (200 if expected_write else 403)
+        res = await sync_to_async(client.get)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}))
+        assert res.status_code == (200 if expected_read else 403)
+        client_id = res.data.get('client_id', f'{user.id or "anonymous"}/asdf')
+        res = await sync_to_async(client.post)(reverse('projectnotebookpage-fallback', kwargs={'project_pk': project.id}), data={'version': 1, 'client_id': client_id, 'messages': []})
+        assert res.status_code == (200 if expected_write else 403)
 
     @pytest.mark.parametrize(('expected', 'user_name'), [
         (True, 'self'),

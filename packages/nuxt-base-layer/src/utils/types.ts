@@ -47,9 +47,15 @@ export type User = UserShortInfo & BaseModel & {
   is_user_manager: boolean;
   is_designer: boolean;
   is_template_editor: boolean;
-  is_guest: boolean;
   is_system_user: boolean;
   is_global_archiver: boolean;
+  can_create_projects: boolean;
+  can_import_projects: boolean;
+  can_edit_projects: boolean;
+  can_update_project_settings: boolean;
+  can_delete_projects: boolean;
+  can_see_all_users: boolean;
+  can_share_notes: boolean;
   scope: string[];
 };
 
@@ -157,13 +163,15 @@ export type ApiSettings = {
     readonly ai_agent?: boolean;
   };
   readonly permissions: {
-    readonly guest_users_can_import_projects?: boolean;
-    readonly guest_users_can_create_projects?: boolean;
-    readonly guest_users_can_delete_projects?: boolean;
-    readonly guest_users_can_update_project_settings?: boolean;
-    readonly guest_users_can_edit_projects?: boolean;
-    readonly guest_users_can_share_notes?: boolean;
-    readonly guest_users_can_see_all_users?: boolean;
+    readonly default_user_permissions?: {
+      readonly can_create_projects: boolean;
+      readonly can_import_projects: boolean;
+      readonly can_edit_projects: boolean;
+      readonly can_update_project_settings: boolean;
+      readonly can_delete_projects: boolean;
+      readonly can_see_all_users: boolean;
+      readonly can_share_notes: boolean;
+    };
     readonly project_members_can_archive_projects?: boolean;
   };
 }

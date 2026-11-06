@@ -44,6 +44,8 @@ class PentestUserSerializer(serializers.ModelSerializer):
 
 class PentestUserDetailSerializer(serializers.ModelSerializer):
     is_mfa_enabled = serializers.SerializerMethodField()
+    # Deprecated compatibility field. Prefer the can_* permission fields.
+    is_guest = serializers.SerializerMethodField()
 
     class Meta:
         model = PentestUser
@@ -52,6 +54,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile', 'color', 'must_change_password',
             'scope', 'is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
+            *PentestUser.RESTRICTED_PERMISSION_FIELDS,
             'is_mfa_enabled', 'has_password', 'can_login_local', 'can_login_sso',
         ]
         read_only_fields = ['last_login', 'is_system_user']
@@ -60,6 +63,9 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
         if (is_mfa_enabled := getattr(obj, 'is_mfa_enabled', None)) is not None:
             return is_mfa_enabled
         return obj.mfa_methods.all().exists()
+
+    def get_is_guest(self, obj) -> bool:
+        return not all(getattr(obj, f) for f in PentestUser.RESTRICTED_PERMISSION_FIELDS)
 
     def get_extra_kwargs(self):
         user = self.context['request'].user
@@ -70,8 +76,8 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'is_designer': {'read_only': read_only},
             'is_project_admin': {'read_only': read_only},
             'is_template_editor': {'read_only': read_only},
-            'is_guest': {'read_only': read_only},
             'is_global_archiver': {'read_only': read_only},
+            **{f: {'read_only': read_only} for f in PentestUser.RESTRICTED_PERMISSION_FIELDS},
             'username': {'read_only': read_only},
             'email': {'read_only': read_only},
             'is_active': {'read_only': read_only},
@@ -96,6 +102,33 @@ class CreateUserSerializer(PentestUserDetailSerializer):
         if value:
             validate_password(value, user=self.instance)
         return make_password(value)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        initial = self.initial_data if isinstance(self.initial_data, dict) else {}
+
+        defaults = {
+            'can_create_projects': configuration.DEFAULT_PERMISSION_CAN_CREATE_PROJECTS,
+            'can_import_projects': configuration.DEFAULT_PERMISSION_CAN_IMPORT_PROJECTS,
+            'can_edit_projects': configuration.DEFAULT_PERMISSION_CAN_EDIT_PROJECTS,
+            'can_update_project_settings': configuration.DEFAULT_PERMISSION_CAN_UPDATE_PROJECT_SETTINGS,
+            'can_delete_projects': configuration.DEFAULT_PERMISSION_CAN_DELETE_PROJECTS,
+            'can_see_all_users': configuration.DEFAULT_PERMISSION_CAN_SEE_ALL_USERS,
+            'can_share_notes': configuration.DEFAULT_PERMISSION_CAN_SHARE_NOTES,
+        } if initial.get('is_guest', True) else {
+            'can_create_projects': True,
+            'can_import_projects': True,
+            'can_edit_projects': True,
+            'can_update_project_settings': True,
+            'can_delete_projects': True,
+            'can_see_all_users': True,
+            'can_share_notes': True,
+        }
+
+        for field, value in defaults.items():
+            if field not in initial:
+                attrs[field] = value
+        return attrs
 
 
 @extend_schema_field(PentestUserSerializer)

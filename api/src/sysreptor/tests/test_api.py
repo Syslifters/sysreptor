@@ -33,6 +33,7 @@ from sysreptor.pentests.models import (
 )
 from sysreptor.pentests.rendering.render_utils import RenderStageResult
 from sysreptor.tests.mock import (
+    RESTRICTED_USER_PERMISSIONS,
     create_archived_project,
     create_png_file,
     create_project,
@@ -572,13 +573,6 @@ def test_api_requests(username, name, perform_request, options, expected):
         return {}
 
     with override_configuration(
-            GUEST_USERS_CAN_IMPORT_PROJECTS=False,
-            GUEST_USERS_CAN_CREATE_PROJECTS=False,
-            GUEST_USERS_CAN_DELETE_PROJECTS=False,
-            GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
-            GUEST_USERS_CAN_EDIT_PROJECTS=False,
-            GUEST_USERS_CAN_SHARE_NOTES=False,
-            GUEST_USERS_CAN_SEE_ALL_USERS=False,
             ARCHIVING_THRESHOLD=1,
             OIDC_AUTHLIB_OAUTH_CLIENTS=json.dumps({
                 'dummy': {
@@ -593,7 +587,7 @@ def test_api_requests(username, name, perform_request, options, expected):
         mock.patch('sysreptor.api_utils.views.reload_server'):
         user_map = {
             'public': lambda: None,
-            'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(is_guest=True),
+            'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(**RESTRICTED_USER_PERMISSIONS),
             'regular': lambda: ApiRequestsAndPermissionsTestData.create_user(),
             'template_editor': lambda: ApiRequestsAndPermissionsTestData.create_user(is_template_editor=True),
             'designer': lambda: ApiRequestsAndPermissionsTestData.create_user(is_designer=True),

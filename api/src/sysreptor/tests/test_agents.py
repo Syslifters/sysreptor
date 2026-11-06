@@ -60,13 +60,13 @@ from sysreptor.ai.runs import (
     throttle_ai_stream_events,
 )
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints, cleanup_stale_agent_runs
-from sysreptor.conf.settings import validate_ai_agent_models
 from sysreptor.pentests.models import NoteType, PentestFinding, ProjectMemberInfo, ProjectNotebookPage
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
     create_project,
     create_projectnotebookpage,
+    create_restricted_user,
     create_template,
     create_user,
     mock_time,
@@ -578,9 +578,6 @@ class TestProjectAgentTools:
             })
         self.client = api_client(user=self.user)
 
-        with override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False):
-            yield
-
     def run_tool(self, tool, model=None, **kwargs):
         runtime = ToolRuntime(
             tool_call_id='tool_call_id_1',
@@ -972,11 +969,10 @@ class TestAgentPermissions:
         ('admin', 'readonly', True, False),
         ('guest', 'readonly', True, False),
     ])
-    @override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False)
     def test_api_permissions(self, user_name, project_name, expected_read, expected_write):
         users = {
             'member': create_user(),
-            'guest': create_user(is_guest=True),
+            'guest': create_restricted_user(),
             'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
             'unauthorized': create_user(),
             'anonymous': AnonymousUser(),

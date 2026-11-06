@@ -33,7 +33,6 @@
             <v-chip size="small" class="ma-1" v-if="user.is_user_manager" text="User Manager" />
             <v-chip size="small" class="ma-1" v-if="user.is_designer" text="Designer" />
             <v-chip size="small" class="ma-1" v-if="user.is_template_editor" text="Template Editor" />
-            <v-chip size="small" class="ma-1" v-if="user.is_guest" text="Guest" />
             <v-chip size="small" class="ma-1" v-if="user.is_global_archiver" text="Global Archiver" />
             <v-chip size="small" class="ma-1" v-if="user.is_system_user" text="System" />
           </v-col>

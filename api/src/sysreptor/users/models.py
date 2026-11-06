@@ -41,14 +41,30 @@ class PentestUser(BaseModel, AbstractUser):
     is_template_editor = models.BooleanField(default=False, db_index=True)
     is_user_manager = models.BooleanField(default=False, db_index=True)
     is_project_admin = models.BooleanField(default=False, db_index=True)
-    is_guest = models.BooleanField(default=False, db_index=True)
     is_system_user = models.BooleanField(default=False, db_index=True)
     is_global_archiver = models.BooleanField(default=False, db_index=True)
+
+    can_create_projects = models.BooleanField(default=True)
+    can_import_projects = models.BooleanField(default=True)
+    can_edit_projects = models.BooleanField(default=True)
+    can_update_project_settings = models.BooleanField(default=True)
+    can_delete_projects = models.BooleanField(default=True)
+    can_see_all_users = models.BooleanField(default=True)
+    can_share_notes = models.BooleanField(default=True)
 
     can_login_local = models.BooleanField(default=True)
     failed_mfa_attempts = models.PositiveIntegerField(default=0)
 
     REQUIRED_FIELDS = []
+    RESTRICTED_PERMISSION_FIELDS = [
+        'can_create_projects',
+        'can_import_projects',
+        'can_edit_projects',
+        'can_update_project_settings',
+        'can_delete_projects',
+        'can_see_all_users',
+        'can_share_notes',
+    ]
 
     objects = querysets.PentestUserManager()
 
@@ -70,7 +86,13 @@ class PentestUser(BaseModel, AbstractUser):
                (['template_editor'] if self.is_template_editor or self.is_admin else []) + \
                (['designer'] if self.is_designer or self.is_admin else []) + \
                (['user_manager'] if self.is_user_manager or self.is_admin else []) + \
-               (['guest'] if self.is_guest and not self.is_admin else []) + \
+               (['create_projects'] if self.can_create_projects or self.is_admin or self.is_project_admin else []) + \
+               (['import_projects'] if self.can_import_projects or self.is_admin or self.is_project_admin else []) + \
+               (['edit_projects'] if self.can_edit_projects or self.is_admin or self.is_project_admin else []) + \
+               (['update_project_settings'] if self.can_update_project_settings or self.is_admin or self.is_project_admin else []) + \
+               (['delete_projects'] if self.can_delete_projects or self.is_admin or self.is_project_admin else []) + \
+               (['share_notes'] if self.can_share_notes or self.is_admin or self.is_project_admin else []) + \
+               (['see_all_users'] if self.can_see_all_users or self.is_superuser or self.is_user_manager else []) + \
                (['system'] if self.is_system_user else [])
 
     @property
@@ -229,4 +251,3 @@ class MFAMethod(BaseModel):
             rp=PublicKeyCredentialRpEntity(id=rp_id, name=settings.MFA_SERVER_NAME),
             verify_origin=verify_origin,
         )
-

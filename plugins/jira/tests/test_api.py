@@ -7,8 +7,8 @@ from django.urls import reverse
 from sysreptor.tests.mock import (
     api_client,
     create_project,
+    create_restricted_user,
     create_user,
-    override_configuration,
 )
 
 from ..apps import JiraExportPluginConfig
@@ -68,19 +68,6 @@ def mock_jira_request(project_pages=None):
 
 @pytest.mark.django_db
 class TestJiraAPI:
-    @pytest.fixture(autouse=True)
-    def setUp(self):
-        with override_configuration(
-            GUEST_USERS_CAN_IMPORT_PROJECTS=False,
-            GUEST_USERS_CAN_CREATE_PROJECTS=False,
-            GUEST_USERS_CAN_DELETE_PROJECTS=False,
-            GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=False,
-            GUEST_USERS_CAN_EDIT_PROJECTS=False,
-            GUEST_USERS_CAN_SHARE_NOTES=False,
-            GUEST_USERS_CAN_SEE_ALL_USERS=False,
-        ):
-            yield
-
     @pytest.mark.parametrize(('project', 'user', 'expected'), [
         ('project', 'admin', True),
         ('project', 'member', True),
@@ -95,7 +82,7 @@ class TestJiraAPI:
         users = {
             'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
             'member': create_user(),
-            'guest': create_user(is_guest=True),
+            'guest': create_restricted_user(),
             'other': create_user(),
             'anonymous': None,
         }

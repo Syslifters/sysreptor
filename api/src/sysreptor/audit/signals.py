@@ -57,7 +57,9 @@ def audit_user_save(sender, instance, created, **kwargs):
     USER_SENSITIVE_FIELDS = {'username', 'email', 'is_active', 'can_login_local'}
     USER_PERMISSON_FIELDS = {
         'is_superuser', 'is_system_user', 'is_project_admin', 'is_user_manager',
-        'is_designer', 'is_template_editor', 'is_guest', 'is_global_archiver',
+        'is_designer', 'is_template_editor', 'is_global_archiver',
+        'can_create_projects', 'can_import_projects', 'can_edit_projects',
+        'can_update_project_settings', 'can_delete_projects', 'can_see_all_users', 'can_share_notes',
     }
     if created:
         audit_log(type=AuditLogTypes.USER_CREATED, related=instance, data=copy_keys(instance, USER_SENSITIVE_FIELDS | USER_PERMISSON_FIELDS))

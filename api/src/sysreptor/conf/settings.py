@@ -870,32 +870,39 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
 
 
     BooleanField(
-        id='GUEST_USERS_CAN_EDIT_PROJECTS',
+        id='DEFAULT_PERMISSION_CAN_EDIT_PROJECTS',
         default=True,
+        help_text='Default value of can_edit_projects for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
     BooleanField(
-        id='GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS',
+        id='DEFAULT_PERMISSION_CAN_UPDATE_PROJECT_SETTINGS',
         default=True,
+        help_text='Default value of can_update_project_settings for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
     BooleanField(
-        id='GUEST_USERS_CAN_CREATE_PROJECTS',
+        id='DEFAULT_PERMISSION_CAN_CREATE_PROJECTS',
         default=True,
+        help_text='Default value of can_create_projects for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
     BooleanField(
-        id='GUEST_USERS_CAN_DELETE_PROJECTS',
+        id='DEFAULT_PERMISSION_CAN_DELETE_PROJECTS',
         default=True,
+        help_text='Default value of can_delete_projects for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
     BooleanField(
-        id='GUEST_USERS_CAN_IMPORT_PROJECTS',
+        id='DEFAULT_PERMISSION_CAN_IMPORT_PROJECTS',
         default=False,
+        help_text='Default value of can_import_projects for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
     BooleanField(
-        id='GUEST_USERS_CAN_SEE_ALL_USERS',
+        id='DEFAULT_PERMISSION_CAN_SEE_ALL_USERS',
         default=False,
+        help_text='Default value of can_see_all_users for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
     BooleanField(
-        id='GUEST_USERS_CAN_SHARE_NOTES',
+        id='DEFAULT_PERMISSION_CAN_SHARE_NOTES',
         default=False,
+        help_text='Default value of can_share_notes for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
 
 

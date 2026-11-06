@@ -10,9 +10,9 @@ from sysreptor.pentests.models import Language
 from sysreptor.tests.mock import (
     api_client,
     create_project,
+    create_restricted_user,
     create_template,
     create_user,
-    override_configuration,
     update,
 )
 from sysreptor.tests.utils import assertKeysEqual
@@ -264,7 +264,7 @@ class TestAPIPermissions:
     ])
     def test_permissions(self, user_name, project_name, expected):
         user_member = create_user()
-        user_guest = create_user(is_guest=True)
+        user_guest = create_restricted_user()
         users = {
             'member': user_member,
             'guest': user_guest,
@@ -279,11 +279,10 @@ class TestAPIPermissions:
             'readonly': create_project(members=[user_member, user_guest], readonly=True),
         }
         project = projects[project_name]
-        
-        with override_configuration(GUEST_USERS_CAN_EDIT_PROJECTS=False):
-            res = api_client(user).post(reverse(f'{SCANIMPORT_APPLABEL}:parse', kwargs={'project_pk': project.id}), data={
-                'file': [next(f for f in DATA_FILES if f.name == 'burp.xml').open('rb')],
-                'import_as': 'findings',
-                'importer': 'auto',
-            }, format='multipart')
-            assert res.status_code in ([200] if expected else [403, 404])
+
+        res = api_client(user).post(reverse(f'{SCANIMPORT_APPLABEL}:parse', kwargs={'project_pk': project.id}), data={
+            'file': [next(f for f in DATA_FILES if f.name == 'burp.xml').open('rb')],
+            'import_as': 'findings',
+            'importer': 'auto',
+        }, format='multipart')
+        assert res.status_code in ([200] if expected else [403, 404])

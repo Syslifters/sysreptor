@@ -170,14 +170,6 @@
           density="compact"
         />
         <s-checkbox
-          :model-value="user.is_guest" @update:model-value="updateField('is_guest', $event)"
-          label="Guest"
-          hint="Guest are not allowed to list other users and might be further restricted by your system operator."
-          :error-messages="props.errors?.is_guest || []"
-          :disabled="!canEditGeneralPermissions"
-          density="compact"
-        />
-        <s-checkbox
           :model-value="user.is_global_archiver" @update:model-value="updateField('is_global_archiver', $event)"
           label="Global Archiver"
           data-testid="global-archiver-checkbox"
@@ -213,6 +205,28 @@
           disabled
           density="compact"
         />
+
+        <div class="d-flex align-center justify-space-between mt-6 mb-2">
+          <div class="text-subtitle-1">Restrictions</div>
+          <s-btn-secondary
+            v-if="canEditGeneralPermissions"
+            size="small"
+            text="Reset to defaults"
+            prepend-icon="mdi-restore"
+            @click="resetPermissionsToDefaults"
+          />
+        </div>
+        <s-checkbox
+          v-for="permission in restrictedPermissions"
+          :key="permission.field"
+          :model-value="isPermissionEnabled(permission)"
+          @update:model-value="updateField(permission.field, $event)"
+          :label="permission.label"
+          :hint="permissionHint(permission)"
+          :error-messages="props.errors?.[permission.field] || []"
+          :disabled="!canEditGeneralPermissions || isPermissionImplied(permission)"
+          density="compact"
+        />
       </v-card-text>
     </s-card>
   </div>
@@ -234,10 +248,50 @@ const canEditUsername = computed(() => canEdit.value && auth.permissions.value.u
 const canEditGeneralPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && apiSettings.settings!.features.permissions);
 const canEditSuperuserPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && auth.permissions.value.admin);
 
+const restrictedPermissions: { field: keyof User; label: string; hint: string; impliedBy: 'project_admin' | 'user_manager' }[] = [
+  { field: 'can_create_projects', label: 'Create projects', hint: 'Allow creating and copying projects.', impliedBy: 'project_admin' },
+  { field: 'can_import_projects', label: 'Import projects', hint: 'Allow importing projects.', impliedBy: 'project_admin' },
+  { field: 'can_edit_projects', label: 'Edit projects', hint: 'Allow editing project content such as findings, sections and notes.', impliedBy: 'project_admin' },
+  { field: 'can_update_project_settings', label: 'Update project settings', hint: 'Allow updating project settings like name, design and members.', impliedBy: 'project_admin' },
+  { field: 'can_delete_projects', label: 'Delete projects', hint: 'Allow deleting projects.', impliedBy: 'project_admin' },
+  { field: 'can_share_notes', label: 'Share notes', hint: 'Allow creating and managing note sharing links.', impliedBy: 'project_admin' },
+  { field: 'can_see_all_users', label: 'See all users', hint: 'Allow listing all users. When disabled, only users working in the same projects are listed.', impliedBy: 'user_manager' },
+];
+
 const rules = {
   required: [(v: any) => !!v || 'This field is required!'],
   required_email: [(v: any) => canEditUsername.value ? rules.required[0]!(v) : true],
 };
+
+function isPermissionImplied(permission: typeof restrictedPermissions[number]) {
+  if (permission.impliedBy === 'project_admin') {
+    return !!user.value.is_project_admin || !!user.value.is_superuser;
+  }
+  return !!user.value.is_user_manager || !!user.value.is_superuser;
+}
+
+function isPermissionEnabled(permission: typeof restrictedPermissions[number]) {
+  return isPermissionImplied(permission) || !!user.value[permission.field];
+}
+
+function permissionHint(permission: typeof restrictedPermissions[number]) {
+  if (!isPermissionImplied(permission)) {
+    return permission.hint;
+  }
+  const role = permission.impliedBy === 'project_admin' ? 'Project Admin / Superuser' : 'User Manager / Superuser';
+  return `${permission.hint} Currently implied by ${role}. The stored value applies again if the role is removed.`;
+}
+
+function resetPermissionsToDefaults() {
+  const defaults = apiSettings.settings?.permissions.default_user_permissions;
+  if (!defaults) {
+    return;
+  }
+  user.value = {
+    ...user.value,
+    ...defaults,
+  };
+}
 
 function updateField(fieldName: keyof User, val: any) {
   const newUser = Object.assign({}, user.value);
