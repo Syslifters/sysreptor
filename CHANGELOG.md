@@ -1,5 +1,9 @@
 # Changelog
 
+## Upcoming
+* Fix design default notes not saved after changes
+
+
 ## v2026.102 - 2026-11-04
 * AI agent: support multiple agent tabs
 * AI agent: continue running agents in background
