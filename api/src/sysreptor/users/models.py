@@ -51,6 +51,7 @@ class PentestUser(BaseModel, AbstractUser):
     can_delete_projects = models.BooleanField(default=True)
     can_see_all_users = models.BooleanField(default=True)
     can_see_all_templates = models.BooleanField(default=True)
+    can_see_all_designs = models.BooleanField(default=True)
 
     can_login_local = models.BooleanField(default=True)
     failed_mfa_attempts = models.PositiveIntegerField(default=0)
@@ -94,6 +95,7 @@ class PentestUser(BaseModel, AbstractUser):
                (['share_notes'] if self.can_share_notes or self.is_admin or self.is_project_admin else []) + \
                (['see_all_users'] if self.can_see_all_users or self.is_superuser or self.is_user_manager else []) + \
                (['see_all_templates'] if self.can_see_all_templates or self.is_admin or self.is_template_editor else []) + \
+               (['see_all_designs'] if self.can_see_all_designs or self.is_admin or self.is_designer else []) + \
                (['system'] if self.is_system_user else [])
 
     @property

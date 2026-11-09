@@ -900,6 +900,16 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         help_text='Default value of can_see_all_users for newly created users.',
         extra_info={'group': 'permissions', 'professional_only': True}),
     BooleanField(
+        id='DEFAULT_PERMISSION_CAN_SEE_ALL_TEMPLATES',
+        default=False,
+        help_text='Default value of can_see_all_templates for newly created users.',
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
+        id='DEFAULT_PERMISSION_CAN_SEE_ALL_DESIGN',
+        default=False,
+        help_text='Default value of can_see_all_designs for newly created users.',
+        extra_info={'group': 'permissions', 'professional_only': True}),
+    BooleanField(
         id='DEFAULT_PERMISSION_CAN_SHARE_NOTES',
         default=False,
         help_text='Default value of can_share_notes for newly created users.',

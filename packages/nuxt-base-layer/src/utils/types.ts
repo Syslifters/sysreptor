@@ -56,6 +56,7 @@ export type User = UserShortInfo & BaseModel & {
   can_delete_projects: boolean;
   can_see_all_users: boolean;
   can_see_all_templates: boolean;
+  can_see_all_designs: boolean;
   can_share_notes: boolean;
   scope: string[];
 };
@@ -172,6 +173,7 @@ export type ApiSettings = {
       readonly can_delete_projects: boolean;
       readonly can_see_all_users: boolean;
       readonly can_see_all_templates: boolean;
+      readonly can_see_all_designs: boolean;
     };
     readonly project_members_can_archive_projects?: boolean;
   };

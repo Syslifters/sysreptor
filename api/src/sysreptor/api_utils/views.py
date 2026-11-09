@@ -218,6 +218,8 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                     'can_update_project_settings': configuration.DEFAULT_PERMISSION_CAN_UPDATE_PROJECT_SETTINGS,
                     'can_delete_projects': configuration.DEFAULT_PERMISSION_CAN_DELETE_PROJECTS,
                     'can_see_all_users': configuration.DEFAULT_PERMISSION_CAN_SEE_ALL_USERS,
+                    'can_see_all_templates': configuration.DEFAULT_PERMISSION_CAN_SEE_ALL_TEMPLATES,
+                    'can_see_all_designs': configuration.DEFAULT_PERMISSION_CAN_SEE_ALL_DESIGN,
                     'can_share_notes': configuration.DEFAULT_PERMISSION_CAN_SHARE_NOTES,
                 },
                 'project_members_can_archive_projects': configuration.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,

@@ -33,6 +33,7 @@ export const useAuthStore = defineStore('auth', {
         )) || false,
         view_backup: (apiSettings.isProfessionalLicense && scope.includes('admin')) || false,
         see_all_templates: scope.includes('see_all_templates'),
+        see_all_designs: scope.includes('see_all_designs'),
       };
     },
   },
