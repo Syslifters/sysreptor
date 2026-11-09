@@ -32,6 +32,7 @@ export const useAuthStore = defineStore('auth', {
           (apiSettings.settings?.permissions.project_members_can_archive_projects && scope.includes('update_project_settings'))
         )) || false,
         view_backup: (apiSettings.isProfessionalLicense && scope.includes('admin')) || false,
+        see_all_templates: scope.includes('see_all_templates'),
       };
     },
   },

@@ -248,7 +248,7 @@ const canEditUsername = computed(() => canEdit.value && auth.permissions.value.u
 const canEditGeneralPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && apiSettings.settings!.features.permissions);
 const canEditSuperuserPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && auth.permissions.value.admin);
 
-const restrictedPermissions: { field: keyof User; label: string; hint: string; impliedBy: 'project_admin' | 'user_manager' }[] = [
+const restrictedPermissions: { field: keyof User; label: string; hint: string; impliedBy: 'project_admin' | 'user_manager' | 'template_editor' | 'designer' | 'global_archiver' }[] = [
   { field: 'can_create_projects', label: 'Create projects', hint: 'Allow creating and copying projects.', impliedBy: 'project_admin' },
   { field: 'can_import_projects', label: 'Import projects', hint: 'Allow importing projects.', impliedBy: 'project_admin' },
   { field: 'can_edit_projects', label: 'Edit projects', hint: 'Allow editing project content such as findings, sections and notes.', impliedBy: 'project_admin' },
@@ -256,6 +256,7 @@ const restrictedPermissions: { field: keyof User; label: string; hint: string; i
   { field: 'can_delete_projects', label: 'Delete projects', hint: 'Allow deleting projects.', impliedBy: 'project_admin' },
   { field: 'can_share_notes', label: 'Share notes', hint: 'Allow creating and managing note sharing links.', impliedBy: 'project_admin' },
   { field: 'can_see_all_users', label: 'See all users', hint: 'Allow listing all users. When disabled, only users working in the same projects are listed.', impliedBy: 'user_manager' },
+  { field: 'can_see_all_templates', label: 'See all templates', hint: 'Allow listing all templates. When disabled, the user cannot use templates to create findings.', impliedBy: 'template_editor' },
 ];
 
 const rules = {

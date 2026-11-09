@@ -18,6 +18,7 @@
       <s-btn-icon
         v-if="finding.template"
         :to="`/templates/${finding.template}/`"
+        :disabled="!auth.permissions.value.see_all_templates"
         target="_blank"
         icon="mdi-view-compact"
         v-tooltip="'This finding was created from a template: show template'"

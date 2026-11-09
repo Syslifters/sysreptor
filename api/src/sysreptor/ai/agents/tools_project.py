@@ -67,7 +67,7 @@ def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str = '')
             all templates ordered by usage and risk.
     """
     project = get_project(runtime.context.project_id)
-    qs = FindingTemplate.objects.all()
+    qs = FindingTemplate.objects.only_permitted(user=runtime.context.user)
     search_terms = (search_terms or '').strip()
     if search_terms:
         qs = qs.search(search_smart_split(search_terms))
@@ -99,6 +99,7 @@ def read_template(runtime: ToolRuntime[ProjectContext], template_id: str) -> str
             identifier shown in search results).
     """
     template = FindingTemplate.objects \
+        .only_permitted(user=runtime.context.user) \
         .prefetch_related('translations') \
         .get(id=template_id)
     set_tool_output({
