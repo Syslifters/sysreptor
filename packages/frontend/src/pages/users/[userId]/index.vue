@@ -103,7 +103,7 @@ const user = await useAsyncDataE<User>(async () => await $fetch<User>(apiUrl, { 
 
 const serverErrors = ref<any|null>(null);
 const canEdit = computed(() => !user.value.is_system_user && (
-  (auth.permissions.value.user_manager && !user.value.is_superuser) ||
+  (auth.hasPermission(UserPermission.USER_EDIT) && !user.value.is_superuser) ||
   auth.permissions.value.admin
 ));
 const canLoginLocal = computed(() => user.value.can_login_local && apiSettings.isLocalUserAuthEnabled);

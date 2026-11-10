@@ -18,6 +18,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
+from sysreptor.users.roles import Permission, get_all_roles
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.mail import send_mail
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
@@ -44,8 +45,8 @@ class PentestUserSerializer(serializers.ModelSerializer):
 
 class PentestUserDetailSerializer(serializers.ModelSerializer):
     is_mfa_enabled = serializers.SerializerMethodField()
-    # Deprecated compatibility field. Prefer the can_* permission fields.
-    is_guest = serializers.SerializerMethodField()
+    is_admin = serializers.BooleanField(read_only=True)
+    effective_permissions = serializers.ListField(child=serializers.CharField(), read_only=True)
 
     class Meta:
         model = PentestUser
@@ -53,8 +54,7 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'id', 'created', 'updated', 'last_login', 'is_active',
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile', 'color', 'must_change_password',
-            'scope', 'is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
-            *PentestUser.RESTRICTED_PERMISSION_FIELDS,
+            'is_superuser', 'is_admin', 'is_system_user', 'roles', 'effective_permissions',
             'is_mfa_enabled', 'has_password', 'can_login_local', 'can_login_sso',
         ]
         read_only_fields = ['last_login', 'is_system_user']
@@ -64,20 +64,18 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             return is_mfa_enabled
         return obj.mfa_methods.all().exists()
 
-    def get_is_guest(self, obj) -> bool:
-        return not all(getattr(obj, f) for f in PentestUser.RESTRICTED_PERMISSION_FIELDS)
+    def validate_roles(self, value):
+        all_roles = get_all_roles()
+        if invalid_roles := [r for r in value if r not in all_roles]:
+            raise serializers.ValidationError(f'Invalid roles: {", ".join(invalid_roles)}')
+        return list(dict.fromkeys(value))
 
     def get_extra_kwargs(self):
         user = self.context['request'].user
-        read_only = not (getattr(user, 'is_admin', False) or (getattr(user, 'is_user_manager', False) and not getattr(self.instance, 'is_superuser', False)))
+        read_only = not (getattr(user, 'is_admin', False) or (user.is_authenticated and user.has_permission(Permission.USER_EDIT) and not getattr(self.instance, 'is_superuser', False)))
         return super().get_extra_kwargs() | {
             'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},
-            'is_user_manager': {'read_only': read_only},
-            'is_designer': {'read_only': read_only},
-            'is_project_admin': {'read_only': read_only},
-            'is_template_editor': {'read_only': read_only},
-            'is_global_archiver': {'read_only': read_only},
-            **{f: {'read_only': read_only} for f in PentestUser.RESTRICTED_PERMISSION_FIELDS},
+            'roles': {'read_only': read_only},
             'username': {'read_only': read_only},
             'email': {'read_only': read_only},
             'is_active': {'read_only': read_only},
@@ -105,29 +103,8 @@ class CreateUserSerializer(PentestUserDetailSerializer):
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        initial = self.initial_data if isinstance(self.initial_data, dict) else {}
-
-        defaults = {
-            'can_create_projects': configuration.DEFAULT_PERMISSION_CAN_CREATE_PROJECTS,
-            'can_import_projects': configuration.DEFAULT_PERMISSION_CAN_IMPORT_PROJECTS,
-            'can_edit_projects': configuration.DEFAULT_PERMISSION_CAN_EDIT_PROJECTS,
-            'can_update_project_settings': configuration.DEFAULT_PERMISSION_CAN_UPDATE_PROJECT_SETTINGS,
-            'can_delete_projects': configuration.DEFAULT_PERMISSION_CAN_DELETE_PROJECTS,
-            'can_see_all_users': configuration.DEFAULT_PERMISSION_CAN_SEE_ALL_USERS,
-            'can_share_notes': configuration.DEFAULT_PERMISSION_CAN_SHARE_NOTES,
-        } if initial.get('is_guest', True) else {
-            'can_create_projects': True,
-            'can_import_projects': True,
-            'can_edit_projects': True,
-            'can_update_project_settings': True,
-            'can_delete_projects': True,
-            'can_see_all_users': True,
-            'can_share_notes': True,
-        }
-
-        for field, value in defaults.items():
-            if field not in initial:
-                attrs[field] = value
+        if 'roles' not in attrs:
+            attrs['roles'] = list(configuration.DEFAULT_ROLES or [])
         return attrs
 
 

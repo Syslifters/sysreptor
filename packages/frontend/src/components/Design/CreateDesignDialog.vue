@@ -1,7 +1,7 @@
 <template>
   <s-dialog v-model="dialogVisible">
     <template #activator="{ props: dialogProps }">
-      <permission-info :value="canCreate" :permission-name="props.projectTypeScope === ProjectTypeScope.GLOBAL ? 'Designer' : undefined">
+      <permission-info :value="canCreate" :permission-name="props.projectTypeScope === ProjectTypeScope.GLOBAL ? UserPermission.DESIGN_GLOBAL_CREATE : undefined">
         <btn-create 
           :loading="actionInProgress"
           :disabled="!canCreate"
@@ -59,7 +59,7 @@ const projectTypeStore = useProjectTypeStore();
 
 const canCreate = computed(() => {
   if (props.projectTypeScope === ProjectTypeScope.GLOBAL) {
-    return auth.permissions.value.designer;
+    return auth.hasPermission(UserPermission.DESIGN_GLOBAL_CREATE);
   } else {
     return auth.permissions.value.private_designs;
   }

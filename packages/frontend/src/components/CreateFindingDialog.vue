@@ -18,7 +18,7 @@
               :hide-no-data="false"
               :clear-on-select="false"
               :menu-props="{ width: '50%' }"
-              :disabled="!auth.permissions.value.see_all_templates"
+              :disabled="!auth.hasPermission(UserPermission.TEMPLATE_READ)"
               no-filter
               multiple
               return-object

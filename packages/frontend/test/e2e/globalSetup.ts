@@ -34,11 +34,14 @@ export default async function globalSetup(config: FullConfig) {
   await page.getByLabel('First Name').fill('User');
   await page.getByLabel('Last Name').fill('User');
   await page.getByLabel('Email').fill('user@example.com');
-  await page.getByTestId('template-editor-checkbox').getByRole('checkbox').check();
-  await page.getByTestId('designer-checkbox').getByRole('checkbox').check();
-  await page.getByTestId('user-manager-checkbox').getByRole('checkbox').check();
-  await page.getByTestId('global-archiver-checkbox').getByRole('checkbox').check();
-  await page.getByTestId('project-admin-checkbox').getByRole('checkbox').check();
+  for (const roleName of ['Template Editor', 'Designer', 'User Manager', 'Global Archiver', 'Project Admin']) {
+    await page.getByTestId('roles-select').click();
+    const option = page.getByRole('option', { name: roleName, exact: true });
+    if (await option.getAttribute('aria-selected') !== 'true') {
+      await option.click();
+    }
+  }
+  await page.keyboard.press('Escape');
   await page.getByTestId('save-toolbar').click();
   // eslint-disable-next-line no-console
   console.log('User permissions updated');

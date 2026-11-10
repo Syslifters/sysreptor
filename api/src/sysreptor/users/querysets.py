@@ -10,6 +10,9 @@ from fido2.server import AttestedCredentialData
 from fido2.utils import websafe_decode, websafe_encode
 from fido2.webauthn import AuthenticatorAttachment, PublicKeyCredentialUserEntity, UserVerificationRequirement
 
+from sysreptor.users.roles import Permission
+from sysreptor.utils.configuration import configuration
+
 
 class SessionQueryset(models.QuerySet):
     def filter(self, *args, **kwargs):
@@ -61,7 +64,7 @@ class PentestUserQuerySet(models.QuerySet):
         from sysreptor.users.models import PentestUser
         if not user or user.is_anonymous:
             return self.none()
-        if 'see_all_users' in user.scope:
+        if user.has_permission(Permission.USER_LIST_ALL):
             return self
         # Only show users that are members in projects where the restricted user is also a member
         return self \
@@ -95,6 +98,10 @@ class PentestUserQuerySet(models.QuerySet):
 
 
 class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQuerySet)):
+    def _create_user(self, username, email, password, **extra_fields):
+        extra_fields.setdefault('roles', list(configuration.DEFAULT_ROLES or []))
+        return super()._create_user(username, email, password, **extra_fields)
+
     def record_failed_mfa_attempt(self, user):
         self.filter(pk=user.pk).update(failed_mfa_attempts=models.F('failed_mfa_attempts') + 1)
         user = self.get(pk=user.pk)
@@ -105,11 +112,6 @@ class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQu
 
 
 class APITokenQuerySet(models.QuerySet):
-    def only_permitted(self, user):
-        if 'user_manager' in user.scope:
-            return self
-        return self.filter(user=user)
-
     def only_active(self):
         return self \
             .filter(models.Q(expire_date=None) | models.Q(expire_date__gte=timezone.now().date()))
@@ -120,11 +122,6 @@ class APITokenManager(models.Manager.from_queryset(APITokenQuerySet)):
 
 
 class MFAMethodQuerySet(models.QuerySet):
-    def only_permitted(self, user):
-        if 'user_manager' in user.scope:
-            return self
-        return self.filter(user=user)
-
     def default_order(self):
         from sysreptor.users.models import MFAMethodType
         return self \

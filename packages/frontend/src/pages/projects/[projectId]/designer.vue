@@ -89,7 +89,7 @@ const { projectType, toolbarAttrs, readonly } = useProjectTypeLockEdit({
     save: true,
     saveFields: ['report_template', 'report_styles', 'report_preview_data'],
   }),
-  hasEditPermissions: computed(() => !project.value.readonly && auth.permissions.value.edit_projects),
+  hasEditPermissions: computed(() => !project.value.readonly && auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)),
   errorMessage: computed(() => project.value.readonly ? 
     'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.' : 
     null),

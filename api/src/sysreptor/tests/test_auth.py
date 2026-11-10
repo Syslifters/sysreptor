@@ -340,7 +340,7 @@ class TestEnableAdminPermissions:
         user_data = res_privesc_success.json()
         assert user_data['id'] == str(self.user.id)
         assert user_data['is_superuser']
-        assert 'admin' in user_data['scope']
+        assert user_data['is_admin']
         assert self.client.session['admin_permissions_enabled']
 
         assert self.has_admin_access()
@@ -357,7 +357,7 @@ class TestEnableAdminPermissions:
         user_data = res.json()
         assert user_data['id'] == str(self.user.id)
         assert user_data['is_superuser']
-        assert 'admin' not in user_data['scope']
+        assert not user_data['is_admin']
         assert not self.client.session.get('admin_permissions_enabled')
 
         assert not self.has_admin_access()
@@ -575,7 +575,7 @@ class TestPasswordChangeSessionRevocation:
         self.create_user_session()
 
         if action == 'admin_reset':
-            res = api_client(create_user(is_user_manager=True)).post(
+            res = api_client(create_user(roles=['regular_user', 'user_manager'])).post(
                 reverse('pentestuser-reset-password', kwargs={'pk': self.user.id}),
                 data={'password': get_random_string(32)},
             )
@@ -612,23 +612,22 @@ class TestUserPermissionAssignment:
         # Exclude non-permission and read-only fields
         'id', 'created', 'updated', 'last_login',
         'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
-        'phone', 'mobile', 'color', 'scope', 'has_password', 'can_login_sso', 'is_mfa_enabled',
+        'phone', 'mobile', 'color', 'is_admin', 'effective_permissions', 'has_password', 'can_login_sso', 'is_mfa_enabled',
     }
 
     @pytest.fixture(autouse=True)
     def setUp(self):
-        create_user(username='regular', is_user_manager=False, is_superuser=False)
-        create_user(username='user_manager', is_user_manager=True, is_superuser=False)
-        create_user(username='superuser', is_user_manager=False, is_superuser=True)
+        create_user(roles=['regular_user'], username='regular', is_superuser=False)
+        create_user(roles=['regular_user', 'user_manager'], username='user_manager', is_superuser=False)
+        create_user(roles=['regular_user'], username='superuser', is_superuser=True)
         create_user(username='other')
 
     @pytest.mark.parametrize(('username', 'data', 'expected'), [
         ('regular', {}, False),
         ('superuser', {}, True),
-        ('superuser', {'is_superuser': True, 'is_user_manager': True, 'email': 'newuser@example.com'}, True),
+        ('superuser', {'is_superuser': True, 'roles': ['regular_user', 'user_manager'], 'email': 'newuser@example.com'}, True),
         ('user_manager', {}, True),
-        ('user_manager', {'is_superuser': False, 'is_user_manager': True, 'is_designer': True, 'is_template_editor': True, 'is_global_archiver': True, 'is_project_admin': True, 'email': 'newuser@example.com'}, True),
-        ('user_manager', {'is_superuser': True}, False),
+        ('user_manager', {'is_superuser': False, 'roles': ['regular_user', 'user_manager', 'designer', 'template_editor', 'global_archiver', 'project_admin'], 'email': 'newuser@example.com'}, True),        ('user_manager', {'is_superuser': True}, False),
     ])
     def test_create_user(self, username, data, expected):
         user_req = PentestUser.objects.get(username=username)
@@ -665,6 +664,7 @@ class TestUserPermissionAssignment:
         update_data = {
             'email': 'changed@example.com',
             'username': 'changed',
+            'roles': ['regular_user', 'designer'],
         }
         if field in update_data:
             value = update_data[field]

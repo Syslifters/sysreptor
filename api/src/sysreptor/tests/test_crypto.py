@@ -353,8 +353,7 @@ class TestEncryptDataCommand:
 class TestProjectArchivingEncryption:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        with override_configuration(PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=True), \
-             pgp.create_gpg() as self.gpg:
+        with pgp.create_gpg() as self.gpg:
             yield
 
     def create_user_with_private_key(self, name=None, **kwargs):
@@ -443,8 +442,8 @@ class TestProjectArchivingEncryption:
     @override_configuration(ARCHIVING_THRESHOLD=2)
     def test_archiving_dearchiving(self):
         user_regular = self.create_user_with_private_key()
-        user_archiver1 = self.create_user_with_private_key(is_global_archiver=True)
-        user_archiver2 = self.create_user_with_private_key(is_global_archiver=True)
+        user_archiver1 = self.create_user_with_private_key(roles=['regular_user', 'global_archiver'])
+        user_archiver2 = self.create_user_with_private_key(roles=['regular_user', 'global_archiver'])
         user_without_key = create_user()
         project = create_project(members=[user_regular, user_archiver1, user_without_key], readonly=True)
 
@@ -489,23 +488,45 @@ class TestProjectArchivingEncryption:
         project_restored = PentestProject.objects.get(id=res_d2.data['project_id'])
         assert project_restored.name == project.name
 
-    @override_configuration(ARCHIVING_THRESHOLD=1, PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=False)
-    def test_archiving_disabled_for_project_members(self):
-        user_regular = create_user(public_key=True)
-        user_archiver = create_user(public_key=True, is_global_archiver=True)
-        project = create_project(members=[user_regular, user_archiver], readonly=True)
+    @override_configuration(ARCHIVING_THRESHOLD=1, CUSTOM_ROLES=[{'id': 'no_archive', 'name': 'No Archive', 'permissions': ['project.read', 'project.edit_content', 'project.update_settings']}])
+    def test_archiving_without_archive_permissions(self):
+        user_restricted = self.create_user_with_private_key(roles=['no_archive'])
+        user_archiver = self.create_user_with_private_key(roles=['regular_user', 'global_archiver'])
+        user_nonmember_archiver = self.create_user_with_private_key(roles=['global_archiver'])
+        project = create_project(members=[user_restricted, user_archiver], readonly=True)
 
-        # Project member cannot archive
-        res = api_client(user_regular).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
+        # Project member without project.archive cannot archive
+        res = api_client(user_restricted).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
         assert res.status_code == 403
 
-        # Global archiver can
+        # Members without project.restore are key holders, but get a warning
+        res = api_client(user_archiver).get(reverse('pentestproject-archive-check', kwargs={'pk': project.pk}))
+        assert res.status_code == 200
+        check_users = {u['id']: u for u in res.data['users']}
+        assert set(check_users.keys()) == {str(user_restricted.id), str(user_archiver.id), str(user_nonmember_archiver.id)}
+        assert not check_users[str(user_restricted.id)]['can_restore']
+        assert 'User does not have project.restore permission' in check_users[str(user_restricted.id)]['warnings']
+        assert check_users[str(user_archiver.id)]['can_restore']
+        assert check_users[str(user_nonmember_archiver.id)]['is_global_archiver']
+        assert not check_users[str(user_nonmember_archiver.id)]['is_project_member']
+
         res = api_client(user_archiver).post(reverse('pentestproject-archive', kwargs={'pk': project.pk}))
         assert res.status_code == 201
-
         archive = ArchivedProject.objects.get(id=res.data['id'])
-        assert archive.key_parts.count() == 1
-        assert archive.key_parts.first().user == user_archiver
+        assert set(archive.key_parts.values_list('user_id', flat=True)) == {user_restricted.id, user_archiver.id, user_nonmember_archiver.id}
+
+        # Key holder without project.restore cannot decrypt
+        client = api_client(user_restricted)
+        keypart = archive.key_parts.get(user=user_restricted)
+        keypart_kwargs = {'archivedproject_pk': archive.id, 'pk': keypart.id}
+        res_k = client.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs=keypart_kwargs))
+        assert res_k.status_code == 403
+        res_d = client.post(reverse('archivedprojectkeypart-decrypt', kwargs=keypart_kwargs), data={
+            'data': self.gpg.decrypt(keypart.public_key_encrypted_parts.first().encrypted_data).data.decode().split('\n')[1],
+        })
+        assert res_d.status_code == 403
+        keypart.refresh_from_db()
+        assert not keypart.is_decrypted
 
     def test_decrypt_wrong_key(self):
         user = create_user(public_key=True)

@@ -50,10 +50,10 @@ class TestNotificationAssignment:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.user_regular = create_user(username='regular')
-        self.user_template_editor = create_user(username='template_editor', is_template_editor=True)
-        self.user_designer = create_user(username='designer', is_designer=True)
-        self.user_user_manager = create_user(username='user_manager', is_user_manager=True)
-        self.user_project_admin = create_user(username='project_admin', is_project_admin=True)
+        self.user_template_editor = create_user(roles=['regular_user', 'template_editor'], username='template_editor')
+        self.user_designer = create_user(roles=['regular_user', 'designer'], username='designer')
+        self.user_user_manager = create_user(roles=['regular_user', 'user_manager'], username='user_manager')
+        self.user_project_admin = create_user(roles=['regular_user', 'project_admin'], username='project_admin')
         self.user_superuser = create_user(username='superuser', is_superuser=True)
 
     @pytest.mark.parametrize(('spec', 'expected_users'), [

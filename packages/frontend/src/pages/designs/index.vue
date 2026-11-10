@@ -34,10 +34,10 @@
             variant="flat"
             density="comfortable"
           />
-          <permission-info :value="auth.permissions.value.designer" permission-name="Designer">
+          <permission-info :permission="UserPermission.DESIGN_GLOBAL_DELETE">
             <btn-delete
               :delete="() => performDeleteSelected(selectedItems)"
-              :disabled="!auth.permissions.value.designer"
+              :disabled="!auth.hasPermission(UserPermission.DESIGN_GLOBAL_DELETE)"
               :confirm-input="`delete ${selectedItems.length} designs`"
               tooltip-text="Delete selected"
               icon="mdi-delete"

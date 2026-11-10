@@ -50,7 +50,7 @@ const mfaMethods = await useAsyncDataE(async () => {
     }
   }
 });
-const canEdit = computed(() => auth.permissions.value.user_manager && !user.value.is_system_user)
+const canEdit = computed(() => auth.hasPermission(UserPermission.USER_EDIT) && !user.value.is_system_user)
 
 async function deleteMfaMethod(mfaMethod: MfaMethod) {
   await $fetch(`/api/v1/pentestusers/${route.params.userId}/mfa/${mfaMethod.id}/`, { method: 'DELETE' });

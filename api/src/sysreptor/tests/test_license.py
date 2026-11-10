@@ -99,7 +99,7 @@ class TestCommunityLicenseRestrictions:
 
     def test_admin_privesc_disabled(self):
         assert self.user.is_admin
-        assert 'admin' in self.client.get(reverse('pentestuser-self')).data['scope']
+        assert self.client.get(reverse('pentestuser-self')).data['is_admin']
         assert_api_license_error(self.client.post(reverse('pentestuser-disable-admin-permissions')))
         assert_api_license_error( self.client.post(reverse('pentestuser-enable-admin-permissions')))
 
@@ -263,7 +263,7 @@ class TestProfessionalLicenseRestrictions:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.password = get_random_string(length=32)
-        self.user = create_user(is_user_manager=True, password=self.password)
+        self.user = create_user(roles=['regular_user', 'user_manager'], password=self.password)
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 

@@ -66,7 +66,6 @@ from sysreptor.tests.mock import (
     api_client,
     create_project,
     create_projectnotebookpage,
-    create_restricted_user,
     create_template,
     create_user,
     mock_time,
@@ -972,7 +971,7 @@ class TestAgentPermissions:
     def test_api_permissions(self, user_name, project_name, expected_read, expected_write):
         users = {
             'member': create_user(),
-            'guest': create_restricted_user(),
+            'guest': create_user(roles=['guest']),
             'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
             'unauthorized': create_user(),
             'anonymous': AnonymousUser(),

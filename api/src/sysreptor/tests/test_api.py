@@ -33,7 +33,6 @@ from sysreptor.pentests.models import (
 )
 from sysreptor.pentests.rendering.render_utils import RenderStageResult
 from sysreptor.tests.mock import (
-    RESTRICTED_USER_PERMISSIONS,
     create_archived_project,
     create_png_file,
     create_project,
@@ -319,7 +318,6 @@ def guest_urls():
 
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
-        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
         ('archivedproject tags', lambda s, c: c.get(reverse('archivedproject-tags'))),
     ]
 
@@ -336,6 +334,7 @@ def regular_user_urls():
 
         ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
         ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly.pk}))),
+        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
     ]
 
 
@@ -587,12 +586,12 @@ def test_api_requests(username, name, perform_request, options, expected):
         mock.patch('sysreptor.api_utils.views.reload_server'):
         user_map = {
             'public': lambda: None,
-            'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(**RESTRICTED_USER_PERMISSIONS),
+            'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['guest']),
             'regular': lambda: ApiRequestsAndPermissionsTestData.create_user(),
-            'template_editor': lambda: ApiRequestsAndPermissionsTestData.create_user(is_template_editor=True),
-            'designer': lambda: ApiRequestsAndPermissionsTestData.create_user(is_designer=True),
-            'user_manager': lambda: ApiRequestsAndPermissionsTestData.create_user(is_user_manager=True),
-            'project_admin': lambda: ApiRequestsAndPermissionsTestData.create_user(is_project_admin=True),
+            'template_editor': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'template_editor']),
+            'designer': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'designer']),
+            'user_manager': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'user_manager']),
+            'project_admin': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'project_admin']),
             'superuser': lambda: ApiRequestsAndPermissionsTestData.create_user(is_superuser=True, admin_permissions_enabled=True),
         }
         user = user_map[username]()

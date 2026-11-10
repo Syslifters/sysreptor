@@ -85,7 +85,7 @@
         v-model="shareDialogVisible"
         :project="project"
         :note="note"
-        :readonly="!auth.permissions.value.share_project_notes"
+        :readonly="!auth.hasPermission(UserPermission.PROJECT_SHARE_NOTES)"
       />
 
       <markdown-page

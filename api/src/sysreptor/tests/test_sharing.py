@@ -20,7 +20,6 @@ from sysreptor.tests.mock import (
     create_png_file,
     create_project,
     create_projectnotebookpage,
-    create_restricted_user,
     create_shareinfo,
     create_user,
     create_usernotebookpage,
@@ -780,7 +779,7 @@ class TestSharedNotePendingFileIds:
             else:
                 client = api_client(user=owner)
         elif via == 'guest_member':
-            guest = create_restricted_user()
+            guest = create_user(roles=['guest'])
             owner.members.create(user=guest)
             client = api_client(user=guest)
         else:

@@ -30,6 +30,7 @@ from sysreptor.users.permissions import (
     RemoteUserAuthPermissions,
     UserViewSetPermissions,
 )
+from sysreptor.users.roles import Permission, user_has_permission
 from sysreptor.users.serializers import (
     APITokenCreateSerializer,
     APITokenSerializer,
@@ -117,7 +118,7 @@ class PentestUserViewSet(viewsets.ModelViewSet):
             return ChangePasswordSerializer
         elif self.action == 'create':
             return CreateUserSerializer
-        elif (getattr(self.request.user, 'is_admin', False) or getattr(self.request.user, 'is_user_manager', False)) or \
+        elif user_has_permission(self.request.user, Permission.USER_EDIT) or \
              self.action in ['self', 'enable_admin_permissions', 'disable_admin_permissions']:
             return PentestUserDetailSerializer
         else:

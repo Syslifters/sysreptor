@@ -23,6 +23,11 @@ from django.core.exceptions import ValidationError
 from django.utils.csp import CSP
 
 from sysreptor.conf.plugins import ENABLED_PLUGINS_FIELD, load_plugins
+from sysreptor.users.roles import (
+    PREDEFINED_ROLES,
+    Permission,
+    validate_custom_roles,
+)
 from sysreptor.utils.fielddefinition.types import (
     BooleanField,
     EnumChoice,
@@ -845,14 +850,6 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                   'By default two users are required, enforcing a 4-eye principle. '
                   'If ARCHIVING_THRESHOLD=1 every user is able to restore archived projects on their own, disabling the 4-eye principle. '
                   'Changing this setting does not affect previously archived projects.'),
-    BooleanField(
-        id='PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS',
-        default=True,
-        extra_info={'group': 'archiving', 'professional_only': True},
-        help_text='If PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS is set to true (default), every project member can archive/restore a project. '
-                  'Otherwise, only users with global archiver permission can archive/restore projects. '
-                  'This means that encryption happens with fewer encryption keys and it will be more difficult '
-                  'to keep up the quorum (ARCHIVING_THRESHOLD) for restoring projects (this could lead to availability problems).'),
     NumberField(
         id='AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER',
         default=None,
@@ -869,51 +866,30 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         help_text='Automatically delete finished (and archived) projects after X days'),
 
 
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_EDIT_PROJECTS',
-        default=True,
-        help_text='Default value of can_edit_projects for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_UPDATE_PROJECT_SETTINGS',
-        default=True,
-        help_text='Default value of can_update_project_settings for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_CREATE_PROJECTS',
-        default=True,
-        help_text='Default value of can_create_projects for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_DELETE_PROJECTS',
-        default=True,
-        help_text='Default value of can_delete_projects for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_IMPORT_PROJECTS',
-        default=False,
-        help_text='Default value of can_import_projects for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_SEE_ALL_USERS',
-        default=False,
-        help_text='Default value of can_see_all_users for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_SEE_ALL_TEMPLATES',
-        default=False,
-        help_text='Default value of can_see_all_templates for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_SEE_ALL_DESIGN',
-        default=False,
-        help_text='Default value of can_see_all_designs for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='DEFAULT_PERMISSION_CAN_SHARE_NOTES',
-        default=False,
-        help_text='Default value of can_share_notes for newly created users.',
-        extra_info={'group': 'permissions', 'professional_only': True}),
+    ListField(
+        id='CUSTOM_ROLES',
+        items=ObjectField(properties=[
+            StringField(id='id', required=True, pattern=r'^[a-zA-Z0-9_-]{1,50}$', help_text='Unique identifier for the role.'),
+            StringField(id='name', required=False, help_text='Display name of the role'),
+            StringField(id='description', required=False, help_text='Human readable description of the role shown in the user management.'),
+            ListField(
+                id='permissions',
+                items=EnumField(choices=[EnumChoice(value=str(p), label=str(p)) for p in list(Permission) + ['project.*', 'template.*', 'design.global.*', 'user.*']]),
+                required=False,
+                help_text='Permissions granted by this role. Wildcards (e.g. "template.*") grant all permissions with the given prefix.'),
+        ]),
+        default=[],
+        required=False,
+        extra_info={'group': 'permissions', 'professional_only': True, 'validate': validate_custom_roles},
+        help_text='Define custom roles in addition to the predefined roles (' + ', '.join(PREDEFINED_ROLES.keys()) + '). '
+                  'Users have the union of permissions of all their roles.'),
+    ListField(
+        id='DEFAULT_ROLES',
+        items=StringField(pattern=r'^[a-zA-Z0-9_-]{1,50}$'),
+        default=['regular_user'],
+        required=False,
+        extra_info={'group': 'permissions', 'professional_only': True, 'load_from_env': Csv(post_process=remove_empty_items)},
+        help_text='Roles assigned to newly created users.'),
 
 
     StringField(

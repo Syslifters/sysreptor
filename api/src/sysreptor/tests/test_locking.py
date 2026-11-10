@@ -16,8 +16,8 @@ from sysreptor.tests.mock import (
 class TestLocking:
     @pytest.fixture(autouse=True)
     def setUp(self) -> None:
-        self.user1 = create_user(is_template_editor=True, is_designer=True)
-        self.user2 = create_user(is_template_editor=True, is_designer=True)
+        self.user1 = create_user(roles=['regular_user', 'template_editor', 'designer'])
+        self.user2 = create_user(roles=['regular_user', 'template_editor', 'designer'])
         self.project_type = create_project_type()
         self.template = create_template()
 

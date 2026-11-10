@@ -16,24 +16,24 @@
       <template #title>Templates</template>
       <template #actions="{ selectedItems }: { selectedItems: FindingTemplate[] }">
         <v-divider vertical />
-        <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+        <permission-info :permission="UserPermission.TEMPLATE_CREATE">
           <btn-create 
             @click="performCreate"
-            :disabled="!auth.permissions.value.template_editor"
+            :disabled="!auth.hasPermission(UserPermission.TEMPLATE_CREATE)"
             :loading="performCreateInProgress"
           />
         </permission-info>
-        <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+        <permission-info :value="auth.hasPermission(UserPermission.TEMPLATE_IMPORT)">
           <btn-import 
             ref="importBtnRef"
             data-testid="import-templates"
             :import="performImport"
-            :disabled="!auth.permissions.value.template_editor"
+            :disabled="!auth.hasPermission(UserPermission.TEMPLATE_IMPORT)"
           />
         </permission-info>
         <template v-if="selectedItems.length > 0">
           <v-divider vertical />
-          <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+          <permission-info :value="auth.hasPermission(UserPermission.TEMPLATE_EXPORT)">
             <btn-export
               export-url="/api/v1/findingtemplates/export/"
               :options="{ids: selectedItems.map(p => p.id)}"
@@ -45,10 +45,10 @@
               density="comfortable"
             />
           </permission-info>
-          <permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">
+          <permission-info :value="auth.hasPermission(UserPermission.TEMPLATE_DELETE)">
             <btn-delete
               :delete="() => performDeleteSelected(selectedItems)"
-              :disabled="!auth.permissions.value.template_editor"
+              :disabled="!auth.hasPermission(UserPermission.TEMPLATE_DELETE)"
               :confirm-input="`delete ${selectedItems.length} templates`"
               tooltip-text="Delete selected"
               icon="mdi-delete"

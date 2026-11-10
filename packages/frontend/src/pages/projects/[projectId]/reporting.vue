@@ -79,7 +79,7 @@ const findings = computed(() => projectStore.findings(project.value.id));
 const sections = computed(() => projectStore.sections(project.value.id));
 const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);
 
-const readonly = computed(() => project.value.readonly || !auth.permissions.value.edit_projects);
+const readonly = computed(() => project.value.readonly || !auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT));
 
 const reportingCollab = projectStore.useReportingCollab({ project: project.value });
 onMounted(async () => {

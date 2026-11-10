@@ -10,6 +10,7 @@ import qrcode
 import qrcode.image.pil
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import ArrayField
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core.validators import RegexValidator
 from django.db import models
@@ -18,6 +19,7 @@ from fido2.server import Fido2Server, _verify_origin_for_rp
 from fido2.webauthn import PublicKeyCredentialRpEntity
 
 from sysreptor.users import querysets
+from sysreptor.users.roles import Permission, get_role_permissions
 from sysreptor.utils.crypto.fields import EncryptedField
 from sysreptor.utils.models import BaseModel
 from sysreptor.utils.utils import get_random_color
@@ -37,35 +39,13 @@ class PentestUser(BaseModel, AbstractUser):
 
     color = models.CharField(max_length=7, default=get_random_color, validators=[RegexValidator(r'^#[0-9a-fA-F]{6}$')])
 
-    is_designer = models.BooleanField(default=False, db_index=True)
-    is_template_editor = models.BooleanField(default=False, db_index=True)
-    is_user_manager = models.BooleanField(default=False, db_index=True)
-    is_project_admin = models.BooleanField(default=False, db_index=True)
     is_system_user = models.BooleanField(default=False, db_index=True)
-    is_global_archiver = models.BooleanField(default=False, db_index=True)
-
-    can_create_projects = models.BooleanField(default=True)
-    can_import_projects = models.BooleanField(default=True)
-    can_edit_projects = models.BooleanField(default=True)
-    can_update_project_settings = models.BooleanField(default=True)
-    can_delete_projects = models.BooleanField(default=True)
-    can_see_all_users = models.BooleanField(default=True)
-    can_see_all_templates = models.BooleanField(default=True)
-    can_see_all_designs = models.BooleanField(default=True)
+    roles = ArrayField(base_field=models.CharField(max_length=255), default=list, blank=True, db_index=True)
 
     can_login_local = models.BooleanField(default=True)
     failed_mfa_attempts = models.PositiveIntegerField(default=0)
 
     REQUIRED_FIELDS = []
-    RESTRICTED_PERMISSION_FIELDS = [
-        'can_create_projects',
-        'can_import_projects',
-        'can_edit_projects',
-        'can_update_project_settings',
-        'can_delete_projects',
-        'can_see_all_users',
-        'can_share_notes',
-    ]
 
     objects = querysets.PentestUserManager()
 
@@ -81,22 +61,19 @@ class PentestUser(BaseModel, AbstractUser):
             ((', ' + self.title_after) if self.title_after else '')
 
     @property
-    def scope(self) -> list[str]:
-        return (['admin'] if self.is_admin else []) + \
-               (['project_admin'] if self.is_project_admin or self.is_admin else []) + \
-               (['template_editor'] if self.is_template_editor or self.is_admin else []) + \
-               (['designer'] if self.is_designer or self.is_admin else []) + \
-               (['user_manager'] if self.is_user_manager or self.is_admin else []) + \
-               (['create_projects'] if self.can_create_projects or self.is_admin or self.is_project_admin else []) + \
-               (['import_projects'] if self.can_import_projects or self.is_admin or self.is_project_admin else []) + \
-               (['edit_projects'] if self.can_edit_projects or self.is_admin or self.is_project_admin else []) + \
-               (['update_project_settings'] if self.can_update_project_settings or self.is_admin or self.is_project_admin else []) + \
-               (['delete_projects'] if self.can_delete_projects or self.is_admin or self.is_project_admin else []) + \
-               (['share_notes'] if self.can_share_notes or self.is_admin or self.is_project_admin else []) + \
-               (['see_all_users'] if self.can_see_all_users or self.is_superuser or self.is_user_manager else []) + \
-               (['see_all_templates'] if self.can_see_all_templates or self.is_admin or self.is_template_editor else []) + \
-               (['see_all_designs'] if self.can_see_all_designs or self.is_admin or self.is_designer else []) + \
-               (['system'] if self.is_system_user else [])
+    def effective_permissions(self) -> list[str]:
+        if not self.is_active or self.is_system_user:
+            return []
+        elif self.is_admin:
+            return list(p.value for p in Permission)
+        return list(p.value for p in get_role_permissions(self.roles))
+
+    def has_permission(self, permission: str) -> bool:
+        if not self.is_active or self.is_system_user:
+            return False
+        elif self.is_admin:
+            return True
+        return permission in self.effective_permissions
 
     @property
     def has_password(self) -> bool:

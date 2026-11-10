@@ -6,6 +6,7 @@ from rest_framework import authentication, exceptions, permissions
 
 from sysreptor.users.auth import forbidden_with_apitoken_auth
 from sysreptor.users.models import PentestUser
+from sysreptor.users.roles import Permission
 from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
 
@@ -35,11 +36,11 @@ def check_sensitive_operation_timeout(request):
 class UserSubresourcePermissions(permissions.BasePermission):
     @classmethod
     def has_read_permissions(cls, target_user, user) -> bool:
-        if user == target_user:
-            return True
         if not _is_eligible_user(user):
             return False
-        if 'user_manager' not in user.scope:
+        if user == target_user:
+            return True
+        if not user.has_permission(Permission.USER_EDIT):
             return False
         return True
 
@@ -49,7 +50,7 @@ class UserSubresourcePermissions(permissions.BasePermission):
             return False
         if target_user == user:
             return True
-        if 'user_manager' not in user.scope:
+        if not user.has_permission(Permission.USER_EDIT):
             return False
         if target_user.is_system_user:
             return False
@@ -69,7 +70,9 @@ class UserViewSetPermissions(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         if view.action == 'destroy':
-            return 'user_manager' in request.user.scope
+            return request.user.has_permission(Permission.USER_DELETE)
+        elif view.action == 'create':
+            return request.user.has_permission(Permission.USER_CREATE)
         elif view.action == 'self':
             # Allow updating your own user
             return True
@@ -80,14 +83,19 @@ class UserViewSetPermissions(permissions.BasePermission):
         elif view.action == 'disable_admin_permissions':
             forbidden_with_apitoken_auth(request)
             return license.ProfessionalLicenseRequired().has_permission(request, view) and request.user.is_admin
-        return 'user_manager' in request.user.scope
+        return request.user.has_permission(Permission.USER_EDIT)
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        if view.action == 'destroy' and request.user == obj:
+        if view.action == 'destroy':
             # Prevent deleting yourself
-            return False
+            if request.user == obj:
+                return False
+            # Prevent deleting superusers without admin permissions
+            if obj.is_superuser and not request.user.is_admin:
+                return False
+            return True
         return UserSubresourcePermissions.has_write_permissions(target_user=obj, user=request.user)
 
 
@@ -118,7 +126,7 @@ class AuthIdentityViewSetPermissions(permissions.BasePermission):
         # Users cannot edit their own identities; only user managers / admins can
         if not UserSubresourcePermissions.has_write_permissions(target_user=user, user=request.user):
             return False
-        if 'user_manager' not in request.user.scope:
+        if not request.user.has_permission(Permission.USER_EDIT):
             return False
         return True
 

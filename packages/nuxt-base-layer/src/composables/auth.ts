@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { NavigateToOptions } from '#app/composables/router'
 import type { LocationQueryValue } from "#vue-router";
-import { AuthProviderType, type AuthProvider, type User, useApiSettings, type LoginResponse, LoginResponseStatus  } from "#imports";
+import { AuthProviderType, type AuthProvider, type User, useApiSettings, type LoginResponse, LoginResponseStatus, UserPermission } from "#imports";
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -11,29 +11,26 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     permissions(state) {
       const apiSettings = useApiSettings();
-      const scope = state.user?.scope || [];
+      const admin = state.user?.is_admin || false;
       return {
         superuser: state.user?.is_superuser || false,
-        admin: scope.includes('admin'),
-        user_manager: scope.includes('user_manager'),
-        designer: scope.includes('designer'),
-        template_editor: scope.includes('template_editor'),
-        private_designs: (state.user && apiSettings.settings?.features.private_designs) || false,
-        create_projects: scope.includes('create_projects'),
-        import_projects: scope.includes('import_projects'),
-        delete_projects: scope.includes('delete_projects'),
-        update_project_settings: scope.includes('update_project_settings'),
-        edit_projects: scope.includes('edit_projects'),
-        share_project_notes: (apiSettings.settings?.features.sharing && scope.includes('share_notes')) || false,
-        share_user_notes: (apiSettings.settings?.features.sharing && scope.includes('share_notes')) || false,
-        archive_projects: (apiSettings.settings?.features.archiving && state.user && (
-          scope.includes('project_admin') ||
-          state.user.is_global_archiver ||
-          (apiSettings.settings?.permissions.project_members_can_archive_projects && scope.includes('update_project_settings'))
-        )) || false,
-        view_backup: (apiSettings.isProfessionalLicense && scope.includes('admin')) || false,
-        see_all_templates: scope.includes('see_all_templates'),
-        see_all_designs: scope.includes('see_all_designs'),
+        admin,
+        private_designs: (state.user && !state.user.is_system_user && apiSettings.settings?.features.private_designs) || false,
+        view_backup: (apiSettings.isProfessionalLicense && admin) || false,
+      };
+    },
+    hasPermission(state) {
+      return (permission: UserPermission|string) => {
+        const apiSettings = useApiSettings();
+        if (!state.user?.effective_permissions?.includes(permission)) {
+          return false;
+        }
+        if (permission === UserPermission.PROJECT_SHARE_NOTES && !apiSettings.settings?.features.sharing) {
+          return false;
+        } else if ([UserPermission.PROJECT_ARCHIVE, UserPermission.PROJECT_RESTORE].includes(permission as UserPermission) && !apiSettings.settings?.features.archiving) {
+          return false;
+        }
+        return true;
       };
     },
   },
@@ -149,6 +146,7 @@ export function useAuth() {
     user,
     store,
     permissions: computed(() => store.permissions),
+    hasPermission: (permission: UserPermission|string) => store.hasPermission(permission),
     logout,
     redirect,
     redirectToReAuth,

@@ -101,6 +101,7 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
         'email': username + '@example.com',
         'first_name': 'Herbert',
         'last_name': 'Testinger',
+        'roles': ['regular_user'],
     } | kwargs)
     if admin_permissions_enabled:
         user.admin_permissions_enabled = True
@@ -126,26 +127,6 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
         } | file_kwargs)
 
     return user
-
-
-RESTRICTED_USER_PERMISSIONS = {
-    'is_superuser': False,
-    'is_user_manager': False,
-    'is_designer': False,
-    'is_project_admin': False,
-    'is_template_editor': False,
-    'can_create_projects': False,
-    'can_import_projects': False,
-    'can_edit_projects': False,
-    'can_update_project_settings': False,
-    'can_delete_projects': False,
-    'can_see_all_users': False,
-    'can_share_notes': False,
-}
-
-
-def create_restricted_user(**kwargs) -> PentestUser:
-    return create_user(**RESTRICTED_USER_PERMISSIONS | kwargs)
 
 
 def create_imported_member(roles=None, **kwargs):

@@ -515,7 +515,7 @@ class TestAutoProjectArchiving:
             yield
 
     def test_archived(self):
-        create_user(public_key=True, is_global_archiver=True)
+        create_user(roles=['regular_user', 'global_archiver'], public_key=True)
         project_active = create_project(readonly=False, members=[self.user])
 
         with mock_time(after=timedelta(days=40)):

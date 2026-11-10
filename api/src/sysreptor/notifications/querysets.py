@@ -6,6 +6,13 @@ from django.utils import timezone
 
 from sysreptor.utils.history import HistoricalRecords
 
+# Notification user conditions (for backwards compatibility) mapped to role IDs
+ROLE_CONDITIONS = {
+    'is_project_admin': 'project_admin',
+    'is_designer': 'designer',
+    'is_template_editor': 'template_editor',
+    'is_user_manager': 'user_manager',
+}
 
 class NotificationSpecQuerySet(models.QuerySet):
     def only_active(self):
@@ -24,20 +31,25 @@ class NotificationSpecManagerBase(models.Manager.from_queryset(NotificationSpecQ
 
         # User conditions
         users = PentestUser.objects.all()
-        for role in ['is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager']:
-            if role in notification.user_conditions and isinstance(notification.user_conditions[role], bool):
-                users = users.filter(**{role: notification.user_conditions[role]})
+        conditions = notification.user_conditions or {}
+        if isinstance(conditions.get('is_superuser'), bool):
+            users = users.filter(is_superuser=conditions['is_superuser'])
+        for condition, role in ROLE_CONDITIONS.items():
+            if isinstance(conditions.get(condition), bool):
+                if conditions[condition]:
+                    users = users.filter(roles__contains=[role])
+                else:
+                    users = users.exclude(roles__contains=[role])
 
         return users
 
     def notificationspecs_for_user(self, user):
-        return self \
+        qs = self \
             .only_active() \
-            .filter(models.Q(user_conditions__is_superuser__isnull=True) | models.Q(user_conditions__is_superuser=user.is_superuser)) \
-            .filter(models.Q(user_conditions__is_designer__isnull=True) | models.Q(user_conditions__is_designer=user.is_designer)) \
-            .filter(models.Q(user_conditions__is_template_editor__isnull=True) | models.Q(user_conditions__is_template_editor=user.is_template_editor)) \
-            .filter(models.Q(user_conditions__is_user_manager__isnull=True) | models.Q(user_conditions__is_user_manager=user.is_user_manager)) \
-            .filter(models.Q(user_conditions__is_project_admin__isnull=True) | models.Q(user_conditions__is_project_admin=user.is_project_admin))
+            .filter(models.Q(user_conditions__is_superuser__isnull=True) | models.Q(user_conditions__is_superuser=user.is_superuser))
+        for condition, role in ROLE_CONDITIONS.items():
+            qs = qs.filter(models.Q(**{f'user_conditions__{condition}__isnull': True}) | models.Q(**{f'user_conditions__{condition}': role in (user.roles or [])}))
+        return qs
 
     def bulk_create(self, *args, **kwargs):
         objs = super().bulk_create(*args, **kwargs)

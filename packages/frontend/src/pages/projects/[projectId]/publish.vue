@@ -74,7 +74,7 @@
               <s-btn-primary
                 prepend-icon="mdi-share-variant"
                 text="Share by Link"
-                :disabled="hasErrors || !auth.permissions.value.share_project_notes || !auth.permissions.value.edit_projects"
+                :disabled="hasErrors || !auth.hasPermission(UserPermission.PROJECT_SHARE_NOTES) || !auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)"
                 :loading="shareReport.pending.value"
                 class="mr-1 mb-1"
                 v-bind="dialogProps"

@@ -44,11 +44,11 @@
             </v-list>
           </v-menu>
         </s-btn-icon>
-        <permission-info :value="auth.permissions.value.update_project_settings">
+        <permission-info :permission="UserPermission.PROJECT_UPDATE_SETTINGS">
           <btn-readonly
             :value="true"
             :set-readonly="() => setReadonlySelected(selectedItems)"
-            :disabled="!auth.permissions.value.update_project_settings"
+            :disabled="!auth.hasPermission(UserPermission.PROJECT_UPDATE_SETTINGS)"
             :show-toast="false"
             button-variant="icon"
             variant="flat"
@@ -66,10 +66,10 @@
             </template>
           </btn-readonly>
         </permission-info>
-        <permission-info :value="auth.permissions.value.delete_projects">
+        <permission-info :permission="UserPermission.PROJECT_DELETE">
           <btn-delete
             :delete="() => performDeleteSelected(selectedItems)"
-            :disabled="!auth.permissions.value.delete_projects"
+            :disabled="!auth.hasPermission(UserPermission.PROJECT_DELETE)"
             :confirm-input="`delete ${selectedItems.length} projects`"
             tooltip-text="Delete selected"
             icon="mdi-delete"

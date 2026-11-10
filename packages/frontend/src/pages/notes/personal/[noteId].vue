@@ -63,7 +63,7 @@
         v-model="shareDialogVisible"
         :user="auth.user.value!"
         :note="note"
-        :readonly="!auth.permissions.value.share_user_notes"
+        :readonly="!apiSettings.settings!.features.sharing"
       />
 
       <markdown-page
@@ -92,6 +92,7 @@ import { type MarkdownEditorMode, type UserNote, uploadFileHelper, collabSubpath
 const auth = useAuth();
 const route = useRoute();
 const localSettings = useLocalSettings();
+const apiSettings = useApiSettings();
 const userNotesStore = useUserNotesStore();
 
 const notesCollab = userNotesStore.useNotesCollab({ noteId: route.params.noteId as string });

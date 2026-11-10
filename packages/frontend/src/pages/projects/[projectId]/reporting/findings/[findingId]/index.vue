@@ -5,9 +5,9 @@
         <v-list-item
           :to="{path: '/templates/fromfinding/', query: {project: project.id, finding: finding.id}}"
           prepend-icon="mdi-view-compact"
-          :disabled="!auth.permissions.value.template_editor"
+          :disabled="!auth.hasPermission(UserPermission.TEMPLATE_CREATE)"
         >
-          <template #title><permission-info :value="auth.permissions.value.template_editor" permission-name="Template Editor">Save as template</permission-info></template>
+          <template #title><permission-info :permission="UserPermission.TEMPLATE_CREATE">Save as template</permission-info></template>
         </v-list-item>
         <btn-copy 
           :copy="performCopy"
@@ -18,7 +18,7 @@
       <s-btn-icon
         v-if="finding.template"
         :to="`/templates/${finding.template}/`"
-        :disabled="!auth.permissions.value.see_all_templates"
+        :disabled="!auth.hasPermission(UserPermission.TEMPLATE_READ)"
         target="_blank"
         icon="mdi-view-compact"
         v-tooltip="'This finding was created from a template: show template'"

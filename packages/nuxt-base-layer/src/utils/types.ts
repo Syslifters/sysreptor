@@ -43,22 +43,49 @@ export type User = UserShortInfo & BaseModel & {
   mobile: string|null;
 
   is_superuser: boolean;
-  is_project_admin: boolean;
-  is_user_manager: boolean;
-  is_designer: boolean;
-  is_template_editor: boolean;
   is_system_user: boolean;
-  is_global_archiver: boolean;
-  can_create_projects: boolean;
-  can_import_projects: boolean;
-  can_edit_projects: boolean;
-  can_update_project_settings: boolean;
-  can_delete_projects: boolean;
-  can_see_all_users: boolean;
-  can_see_all_templates: boolean;
-  can_see_all_designs: boolean;
-  can_share_notes: boolean;
-  scope: string[];
+  roles: string[];
+  readonly is_admin: boolean;
+  readonly effective_permissions: string[];
+};
+
+export enum UserPermission {
+  PROJECT_READ = 'project.read',
+  PROJECT_CREATE = 'project.create',
+  PROJECT_IMPORT = 'project.import',
+  PROJECT_EXPORT = 'project.export',
+  PROJECT_EDIT_CONTENT = 'project.edit_content',
+  PROJECT_UPDATE_SETTINGS = 'project.update_settings',
+  PROJECT_SHARE_NOTES = 'project.share_notes',
+  PROJECT_DELETE = 'project.delete',
+  PROJECT_ARCHIVE = 'project.archive',
+  PROJECT_RESTORE = 'project.restore',
+  ADMIN_ACCESS_ALL_PROJECTS = 'admin.access_all_projects',
+  ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT = 'archive.always_add_archiving_key_to_project',
+  TEMPLATE_READ = 'template.read',
+  TEMPLATE_CREATE = 'template.create',
+  TEMPLATE_EDIT = 'template.edit',
+  TEMPLATE_DELETE = 'template.delete',
+  TEMPLATE_IMPORT = 'template.import',
+  TEMPLATE_EXPORT = 'template.export',
+  DESIGN_GLOBAL_READ = 'design.global.read',
+  DESIGN_GLOBAL_CREATE = 'design.global.create',
+  DESIGN_GLOBAL_EDIT = 'design.global.edit',
+  DESIGN_GLOBAL_DELETE = 'design.global.delete',
+  DESIGN_GLOBAL_IMPORT = 'design.global.import',
+  DESIGN_GLOBAL_EXPORT = 'design.global.export',
+  USER_LIST_ALL = 'user.list_all',
+  USER_CREATE = 'user.create',
+  USER_EDIT = 'user.edit',
+  USER_DELETE = 'user.delete',
+}
+
+export type RoleDefinition = {
+  readonly id: string;
+  readonly name: string;
+  readonly description?: string|null;
+  readonly permissions: string[];
+  readonly is_predefined: boolean;
 };
 
 export type LockInfo = {
@@ -165,17 +192,8 @@ export type ApiSettings = {
     readonly ai_agent?: boolean;
   };
   readonly permissions: {
-    readonly default_user_permissions?: {
-      readonly can_create_projects: boolean;
-      readonly can_import_projects: boolean;
-      readonly can_edit_projects: boolean;
-      readonly can_update_project_settings: boolean;
-      readonly can_delete_projects: boolean;
-      readonly can_see_all_users: boolean;
-      readonly can_see_all_templates: boolean;
-      readonly can_see_all_designs: boolean;
-    };
-    readonly project_members_can_archive_projects?: boolean;
+    readonly roles?: RoleDefinition[];
+    readonly default_roles?: string[];
   };
 }
 

@@ -94,7 +94,7 @@ def assert_history(obj, history_count=None, history_type=None, history_date=None
 class TestTemplateHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.user = create_user(is_template_editor=True)
+        self.user = create_user(roles=['regular_user', 'template_editor'])
         self.client = api_client(self.user)
 
     def assert_template_history_create(self, template, **kwargs):
@@ -319,7 +319,7 @@ class TestTemplateHistory:
 class TestProjectTypeHistory:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.user = create_user(is_designer=True)
+        self.user = create_user(roles=['regular_user', 'designer'])
         self.client = api_client(self.user)
 
     def assert_history_create(self, pt, **kwargs):

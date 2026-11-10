@@ -39,7 +39,7 @@ from sysreptor.utils.utils import copy_keys
 class TestSignalsSent:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.user = create_user(is_designer=True, is_template_editor=True, is_user_manager=True, public_key=True)
+        self.user = create_user(roles=['regular_user', 'designer', 'template_editor', 'user_manager'], public_key=True)
         self.client = api_client(self.user)
 
     @contextlib.contextmanager

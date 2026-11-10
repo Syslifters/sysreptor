@@ -10,7 +10,6 @@ from sysreptor.pentests.models import Language
 from sysreptor.tests.mock import (
     api_client,
     create_project,
-    create_restricted_user,
     create_template,
     create_user,
     update,
@@ -264,7 +263,7 @@ class TestAPIPermissions:
     ])
     def test_permissions(self, user_name, project_name, expected):
         user_member = create_user()
-        user_guest = create_restricted_user()
+        user_guest = create_user(roles=['guest'])
         users = {
             'member': user_member,
             'guest': user_guest,

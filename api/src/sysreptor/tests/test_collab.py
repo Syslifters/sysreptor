@@ -44,7 +44,6 @@ from sysreptor.tests.mock import (
     create_project,
     create_project_type,
     create_projectnotebookpage,
-    create_restricted_user,
     create_shareinfo,
     create_user,
     create_usernotebookpage,
@@ -1532,7 +1531,7 @@ class TestConsumerPermissions:
     async def test_project_permissions(self, user_name, project_name, expected_read, expected_write):
         def setup_db():
             user_member = create_user()
-            user_guest = create_restricted_user()
+            user_guest = create_user(roles=['guest'])
             users = {
                 'member': user_member,
                 'guest': user_guest,

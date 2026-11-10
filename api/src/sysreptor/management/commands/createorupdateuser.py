@@ -3,6 +3,7 @@ import os
 from django.core.management import BaseCommand, CommandError
 
 from sysreptor.users.models import PentestUser
+from sysreptor.utils.configuration import configuration
 
 
 class Command(BaseCommand):
@@ -46,7 +47,7 @@ class Command(BaseCommand):
                 raise CommandError("System already contains users, abort")
 
         if not user:
-            user = PentestUser(username=username)
+            user = PentestUser(username=username, roles=list(configuration.DEFAULT_ROLES or []) if not is_system_user else [])
 
         user.set_password(password)
         if is_superuser:

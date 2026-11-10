@@ -7,7 +7,6 @@ from django.urls import reverse
 from sysreptor.tests.mock import (
     api_client,
     create_project,
-    create_restricted_user,
     create_user,
 )
 
@@ -82,7 +81,7 @@ class TestJiraAPI:
         users = {
             'admin': create_user(is_superuser=True, admin_permissions_enabled=True),
             'member': create_user(),
-            'guest': create_restricted_user(),
+            'guest': create_user(roles=['guest']),
             'other': create_user(),
             'anonymous': None,
         }

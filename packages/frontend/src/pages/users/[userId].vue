@@ -51,7 +51,7 @@ const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/
 useAppBar({ breadcrumbs: () => userDetailBreadcrumbs(user.value) });
 
 await useAsyncData(async () => {
-  if (!auth.permissions.value.user_manager) {
+  if (!auth.hasPermission(UserPermission.USER_EDIT)) {
     await navigateTo('/');
   }
 });

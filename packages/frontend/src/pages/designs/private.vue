@@ -34,27 +34,24 @@
             variant="flat"
             density="comfortable"
           />
-          <permission-info :value="auth.permissions.value.designer" permission-name="Designer">
-            <btn-delete
-              :delete="() => performDeleteSelected(selectedItems)"
-              :disabled="!auth.permissions.value.designer"
-              :confirm-input="`delete ${selectedItems.length} designs`"
-              tooltip-text="Delete selected"
-              icon="mdi-delete"
-              density="comfortable"
-            >
-              <template #dialog-text>
-                <p class="mt-0">
-                  Do you really want to delete {{ selectedItems.length }} designs?
-                </p>
-                <ul class="mt-0">
-                  <li v-for="p in selectedItems" :key="p.id">
-                    {{ p.name }}
-                  </li>
-                </ul>
-              </template>
-            </btn-delete>
-          </permission-info>
+          <btn-delete
+            :delete="() => performDeleteSelected(selectedItems)"
+            :confirm-input="`delete ${selectedItems.length} designs`"
+            tooltip-text="Delete selected"
+            icon="mdi-delete"
+            density="comfortable"
+          >
+            <template #dialog-text>
+              <p class="mt-0">
+                Do you really want to delete {{ selectedItems.length }} designs?
+              </p>
+              <ul class="mt-0">
+                <li v-for="p in selectedItems" :key="p.id">
+                  {{ p.name }}
+                </li>
+              </ul>
+            </template>
+          </btn-delete>
         </template>
       </template>
       <template #item="{item}: {item: ProjectType}">
