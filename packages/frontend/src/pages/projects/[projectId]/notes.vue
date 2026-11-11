@@ -16,6 +16,7 @@
         :export-url="`/api/v1/pentestprojects/${project.id}/notes/export/`"
         :export-name="'notes-' + project.name"
         :export-pdf-url="`/api/v1/pentestprojects/${project.id}/notes/export-pdf/`"
+        :can-export="auth.hasPermission(UserPermission.PROJECT_EXPORT)"
         :selected-notes="noteTreeRef?.selectedNotes"
         :readonly="notesCollab.readonly.value"
       >
@@ -61,6 +62,7 @@
 <script setup lang="ts">
 const route = useRoute();
 const router = useRouter();
+const auth = useAuth();
 const apiSettings = useApiSettings();
 const localSettings = useLocalSettings();
 const projectStore = useProjectStore();

@@ -22,7 +22,7 @@
             <chip-created :value="apiToken.created" />
           </v-list-item-title>
           <template #append>
-            <btn-delete button-variant="icon" :delete="() => deleteApiToken(apiToken)" />
+            <btn-delete button-variant="icon" :delete="() => deleteApiToken(apiToken)" :disabled="!canEdit" />
           </template>
         </v-list-item>
         <v-list-item
@@ -37,6 +37,7 @@
 <script setup lang="ts">
 const route = useRoute();
 const auth = useAuth();
+const user = await useFetchE<User>(`/api/v1/pentestusers/${route.params.userId}/`, { method: 'GET' });
 const apiTokens = await useAsyncDataE<ApiToken[]>(async () => {
   try {
     return await $fetch<ApiToken[]>(`/api/v1/pentestusers/${route.params.userId}/apitokens/`, { method: 'GET' });
@@ -49,6 +50,10 @@ const apiTokens = await useAsyncDataE<ApiToken[]>(async () => {
     }
   }
 });
+const canEdit = computed(() => !user.value.is_system_user && (
+  (auth.hasPermission(UserPermission.USER_EDIT) && !user.value.is_superuser) ||
+  auth.permissions.value.admin
+));
 
 async function deleteApiToken(apiToken: ApiToken) {
   await $fetch(`/api/v1/pentestusers/${route.params.userId}/apitokens/${apiToken.id}/`, { method: 'DELETE' });

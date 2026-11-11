@@ -40,6 +40,7 @@
         :project-type="projectType"
         :finding-id="(router.currentRoute.value.params.findingId as string|undefined)"
         :section-id="(router.currentRoute.value.params.sectionId as string|undefined)"
+        :readonly="readonly"
       />
       <chat-sidebar
         v-else-if="localSettings.reportingSidebarType === ReportingSidebarType.AICHAT && apiSettings.settings!.features?.ai_agent"

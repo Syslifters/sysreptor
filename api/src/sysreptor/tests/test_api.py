@@ -247,14 +247,13 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, destroy=False, ex
 
 def template_urls(read=False, create=False, edit=False, destroy=False, import_=False, export=False):
     out = [
-        *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=read, retrieve=read, create=create, update=edit, update_partial=edit, destroy=destroy, lock=edit, unlock=edit),
+        *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, retrieve=read, create=create, update=edit, update_partial=edit, destroy=destroy, lock=edit, unlock=edit),
         *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=read, retrieve=read, history_timeline=read, create=edit, create_data={'language': Language.GERMAN_DE, 'data': {'title': 'test'}}, update=edit, update_partial=edit),
         *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=read, write=edit),
     ]
     if read:
         out.extend([
             ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), {'initialize_dependencies': lambda s: [s.template, s.project_type]}),
-            ('findingtemplate tags', lambda s, c: c.get(reverse('findingtemplate-tags'))),
             ('findingtemplatehistory template', lambda s, c: c.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': s.template.pk, 'history_date': s.history_date}))),
             ('findingtemplatehistory image-by-name', lambda s, c: c.get(reverse('findingtemplatehistory-image-by-name', kwargs={'template_pk': s.template.pk, 'filename': s.template.images.first().name, 'history_date': s.history_date}))),
         ])
@@ -370,6 +369,10 @@ def no_permission_urls():
         ('projecttype import private', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(s.project_type), 'scope': ProjectTypeScope.PRIVATE}, format='multipart')),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private, list=True, read=True, write=True, destroy=True, export=True),
 
+        *project_viewset_urls(get_obj=lambda s: s.project, list=True),
+        *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {}, list=True),
+        ('findingtemplate tags', lambda s, c: c.get(reverse('findingtemplate-tags'))),
+
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
         ('archivedproject tags', lambda s, c: c.get(reverse('archivedproject-tags'))),
@@ -420,7 +423,7 @@ def build_test_parameters():
 
     # Projects as member
     yield from expect_permissions([
-        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True),
+        *project_viewset_urls(get_obj=lambda s: s.project, read=True),
         *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True),
         *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),

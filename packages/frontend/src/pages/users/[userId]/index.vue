@@ -6,6 +6,7 @@
       :edit-mode="canEdit ? EditMode.EDIT : EditMode.READONLY"
       :save="performSave"
       :delete="performDelete"
+      :can-delete="canDelete"
       :delete-confirm-input="user.username || undefined"
     />
 
@@ -104,6 +105,10 @@ const user = await useAsyncDataE<User>(async () => await $fetch<User>(apiUrl, { 
 const serverErrors = ref<any|null>(null);
 const canEdit = computed(() => !user.value.is_system_user && (
   (auth.hasPermission(UserPermission.USER_EDIT) && !user.value.is_superuser) ||
+  auth.permissions.value.admin
+));
+const canDelete = computed(() => !user.value.is_system_user && user.value.id !== auth.user.value!.id && (
+  (auth.hasPermission(UserPermission.USER_DELETE) && !user.value.is_superuser) ||
   auth.permissions.value.admin
 ));
 const canLoginLocal = computed(() => user.value.can_login_local && apiSettings.isLocalUserAuthEnabled);

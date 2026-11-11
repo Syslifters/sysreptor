@@ -169,6 +169,9 @@ if (props.keyboardShortcut) {
 }
 
 function onClick() {
+  if (props.disabled) {
+    return;
+  }
   if (props.confirm) {
     confirmDialogVisible.value = true;
   } else {

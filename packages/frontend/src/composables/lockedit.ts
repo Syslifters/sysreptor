@@ -66,6 +66,16 @@ export function useProjectTypeLockEdit(options: {
   }));
 
   const deleteConfirmInput = computed(() => projectType.value.name);
+  const canDelete = computed(() => {
+    if (projectType.value.scope === ProjectTypeScope.GLOBAL) {
+      return auth.hasPermission(UserPermission.DESIGN_GLOBAL_DELETE);
+    } else if (projectType.value.scope === ProjectTypeScope.PRIVATE) {
+      return auth.permissions.value.private_designs;
+    } else if (projectType.value.scope === ProjectTypeScope.PROJECT) {
+      return projectType.value.source === SourceEnum.CUSTOMIZED;
+    }
+    return false;
+  });
   return {
     ...useLockEdit<ProjectType>({
       performSave: options.performSave,
@@ -75,6 +85,7 @@ export function useProjectTypeLockEdit(options: {
       data: projectType,
       baseUrl,
       hasEditPermissions,
+      canDelete,
       errorMessage,
     }),
     projectType,
@@ -123,7 +134,7 @@ export function useProjectEditBase(options: {
   const hasEditPermissions = computed(() => {
     if (options.historyDate) {
       return false;
-    } else if (options.project.value && !options.project.value.readonly) {
+    } else if (options.project.value?.readonly) {
       return false;
     } else if (!auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)) {
       return false;

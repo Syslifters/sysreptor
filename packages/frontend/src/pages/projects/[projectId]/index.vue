@@ -14,7 +14,7 @@
               class="ml-1 mr-1" 
             />
           </permission-info>
-          <permission-info :permission="UserPermission.PROJECT_ARCHIVE" :value="!apiSettings.isProfessionalLicense">
+          <permission-info :value="auth.hasPermission(UserPermission.PROJECT_ARCHIVE) || !apiSettings.isProfessionalLicense" :permission-name="UserPermission.PROJECT_ARCHIVE">
             <s-btn-secondary
               v-if="project.readonly"
               :disabled="!auth.hasPermission(UserPermission.PROJECT_ARCHIVE)"
@@ -40,12 +40,14 @@
               :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
               :options="{ export_all: false }"
               :name="'project-' + project.name"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
             />
             <btn-export
               :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
               :options="{ export_all: true }"
               :name="'project-' + project.name"
               button-text="Export (with notes)"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
             />
           </permission-info>
           <permission-info :permission="UserPermission.PROJECT_UPDATE_SETTINGS">

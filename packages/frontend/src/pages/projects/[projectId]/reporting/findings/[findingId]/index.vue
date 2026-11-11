@@ -11,7 +11,7 @@
         </v-list-item>
         <btn-copy 
           :copy="performCopy"
-          :disabled="project.readonly"
+          :disabled="readonly"
         />
       </template>
 
@@ -103,7 +103,7 @@ const toolbarAttrs = computed(() => ({
     await projectStore.deleteFinding(project.value, finding);
     await navigateTo(`/projects/${project.value.id}/reporting/`);
   },
-  canDelete: !project.value.readonly,
+  canDelete: !readonly.value,
 }));
 const historyVisible = ref(false);
 

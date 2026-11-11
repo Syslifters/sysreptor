@@ -33,7 +33,7 @@
         </permission-info>
         <template v-if="selectedItems.length > 0">
           <v-divider vertical />
-          <permission-info :value="auth.hasPermission(UserPermission.TEMPLATE_EXPORT)">
+          <permission-info :permission="UserPermission.TEMPLATE_EXPORT">
             <btn-export
               export-url="/api/v1/findingtemplates/export/"
               :options="{ids: selectedItems.map(p => p.id)}"
@@ -43,6 +43,7 @@
               button-variant="icon"
               variant="flat"
               density="comfortable"
+              :disabled="!auth.hasPermission(UserPermission.TEMPLATE_EXPORT)"
             />
           </permission-info>
           <permission-info :value="auth.hasPermission(UserPermission.TEMPLATE_DELETE)">

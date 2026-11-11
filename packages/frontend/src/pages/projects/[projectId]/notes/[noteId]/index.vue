@@ -60,16 +60,20 @@
             :copy="performCopy"
             :readonly="notesCollab.readonly.value"
           />
-          <btn-export
-            :export-url="exportUrl"
-            :name="'notes-' + note.title"
-          />
-          <btn-export
-            :export-url="exportPdfUrl"
-            :name="note.title"
-            extension=".pdf"
-            button-text="Export as PDF"
-          />
+          <permission-info :permission="UserPermission.PROJECT_EXPORT">
+            <btn-export
+              :export-url="exportUrl"
+              :name="'notes-' + note.title"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
+            />
+            <btn-export
+              :export-url="exportPdfUrl"
+              :name="note.title"
+              extension=".pdf"
+              button-text="Export as PDF"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
+            />
+          </permission-info>
         </template>
       </edit-toolbar>
     </template>

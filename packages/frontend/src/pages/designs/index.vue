@@ -24,16 +24,19 @@
         <design-import-design-dialog ref="importBtnRef" :project-type-scope="ProjectTypeScope.GLOBAL" data-testid="import-design" />
         <template v-if="selectedItems.length > 0">
           <v-divider vertical />
-          <btn-export
-            export-url="/api/v1/projecttypes/export/"
-            :options="{ids: selectedItems.map(p => p.id)}"
-            name="designs"
-            extension=".tar.gz"
-            tooltip-text="Export selected"
-            button-variant="icon"
-            variant="flat"
-            density="comfortable"
-          />
+          <permission-info :permission="UserPermission.DESIGN_GLOBAL_EXPORT">
+            <btn-export
+              export-url="/api/v1/projecttypes/export/"
+              :options="{ids: selectedItems.map(p => p.id)}"
+              name="designs"
+              extension=".tar.gz"
+              tooltip-text="Export selected"
+              button-variant="icon"
+              variant="flat"
+              density="comfortable"
+              :disabled="!auth.hasPermission(UserPermission.DESIGN_GLOBAL_EXPORT)"
+            />
+          </permission-info>
           <permission-info :permission="UserPermission.DESIGN_GLOBAL_DELETE">
             <btn-delete
               :delete="() => performDeleteSelected(selectedItems)"
