@@ -12,7 +12,7 @@ from sysreptor.tests.mock import (
 )
 from sysreptor.users.models import PentestUser
 from sysreptor.users.roles import (
-    PREDEFINED_ROLES,
+    PREDEFINED_USER_ROLES,
     Permission,
     expand_permissions,
     get_role_permissions,
@@ -20,7 +20,7 @@ from sysreptor.users.roles import (
     validate_custom_roles,
 )
 
-CUSTOM_ROLES = [
+CUSTOM_USER_ROLES = [
     {'id': 'template_reader', 'name': 'Template Reader', 'permissions': ['template.read']},
     {'id': 'project_all', 'name': 'Project All', 'permissions': ['project.*']},
     {'id': 'project_reader', 'name': 'Project Reader', 'permissions': ['project.read']},
@@ -52,7 +52,7 @@ class TestRolePermissions:
         ({'roles': ['regular_user', 'project_admin'], 'is_system_user': True}, []),
         ({'roles': ['regular_user'], 'is_active': False}, []),
     ])
-    @override_configuration(CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_effective_permissions(self, user_kwargs, expected):
         user = create_user(**user_kwargs)
         expected = expand_permissions(expected)
@@ -60,7 +60,7 @@ class TestRolePermissions:
         for p in Permission:
             assert user.has_permission(p) == (p in expected)
 
-    @override_configuration(CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_get_roles_with_permission(self):
         roles = get_roles_with_permission(Permission.TEMPLATE_READ)
         assert {'regular_user', 'template_editor', 'template_reader'}.issubset(set(roles))
@@ -69,7 +69,7 @@ class TestRolePermissions:
 
     @pytest.mark.parametrize(('custom_roles', 'valid'), [
         ([], True),
-        (CUSTOM_ROLES, True),
+        (CUSTOM_USER_ROLES, True),
         ([{'id': 'regular_user', 'name': 'Override', 'permissions': []}], False),
         ([{'id': 'dup', 'name': 'A', 'permissions': []}, {'id': 'dup', 'name': 'B', 'permissions': []}], False),
     ])
@@ -83,7 +83,7 @@ class TestRolePermissions:
 
 @pytest.mark.django_db()
 class TestRoleAssignment:
-    @override_configuration(DEFAULT_ROLES=['template_editor'])
+    @override_configuration(DEFAULT_USER_ROLES=['template_editor'])
     def test_default_roles_on_create(self):
         user = PentestUser.objects.create_user(username='new-default')
         assert user.roles == ['template_editor']
@@ -101,7 +101,7 @@ class TestRoleAssignment:
         target.refresh_from_db()
         assert target.roles == ['regular_user']
 
-    @override_configuration(CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_assign_custom_role(self):
         manager = create_user(roles=['user_manager'])
         target = create_user()
@@ -120,9 +120,16 @@ class TestRoleAssignment:
     def test_settings_roles(self):
         res = api_client(create_user()).get(reverse('publicutils-settings'))
         role_ids = [r['id'] for r in res.data['permissions']['roles']]
-        assert set(PREDEFINED_ROLES.keys()).issubset(role_ids)
+        assert set(PREDEFINED_USER_ROLES.keys()).issubset(role_ids)
         assert all(r['description'] for r in res.data['permissions']['roles'] if r['is_predefined'])
-        assert res.data['permissions']['default_roles'] == ['regular_user']
+        assert res.data['permissions']['default_user_roles'] == ['regular_user']
+
+        # Public API returns expanded permissions (not wildcards)
+        by_id = {r['id']: r for r in res.data['permissions']['roles']}
+        assert 'template.*' not in by_id['template_editor']['permissions']
+        assert set(by_id['template_editor']['permissions']) == {p.value for p in expand_permissions(['template.*'])}
+        assert 'project.*' not in by_id['regular_user']['permissions']
+        assert Permission.PROJECT_READ.value in by_id['regular_user']['permissions']
 
 
 @pytest.mark.django_db()
@@ -143,7 +150,7 @@ class TestOnlyPermitted:
         project_admin = create_user(roles=['project_admin'])
         assert {self.project_other, project_own}.issubset(set(PentestProject.objects.only_permitted(project_admin)))
 
-    @override_configuration(CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_project_wildcard_does_not_grant_access_to_all_projects(self):
         user = create_user(roles=['project_all'])
         assert self.project_other not in PentestProject.objects.only_permitted(user)
@@ -154,7 +161,7 @@ class TestOnlyPermitted:
         assert self.template in FindingTemplate.objects.only_permitted(create_user(roles=['regular_user']))
         assert not FindingTemplate.objects.only_permitted(create_user(roles=[])).exists()
 
-    @override_configuration(CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_project_read_required(self):
         user = create_user(roles=['project_editor_without_read'])
         project = create_project(members=[user])
@@ -166,12 +173,12 @@ class TestOnlyPermitted:
         assert client.get(reverse('section-list', kwargs={'project_pk': project.pk})).status_code in [403, 404]
         assert client.post(reverse('pentestproject-list'), data={'name': 'New', 'project_type': self.design_global.pk}).status_code == 403
 
-    @override_configuration(CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_access_all_projects_requires_project_read(self):
         user = create_user(roles=['project_editor_without_read', 'project_admin'])
         assert self.project_other in PentestProject.objects.only_permitted(user)
 
-    @override_configuration(ENABLE_PRIVATE_DESIGNS=True, CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(ENABLE_PRIVATE_DESIGNS=True, CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_designs(self):
         user = create_user(roles=['project_reader'])
         design_private = create_project_type(linked_user=user)
@@ -202,7 +209,7 @@ class TestOnlyPermitted:
         res = api_client(user).post(reverse('projecttype-list'), data={'name': 'Global', 'scope': 'global'})
         assert res.status_code == 403
 
-    @override_configuration(CUSTOM_ROLES=CUSTOM_ROLES)
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_users(self):
         user = create_user(roles=['template_reader'])
         member = create_user()

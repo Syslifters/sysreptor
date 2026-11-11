@@ -193,7 +193,7 @@ export type ApiSettings = {
   };
   readonly permissions: {
     readonly roles?: RoleDefinition[];
-    readonly default_roles?: string[];
+    readonly default_user_roles?: string[];
   };
 }
 

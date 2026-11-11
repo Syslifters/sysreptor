@@ -47,7 +47,7 @@ class Command(BaseCommand):
                 raise CommandError("System already contains users, abort")
 
         if not user:
-            user = PentestUser(username=username, roles=list(configuration.DEFAULT_ROLES or []) if not is_system_user else [])
+            user = PentestUser(username=username, roles=list(configuration.DEFAULT_USER_ROLES or []) if not is_system_user else [])
 
         user.set_password(password)
         if is_superuser:

@@ -249,12 +249,12 @@ class TestAuditLog:
 
     def test_settings_changed(self):
         configuration.update({
-            'DEFAULT_ROLES': ['regular_user', 'designer'],
+            'DEFAULT_USER_ROLES': ['regular_user', 'designer'],
             'OIDC_AUTHLIB_OAUTH_CLIENTS': '{"oidc": {"label": "OIDC", "client_id": "id", "client_secret": "super-secret"}}',
         }, only_changed=False)
 
         entry = AuditLogEntry.objects.get(type=AuditLogTypes.SETTINGS_CHANGED, object_id=None)
-        assert set(entry.data['changes']) == {'DEFAULT_ROLES', 'OIDC_AUTHLIB_OAUTH_CLIENTS'}
+        assert set(entry.data['changes']) == {'DEFAULT_USER_ROLES', 'OIDC_AUTHLIB_OAUTH_CLIENTS'}
 
     def test_license_changed(self):
         with history_context(history_user=self.user):

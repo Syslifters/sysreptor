@@ -104,7 +104,7 @@ class CreateUserSerializer(PentestUserDetailSerializer):
     def validate(self, attrs):
         attrs = super().validate(attrs)
         if 'roles' not in attrs:
-            attrs['roles'] = list(configuration.DEFAULT_ROLES or [])
+            attrs['roles'] = list(configuration.DEFAULT_USER_ROLES or [])
         return attrs
 
 

@@ -79,7 +79,7 @@ const userForm = ref<User & { password: string|null }>({
   must_change_password: apiSettings.isProfessionalLicense,
   is_superuser: !apiSettings.isProfessionalLicense,
   is_system_user: false,
-  roles: [...(apiSettings.settings!.permissions.default_roles || [])],
+  roles: [...(apiSettings.settings!.permissions.default_user_roles || [])],
 } as any);
 const identityForm = ref({
   provider: null,

@@ -17,11 +17,6 @@ class Permission(enum.StrEnum):
     PROJECT_ARCHIVE = 'project.archive'
     PROJECT_RESTORE = 'project.restore'
 
-    # Not prefixed with "project." to prevent granting access to all projects via "project.*"
-    ADMIN_ACCESS_ALL_PROJECTS = 'admin.access_all_projects'
-
-    ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT = 'archive.always_add_archiving_key_to_project'
-
     TEMPLATE_READ = 'template.read'
     TEMPLATE_CREATE = 'template.create'
     TEMPLATE_EDIT = 'template.edit'
@@ -40,6 +35,10 @@ class Permission(enum.StrEnum):
     USER_CREATE = 'user.create'
     USER_EDIT = 'user.edit'
     USER_DELETE = 'user.delete'
+
+    # Not prefixed with "project." to prevent granting access to all projects via "project.*"
+    ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT = 'archive.always_add_archiving_key_to_project'
+    ADMIN_ACCESS_ALL_PROJECTS = 'admin.access_all_projects'
 
 
 def expand_permissions(patterns: Iterable[str]) -> frozenset[Permission]:
@@ -61,55 +60,68 @@ def expand_permissions(patterns: Iterable[str]) -> frozenset[Permission]:
 class Role:
     id: str
     name: str
-    permissions: frozenset[Permission]
+    permission_patterns: tuple[str, ...]
     description: str | None = None
     is_predefined: bool = False
 
+    @property
+    def permissions(self) -> frozenset[Permission]:
+        """Expanded concrete permissions used for permission checks."""
+        return expand_permissions(self.permission_patterns)
 
-PREDEFINED_ROLES: dict[str, Role] = {r.id: r for r in [
-    Role(id='regular_user', name='Regular User', description='Pentesters working on projects they are members of. Read access to templates and designs.', is_predefined=True, permissions=expand_permissions([
+
+PREDEFINED_USER_ROLES: dict[str, Role] = {r.id: r for r in [
+    Role(id='regular_user', name='Regular User', description='Pentesters working on projects they are members of. Read access to templates and designs.', is_predefined=True, permission_patterns=(
         'project.*',
         Permission.TEMPLATE_READ,
         Permission.DESIGN_GLOBAL_READ,
         Permission.DESIGN_GLOBAL_EXPORT,
         Permission.USER_LIST_ALL,
-    ])),
-    Role(id='project_admin', name='Project Admin', description='Access and manage all projects, even without being a member.', is_predefined=True, permissions=expand_permissions([
+    )),
+    Role(id='project_admin', name='Project Admin', description='Access and manage all projects, even without being a member.', is_predefined=True, permission_patterns=(
         'project.*',
         Permission.ADMIN_ACCESS_ALL_PROJECTS,
         Permission.TEMPLATE_READ,
         Permission.DESIGN_GLOBAL_READ,
         Permission.USER_LIST_ALL,
-    ])),
-    Role(id='template_editor', name='Template Editor', description='Create, edit, import, export and delete finding templates.', is_predefined=True, permissions=expand_permissions(['template.*'])),
-    Role(id='designer', name='Designer', description='Create, edit, import, export and delete global designs.', is_predefined=True, permissions=expand_permissions(['design.global.*'])),
-    Role(id='user_manager', name='User Manager', description='Create, edit and delete users and assign roles (except superusers).', is_predefined=True, permissions=expand_permissions(['user.*'])),
-    Role(id='global_archiver', name='Global Archiver', description='Added as key holder to all archived projects. Can archive and restore projects.', is_predefined=True, permissions=expand_permissions([
+    )),
+    Role(id='template_editor', name='Template Editor', description='Create, edit, import, export and delete finding templates.', is_predefined=True, permission_patterns=('template.*',)),
+    Role(id='designer', name='Designer', description='Create, edit, import, export and delete global designs.', is_predefined=True, permission_patterns=('design.global.*',)),
+    Role(id='user_manager', name='User Manager', description='Create, edit and delete users and assign roles (except superusers).', is_predefined=True, permission_patterns=('user.*',)),
+    Role(id='global_archiver', name='Global Archiver', description='Added as key holder to all archived projects. Can archive and restore projects.', is_predefined=True, permission_patterns=(
         Permission.PROJECT_ARCHIVE,
         Permission.PROJECT_RESTORE,
         Permission.ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT,
-    ])),
+    )),
 ]}
+
+
+def serialize_predefined_user_roles_for_settings() -> list[dict]:
+    return [{
+        'id': role.id,
+        'name': role.name,
+        'description': role.description,
+        'permissions': list(role.permission_patterns),
+    } for role in PREDEFINED_USER_ROLES.values()]
 
 
 def get_custom_roles() -> dict[str, Role]:
     from sysreptor.utils.configuration import configuration
 
     out = {}
-    for r in configuration.CUSTOM_ROLES or []:
-        if not isinstance(r, dict) or not r.get('id') or r['id'] in PREDEFINED_ROLES or r['id'] in out:
+    for r in configuration.CUSTOM_USER_ROLES or []:
+        if not isinstance(r, dict) or not r.get('id') or r['id'] in PREDEFINED_USER_ROLES or r['id'] in out:
             continue
         out[r['id']] = Role(
             id=r['id'],
             name=r.get('name') or r['id'],
             description=r.get('description') or None,
-            permissions=expand_permissions(r.get('permissions') or []),
+            permission_patterns=tuple(r.get('permissions') or []),
         )
     return out
 
-
 def get_all_roles() -> dict[str, Role]:
-    return PREDEFINED_ROLES | get_custom_roles()
+    return PREDEFINED_USER_ROLES | get_custom_roles()
 
 
 def get_role_permissions(role_ids: Iterable[str], all_roles: dict[str, Role] | None = None) -> frozenset[Permission]:
@@ -139,6 +151,6 @@ def validate_custom_roles(custom_roles: list) -> bool:
     if duplicates := sorted({str(i) for i in role_ids if role_ids.count(i) > 1}):
         raise ValidationError(f'Duplicate role IDs: {", ".join(duplicates)}')
     for role_id in role_ids:
-        if role_id in PREDEFINED_ROLES:
+        if role_id in PREDEFINED_USER_ROLES:
             raise ValidationError(f'Role ID "{role_id}" conflicts with a predefined role')
     return True

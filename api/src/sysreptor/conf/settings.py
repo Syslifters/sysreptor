@@ -24,8 +24,9 @@ from django.utils.csp import CSP
 
 from sysreptor.conf.plugins import ENABLED_PLUGINS_FIELD, load_plugins
 from sysreptor.users.roles import (
-    PREDEFINED_ROLES,
+    PREDEFINED_USER_ROLES,
     Permission,
+    serialize_predefined_user_roles_for_settings,
     validate_custom_roles,
 )
 from sysreptor.utils.fielddefinition.types import (
@@ -755,6 +756,17 @@ def validate_status_definitions(status_definitions: list) -> bool:
     return True
 
 
+USER_ROLE_OBJECT_DEFINITION = ObjectField(properties=[
+    StringField(id='id', required=True, pattern=r'^[a-zA-Z0-9_-]{1,50}$', help_text='Unique identifier for the role.'),
+    StringField(id='name', required=False, help_text='Display name of the role'),
+    StringField(id='description', required=False, help_text='Human readable description of the role shown in the user management.'),
+    ListField(
+        id='permissions',
+        items=EnumField(choices=[EnumChoice(value=str(p), label=str(p)) for p in list(Permission) + ['project.*', 'template.*', 'design.global.*', 'user.*']]),
+        required=False,
+        help_text='Permissions granted by this role. Wildcards (e.g. "template.*") grant all permissions with the given prefix.'),
+])
+
 CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
     ENABLED_PLUGINS_FIELD,
     BooleanField(
@@ -867,24 +879,23 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
 
 
     ListField(
-        id='CUSTOM_ROLES',
-        items=ObjectField(properties=[
-            StringField(id='id', required=True, pattern=r'^[a-zA-Z0-9_-]{1,50}$', help_text='Unique identifier for the role.'),
-            StringField(id='name', required=False, help_text='Display name of the role'),
-            StringField(id='description', required=False, help_text='Human readable description of the role shown in the user management.'),
-            ListField(
-                id='permissions',
-                items=EnumField(choices=[EnumChoice(value=str(p), label=str(p)) for p in list(Permission) + ['project.*', 'template.*', 'design.global.*', 'user.*']]),
-                required=False,
-                help_text='Permissions granted by this role. Wildcards (e.g. "template.*") grant all permissions with the given prefix.'),
-        ]),
+        id='PREDEFINED_USER_ROLES',
+        items=USER_ROLE_OBJECT_DEFINITION,
+        default=serialize_predefined_user_roles_for_settings(),
+        required=False,
+        extra_info={'group': 'permissions', 'professional_only': True, 'read_only': True},
+        help_text='Built-in roles and their permissions. These roles cannot be edited. '
+                  'Define additional roles via CUSTOM_USER_ROLES.'),
+    ListField(
+        id='CUSTOM_USER_ROLES',
+        items=USER_ROLE_OBJECT_DEFINITION,
         default=[],
         required=False,
         extra_info={'group': 'permissions', 'professional_only': True, 'validate': validate_custom_roles},
-        help_text='Define custom roles in addition to the predefined roles (' + ', '.join(PREDEFINED_ROLES.keys()) + '). '
+        help_text='Define custom roles in addition to the predefined roles (' + ', '.join(PREDEFINED_USER_ROLES.keys()) + '). '
                   'Users have the union of permissions of all their roles.'),
     ListField(
-        id='DEFAULT_ROLES',
+        id='DEFAULT_USER_ROLES',
         items=StringField(pattern=r'^[a-zA-Z0-9_-]{1,50}$'),
         default=['regular_user'],
         required=False,

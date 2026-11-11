@@ -72,14 +72,14 @@ def migrate_to_roles(apps, schema_editor):
 
     # Create guest role if it doesn't exist
     if PentestUser.objects.filter(is_guest=True).exists():
-        if _is_set_in_env('CUSTOM_ROLES') or DbConfigurationEntry.objects.filter(name='CUSTOM_ROLES').exists():
-            logging.warning('CUSTOM_ROLES is already configured. Skipping creation of "guest" role. Make sure to define a "guest" role for guest users.')
+        if _is_set_in_env('CUSTOM_USER_ROLES') or DbConfigurationEntry.objects.filter(name='CUSTOM_USER_ROLES').exists():
+            logging.warning('CUSTOM_USER_ROLES is already configured. Skipping creation of "guest" role. Make sure to define a "guest" role for guest users.')
         else:
             guest_permissions = list(GUEST_BASE_PERMISSIONS)
             for name, default, permissions in GUEST_PERMISSION_SETTINGS:
                 if _load_bool_config_value(DbConfigurationEntry, name, default):
                     guest_permissions.extend(permissions)
-            DbConfigurationEntry.objects.create(name='CUSTOM_ROLES', value=json.dumps([
+            DbConfigurationEntry.objects.create(name='CUSTOM_USER_ROLES', value=json.dumps([
                 {'id': 'guest', 'name': 'Guest', 'permissions': guest_permissions},
             ]))
 
@@ -105,7 +105,7 @@ def reverse_migrate_to_roles(apps, schema_editor):
     PentestUser.objects.bulk_update(users_to_update, fields=['is_guest'] + [flag for flag, _role in ROLE_FLAGS], batch_size=500)
 
     # Restore GUEST_* settings from guest role
-    custom_roles_entry = DbConfigurationEntry.objects.filter(name='CUSTOM_ROLES').first()
+    custom_roles_entry = DbConfigurationEntry.objects.filter(name='CUSTOM_USER_ROLES').first()
     try:
         custom_roles = json.loads(custom_roles_entry.value) if custom_roles_entry else []
     except (json.JSONDecodeError, TypeError):

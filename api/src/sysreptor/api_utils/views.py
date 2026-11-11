@@ -219,7 +219,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                     'permissions': sorted(p.value for p in r.permissions),
                     'is_predefined': r.is_predefined,
                 } for r in get_all_roles().values()],
-                'default_roles': list(configuration.DEFAULT_ROLES or []),
+                'default_user_roles': list(configuration.DEFAULT_USER_ROLES or []),
             },
         })
 
@@ -280,7 +280,7 @@ class ConfigurationViewSet(viewsets.ViewSet):
                         value = None
                 instance[d.id] = value
         return DynamicObjectSerializer(
-            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields if not f.extra_info.get('internal')},
+            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False) or f.extra_info.get('read_only', False)) for f in configuration.definition.fields if not f.extra_info.get('internal')},
             instance=instance,
             **kwargs)
 
@@ -319,4 +319,4 @@ class ConfigurationViewSet(viewsets.ViewSet):
 
     def serialize_settings_definition(self, fields):
         definition = FieldDefinition(fields=[f for f in configuration.definition.fields if f.id in fields and not f.extra_info.get('internal')])
-        return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only'])
+        return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only', 'read_only'])

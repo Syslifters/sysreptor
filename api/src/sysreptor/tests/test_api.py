@@ -630,7 +630,7 @@ def test_api_requests(username, name, perform_request, options, expected):
 
     with override_configuration(
             ARCHIVING_THRESHOLD=1,
-            CUSTOM_ROLES=[{'id': 'test_role', 'permissions': user_permissions(username)}],
+            CUSTOM_USER_ROLES=[{'id': 'test_role', 'permissions': user_permissions(username)}],
             OIDC_AUTHLIB_OAUTH_CLIENTS=json.dumps({
                 'dummy': {
                     'label': 'Dummy',

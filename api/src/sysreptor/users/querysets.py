@@ -99,7 +99,7 @@ class PentestUserQuerySet(models.QuerySet):
 
 class PentestUserManager(UserManager, models.Manager.from_queryset(PentestUserQuerySet)):
     def _create_user(self, username, email, password, **extra_fields):
-        extra_fields.setdefault('roles', list(configuration.DEFAULT_ROLES or []))
+        extra_fields.setdefault('roles', list(configuration.DEFAULT_USER_ROLES or []))
         return super()._create_user(username, email, password, **extra_fields)
 
     def record_failed_mfa_attempt(self, user):
