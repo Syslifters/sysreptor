@@ -253,6 +253,19 @@ export const useProjectStore = defineStore('project', {
       if (project.id in this.data) {
         this.data[project.id]!.project!.readonly = readonly;
       }
+      return await this.getById(project.id);
+    },
+    async setOverrideFindingOrder(project: PentestProject, overrideFindingOrder: boolean) {
+      await $fetch(`/api/v1/pentestprojects/${project.id}/override-finding-order/`, {
+        method: 'PATCH',
+        body: {
+          override_finding_order: overrideFindingOrder,
+        }
+      });
+      if (project.id in this.data) {
+        this.data[project.id]!.project!.override_finding_order = overrideFindingOrder;
+      }
+      return await this.getById(project.id);
     },
     async customizeDesign(project: PentestProject) {
       const res = await $fetch<{ project_type: string }>(`/api/v1/pentestprojects/${project.id}/customize-projecttype/`, {

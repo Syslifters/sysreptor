@@ -183,6 +183,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, import_
             ('projectnotebookpage copy', lambda s, c: c.post(reverse('projectnotebookpage-copy', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}), data={})),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'image.png', 'file': ContentFile(name='image.png', content=create_png_file())}, format='multipart')),
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
+            ('pentestproject override-finding-order', lambda s, c: c.patch(reverse('pentestproject-override-finding-order', kwargs={'pk': get_obj(s).pk}), data={'override_finding_order': not get_obj(s).override_finding_order})),
             ('comment resolve', lambda s, c: c.post(reverse('comment-resolve', kwargs={'project_pk': get_obj(s).pk, 'pk': get_obj(s).findings.first().comments.first().id}), data={'status': CommentStatus.RESOLVED})),
         ])
     if fromtemplate:

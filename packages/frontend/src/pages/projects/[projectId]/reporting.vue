@@ -121,11 +121,7 @@ async function toggleOverrideFindingOrder() {
     const findingsSorted = groupFindings({ findings: findings.value, projectType: projectType.value }).flatMap(g => g.findings);
     await sortFindings(findingsSorted);
   }
-
-  project.value = await projectStore.partialUpdateProject({
-    id: project.value.id,
-    override_finding_order: !project.value.override_finding_order
-  } as PentestProject, ['override_finding_order']);
+  project.value = await projectStore.setOverrideFindingOrder(project.value, !project.value.override_finding_order);
 }
 
 useAppBar({ syncState: reportingCollab.syncState });
