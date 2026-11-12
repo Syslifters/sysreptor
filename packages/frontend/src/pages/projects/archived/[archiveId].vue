@@ -83,10 +83,6 @@
         <tr v-for="keypart in archive.key_parts" :key="keypart.id">
           <td>
             {{ keypart.user.username }}<template v-if="keypart.user.name"> ({{ keypart.user.name }})</template>
-            <v-chip v-if="!keypart.user.is_active" size="small" class="ml-4" color="warning">
-              <v-icon size="small" start icon="mdi-alert" />
-              inactive
-            </v-chip>
           </td>
           <td>
             <template v-if="keypart.is_decrypted">
@@ -94,8 +90,14 @@
               Restored at {{ formatISO9075(parseISO(keypart.decrypted_at!)) }}
             </template>
             <template v-else>
-              <v-icon color="error" icon="mdi-lock" />
-              Encrypted
+              <div>
+                <v-icon color="error" icon="mdi-lock" />
+                Encrypted
+              </div>
+              <div v-for="warning in keypart.warnings" :key="warning" class="mt-1">
+                <v-icon color="warning" icon="mdi-alert" />
+                {{ warning }}
+              </div>
             </template>
           </td>
         </tr>

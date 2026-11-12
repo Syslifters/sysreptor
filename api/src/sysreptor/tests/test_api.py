@@ -373,9 +373,7 @@ def no_permission_urls():
         *project_viewset_urls(get_obj=lambda s: s.project, list=True),
         *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {}, list=True),
         ('findingtemplate tags', lambda s, c: c.get(reverse('findingtemplate-tags'))),
-
-        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
-        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
+        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True),
         ('archivedproject tags', lambda s, c: c.get(reverse('archivedproject-tags'))),
     ]
 
@@ -463,6 +461,9 @@ def build_test_parameters():
         ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly.pk}))),
     ], [P.PROJECT_READ, P.PROJECT_ARCHIVE])
     yield from expect_permissions([
+        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, retrieve=True),
+        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
+        ('archivedproject tags', lambda s, c: c.get(reverse('archivedproject-tags'))),
         ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
     ], [P.PROJECT_RESTORE])
 
