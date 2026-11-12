@@ -35,7 +35,7 @@ export function useProjectTypeLockEdit(options: {
     }
     return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.hasPermission(UserPermission.DESIGN_GLOBAL_EDIT)) ||
             (projectType.value.scope === ProjectTypeScope.PRIVATE && auth.permissions.value.private_designs) ||
-            (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED);
+            (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED && auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT));
   });
   const errorMessage = computed(() => {
     if (options.errorMessage?.value) {
@@ -48,6 +48,8 @@ export function useProjectTypeLockEdit(options: {
         return 'This design cannot be edited because it is an imported snapshot.';
       } else if (projectType.value.source !== SourceEnum.CUSTOMIZED) {
         return 'This design is readonly and cannot be edited.';
+      } else if (!auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)) {
+        return 'You do not have permissions to edit this resource.';
       }
     }
     return null;
@@ -72,7 +74,7 @@ export function useProjectTypeLockEdit(options: {
     } else if (projectType.value.scope === ProjectTypeScope.PRIVATE) {
       return auth.permissions.value.private_designs;
     } else if (projectType.value.scope === ProjectTypeScope.PROJECT) {
-      return projectType.value.source === SourceEnum.CUSTOMIZED;
+      return projectType.value.source === SourceEnum.CUSTOMIZED && auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT);
     }
     return false;
   });

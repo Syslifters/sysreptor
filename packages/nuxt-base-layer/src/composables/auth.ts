@@ -22,6 +22,9 @@ export const useAuthStore = defineStore('auth', {
     hasPermission(state) {
       return (permission: UserPermission|string) => {
         const apiSettings = useApiSettings();
+        if (state.user?.is_admin) {
+          return true;
+        }
         if (!state.user?.effective_permissions?.includes(permission)) {
           return false;
         }

@@ -13,6 +13,7 @@
               :multiple="true"
               clearable
               density="compact"
+              :disabled="!canEdit"
               class="flex-grow-1"
             />
           </div>
@@ -20,6 +21,7 @@
             v-model="uploadForm.importer"
             :items="availableImporters"
             label="Importer"
+            :disabled="!canEdit"
             class="mt-4 flex-grow-0"
           />
         </div>
@@ -74,41 +76,50 @@
 
       <template #next>
         <div v-if="step === Step.UPLOAD" class="mt-2">
-          <btn-confirm
-            :action="() => importScanFile(ImportAs.NOTES)"
-            :confirm="false"
-            button-text="Import as Notes"
-            button-color="primary"
-            :disabled="uploadForm.files.length === 0"
-            class="mr-2"
-          />
-          <btn-confirm
-            :action="() => importScanFile(ImportAs.FINDINGS)"
-            :confirm="false"
-            button-text="Import as Findings"
-            button-color="primary"
-            :disabled="uploadForm.files.length === 0"
-          />
+          <permission-info :permission="UserPermission.PROJECT_EDIT_CONTENT">
+            <btn-confirm
+              :action="() => importScanFile(ImportAs.NOTES)"
+              :confirm="false"
+              button-text="Import as Notes"
+              button-color="primary"
+              :disabled="!canEdit || uploadForm.files.length === 0"
+              class="mr-2"
+            />
+            <btn-confirm
+              :action="() => importScanFile(ImportAs.FINDINGS)"
+              :confirm="false"
+              button-text="Import as Findings"
+              button-color="primary"
+              :disabled="!canEdit || uploadForm.files.length === 0"
+            />
+          </permission-info>
         </div>
-        <btn-confirm
+        <permission-info
           v-else-if="step === Step.SELECT"
-          :action="importSelectedObjects"
-          :confirm="false"
-          button-text="Import Selected"
-          button-color="primary"
-          :disabled="selectForm.selected.length === 0"
-          class="mt-2"
-        />
+          :value="canEdit"
+          :permission="UserPermission.PROJECT_EDIT_CONTENT"
+          :text="permissionInfoText"
+        >
+          <btn-confirm
+            :action="importSelectedObjects"
+            :confirm="false"
+            button-text="Import Selected"
+            button-color="primary"
+            :disabled="!canEdit || selectForm.selected.length === 0"
+            class="mt-2"
+          />
+        </permission-info>
       </template>
     </v-stepper>
 </template>
 
 <script setup lang="ts">
-import { uploadFileHelper, type NoteGroup, type ProjectNote } from "#imports";
+import { uploadFileHelper, type NoteGroup, type PentestProject, type ProjectNote } from "#imports";
 import type { ParsedPentestFinding } from "~~/utils/types";
 
 const appConfig = useAppConfig();
 const route = useRoute();
+const auth = useAuth();
 const projectId = computed(() => route.params.projectId);
 
 enum ImportAs {
@@ -121,7 +132,10 @@ enum Step {
   DONE = 3,
 }
 
+const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${projectId.value}/`, { method: 'GET' });
 const availableImporters = await useFetchE<string[]>(`/api/plugins/${appConfig.pluginId}/api/availableimporters/`, { method: 'GET' });
+
+const canEdit = computed(() => !project.value.readonly && auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT));
 
 const step = ref(Step.UPLOAD);
 const uploadForm = ref({
@@ -137,7 +151,7 @@ const selectForm = ref({
 const importedCount = ref(0);
 
 async function importScanFile(importAs: ImportAs) {
-  if (uploadForm.value.files.length === 0) {
+  if (!canEdit.value || uploadForm.value.files.length === 0) {
     return;
   }
 
@@ -183,6 +197,10 @@ async function createNote(note: ProjectNote) {
 }
 
 async function importSelectedObjects() {
+  if (!canEdit.value) {
+    return;
+  }
+
   importedCount.value = 0;
   if (selectForm.value.importAs === ImportAs.FINDINGS) {
     const findings = parsedData.value.filter(f => selectForm.value.selected.includes(f.id)) as ParsedPentestFinding[];

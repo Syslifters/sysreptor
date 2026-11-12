@@ -160,6 +160,18 @@
           data-testid="roles-select"
           class="mb-4"
         />
+        <div class="mb-4" :class="{'text-disabled': !apiSettings.isProfessionalLicense}">
+          <div class="text-subtitle-1 mb-1">Effective permissions from roles</div>
+          <v-chip
+            v-for="permission in effectivePermissions"
+            :key="permission"
+            :text="permission"
+            size="small"
+            class="ma-1"
+          />
+          <span v-if="!effectivePermissions.length" class="text-body-medium">No permissions from roles</span>
+        </div>
+
         <s-checkbox
           :model-value="user.is_superuser" @update:model-value="updateField('is_superuser', $event)"
           label="Superuser"
@@ -178,23 +190,14 @@
           disabled
           density="compact"
         />
-
-        <div v-if="user.effective_permissions?.length" class="mt-6">
-          <div class="text-subtitle-1 mb-1">Effective permissions</div>
-          <v-chip
-            v-for="permission in user.effective_permissions"
-            :key="permission"
-            :text="permission"
-            size="small"
-            class="ma-1"
-          />
-        </div>
       </v-card-text>
     </s-card>
   </div>
 </template>
 
 <script setup lang="ts">
+import { orderBy, uniq } from 'lodash-es';
+
 const user = defineModel<User>({ required: true });
 const props = defineProps<{
   errors?: any,
@@ -217,6 +220,14 @@ const roleItems = computed(() => {
     .filter(r => !roles.some(role => role.id === r))
     .map(r => ({ id: r, name: `${r} (unknown role)` }));
   return [...roles, ...unknownRoles];
+});
+
+const effectivePermissions = computed(() => {
+  if (user.value.is_system_user) {
+    return [];
+  }
+  const userPermissions = (user.value.roles || []).flatMap(role => apiSettings.settings?.permissions.roles?.find(r => r.id === role)?.permissions || []);
+  return orderBy(uniq(userPermissions));
 });
 
 const rules = {

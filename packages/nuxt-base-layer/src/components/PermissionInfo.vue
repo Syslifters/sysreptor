@@ -7,19 +7,24 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-  value?: boolean;
+const props = withDefaults(defineProps<{
+  value?: boolean|null;
   text?: string;
   permission?: UserPermission;
   permissionName?: string;
-}>();
+}>(), {
+  value: null,
+});
 
 const auth = useAuth();
 const apiSettings = useApiSettings();
 
 const hasPermission = computed(() => {
-  if (props.value === undefined && props.permission) {
-    return auth.hasPermission(props.permission);
+  if (props.value === null) {
+    if (props.permission) {
+      return auth.hasPermission(props.permission);
+    }
+    return false;
   }
   return props.value;
 })

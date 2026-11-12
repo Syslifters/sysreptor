@@ -31,7 +31,8 @@
           </v-col>
           <v-col md="3">
             <v-chip size="small" class="ma-1" v-if="user.is_superuser" text="Superuser" />
-            <v-chip v-for="role in (user.roles || [])" :key="role" size="small" class="ma-1" :text="getRole(role)?.name || role">
+            <v-chip v-for="role in (user.roles || [])" :key="role" size="small" class="ma-1">
+              {{ getRole(role)?.name || role }}
               <v-tooltip v-if="getRole(role)?.description" activator="parent" :text="getRole(role)!.description!" />
             </v-chip>
             <v-chip size="small" class="ma-1" v-if="user.is_system_user" text="System" />
