@@ -65,13 +65,13 @@ For scripting and automation, we recommend the [`reptor` Python library](/python
 <div class="faq-item">
 
 ::: details Why do I have no permissions in the SysReptor report designer?
-Editing **global** report designs requires the **Designer** permission. Users without it cannot change shared designs used by others.
+Editing **global** report designs requires the **Designer** role. Users without it cannot change shared designs used by others.
 
-Without Designer permission you still have read access to non-private designs. If [private designs](/setup/configuration#private-designs) are enabled, you can create private designs that other users cannot see by default.
+Without the Designer role you still have read access to non-private designs if you have `design.global.read` (typically via `regular_user`). If [private designs](/setup/configuration#private-designs) are enabled, you can create private designs that other users cannot see by default.
 
-To change how **one project's** design, use **Customize Design** on the **Publish** page of that project. This does not require **Designer** permissions.
+To change how **one project's** design, use **Customize Design** on the **Publish** page of that project. This does not require the Designer role.
 
-See [Designs](/designer/designer) and [User permissions](/users/user-permissions#template-editor).
+See [Designs](/designer/designer) and [User permissions](/users/user-permissions#designer).
 :::
 
 </div>
@@ -92,9 +92,9 @@ If field definitions differ, SysReptor warns that converting might lose data. Yo
 <div class="faq-item">
 
 ::: details Why do I have no permissions in SysReptor finding templates?
-Creating and editing **finding templates** requires the **Template Editor** permission. Users without it cannot change templates used by others.
+Creating and editing **finding templates** requires the **Template Editor** role. Users without it cannot change templates used by others.
 
-Without Template Editor permission you still have **read access** and can apply templates when writing findings. See [Templates](/finding-templates/overview) and [User permissions](/users/user-permissions#template-editor).
+Without the Template Editor role you still have **read access** if you have `template.read` (typically via `regular_user`) and can apply templates when writing findings. See [Templates](/finding-templates/overview) and [User permissions](/users/user-permissions#template-editor).
 :::
 
 </div>

@@ -290,7 +290,7 @@ Pentest projects first have to be marked as finished, then they can be archived.
 Before the archive is created and encrypted, all users are displayed that will have access to the archive and are able to restore it.
 This includes all project members and global archivers.
 Global archivers are added to every archived project and can be considered archiving backup users.
-Users can be marked as global archivers in the user permission settings.
+Users can be assigned the `global_archiver` role in user management (see [User Permissions](/users/user-permissions#global-archiver)).
 
 If too few users (below threshold) are project members or global archivers or do not have any public keys, archiving is not possible.
 
