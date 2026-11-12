@@ -80,7 +80,7 @@ def migrate_to_roles(apps, schema_editor):
                 if _load_bool_config_value(DbConfigurationEntry, name, default):
                     guest_permissions.extend(permissions)
             DbConfigurationEntry.objects.create(name='CUSTOM_USER_ROLES', value=json.dumps([
-                {'id': 'guest', 'name': 'Guest', 'permissions': guest_permissions},
+                json.dumps({'id': 'guest', 'name': 'Guest', 'permissions': guest_permissions}, indent=2),
             ]))
 
     if not _load_bool_config_value(DbConfigurationEntry, 'PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS', True):
@@ -107,10 +107,19 @@ def reverse_migrate_to_roles(apps, schema_editor):
     # Restore GUEST_* settings from guest role
     custom_roles_entry = DbConfigurationEntry.objects.filter(name='CUSTOM_USER_ROLES').first()
     try:
-        custom_roles = json.loads(custom_roles_entry.value) if custom_roles_entry else []
+        custom_roles_raw = json.loads(custom_roles_entry.value) if custom_roles_entry else []
     except (json.JSONDecodeError, TypeError):
-        custom_roles = []
-    guest_role = next((r for r in custom_roles if isinstance(r, dict) and r.get('id') == 'guest'), None)
+        custom_roles_raw = []
+    custom_roles = []
+    for item in custom_roles_raw if isinstance(custom_roles_raw, list) else []:
+        if isinstance(item, str):
+            try:
+                item = json.loads(item)
+            except (json.JSONDecodeError, TypeError):
+                continue
+        if isinstance(item, dict):
+            custom_roles.append(item)
+    guest_role = next((r for r in custom_roles if r.get('id') == 'guest'), None)
     if guest_role:
         guest_permissions = set(guest_role.get('permissions') or [])
         DbConfigurationEntry.objects.bulk_create([

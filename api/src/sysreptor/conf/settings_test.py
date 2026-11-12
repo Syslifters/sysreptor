@@ -69,13 +69,13 @@ CONFIGURATION_DEFINITION_CORE['ARCHIVING_THRESHOLD'].default = 1
 CONFIGURATION_DEFINITION_CORE['FORGOT_PASSWORD_ENABLED'].default = True
 CONFIGURATION_DEFINITION_CORE['AI_AGENT_ENABLED'].default = True
 CONFIGURATION_DEFINITION_CORE['CUSTOM_USER_ROLES'].default = [
-    {'id': 'guest', 'name': 'Guest', 'permissions': [
+    json.dumps({'id': 'guest', 'name': 'Guest', 'permissions': [
         'project.read',
         'project.export',
         'template.read',
         'design.global.read',
         'design.global.export',
-    ]},
+    ]}),
 ]
 CONFIGURATION_DEFINITION_CORE['INSTALLATION_ID'].default = 'dummy-installation-id-used-in-unit-test'
 CONFIGURATION_DEFINITION_CORE['AI_AGENT_MODELS'].default = [json.dumps({

@@ -1,8 +1,11 @@
 import enum
+import json
 from collections.abc import Iterable
 from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
+
+from sysreptor.utils.fielddefinition.types import JsonField
 
 
 class Permission(enum.StrEnum):
@@ -96,21 +99,45 @@ PREDEFINED_USER_ROLES: dict[str, Role] = {r.id: r for r in [
 ]}
 
 
-def serialize_predefined_user_roles_for_settings() -> list[dict]:
-    return [{
+USER_ROLE_JSON_FIELD = JsonField(
+    required=True,
+    schema={
+        'type': 'object',
+        'required': ['id'],
+        'properties': {
+            'id': {'type': 'string', 'pattern': r'^[a-zA-Z0-9_-]{1,50}$'},
+            'name': {'type': 'string'},
+            'description': {'type': 'string'},
+            'permissions': {
+                'type': 'array',
+                'items': {
+                    'type': 'string',
+                    'enum': [str(p) for p in list(Permission)] + ['project.*', 'template.*', 'design.global.*', 'user.*'],
+                },
+            },
+        },
+    },
+    label='User role',
+    help_text='Example: {"id": "guest", "name": "Guest", "permissions": ["project.read", "project.export", "template.read"]}',
+)
+
+
+def serialize_predefined_user_roles_for_settings() -> list[str]:
+    return [json.dumps({
         'id': role.id,
         'name': role.name,
         'description': role.description,
         'permissions': list(role.permission_patterns),
-    } for role in PREDEFINED_USER_ROLES.values()]
+    }, indent=2) for role in PREDEFINED_USER_ROLES.values()]
 
 
 def get_custom_roles() -> dict[str, Role]:
     from sysreptor.utils.configuration import configuration
 
     out = {}
-    for r in configuration.CUSTOM_USER_ROLES or []:
-        if not isinstance(r, dict) or not r.get('id') or r['id'] in PREDEFINED_USER_ROLES or r['id'] in out:
+    for item in configuration.CUSTOM_USER_ROLES or []:
+        r = json.loads(item)
+        if not r or not r.get('id') or r['id'] in PREDEFINED_USER_ROLES or r['id'] in out:
             continue
         out[r['id']] = Role(
             id=r['id'],
@@ -119,6 +146,7 @@ def get_custom_roles() -> dict[str, Role]:
             permission_patterns=tuple(r.get('permissions') or []),
         )
     return out
+
 
 def get_all_roles() -> dict[str, Role]:
     return PREDEFINED_USER_ROLES | get_custom_roles()
@@ -147,7 +175,7 @@ def user_has_permission(user, permission: str) -> bool:
 
 
 def validate_custom_roles(custom_roles: list) -> bool:
-    role_ids = [r.get('id') for r in custom_roles]
+    role_ids = [json.loads(r).get('id') for r in (custom_roles or [])]
     if duplicates := sorted({str(i) for i in role_ids if role_ids.count(i) > 1}):
         raise ValidationError(f'Duplicate role IDs: {", ".join(duplicates)}')
     for role_id in role_ids:

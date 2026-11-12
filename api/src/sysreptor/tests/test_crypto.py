@@ -488,7 +488,7 @@ class TestProjectArchivingEncryption:
         project_restored = PentestProject.objects.get(id=res_d2.data['project_id'])
         assert project_restored.name == project.name
 
-    @override_configuration(ARCHIVING_THRESHOLD=1, CUSTOM_USER_ROLES=[{'id': 'no_archive', 'name': 'No Archive', 'permissions': ['project.read', 'project.edit_content', 'project.update_settings']}])
+    @override_configuration(ARCHIVING_THRESHOLD=1, CUSTOM_USER_ROLES=[json.dumps({'id': 'no_archive', 'name': 'No Archive', 'permissions': ['project.read', 'project.edit_content', 'project.update_settings']})])
     def test_archiving_without_archive_permissions(self):
         user_restricted = self.create_user_with_private_key(roles=['no_archive'])
         user_archiver = self.create_user_with_private_key(roles=['regular_user', 'global_archiver'])

@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from django.urls import reverse
 
@@ -21,11 +23,11 @@ from sysreptor.users.roles import (
 )
 
 CUSTOM_USER_ROLES = [
-    {'id': 'template_reader', 'name': 'Template Reader', 'permissions': ['template.read']},
-    {'id': 'project_all', 'name': 'Project All', 'permissions': ['project.*']},
-    {'id': 'project_reader', 'name': 'Project Reader', 'permissions': ['project.read']},
-    {'id': 'project_editor_without_read', 'name': 'Project Editor without read', 'permissions': ['project.edit_content', 'project.update_settings']},
-    {'id': 'unnamed_role', 'permissions': ['template.read']},
+    json.dumps({'id': 'template_reader', 'name': 'Template Reader', 'permissions': ['template.read']}),
+    json.dumps({'id': 'project_all', 'name': 'Project All', 'permissions': ['project.*']}),
+    json.dumps({'id': 'project_reader', 'name': 'Project Reader', 'permissions': ['project.read']}),
+    json.dumps({'id': 'project_editor_without_read', 'name': 'Project Editor without read', 'permissions': ['project.edit_content', 'project.update_settings']}),
+    json.dumps({'id': 'unnamed_role', 'permissions': ['template.read']}),
 ]
 
 
