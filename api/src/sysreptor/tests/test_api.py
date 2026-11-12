@@ -46,6 +46,7 @@ from sysreptor.tests.mock import (
     update,
 )
 from sysreptor.users.models import AuthIdentity, PentestUser
+from sysreptor.users.roles import Permission
 
 
 def export_archive(obj):
@@ -137,10 +138,7 @@ def shareinfo_viewset_urls(basename, get_kwargs, get_approve_data, list=False, r
     return out
 
 
-def project_viewset_urls(get_obj, read=False, write=False, create=False, list=False, destroy=None, update=None, share=False):
-    destroy = destroy if destroy is not None else write
-    update = update if update is not None else write
-
+def project_viewset_urls(get_obj, read=False, write=False, create=False, import_=False, list=False, destroy=False, update=False, share=False, export=False, fromtemplate=False):
     out = [
         *viewset_urls('pentestproject', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create, update=update, update_partial=update, destroy=destroy, history_timeline=read),
         *viewset_urls('section', get_kwargs=lambda s, detail: {'project_pk': get_obj(s).pk} | ({'id': get_obj(s).sections.first().section_id} if detail else {}), list=read, retrieve=read, update=write, update_partial=write, history_timeline=read),
@@ -155,15 +153,9 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
     if read:
       out.extend([
             ('pentestproject check', lambda s, c: c.get(reverse('pentestproject-check', kwargs={'pk': get_obj(s).pk}))),
-            ('pentestproject export', lambda s, c: c.post(reverse('pentestproject-export', kwargs={'pk': get_obj(s).pk}))),
-            ('pentestproject export-bulk', lambda s, c: c.post(reverse('pentestproject-export-bulk'), data={'ids': [get_obj(s).pk]})),
             ('pentestproject preview', lambda s, c: c.post(reverse('pentestproject-preview', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject generate', lambda s, c: c.post(reverse('pentestproject-generate', kwargs={'pk': get_obj(s).pk}), data={'password': 'pdf-password'})),
             ('pentestproject md2html', lambda s, c: c.post(reverse('pentestproject-md2html', kwargs={'pk': get_obj(s).pk}), data={})),
-            ('projectnotebookpage export', lambda s, c: c.post(reverse('projectnotebookpage-export', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
-            ('projectnotebookpage export-bulk', lambda s, c: c.post(reverse('projectnotebookpage-export-bulk', kwargs={'project_pk': get_obj(s).pk}), data={'ids': [get_obj(s).notes.first().note_id]})),
-            ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
-            ('projectnotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf-multiple', kwargs={'project_pk': get_obj(s).pk}), data={'notes': get_obj(s).notes.values_list('note_id', flat=True)})),
             ('projectnotebookpage excalidraw', lambda s, c: c.get(reverse('projectnotebookpage-excalidraw', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.filter(type=NoteType.EXCALIDRAW).first().note_id}))),
 
             ('pentestprojecthistory project', lambda s, c: c.get(reverse('pentestprojecthistory-detail', kwargs={'project_pk': get_obj(s).pk, 'history_date': s.history_date}))),
@@ -174,9 +166,17 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestprojecthistory image-by-name', lambda s, c: c.get(reverse('pentestprojecthistory-image-by-name', kwargs={'project_pk': get_obj(s).pk, 'filename': get_obj(s).images.first().name, 'history_date': s.history_date}))),
             ('pentestprojecthistory file-by-name', lambda s, c: c.get(reverse('pentestprojecthistory-file-by-name', kwargs={'project_pk': get_obj(s).pk, 'filename': get_obj(s).files.first().name, 'history_date': s.history_date}))),
         ])
+    if export:
+        out.extend([
+            ('pentestproject export', lambda s, c: c.post(reverse('pentestproject-export', kwargs={'pk': get_obj(s).pk}))),
+            ('pentestproject export-bulk', lambda s, c: c.post(reverse('pentestproject-export-bulk'), data={'ids': [get_obj(s).pk]})),
+            ('projectnotebookpage export', lambda s, c: c.post(reverse('projectnotebookpage-export', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
+            ('projectnotebookpage export-bulk', lambda s, c: c.post(reverse('projectnotebookpage-export-bulk', kwargs={'project_pk': get_obj(s).pk}), data={'ids': [get_obj(s).notes.first().note_id]})),
+            ('projectnotebookpage export-pdf', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.first().note_id}))),
+            ('projectnotebookpage export-pdf-multiple', lambda s, c: c.post(reverse('projectnotebookpage-export-pdf-multiple', kwargs={'project_pk': get_obj(s).pk}), data={'notes': get_obj(s).notes.values_list('note_id', flat=True)})),
+        ])
     if write:
         out.extend([
-            ('pentestproject finding-fromtemplate', lambda s, c: c.post(reverse('finding-fromtemplate', kwargs={'project_pk': get_obj(s).pk}), data={'template': s.template.pk})),
             ('finding sort', lambda s, c: c.post(reverse('finding-sort', kwargs={'project_pk': get_obj(s).pk}), data=[{'id': get_obj(s).findings.first().finding_id, 'order': 1}])),
             ('projectnotebookpage sort', lambda s, c: c.post(reverse('projectnotebookpage-sort', kwargs={'project_pk': get_obj(s).pk}), data=[{'id': get_obj(s).notes.first().note_id, 'parent': None, 'order': 1}])),
             ('projectnotebookpage import', lambda s, c: c.post(reverse('projectnotebookpage-import', kwargs={'project_pk': get_obj(s).pk}), data={'file': export_notes_archive(get_obj(s))}, format='multipart')),
@@ -185,6 +185,10 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
             ('pentestproject upload-image-or-file', lambda s, c: c.post(reverse('pentestproject-upload-image-or-file', kwargs={'pk': get_obj(s).pk}), data={'name': 'test.pdf', 'file': ContentFile(name='text.pdf', content=b'text')}, format='multipart')),
             ('comment resolve', lambda s, c: c.post(reverse('comment-resolve', kwargs={'project_pk': get_obj(s).pk, 'pk': get_obj(s).findings.first().comments.first().id}), data={'status': CommentStatus.RESOLVED})),
         ])
+    if fromtemplate:
+        out.extend([
+            ('pentestproject finding-fromtemplate', lambda s, c: c.post(reverse('finding-fromtemplate', kwargs={'project_pk': get_obj(s).pk}), data={'template': s.template.pk})),
+        ])
     if update:
         out.extend([
             ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': get_obj(s).pk}), data={'readonly': not get_obj(s).readonly})),
@@ -192,6 +196,9 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
     if create:
         out.extend([
             ('pentestproject copy', lambda s, c: c.post(reverse('pentestproject-copy', kwargs={'pk': get_obj(s).pk}), data={})),
+        ])
+    if import_:
+        out.extend([
             ('pentestproject import', lambda s, c: c.post(reverse('pentestproject-import'), data={'file': export_archive(get_obj(s))}, format='multipart')),
         ])
     if list:
@@ -201,19 +208,22 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, list=Fa
     return out
 
 
-def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=False, list=False):
+def projecttype_viewset_urls(get_obj, read=False, write=False, destroy=False, export=False, create_global=False, import_global=False, list=False):
     out = [
-        *viewset_urls('projecttype', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create_global, create_data={'scope': ProjectTypeScope.GLOBAL}, update=write, update_partial=write, destroy=write, lock=write, unlock=write, history_timeline=read),
+        *viewset_urls('projecttype', get_kwargs=lambda s, detail: {'pk': get_obj(s).pk} if detail else {}, list=list, retrieve=read, create=create_global, create_data={'scope': ProjectTypeScope.GLOBAL}, update=write, update_partial=write, destroy=destroy, lock=write, unlock=write, history_timeline=read),
         *file_viewset_urls('uploadedasset', get_base_kwargs=lambda s: {'projecttype_pk': get_obj(s).pk}, get_obj=lambda s: get_obj(s).assets.first(), read=read, write=write),
     ]
     if read:
         out.extend([
             ('projecttype preview', lambda s, c: c.post(reverse('projecttype-preview', kwargs={'pk': get_obj(s).pk}), data={'report_template': '', 'report_styles': '', 'report_preview_data': {}})),
-            ('projecttype export', lambda s, c: c.post(reverse('projecttype-export', kwargs={'pk': get_obj(s).pk}))),
-            ('projecttype export-bulk', lambda s, c: c.post(reverse('projecttype-export-bulk'), data={'ids': [get_obj(s).pk]})),
             ('projecttype copy private', lambda s, c: c.post(reverse('projecttype-copy', kwargs={'pk': get_obj(s).pk}), data={'scope': ProjectTypeScope.PRIVATE})),
             ('projecttypehistory detail', lambda s, c: c.get(reverse('projecttypehistory-detail', kwargs={'projecttype_pk': get_obj(s).pk, 'history_date': s.history_date}))),
             ('projecttypehistory asset-by-name', lambda s, c: c.get(reverse('projecttypehistory-asset-by-name', kwargs={'projecttype_pk': get_obj(s).pk, 'filename': get_obj(s).assets.first().name, 'history_date': s.history_date}))),
+        ])
+    if export:
+        out.extend([
+            ('projecttype export', lambda s, c: c.post(reverse('projecttype-export', kwargs={'pk': get_obj(s).pk}))),
+            ('projecttype export-bulk', lambda s, c: c.post(reverse('projecttype-export-bulk'), data={'ids': [get_obj(s).pk]})),
         ])
     if write:
         out.extend([
@@ -221,8 +231,11 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
         ])
     if create_global:
         out.extend([
-            ('projecttype import global', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(get_obj(s)), 'scope': ProjectTypeScope.GLOBAL}, format='multipart')),
             ('projecttype copy global', lambda s, c: c.post(reverse('projecttype-copy', kwargs={'pk': get_obj(s).pk}), data={'scope': ProjectTypeScope.GLOBAL})),
+        ])
+    if import_global:
+        out.extend([
+            ('projecttype import global', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(get_obj(s)), 'scope': ProjectTypeScope.GLOBAL}, format='multipart')),
         ])
     if list:
         out.extend([
@@ -230,6 +243,48 @@ def projecttype_viewset_urls(get_obj, read=False, write=False, create_global=Fal
             ('projecttype tags', lambda s, c: c.get(reverse('projecttype-tags'))),
         ])
     return out
+
+
+def template_urls(read=False, create=False, edit=False, destroy=False, import_=False, export=False):
+    out = [
+        *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=read, retrieve=read, create=create, update=edit, update_partial=edit, destroy=destroy, lock=edit, unlock=edit),
+        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=read, retrieve=read, history_timeline=read, create=edit, create_data={'language': Language.GERMAN_DE, 'data': {'title': 'test'}}, update=edit, update_partial=edit),
+        *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=read, write=edit),
+    ]
+    if read:
+        out.extend([
+            ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), {'initialize_dependencies': lambda s: [s.template, s.project_type]}),
+            ('findingtemplate tags', lambda s, c: c.get(reverse('findingtemplate-tags'))),
+            ('findingtemplatehistory template', lambda s, c: c.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': s.template.pk, 'history_date': s.history_date}))),
+            ('findingtemplatehistory image-by-name', lambda s, c: c.get(reverse('findingtemplatehistory-image-by-name', kwargs={'template_pk': s.template.pk, 'filename': s.template.images.first().name, 'history_date': s.history_date}))),
+        ])
+    if create:
+        out.extend([
+            ('findingtemplate copy', lambda s, c: c.post(reverse('findingtemplate-copy', kwargs={'pk': s.template.pk}), data={})),
+        ])
+    if import_:
+        out.extend([
+            ('findingtemplate import', lambda s, c: c.post(reverse('findingtemplate-import'), data={'file': export_archive(s.template)}, format='multipart')),
+        ])
+    if export:
+        out.extend([
+            ('findingtemplate export', lambda s, c: c.post(reverse('findingtemplate-export', kwargs={'pk': s.template.pk}))),
+            ('findingtemplate export-bulk', lambda s, c: c.post(reverse('findingtemplate-export-bulk'), data={'ids': [s.template.pk]})),
+        ])
+    return out
+
+
+READONLY_PERMISSIONS = [Permission.PROJECT_READ, Permission.TEMPLATE_READ, Permission.DESIGN_GLOBAL_READ]
+
+
+def user_permissions(username) -> list[str]:
+    if username == 'readonly':
+        return list(READONLY_PERMISSIONS)
+    elif username == 'all_permissions':
+        return list(Permission)
+    elif username.startswith('perms:'):
+        return username.removeprefix('perms:').split('+')
+    return []
 
 
 def expect_result(urls, allowed_users, forbidden_users):
@@ -240,6 +295,19 @@ def expect_result(urls, allowed_users, forbidden_users):
     for user in forbidden_users:
         yield from [(user, *u, False) for u in urls]
 
+
+def expect_permissions(urls, required=()):
+    required = sorted(set(required))
+    if not required:
+        forbidden = ['public']
+        allowed = ['no_permissions', 'admin']
+    elif set(required).issubset(READONLY_PERMISSIONS):
+        forbidden = ['no_permissions']
+        allowed = ['readonly' if set(required) == set(READONLY_PERMISSIONS) else 'perms:' + '+'.join(required), 'admin']
+    else:
+        forbidden = ['readonly']
+        allowed = ['perms:' + '+'.join(required), 'admin']
+    yield from expect_result(urls, allowed_users=allowed, forbidden_users=forbidden)
 
 
 def public_urls():
@@ -264,7 +332,7 @@ def public_urls():
     ]
 
 
-def guest_urls():
+def no_permission_urls():
     return [
         ('utils list', lambda s, c: c.get(reverse('utils-list'))),
         ('utils cwes', lambda s, c: c.get(reverse('utils-cwes'))),
@@ -298,23 +366,9 @@ def guest_urls():
         ('usernotebookpage excalidraw', lambda s, c: c.get(reverse('usernotebookpage-excalidraw', kwargs={'pentestuser_pk': 'self', 'id': s.current_user.notes.filter(type=NoteType.EXCALIDRAW).first().note_id if s.current_user else uuid4()}))),
         *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self', 'note_id': s.current_user.notes.only_shared().first().note_id if s.current_user else uuid4()} | ({'pk': s.current_user.notes.only_shared().first().shareinfos.first().pk if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True),
 
-        *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, list=True, retrieve=True),
-        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), list=True, retrieve=True, history_timeline=True),
-        *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, read=True),
-        ('findingtemplate fielddefinition', lambda s, c: c.get(reverse('findingtemplate-fielddefinition')), {'initialize_dependencies': lambda s: [s.template, s.project_type]}),
-        ('findingtemplate tags', lambda s, c: c.get(reverse('findingtemplate-tags'))),
-        ('findingtemplatehistory template', lambda s, c: c.get(reverse('findingtemplatehistory-detail', kwargs={'template_pk': s.template.pk, 'history_date': s.history_date}))),
-        ('findingtemplatehistory image-by-name', lambda s, c: c.get(reverse('findingtemplatehistory-image-by-name', kwargs={'template_pk': s.template.pk, 'filename': s.template.images.first().name, 'history_date': s.history_date}))),
-
-        ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
+        ('projecttype create private', lambda s, c: c.post(reverse('projecttype-list'), data=c.get(reverse('projecttype-detail', kwargs={'pk': s.project_type_private.pk})).data | {'scope': ProjectTypeScope.PRIVATE})),
         ('projecttype import private', lambda s, c: c.post(reverse('projecttype-import'), data={'file': export_archive(s.project_type), 'scope': ProjectTypeScope.PRIVATE}, format='multipart')),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type, list=True, read=True),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True, write=False),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private, read=True, write=True),
-
-        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True, write=False, destroy=False, update=False, share=False),
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True, share=False),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private, list=True, read=True, write=True, destroy=True, export=True),
 
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, list=True, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
@@ -322,66 +376,7 @@ def guest_urls():
     ]
 
 
-def regular_user_urls():
-    return [
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True),
-        *shareinfo_viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self', 'note_id': s.current_user.notes.only_shared().first().note_id if s.current_user else uuid4()} | ({'pk': s.current_user.notes.only_shared().first().shareinfos.first().pk if s.current_user else uuid4()} if detail else {}), get_approve_data=lambda s: {'share_info': s.current_user.notes.only_shared().first().shareinfos.first() if s.current_user else None, 'file_id': s.current_user.files.first().id if s.current_user else uuid4()}, create=True, update=True, update_partial=True, approve=True),
-
-        *project_viewset_urls(get_obj=lambda s: s.project, create=True, update=True, write=True, destroy=True, share=True),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True),
-        ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': s.project.pk}), data={'project_type': s.project.project_type.id})),
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, update=True, destroy=True, share=True),
-
-        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
-        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly.pk}))),
-        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
-    ]
-
-
-def template_editor_urls():
-    return {
-        *viewset_urls('findingtemplate', get_kwargs=lambda s, detail: {'pk': s.template.pk} if detail else {}, create=True, update=True, update_partial=True, destroy=True, lock=True, unlock=True),
-        *viewset_urls('findingtemplatetranslation', get_kwargs=lambda s, detail: {'template_pk': s.template.pk} | ({'pk': s.template.main_translation.pk} if detail else {}), create=True, create_data={'language': Language.GERMAN_DE, 'data': {'title': 'test'}}, update=True, update_partial=True),
-        *file_viewset_urls('uploadedtemplateimage', get_obj=lambda s: s.template.images.first(), get_base_kwargs=lambda s: {'template_pk': s.template.pk}, write=True),
-        ('findingtemplate copy', lambda s, c: c.post(reverse('findingtemplate-copy', kwargs={'pk': s.template.pk}), data={})),
-        ('findingtemplate export', lambda s, c: c.post(reverse('findingtemplate-export', kwargs={'pk': s.template.pk}))),
-        ('findingtemplate export-bulk', lambda s, c: c.post(reverse('findingtemplate-export-bulk'), data={'ids': [s.template.pk]})),
-        ('findingtemplate import', lambda s, c: c.post(reverse('findingtemplate-import'), data={'file': export_archive(s.template)}, format='multipart')),
-        ('findingtemplate fromfinding', lambda s, c: c.post(reverse('findingtemplate-fromfinding'), data={'project': s.project.id, 'translations': [{'is_main': True, 'data': {'title': 'title'}}]})),
-    }
-
-
-def designer_urls():
-    return [
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type, create_global=True, write=True),
-    ]
-
-
-def user_manager_urls():
-    return [
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, create=True, create_data={'username': 'new', 'password': get_random_string(32), 'email': 'newuser@example.com'}, update=True, update_partial=True),
-        ('pentestuser reset-password', lambda s, c: c.post(reverse('pentestuser-reset-password', kwargs={'pk': s.user_other.pk}), data={'password': get_random_string(32)})),
-        *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), list=True, retrieve=True, destroy=True),
-        *viewset_urls('authidentity', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.auth_identities.first().pk} if detail else {}), list=True, retrieve=True, create=True, create_data={'identifier': 'other.identifier'}, destroy=True),
-        *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), list=True, retrieve=True, destroy=True),
-        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), list=True, retrieve=True),
-    ]
-
-
-def project_admin_urls():
-    return [
-        # Not a project member
-        *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, read=True, write=True),
-        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
-        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True, write=True),
-
-        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project_unauthorized.pk} if detail else {}, retrieve=True),
-        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project_unauthorized.pk} | ({'pk': s.archived_project_unauthorized.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
-    ]
-
-
-def superuser_urls():
+def admin_urls():
     return [
         ('pentestuser enable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-enable-admin-permissions'))),
         ('pentestuser disable-admin-permissions', lambda s, c: c.post(reverse('pentestuser-disable-admin-permissions'))),
@@ -390,8 +385,8 @@ def superuser_urls():
         *viewset_urls('usernotebookpage', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'id': s.user_other.notes.first().note_id} if detail else {}), list=True, retrieve=True),
         *viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk, 'note_id': s.user_other.notes.only_shared().first().note_id} | ({'pk': s.user_other.notes.only_shared().first().shareinfos.first().pk} if detail else {}), list=True, retrieve=True),
 
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, write=True),
-        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private_unauthorized, read=True, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, write=True, destroy=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_private_unauthorized, read=True, write=True, destroy=True, export=True),
 
         ('utils-backuplogs', lambda s, c: c.get(reverse('utils-backuplogs'))),
 
@@ -403,7 +398,7 @@ def superuser_urls():
 
 def forbidden_urls():
     return [
-        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True, update=False, destroy=False),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, write=True, fromtemplate=True),
         ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': s.project_readonly.pk}), data={'project_type': s.project_readonly.project_type.id})),
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': s.user_other.pk}))),
@@ -418,51 +413,113 @@ def forbidden_urls():
 
 
 def build_test_parameters():
-    yield from expect_result(
-        urls=public_urls(),
-        allowed_users=['public', 'guest', 'regular', 'superuser'],
-        forbidden_users=[],
-    )
-    yield from expect_result(
-        urls=guest_urls(),
-        allowed_users=['guest', 'regular', 'superuser'],
-        forbidden_users=['public'],
-    )
-    yield from expect_result(
-        urls=regular_user_urls(),
-        allowed_users=['regular', 'superuser'],
-        forbidden_users=['public', 'guest'],
-    )
-    yield from expect_result(
-        urls=template_editor_urls(),
-        allowed_users=['template_editor', 'superuser'],
-        forbidden_users=['public', 'guest', 'regular'],
-    )
-    yield from expect_result(
-        urls=designer_urls(),
-        allowed_users=['designer', 'superuser'],
-        forbidden_users=['public', 'guest', 'regular'],
-    )
-    yield from expect_result(
-        urls=user_manager_urls(),
-        allowed_users=['user_manager', 'superuser'],
-        forbidden_users=['public', 'guest', 'regular'],
-    )
-    yield from expect_result(
-        urls=project_admin_urls(),
-        allowed_users=['project_admin', 'superuser'],
-        forbidden_users=['public', 'guest', 'regular'],
-    )
-    yield from expect_result(
-        urls=superuser_urls(),
-        allowed_users=['superuser'],
-        forbidden_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin'],
-    )
-    yield from expect_result(
-        urls=forbidden_urls(),
-        allowed_users=[],
-        forbidden_users=['public', 'guest', 'regular', 'template_editor', 'designer', 'user_manager', 'project_admin', 'superuser'],
-    )
+    P = Permission
+    # Public
+    yield from expect_result(public_urls(), allowed_users=['public', 'no_permissions', 'admin'], forbidden_users=[])
+    yield from expect_permissions(no_permission_urls())
+
+    # Projects as member
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project, list=True, read=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, read=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, read=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, read=True),
+    ], [P.PROJECT_READ])
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project, export=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, export=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, export=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_snapshot, export=True),
+    ], [P.PROJECT_READ, P.PROJECT_EXPORT])
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized, write=True, destroy=True),
+    ], [P.PROJECT_READ, P.PROJECT_EDIT_CONTENT])
+    yield from expect_permissions(project_viewset_urls(get_obj=lambda s: s.project, fromtemplate=True), [P.PROJECT_READ, P.PROJECT_EDIT_CONTENT, P.TEMPLATE_READ])
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project, update=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, update=True),
+        ('pentestproject customize-projecttype', lambda s, c: c.post(reverse('pentestproject-customize-projecttype', kwargs={'pk': s.project.pk}), data={'project_type': s.project.project_type.id})),
+    ], [P.PROJECT_READ, P.PROJECT_UPDATE_SETTINGS, P.DESIGN_GLOBAL_READ])
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project, destroy=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, destroy=True),
+    ], [P.PROJECT_READ, P.PROJECT_DELETE])
+    yield from expect_permissions(project_viewset_urls(get_obj=lambda s: s.project, create=True), [P.PROJECT_READ, P.PROJECT_CREATE, P.DESIGN_GLOBAL_READ])
+    yield from expect_permissions(project_viewset_urls(get_obj=lambda s: s.project, import_=True), [P.PROJECT_READ, P.PROJECT_IMPORT])
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project, share=True),
+        *project_viewset_urls(get_obj=lambda s: s.project_readonly, share=True),
+    ], [P.PROJECT_READ, P.PROJECT_SHARE_NOTES])
+    yield from expect_permissions(
+        shareinfo_viewset_urls('usernoteshareinfo', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self', 'note_id': s.current_user.notes.only_shared().first().note_id if s.current_user else uuid4()} | ({'pk': s.current_user.notes.only_shared().first().shareinfos.first().pk if s.current_user else uuid4()} if detail else {}), get_approve_data=lambda s: {'share_info': s.current_user.notes.only_shared().first().shareinfos.first() if s.current_user else None, 'file_id': s.current_user.files.first().id if s.current_user else uuid4()}, create=True, update=True, update_partial=True, approve=True),
+        [P.PROJECT_SHARE_NOTES])
+    yield from expect_permissions([
+        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly.pk}))),
+        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly.pk}))),
+    ], [P.PROJECT_READ, P.PROJECT_ARCHIVE])
+    yield from expect_permissions([
+        ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
+    ], [P.PROJECT_RESTORE])
+
+    # Projects as non-member
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, read=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, read=True),
+    ], [P.PROJECT_READ, P.ADMIN_ACCESS_ALL_PROJECTS])
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, export=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, export=True),
+    ], [P.PROJECT_READ, P.PROJECT_EXPORT, P.ADMIN_ACCESS_ALL_PROJECTS])
+    yield from expect_permissions([
+        *project_viewset_urls(get_obj=lambda s: s.project_unauthorized, write=True),
+        *projecttype_viewset_urls(get_obj=lambda s: s.project_type_customized_unauthorized, write=True, destroy=True),
+    ], [P.PROJECT_READ, P.PROJECT_EDIT_CONTENT, P.ADMIN_ACCESS_ALL_PROJECTS])
+    yield from expect_permissions(project_viewset_urls(get_obj=lambda s: s.project_unauthorized, update=True), [P.PROJECT_READ, P.PROJECT_UPDATE_SETTINGS, P.ADMIN_ACCESS_ALL_PROJECTS, P.DESIGN_GLOBAL_READ, P.USER_LIST_ALL])
+    yield from expect_permissions(project_viewset_urls(get_obj=lambda s: s.project_unauthorized, destroy=True), [P.PROJECT_READ, P.PROJECT_DELETE, P.ADMIN_ACCESS_ALL_PROJECTS])
+    yield from expect_permissions([
+        ('pentestproject archive-check', lambda s, c: c.get(reverse('pentestproject-archive-check', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
+        ('pentestproject archive', lambda s, c: c.post(reverse('pentestproject-archive', kwargs={'pk': s.project_readonly_unauthorized.pk}))),
+    ], [P.PROJECT_READ, P.PROJECT_ARCHIVE, P.ADMIN_ACCESS_ALL_PROJECTS])
+    yield from expect_permissions([
+        *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project_unauthorized.pk} if detail else {}, retrieve=True),
+        *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project_unauthorized.pk} | ({'pk': s.archived_project_unauthorized.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
+    ], [P.ADMIN_ACCESS_ALL_PROJECTS])
+
+    # Templates
+    yield from expect_permissions(template_urls(read=True), [P.TEMPLATE_READ])
+    yield from expect_permissions(template_urls(create=True), [P.TEMPLATE_READ, P.TEMPLATE_CREATE])
+    yield from expect_permissions([
+        ('findingtemplate fromfinding', lambda s, c: c.post(reverse('findingtemplate-fromfinding'), data={'project': s.project.id, 'translations': [{'is_main': True, 'data': {'title': 'title'}}]})),
+    ], [P.TEMPLATE_READ, P.TEMPLATE_CREATE, P.PROJECT_READ])
+    yield from expect_permissions(template_urls(edit=True), [P.TEMPLATE_READ, P.TEMPLATE_EDIT])
+    yield from expect_permissions(template_urls(destroy=True), [P.TEMPLATE_READ, P.TEMPLATE_DELETE])
+    yield from expect_permissions(template_urls(import_=True), [P.TEMPLATE_READ, P.TEMPLATE_IMPORT])
+    yield from expect_permissions(template_urls(export=True), [P.TEMPLATE_READ, P.TEMPLATE_EXPORT])
+
+    # Global designs
+    yield from expect_permissions(projecttype_viewset_urls(get_obj=lambda s: s.project_type, read=True), [P.DESIGN_GLOBAL_READ])
+    yield from expect_permissions(projecttype_viewset_urls(get_obj=lambda s: s.project_type, export=True), [P.DESIGN_GLOBAL_READ, P.DESIGN_GLOBAL_EXPORT])
+    yield from expect_permissions(projecttype_viewset_urls(get_obj=lambda s: s.project_type, create_global=True), [P.DESIGN_GLOBAL_READ, P.DESIGN_GLOBAL_CREATE])
+    yield from expect_permissions(projecttype_viewset_urls(get_obj=lambda s: s.project_type, import_global=True), [P.DESIGN_GLOBAL_READ, P.DESIGN_GLOBAL_IMPORT])
+    yield from expect_permissions(projecttype_viewset_urls(get_obj=lambda s: s.project_type, write=True), [P.DESIGN_GLOBAL_READ, P.DESIGN_GLOBAL_EDIT])
+    yield from expect_permissions(projecttype_viewset_urls(get_obj=lambda s: s.project_type, destroy=True), [P.DESIGN_GLOBAL_READ, P.DESIGN_GLOBAL_DELETE])
+
+    # Users
+    yield from expect_permissions(viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True), [P.USER_LIST_ALL])
+    yield from expect_permissions(viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, create=True, create_data={'username': 'new', 'password': get_random_string(32), 'email': 'newuser@example.com'}), [P.USER_CREATE])
+    yield from expect_permissions([
+        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, update=True, update_partial=True),
+        ('pentestuser reset-password', lambda s, c: c.post(reverse('pentestuser-reset-password', kwargs={'pk': s.user_other.pk}), data={'password': get_random_string(32)})),
+        *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), list=True, retrieve=True, destroy=True),
+        *viewset_urls('authidentity', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.auth_identities.first().pk} if detail else {}), list=True, retrieve=True, create=True, create_data={'identifier': 'other.identifier'}, destroy=True),
+        *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), list=True, retrieve=True, destroy=True),
+        *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), list=True, retrieve=True),
+    ], [P.USER_EDIT, P.USER_LIST_ALL])
+    yield from expect_permissions(viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, destroy=True), [P.USER_DELETE, P.USER_LIST_ALL])
+
+    yield from expect_result(admin_urls(), allowed_users=['admin'], forbidden_users=['all_permissions'])
+    yield from expect_result(forbidden_urls(), allowed_users=[], forbidden_users=['all_permissions', 'admin'])
 
 
 class ApiRequestsAndPermissionsTestData:
@@ -573,6 +630,7 @@ def test_api_requests(username, name, perform_request, options, expected):
 
     with override_configuration(
             ARCHIVING_THRESHOLD=1,
+            CUSTOM_ROLES=[{'id': 'test_role', 'permissions': user_permissions(username)}],
             OIDC_AUTHLIB_OAUTH_CLIENTS=json.dumps({
                 'dummy': {
                     'label': 'Dummy',
@@ -584,17 +642,12 @@ def test_api_requests(username, name, perform_request, options, expected):
         mock.patch('sysreptor.api_utils.serializers.LanguageToolSerializerBase.languagetool_request', mock_languagetool_request), \
         mock.patch('sysreptor.tasks.tasks.activate_license', return_value=None), \
         mock.patch('sysreptor.api_utils.views.reload_server'):
-        user_map = {
-            'public': lambda: None,
-            'guest': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['guest']),
-            'regular': lambda: ApiRequestsAndPermissionsTestData.create_user(),
-            'template_editor': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'template_editor']),
-            'designer': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'designer']),
-            'user_manager': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'user_manager']),
-            'project_admin': lambda: ApiRequestsAndPermissionsTestData.create_user(roles=['regular_user', 'project_admin']),
-            'superuser': lambda: ApiRequestsAndPermissionsTestData.create_user(is_superuser=True, admin_permissions_enabled=True),
-        }
-        user = user_map[username]()
+        if username == 'public':
+            user = None
+        elif username == 'admin':
+            user = ApiRequestsAndPermissionsTestData.create_user(is_superuser=True, admin_permissions_enabled=True)
+        else:
+            user = ApiRequestsAndPermissionsTestData.create_user(roles=['test_role'])
         data = ApiRequestsAndPermissionsTestData(user)
         client = APIClient()
         if user:
@@ -614,3 +667,12 @@ def test_api_requests(username, name, perform_request, options, expected):
             assert 200 <= res.status_code < 300, {'message': 'API request failed, but should have succeeded', 'info': info}
         else:
             assert 400 <= res.status_code < 500, {'message': 'API request succeeded, but should have failed', 'info': info}
+
+
+def test_all_permissions_covered():
+    covered = set()
+    for username, *_ in build_test_parameters():
+        if username.startswith('perms:'):
+            covered |= set(user_permissions(username))
+    # ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT does not gate an endpoint. It is tested in test_crypto.py
+    assert covered == set(Permission) - {Permission.ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT}
