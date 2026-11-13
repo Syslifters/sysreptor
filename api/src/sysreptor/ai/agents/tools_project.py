@@ -17,7 +17,7 @@ from sysreptor.ai.agents.project import (
 )
 from sysreptor.ai.agents.tools import agent_tool
 from sysreptor.pentests.models import FindingTemplate, NoteType, ProjectNotebookPage, ReportSection
-from sysreptor.pentests.permissions import ProjectSubresourcePermissions
+from sysreptor.pentests.permissions import ProjectPermissions
 from sysreptor.pentests.serializers.notes import ProjectNotebookPageCreateSerializer, ProjectNotebookPageSerializer
 from sysreptor.pentests.serializers.project import (
     PentestFindingFromTemplateSerializer,
@@ -67,7 +67,7 @@ def list_templates(runtime: ToolRuntime[ProjectContext], search_terms: str = '')
             all templates ordered by usage and risk.
     """
     project = get_project(runtime.context.project_id)
-    qs = FindingTemplate.objects.all()
+    qs = FindingTemplate.objects.only_permitted(user=runtime.context.user)
     search_terms = (search_terms or '').strip()
     if search_terms:
         qs = qs.search(search_smart_split(search_terms))
@@ -99,6 +99,7 @@ def read_template(runtime: ToolRuntime[ProjectContext], template_id: str) -> str
             identifier shown in search results).
     """
     template = FindingTemplate.objects \
+        .only_permitted(user=runtime.context.user) \
         .prefetch_related('translations') \
         .get(id=template_id)
     set_tool_output({
@@ -137,7 +138,7 @@ def create_finding(runtime: ToolRuntime[ProjectContext], data: dict = None, temp
 
     project = get_project(runtime.context.project_id)
     user = runtime.context.user
-    if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
+    if not ProjectPermissions.has_write_permissions(project=project, user=user):
         raise ValidationError('You do not have write permissions')
 
     serializer_context = {'project': project, 'request': FakeRequest(user=user)}
@@ -187,7 +188,7 @@ def create_note(
     """
     project = get_project(runtime.context.project_id)
     user = runtime.context.user
-    if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
+    if not ProjectPermissions.has_write_permissions(project=project, user=user):
         raise ValidationError('You do not have write permissions')
 
     serializer_data = dict(data or {})
@@ -217,7 +218,7 @@ def create_note(
 def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContext]) -> dict:
     project = get_project(runtime.context.project_id)
     user = runtime.context.user
-    if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
+    if not ProjectPermissions.has_write_permissions(project=project, user=user):
         raise ValidationError('You do not have write permissions')
 
     filepath_parts = tuple(file_path.strip('/').split('/'))

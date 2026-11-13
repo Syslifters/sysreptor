@@ -10,10 +10,12 @@
   >
     <template #title>Users</template>
     <template #actions>
-      <btn-create 
-        to="/users/new/" 
-        :disabled="!auth.permissions.value.user_manager"
-      />
+      <permission-info :permission="UserPermission.USER_CREATE">
+        <btn-create 
+          to="/users/new/" 
+          :disabled="!auth.hasPermission(UserPermission.USER_CREATE)"
+        />
+      </permission-info>
     </template>
     <template #item="{item: user}: {item: User}">
       <v-list-item :to="`/users/${user.id}/`">
@@ -29,12 +31,10 @@
           </v-col>
           <v-col md="3">
             <v-chip size="small" class="ma-1" v-if="user.is_superuser" text="Superuser" />
-            <v-chip size="small" class="ma-1" v-if="user.is_project_admin" text="Project Admin" />
-            <v-chip size="small" class="ma-1" v-if="user.is_user_manager" text="User Manager" />
-            <v-chip size="small" class="ma-1" v-if="user.is_designer" text="Designer" />
-            <v-chip size="small" class="ma-1" v-if="user.is_template_editor" text="Template Editor" />
-            <v-chip size="small" class="ma-1" v-if="user.is_guest" text="Guest" />
-            <v-chip size="small" class="ma-1" v-if="user.is_global_archiver" text="Global Archiver" />
+            <v-chip v-for="role in (user.roles || [])" :key="role" size="small" class="ma-1">
+              {{ getRole(role)?.name || role }}
+              <v-tooltip v-if="getRole(role)?.description" activator="parent" :text="getRole(role)!.description!" />
+            </v-chip>
             <v-chip size="small" class="ma-1" v-if="user.is_system_user" text="System" />
           </v-col>
           <v-col md="1">
@@ -64,5 +64,10 @@ definePageMeta({
 useAppBar({ breadcrumbs: userListBreadcrumbs() });
 
 const auth = useAuth();
+const apiSettings = useApiSettings();
 const localSettings = useLocalSettings();
+
+function getRole(roleId: string) {
+  return apiSettings.settings?.permissions.roles?.find(r => r.id === roleId);
+}
 </script>

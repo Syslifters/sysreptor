@@ -101,6 +101,7 @@ def create_user(mfa=False, apitoken=False, public_key=False, notes_kwargs=None, 
         'email': username + '@example.com',
         'first_name': 'Herbert',
         'last_name': 'Testinger',
+        'roles': ['regular_user'],
     } | kwargs)
     if admin_permissions_enabled:
         user.admin_permissions_enabled = True

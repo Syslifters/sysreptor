@@ -91,7 +91,10 @@ const createWizard = ref({
     identifier: '',
   },
 });
-const canEdit = computed(() => auth.permissions.value.user_manager && !user.value.is_system_user);
+const canEdit = computed(() => !user.value.is_system_user && (
+  (auth.hasPermission(UserPermission.USER_EDIT) && !user.value.is_superuser) ||
+  auth.permissions.value.admin
+));
 
 async function createIdentity() {
   try {

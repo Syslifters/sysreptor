@@ -38,7 +38,7 @@ const themeName = computed(() => {
   }
 
   // Admin theme
-  if (apiSettings.isProfessionalLicense && auth.user.value?.scope.includes('admin')) {
+  if (apiSettings.isProfessionalLicense && auth.permissions.value.admin) {
     return baseTheme + 'Admin';
   } else {
     return baseTheme;

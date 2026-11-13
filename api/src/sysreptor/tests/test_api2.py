@@ -299,7 +299,7 @@ class TestProjectTypeApi:
         ('regular', ProjectTypeScope.PRIVATE, True),
     ])
     def test_create_design(self, user, scope, expected):
-        user = create_user(is_designer=user == 'designer')
+        user = create_user(roles=['regular_user'] + (['designer'] if user == 'designer' else []))
         res = api_client(user).post(reverse('projecttype-list'), data={'name': 'Test', 'scope': scope})
         assert (res.status_code == 201) == expected
         if expected:
@@ -317,7 +317,7 @@ class TestProjectTypeApi:
     ])
     def test_import_design(self, user, scope, expected):
         pt_file = io.BytesIO(b''.join(export_project_types([create_project_type()])))
-        user = create_user(is_designer=user == 'designer')
+        user = create_user(roles=['regular_user'] + (['designer'] if user == 'designer' else []))
         res = api_client(user).post(reverse('projecttype-import'), data={'file': pt_file, 'scope': scope}, format='multipart')
         assert (res.status_code == 201) == expected
         if expected:
@@ -339,7 +339,7 @@ class TestProjectTypeApi:
         ('regular', 'private', ProjectTypeScope.PRIVATE, True),
     ])
     def test_copy_design(self, user, project_type, scope, expected):
-        user = create_user(is_designer=user == 'designer')
+        user = create_user(roles=['regular_user'] + (['designer'] if user == 'designer' else []))
         project_type = create_project_type(linked_user=user if project_type == 'private' else None)
         res = api_client(user).post(reverse('projecttype-copy', kwargs={'pk': project_type.id}), data={'scope': scope})
         assert (res.status_code == 201) == expected
@@ -377,7 +377,7 @@ class TestProjectTypeApi:
             create_project_type(name='pt1', status=ReviewStatus.FINISHED, tags=['tag1', 'tag:all'], language=Language.ENGLISH_US)
         create_project_type(name='pt2', status=ReviewStatus.IN_PROGRESS, tags=['tag2', 'tag:all'], language=Language.GERMAN_DE)
 
-        res = api_client(create_user(is_designer=True)).get(reverse('projecttype-list'), data=filters)
+        res = api_client(create_user(roles=['regular_user', 'designer'])).get(reverse('projecttype-list'), data=filters)
         assert res.status_code == 200
         assert set(pt['name'] for pt in res.data['results']) == set(results)
 
@@ -386,7 +386,7 @@ class TestProjectTypeApi:
 class TestTemplateApi:
     @pytest.fixture(autouse=True)
     def setUp(self):
-        self.user = create_user(is_template_editor=True)
+        self.user = create_user(roles=['regular_user', 'template_editor'])
         self.client = api_client(self.user)
         self.template = create_template(language=Language.ENGLISH_US, translations_kwargs=[{'language': Language.GERMAN_DE}])
         self.trans_en = self.template.main_translation

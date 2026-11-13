@@ -142,59 +142,36 @@
     <s-card class="mt-4">
       <v-card-title><pro-info>Permissions</pro-info></v-card-title>
       <v-card-text>
-        <s-checkbox
-          :model-value="user.is_template_editor" @update:model-value="updateField('is_template_editor', $event)"
-          label="Template Editor"
-          data-testid="template-editor-checkbox"
-          hint="Template Editors are allowed to create and edit finding templates."
-          :error-messages="props.errors?.is_template_editor || []"
+        <s-autocomplete
+          :model-value="user.roles"
+          @update:model-value="updateField('roles', $event)"
+          :items="roleItems"
+          item-title="name"
+          item-value="id"
+          :item-props="(role: { description?: string|null }) => ({ subtitle: role.description || undefined })"
+          label="Roles"
+          hint="Users have the combined permissions of all assigned roles."
+          persistent-hint
+          multiple
+          chips
+          closable-chips
+          :error-messages="props.errors?.roles || []"
           :disabled="!canEditGeneralPermissions"
-          density="compact"
+          data-testid="roles-select"
+          class="mb-4"
         />
-        <s-checkbox
-          :model-value="user.is_designer" @update:model-value="updateField('is_designer', $event)"
-          label="Designer"
-          data-testid="designer-checkbox"
-          hint="Designers can create and edit report designs. Users without this permission can create and edit private designs."
-          :error-messages="props.errors?.is_designer || []"
-          :disabled="!canEditGeneralPermissions"
-          density="compact"
-        />
-        <s-checkbox
-          :model-value="user.is_user_manager" @update:model-value="updateField('is_user_manager', $event)"
-          label="User Manager"
-          data-testid="user-manager-checkbox"
-          hint="User Managers can create and update other users, assign permissions and reset passwords (except superusers)."
-          :error-messages="props.errors?.is_user_manager || []"
-          :disabled="!canEditGeneralPermissions"
-          density="compact"
-        />
-        <s-checkbox
-          :model-value="user.is_guest" @update:model-value="updateField('is_guest', $event)"
-          label="Guest"
-          hint="Guest are not allowed to list other users and might be further restricted by your system operator."
-          :error-messages="props.errors?.is_guest || []"
-          :disabled="!canEditGeneralPermissions"
-          density="compact"
-        />
-        <s-checkbox
-          :model-value="user.is_global_archiver" @update:model-value="updateField('is_global_archiver', $event)"
-          label="Global Archiver"
-          data-testid="global-archiver-checkbox"
-          hint="Global Archivers will be added to archives when archiving projects (besides project members) and are able to restore these projects. They need to have archiving public keys configured for this permission take effect."
-          :error-messages="props.errors?.is_global_archiver || []"
-          :disabled="!canEditGeneralPermissions || !apiSettings.settings!.features.archiving"
-          density="compact"
-        />
-        <s-checkbox
-          :model-value="user.is_project_admin" @update:model-value="updateField('is_project_admin', $event)"
-          label="Project Admin"
-          data-testid="project-admin-checkbox"
-          hint="Project Admins can access and manage all projects, regardless if they are members of the project or not."
-          :error-messages="props.errors?.is_project_admin || []"
-          :disabled="!canEditGeneralPermissions"
-          density="compact"
-        />
+        <div class="mb-4" :class="{'text-disabled': !apiSettings.isProfessionalLicense}">
+          <div class="text-subtitle-1 mb-1">Effective permissions from roles</div>
+          <v-chip
+            v-for="permission in effectivePermissions"
+            :key="permission"
+            :text="permission"
+            size="small"
+            class="ma-1"
+          />
+          <span v-if="!effectivePermissions.length" class="text-body-medium">No permissions from roles</span>
+        </div>
+
         <s-checkbox
           :model-value="user.is_superuser" @update:model-value="updateField('is_superuser', $event)"
           label="Superuser"
@@ -219,6 +196,8 @@
 </template>
 
 <script setup lang="ts">
+import { orderBy, uniq } from 'lodash-es';
+
 const user = defineModel<User>({ required: true });
 const props = defineProps<{
   errors?: any,
@@ -227,12 +206,29 @@ const props = defineProps<{
 const auth = useAuth();
 const apiSettings = useApiSettings();
 const canEdit = computed(() => 
-  (auth.permissions.value.user_manager && !user.value.is_superuser && !user.value.is_system_user) || 
+  (auth.hasPermission(UserPermission.USER_EDIT) && !user.value.is_superuser && !user.value.is_system_user) || 
   (auth.permissions.value.admin && !user.value.is_system_user) || 
   user.value.id === auth.user.value!.id);
-const canEditUsername = computed(() => canEdit.value && auth.permissions.value.user_manager);
-const canEditGeneralPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && apiSettings.settings!.features.permissions);
-const canEditSuperuserPermissions = computed(() => canEdit.value && auth.permissions.value.user_manager && auth.permissions.value.admin);
+const canEditUsername = computed(() => canEdit.value && auth.hasPermission(UserPermission.USER_EDIT));
+const canEditGeneralPermissions = computed(() => canEdit.value && auth.hasPermission(UserPermission.USER_EDIT) && apiSettings.settings!.features.permissions);
+const canEditSuperuserPermissions = computed(() => canEdit.value && auth.hasPermission(UserPermission.USER_EDIT) && auth.permissions.value.admin);
+
+const roleItems = computed(() => {
+  const roles = apiSettings.settings?.permissions.roles || [];
+  // Keep unknown roles selectable/removable
+  const unknownRoles = (user.value.roles || [])
+    .filter(r => !roles.some(role => role.id === r))
+    .map(r => ({ id: r, name: `${r} (unknown role)` }));
+  return [...roles, ...unknownRoles];
+});
+
+const effectivePermissions = computed(() => {
+  if (user.value.is_system_user) {
+    return [];
+  }
+  const userPermissions = (user.value.roles || []).flatMap(role => apiSettings.settings?.permissions.roles?.find(r => r.id === role)?.permissions || []);
+  return orderBy(uniq(userPermissions));
+});
 
 const rules = {
   required: [(v: any) => !!v || 'This field is required!'],

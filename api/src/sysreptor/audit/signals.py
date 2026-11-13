@@ -55,10 +55,7 @@ def audit_logout(sender, request, user, **kwargs):
 @disable_for_loaddata
 def audit_user_save(sender, instance, created, **kwargs):
     USER_SENSITIVE_FIELDS = {'username', 'email', 'is_active', 'can_login_local'}
-    USER_PERMISSON_FIELDS = {
-        'is_superuser', 'is_system_user', 'is_project_admin', 'is_user_manager',
-        'is_designer', 'is_template_editor', 'is_guest', 'is_global_archiver',
-    }
+    USER_PERMISSON_FIELDS = {'is_superuser', 'is_system_user', 'roles'}
     if created:
         audit_log(type=AuditLogTypes.USER_CREATED, related=instance, data=copy_keys(instance, USER_SENSITIVE_FIELDS | USER_PERMISSON_FIELDS))
         return

@@ -82,7 +82,7 @@ def create_configurations_backup():
         'configurations': [],
     }
     for f in configuration.definition.fields:
-        if not f.extra_info.get('internal'):
+        if not f.extra_info.get('internal') and not f.extra_info.get('read_only'):
             out['configurations'].append({
                 'name': f.id,
                 'value': configuration.get(f.id),

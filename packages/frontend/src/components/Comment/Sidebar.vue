@@ -89,6 +89,7 @@
             @click="selectComment(comment, { focus: 'field' })"
             :is-active="comment.id === selectedComment?.id"
             :is-new="comment.id === commentNew?.id"
+            :readonly="readonly"
           />
           <v-divider class="mt-2" />
         </template>

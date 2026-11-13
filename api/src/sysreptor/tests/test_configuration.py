@@ -42,6 +42,13 @@ class TestConfiguration:
                 extra_info={'secret': True},
             ),
             StringField(id='FIELD_INTERNAL', default='default', extra_info={'internal': True}),
+            ListField(
+                id='FIELD_READONLY',
+                items=StringField(),
+                default=['role_a', 'role_b'],
+                required=False,
+                extra_info={'read_only': True},
+            ),
         ])), mock.patch('sysreptor.conf.plugins.available_plugins', new=[]), \
             mock.patch('sysreptor.api_utils.views.reload_server'):
             configuration.clear_cache()
@@ -114,6 +121,7 @@ class TestConfiguration:
             'FIELD_JSON': '{"value": "default"}',
             'FIELD_LIST': None,
             'FIELD_SECRET': '{"key": "default"}',
+            'FIELD_READONLY': ['role_a', 'role_b'],
         }
 
     @pytest.mark.parametrize(('expected', 'data'), [
@@ -184,7 +192,37 @@ class TestConfiguration:
         res = self.client.get(reverse('configuration-list'))
         assert 'FIELD_INTERNAL' not in res.data
 
+    def test_read_only_configuration(self):
+        assert configuration.FIELD_READONLY == ['role_a', 'role_b']
 
+        # DB value is ignored
+        DbConfigurationEntry.objects.create(name='FIELD_READONLY', value='["from_db"]')
+        configuration.clear_cache()
+        assert configuration.FIELD_READONLY == ['role_a', 'role_b']
+
+        # Definition API exposes read_only
+        res = self.client.get(reverse('configuration-definition'))
+        definition_field = next(f for f in res.data['core'] if f['id'] == 'FIELD_READONLY')
+        assert definition_field['read_only'] is True
+
+        # Values API returns default
+        res = self.client.get(reverse('configuration-list'))
+        assert res.data['FIELD_READONLY'] == ['role_a', 'role_b']
+
+        # PATCH is ignored
+        res = self.client.patch(reverse('configuration-list'), data={'FIELD_READONLY': ['changed']})
+        assert res.status_code == 200, res.data
+        assert res.data['FIELD_READONLY'] == ['role_a', 'role_b']
+        assert configuration.FIELD_READONLY == ['role_a', 'role_b']
+        assert DbConfigurationEntry.objects.get(name='FIELD_READONLY').value == '["from_db"]'
+
+        # Direct update is skipped (including only_changed=False for backup restore)
+        configuration.update({'FIELD_READONLY': ['changed']}, only_changed=False)
+        assert configuration.FIELD_READONLY == ['role_a', 'role_b']
+        assert DbConfigurationEntry.objects.get(name='FIELD_READONLY').value == '["from_db"]'
+
+
+@pytest.mark.django_db()
 class TestSendTestEmailCommand:
     @pytest.fixture(autouse=True)
     def setUp(self):

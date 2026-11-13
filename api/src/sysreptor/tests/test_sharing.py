@@ -779,7 +779,7 @@ class TestSharedNotePendingFileIds:
             else:
                 client = api_client(user=owner)
         elif via == 'guest_member':
-            guest = create_user(is_guest=True)
+            guest = create_user(roles=['guest'])
             owner.members.create(user=guest)
             client = api_client(user=guest)
         else:

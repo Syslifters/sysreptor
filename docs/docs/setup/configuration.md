@@ -266,7 +266,7 @@ Settings configured in `app.env` cannot be changed or overwridden via the web in
 
 
 ### Private Designs
-Users without Designer permission can create and edit private designs that cannot be read or used by other users. If a pentest project is created using a private design, a copy of the private design becomes accessible by project members. Use this setting to enable private designs.
+Users without the Designer role (`design.global.edit`) can create and edit private designs that cannot be read or used by other users. If a pentest project is created using a private design, a copy of the private design becomes accessible by project members. Use this setting to enable private designs.
 
 ```dotenv title="Example:"
 ENABLE_PRIVATE_DESIGNS=true
@@ -363,13 +363,7 @@ Changing this setting does not affect previously archived projects.
 ARCHIVING_THRESHOLD=2
 ```
 
-If `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` is set to `true` (default), every project member can archive/restore a project.
-Otherwise, only users with global archiver permission can archive/restore projects.
-This means that encryption happens with fewer encryption keys and it will be more difficult to keep up the quorum (`ARCHIVING_THRESHOLD`) for restoring projects (this could lead to availability problems).
-
-```dotenv title="Example:"
-PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS=false
-```
+Archiving and restoring require the `project.archive` and `project.restore` permissions. The predefined `regular_user` role includes them. To restrict who can archive or restore, assign custom roles without those permissions (see [User Permissions](/users/user-permissions)).
 
 The process of archiving finished projects and deleting old projects can be automated by following settings. The values are time spans in days.
 * `AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER`: Finished projects are automatically archived X days after the project was finished (if possible). Re-activating the project resets the timer.
@@ -457,19 +451,35 @@ FORGOT_PASSWORD_ENABLED=false
 
 By enabling the `FORGOT_PASSWORD_ENABLED` option, users can reset their passwords via password-forgotten emails. This setting only takes effect if `ALLOWED_HOSTS` is set to a non-wildcard (`*`) value, `LOCAL_USER_AUTH_ENABLED=true` and email settings are configured.  
 
-### Guest User Permissions
+### Roles {#roles}
 <BadgePro />
 
-Restrict capabilities of guest users.
+Define [custom user roles](/users/user-permissions#custom-roles) in addition to the [predefined user roles](/users/user-permissions#predefined-roles).
+
+Each role object supports:
+
+| Field | Description |
+| --- | --- | --- |
+| `id` | Unique role ID (`[a-zA-Z0-9_-]`, max 50 characters). Must not conflict with a predefined role ID. |
+| `name` | Display name (defaults to `id`) |
+| `description` | Shown in user management UI |
+| `permissions` | List of [permissions](/users/user-permissions#available-permissions) or wildcards (`project.*`, `template.*`, `design.global.*`, `user.*`) |
+
+```json title="Example: Restricted guest role"
+CUSTOM_USER_ROLES='[
+  {
+    "id": "guest",
+    "name": "Guest",
+    "description": "External users with restricted permissions",
+    "permissions": ["project.read", "project.create", "project.edit_content", "project.update_settings", "project.export", "template.read", "design.global.read", "design.global.export"]
+  }
+]'
+```
+
+Roles assigned to newly created users (default: `regular_user`).
 
 ```dotenv title="Example:"
-GUEST_USERS_CAN_CREATE_PROJECTS=True
-GUEST_USERS_CAN_IMPORT_PROJECTS=False
-GUEST_USERS_CAN_EDIT_PROJECTS=True
-GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
-GUEST_USERS_CAN_DELETE_PROJECTS=True
-GUEST_USERS_CAN_SEE_ALL_USERS=False
-GUEST_USERS_CAN_SHARE_NOTES=False
+DEFAULT_USER_ROLES="regular_user,template_editor"
 ```
 
 

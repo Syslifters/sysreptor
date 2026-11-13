@@ -5,12 +5,14 @@
 
       <s-dialog v-model="restoreWizard.visible">
         <template #activator="{ props: dialogProps }">
-          <s-btn-primary
-            :disabled="publicKeyEncryptedKeyParts.length === 0"
-            prepend-icon="mdi-folder-lock-open-outline"
-            text="Restore"
-            v-bind="dialogProps"
-          />
+          <permission-info :permission="UserPermission.PROJECT_RESTORE">
+            <s-btn-primary
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_RESTORE) || publicKeyEncryptedKeyParts.length === 0"
+              prepend-icon="mdi-folder-lock-open-outline"
+              text="Restore"
+              v-bind="dialogProps"
+            />
+          </permission-info>
         </template>
         <template #title>Restore Project</template>
 
@@ -81,10 +83,6 @@
         <tr v-for="keypart in archive.key_parts" :key="keypart.id">
           <td>
             {{ keypart.user.username }}<template v-if="keypart.user.name"> ({{ keypart.user.name }})</template>
-            <v-chip v-if="!keypart.user.is_active" size="small" class="ml-4" color="warning">
-              <v-icon size="small" start icon="mdi-alert" />
-              inactive
-            </v-chip>
           </td>
           <td>
             <template v-if="keypart.is_decrypted">
@@ -92,8 +90,14 @@
               Restored at {{ formatISO9075(parseISO(keypart.decrypted_at!)) }}
             </template>
             <template v-else>
-              <v-icon color="error" icon="mdi-lock" />
-              Encrypted
+              <div>
+                <v-icon color="error" icon="mdi-lock" />
+                Encrypted
+              </div>
+              <div v-for="warning in keypart.warnings" :key="warning" class="mt-1">
+                <v-icon color="warning" icon="mdi-alert" />
+                {{ warning }}
+              </div>
             </template>
           </td>
         </tr>
@@ -111,7 +115,7 @@ const auth = useAuth();
 const archive = await useFetchE<ArchivedProject>(`/api/v1/archivedprojects/${route.params.archiveId}/`, { method: 'GET' });
 const userKeyPart = computed(() => archive.value.key_parts.find(keypart => keypart.user.id === auth.user.value!.id));
 const publicKeyEncryptedKeyParts = await useAsyncDataE(async () => {
-  if (userKeyPart.value && !userKeyPart.value.is_decrypted) {
+  if (userKeyPart.value && !userKeyPart.value.is_decrypted && auth.hasPermission(UserPermission.PROJECT_RESTORE)) {
     return await $fetch<ArchivedProjectPublicKeyEncryptedKeyPart[]>(`/api/v1/archivedprojects/${route.params.archiveId}/keyparts/${userKeyPart.value.id}/public-key-encrypted-data/`, { method: 'GET' });
   }
   return [];

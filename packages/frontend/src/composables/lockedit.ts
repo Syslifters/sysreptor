@@ -33,9 +33,9 @@ export function useProjectTypeLockEdit(options: {
     if (options.hasEditPermissions && !options.hasEditPermissions.value) {
       return false;
     }
-    return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.permissions.value.designer) ||
+    return (projectType.value.scope === ProjectTypeScope.GLOBAL && auth.hasPermission(UserPermission.DESIGN_GLOBAL_EDIT)) ||
             (projectType.value.scope === ProjectTypeScope.PRIVATE && auth.permissions.value.private_designs) ||
-            (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED);
+            (projectType.value.scope === ProjectTypeScope.PROJECT && projectType.value.source === SourceEnum.CUSTOMIZED && auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT));
   });
   const errorMessage = computed(() => {
     if (options.errorMessage?.value) {
@@ -48,6 +48,8 @@ export function useProjectTypeLockEdit(options: {
         return 'This design cannot be edited because it is an imported snapshot.';
       } else if (projectType.value.source !== SourceEnum.CUSTOMIZED) {
         return 'This design is readonly and cannot be edited.';
+      } else if (!auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)) {
+        return 'You do not have permissions to edit this resource.';
       }
     }
     return null;
@@ -66,6 +68,16 @@ export function useProjectTypeLockEdit(options: {
   }));
 
   const deleteConfirmInput = computed(() => projectType.value.name);
+  const canDelete = computed(() => {
+    if (projectType.value.scope === ProjectTypeScope.GLOBAL) {
+      return auth.hasPermission(UserPermission.DESIGN_GLOBAL_DELETE);
+    } else if (projectType.value.scope === ProjectTypeScope.PRIVATE) {
+      return auth.permissions.value.private_designs;
+    } else if (projectType.value.scope === ProjectTypeScope.PROJECT) {
+      return projectType.value.source === SourceEnum.CUSTOMIZED && auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT);
+    }
+    return false;
+  });
   return {
     ...useLockEdit<ProjectType>({
       performSave: options.performSave,
@@ -75,6 +87,7 @@ export function useProjectTypeLockEdit(options: {
       data: projectType,
       baseUrl,
       hasEditPermissions,
+      canDelete,
       errorMessage,
     }),
     projectType,
@@ -123,9 +136,9 @@ export function useProjectEditBase(options: {
   const hasEditPermissions = computed(() => {
     if (options.historyDate) {
       return false;
-    } else if (options.project.value && !options.project.value.readonly) {
+    } else if (options.project.value?.readonly) {
       return false;
-    } else if (!auth.permissions.value.edit_projects) {
+    } else if (!auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)) {
       return false;
     }
     return true;
@@ -135,7 +148,7 @@ export function useProjectEditBase(options: {
       return `You are comparing a historic version from ${formatISO9075(new Date(options.historyDate))} to the current version.`;
     } else if (options.project.value?.readonly) {
       return 'This project is finished and cannot be changed anymore. In order to edit this project, re-activate it in the project settings.'
-    } else if (!auth.permissions.value.edit_projects) {
+    } else if (!auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)) {
       return 'You do not have permissions to edit this resource.';
     }
     return null;

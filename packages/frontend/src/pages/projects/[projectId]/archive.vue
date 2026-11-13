@@ -37,7 +37,7 @@
             </p>
             <p v-if="!user.has_permissions" class="ma-0">
               <v-icon color="warning" icon="mdi-alert" />
-              User does not have Global Archiver permissions.
+              User does not have the <code>project.restore</code> permission.
             </p>
             <p v-if="!user.has_public_keys" class="ma-0">
               <v-icon color="warning" icon="mdi-alert" />
@@ -90,7 +90,7 @@ const archiveCheck = await useFetchE<ArchiveCheckResult>(`/api/v1/pentestproject
 const allArchiverUsers = computed(() => sortBy(archiveCheck.value.users, [u => !u.can_restore, 'created']));
 const archiverUsers = computed(() => allArchiverUsers.value.filter(u => u.can_restore));
 const threshold = computed(() => apiSettings.settings!.archiving_threshold!);
-const canArchive = computed(() => apiSettings.settings!.features.archiving && threshold.value > 0 && threshold.value <= archiverUsers.value.length);
+const canArchive = computed(() => apiSettings.settings!.features.archiving && threshold.value > 0 && threshold.value <= archiverUsers.value.length && auth.hasPermission(UserPermission.PROJECT_ARCHIVE));
 const warnings = computed(() => {
   const out = [] as ErrorMessage[];
   if (archiverUsers.value.length < threshold.value) {

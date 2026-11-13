@@ -18,6 +18,7 @@
               :hide-no-data="false"
               :clear-on-select="false"
               :menu-props="{ width: '50%' }"
+              :disabled="!auth.hasPermission(UserPermission.TEMPLATE_READ)"
               no-filter
               multiple
               return-object
@@ -98,6 +99,7 @@ const props = defineProps<{
   project: PentestProject;
 }>();
 
+const auth = useAuth();
 const apiSettings = useApiSettings();
 const projectStore = useProjectStore();
 

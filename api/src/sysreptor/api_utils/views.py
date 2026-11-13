@@ -17,7 +17,7 @@ from rest_framework.settings import api_settings
 from sysreptor.api_utils import backup_utils
 from sysreptor.api_utils.healthchecks import run_healthchecks
 from sysreptor.api_utils.models import BackupLog
-from sysreptor.api_utils.permissions import IsAdmin, IsAdminOrSystem
+from sysreptor.api_utils.permissions import BackupPermissions, IsAdmin
 from sysreptor.api_utils.serializers import (
     BackupLogSerializer,
     BackupSerializer,
@@ -29,6 +29,7 @@ from sysreptor.conf import plugins
 from sysreptor.pentests.models import Language, ProjectMemberRole, ReviewStatus
 from sysreptor.tasks.models import PeriodicTask
 from sysreptor.users.models import AuthIdentity
+from sysreptor.users.roles import get_all_roles
 from sysreptor.users.serializers import get_oauth
 from sysreptor.utils import license
 from sysreptor.utils.api import StreamingHttpResponseAsync, ViewSetAsync
@@ -76,7 +77,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         }).get(*args, **kwargs)
 
     @extend_schema(responses={(200, 'application/octet-stream'): OpenApiTypes.BINARY})
-    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdminOrSystem, license.ProfessionalLicenseRequired])
+    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [BackupPermissions, license.ProfessionalLicenseRequired])
     def backup(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -108,7 +109,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
             log.info('Sending Backup')
             return response
 
-    @action(detail=False, methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [IsAdminOrSystem], pagination_class=api_settings.DEFAULT_PAGINATION_CLASS)
+    @action(detail=False, methods=['get'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [BackupPermissions], pagination_class=api_settings.DEFAULT_PAGINATION_CLASS)
     def backuplogs(self, request, *args, **kwargs):
         qs = self.paginate_queryset(BackupLog.objects.all())
         serializer = self.get_serializer(instance=qs, many=True)
@@ -211,14 +212,14 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
                 'ai_agent': bool(configuration.AI_AGENT_ENABLED),
             },
             'permissions': public_settings['permissions'] | {
-                'guest_users_can_import_projects': configuration.GUEST_USERS_CAN_IMPORT_PROJECTS,
-                'guest_users_can_create_projects': configuration.GUEST_USERS_CAN_CREATE_PROJECTS,
-                'guest_users_can_delete_projects': configuration.GUEST_USERS_CAN_DELETE_PROJECTS,
-                'guest_users_can_update_project_settings': configuration.GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS,
-                'guest_users_can_edit_projects': configuration.GUEST_USERS_CAN_EDIT_PROJECTS,
-                'guest_users_can_share_notes': configuration.GUEST_USERS_CAN_SHARE_NOTES,
-                'guest_users_can_see_all_users': configuration.GUEST_USERS_CAN_SEE_ALL_USERS,
-                'project_members_can_archive_projects': configuration.PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS,
+                'roles': [{
+                    'id': r.id,
+                    'name': r.name,
+                    'description': r.description,
+                    'permissions': sorted(p.value for p in r.permissions),
+                    'is_predefined': r.is_predefined,
+                } for r in get_all_roles().values()],
+                'default_user_roles': list(configuration.DEFAULT_USER_ROLES or []),
             },
         })
 
@@ -279,7 +280,7 @@ class ConfigurationViewSet(viewsets.ViewSet):
                         value = None
                 instance[d.id] = value
         return DynamicObjectSerializer(
-            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False)) for f in configuration.definition.fields if not f.extra_info.get('internal')},
+            fields={f.id: serializer_from_field(f, validate_values=True, read_only=f.extra_info.get('set_in_env', False) or f.extra_info.get('read_only', False)) for f in configuration.definition.fields if not f.extra_info.get('internal')},
             instance=instance,
             **kwargs)
 
@@ -318,4 +319,4 @@ class ConfigurationViewSet(viewsets.ViewSet):
 
     def serialize_settings_definition(self, fields):
         definition = FieldDefinition(fields=[f for f in configuration.definition.fields if f.id in fields and not f.extra_info.get('internal')])
-        return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only'])
+        return serialize_field_definition(definition, extra_info=['group', 'set_in_env', 'professional_only', 'read_only'])

@@ -52,7 +52,7 @@
                 :export-url="props.exportUrl"
                 :options="{ids: props.selectedNotes.map(n => n.id)}"
                 :name="props.exportName"
-                :disabled="props.selectedNotes.length === 0"
+                :disabled="!canExport || props.selectedNotes.length === 0"
               />
               <btn-export
                 v-if="props.exportPdfUrl && props.selectedNotes"
@@ -61,7 +61,7 @@
                 extension=".pdf"
                 :export-url="props.exportPdfUrl"
                 :options="{notes: props.selectedNotes.map(n => n.id)}"
-                :disabled="props.selectedNotes.length === 0"
+                :disabled="!canExport || props.selectedNotes.length === 0"
               />
               <btn-delete
                 v-if="props.performDelete && props.selectedNotes"
@@ -132,6 +132,7 @@ const props = defineProps<{
   exportUrl?: string;
   exportName?: string;
   exportPdfUrl?: string;
+  canExport?: boolean;
   selectedNotes?: NoteBase[];
   performImport?: (files: File[]) => Promise<void>;
   performDelete?: (note: NoteBase) => (Promise<void>|void);
@@ -143,6 +144,7 @@ const importBtnRef = useTemplateRef('importBtnRef');
 const createNoteBtnRef = useTemplateRef('createNoteBtnRef');
 
 const canCreate = computed(() => !props.readonly && !!props.createNote);
+const canExport = computed(() => props.canExport !== false);
 const isInSearchMode = computed(() => search.value !== null && search.value !== undefined);
 
 function showSearch() {

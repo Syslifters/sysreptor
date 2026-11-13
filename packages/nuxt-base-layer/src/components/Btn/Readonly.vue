@@ -3,6 +3,7 @@
     v-if="props.value"
     :action="() => performAction(false)"
     :confirm="true"
+    :disabled="props.disabled"
     button-text="Re-activate"
     button-icon="mdi-reload"
     tooltip-text="Mark as active and allow editing"
@@ -14,6 +15,7 @@
     v-else
     :action="() => performAction(true)"
     :confirm="true"
+    :disabled="props.disabled"
     button-text="Finish"
     button-icon="mdi-flag-checkered"
     tooltip-text="Mark as finished and make readonly"
@@ -40,6 +42,7 @@ const props = defineProps<{
   setReadonly: (val: boolean) => Promise<void>;
   showToast?: boolean;
   project?: PentestProject;
+  disabled?: boolean;
 }>();
 
 const apiSettings = useApiSettings();

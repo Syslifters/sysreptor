@@ -17,7 +17,7 @@
           <chip-storage-size :value="item.size" />
 
           <v-chip size="small" class="ma-1">
-            <v-icon v-if="item.key_parts.some(p => !p.user.is_active) && item.key_parts.filter(p => p.user.is_active).length < item.threshold * 2" size="small" start color="warning" icon="mdi-alert" />
+            <v-icon v-if="item.key_parts.filter(p => p.warnings.length > 0).length < item.threshold * 2" size="small" start color="warning" icon="mdi-alert" />
             {{ item.threshold }} / {{ item.key_parts.length }}
 
             <v-tooltip activator="parent">

@@ -91,18 +91,20 @@
 
     <v-row class="mt-4">
       <v-col cols="12">
-        <s-btn-primary
-          @click="exportToJira"
-          :loading="exporting"
-          :disabled="!canExport"
-          prepend-icon="mdi-export"
-          text="Export to Jira"
-        >
-          <template #loader>
-            <s-saving-loader-spinner />
-            Exporting...
-          </template>
-        </s-btn-primary>
+        <permission-info :permission="UserPermission.PROJECT_EXPORT">
+          <s-btn-primary
+            @click="exportToJira"
+            :loading="exporting"
+            :disabled="!canExport"
+            prepend-icon="mdi-export"
+            text="Export to Jira"
+          >
+            <template #loader>
+              <s-saving-loader-spinner />
+              Exporting...
+            </template>
+          </s-btn-primary>
+        </permission-info>
         <span v-if="selectedFindings.length > 0" class="ml-4 text-body-medium">
           {{ selectedFindings.length }} finding(s) selected
         </span>
@@ -212,6 +214,7 @@ interface ExportResults {
 
 const route = useRoute();
 const appConfig = useAppConfig();
+const auth = useAuth();
 
 // Load project data
 const project = await useFetchE<PentestProject & { findings: PentestFinding[] }>(
@@ -251,12 +254,12 @@ const exportResults = ref<ExportResults>({
 });
 
 const canExport = computed(() => {
-  return (
+  return
+    auth.hasPermission(UserPermission.PROJECT_EXPORT) &&
     selectedJiraProject.value &&
     selectedIssueType.value &&
     selectedFindings.value.length > 0 &&
-    !exporting.value
-  );
+    !exporting.value;
 });
 
 // Load Jira projects on mount

@@ -19,44 +19,49 @@
       </template>
       <template #actions="{ selectedItems }: { selectedItems: PentestProject[] }">
         <v-divider vertical />
-        <permission-info :value="auth.permissions.value.create_projects">
-          <btn-create to="/projects/new/" :disabled="!auth.permissions.value.create_projects" />
+        <permission-info :permission="UserPermission.PROJECT_CREATE">
+          <btn-create to="/projects/new/" :disabled="!auth.hasPermission(UserPermission.PROJECT_CREATE)" />
         </permission-info>
-        <permission-info :value="auth.permissions.value.import_projects">
-          <btn-import ref="importBtn" :import="performImport" :disabled="!auth.permissions.value.import_projects" />
+        <permission-info :permission="UserPermission.PROJECT_IMPORT">
+          <btn-import ref="importBtn" :import="performImport" :disabled="!auth.hasPermission(UserPermission.PROJECT_IMPORT)" />
         </permission-info>
         <template v-if="selectedItems.length > 0">
           <v-divider vertical />
-          <s-btn-icon 
-            color="secondary"
-            variant="flat"
-            density="comfortable"
-            v-tooltip.bottom="'Export selected'"
-          >
-            <v-icon icon="mdi-download" />
-            <v-menu activator="parent" location="bottom">
-              <v-list>
-                <btn-export
-                  export-url="/api/v1/pentestprojects/export/"
-                  :options="{ids: selectedItems.map(p => p.id), export_all: false}"
-                  name="projects"
-                  extension=".tar.gz"
-                />
-                <btn-export
-                  export-url="/api/v1/pentestprojects/export/"
-                  :options="{ids: selectedItems.map(p => p.id), export_all: true}"
-                  name="projects"
-                  extension=".tar.gz"
-                  button-text="Export (with notes)"
-                />
-              </v-list>
-            </v-menu>
-          </s-btn-icon>
-          <permission-info :value="auth.permissions.value.update_project_settings">
+          <permission-info :permission="UserPermission.PROJECT_EXPORT">
+            <s-btn-icon 
+              color="secondary"
+              variant="flat"
+              density="comfortable"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
+              v-tooltip.bottom="'Export selected'"
+            >
+              <v-icon icon="mdi-download" />
+              <v-menu activator="parent" location="bottom" :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)">
+                <v-list>
+                  <btn-export
+                    export-url="/api/v1/pentestprojects/export/"
+                    :options="{ids: selectedItems.map(p => p.id), export_all: false}"
+                    name="projects"
+                    extension=".tar.gz"
+                    :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
+                  />
+                  <btn-export
+                    export-url="/api/v1/pentestprojects/export/"
+                    :options="{ids: selectedItems.map(p => p.id), export_all: true}"
+                    name="projects"
+                    extension=".tar.gz"
+                    button-text="Export (with notes)"
+                    :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
+                  />
+                </v-list>
+              </v-menu>
+            </s-btn-icon>
+          </permission-info>
+          <permission-info :permission="UserPermission.PROJECT_UPDATE_SETTINGS">
             <btn-readonly
               :value="false"
               :set-readonly="() => setReadonlySelected(selectedItems)"
-              :disabled="!auth.permissions.value.update_project_settings"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_UPDATE_SETTINGS)"
               :show-toast="false"
               button-variant="icon"
               variant="flat"
@@ -74,10 +79,10 @@
               </template>
             </btn-readonly>
           </permission-info>
-          <permission-info :value="auth.permissions.value.delete_projects">
+          <permission-info :permission="UserPermission.PROJECT_DELETE">
             <btn-delete
               :delete="() => performDeleteSelected(selectedItems)"
-              :disabled="!auth.permissions.value.delete_projects"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_DELETE)"
               :confirm-input="`delete ${selectedItems.length} projects`"
               tooltip-text="Delete selected"
               icon="mdi-delete"

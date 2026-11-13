@@ -149,12 +149,8 @@ class TestAuditLog:
 
     @pytest.mark.parametrize(('data', 'expected'), [
         ({'is_superuser': True}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
-        ({'is_project_admin': True}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
-        ({'is_user_manager': True}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
-        ({'is_designer': True}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
-        ({'is_template_editor': True}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
-        ({'is_guest': True}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
-        ({'is_global_archiver': True}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
+        ({'roles': ['regular_user', 'designer']}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
+        ({'roles': []}, AuditLogTypes.USER_PERMISSIONS_UPDATED),
         ({'username': 'new-username'}, AuditLogTypes.USER_UPDATED),
         ({'email': 'new@example.com'}, AuditLogTypes.USER_UPDATED),
         ({'is_active': False}, AuditLogTypes.USER_UPDATED),
@@ -253,12 +249,12 @@ class TestAuditLog:
 
     def test_settings_changed(self):
         configuration.update({
-            'GUEST_USERS_CAN_EDIT_PROJECTS': False,
+            'DEFAULT_USER_ROLES': ['regular_user', 'designer'],
             'OIDC_AUTHLIB_OAUTH_CLIENTS': '{"oidc": {"label": "OIDC", "client_id": "id", "client_secret": "super-secret"}}',
         }, only_changed=False)
 
         entry = AuditLogEntry.objects.get(type=AuditLogTypes.SETTINGS_CHANGED, object_id=None)
-        assert set(entry.data['changes']) == {'GUEST_USERS_CAN_EDIT_PROJECTS', 'OIDC_AUTHLIB_OAUTH_CLIENTS'}
+        assert set(entry.data['changes']) == {'DEFAULT_USER_ROLES', 'OIDC_AUTHLIB_OAUTH_CLIENTS'}
 
     def test_license_changed(self):
         with history_context(history_user=self.user):

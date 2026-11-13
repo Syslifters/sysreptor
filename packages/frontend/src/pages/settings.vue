@@ -25,9 +25,9 @@
               <dynamic-input-field 
                 v-model="configurationValues[field.id]"
                 :definition="field"
-                :disabled="field.set_in_env || (field.professional_only && !apiSettings.isProfessionalLicense)"
+                :disabled="field.read_only || field.set_in_env || (field.professional_only && !apiSettings.isProfessionalLicense)"
                 :error-message="errorMessages?.[field.id]"
-                v-bind="{...fieldAttrs, ...(field.set_in_env ? { rules: [] } : {}) }"
+                v-bind="{...fieldAttrs, ...((field.read_only || field.set_in_env) ? { rules: [] } : {}) }"
               >
                 <template #label>
                   <v-tooltip :disabled="!field.set_in_env">
@@ -94,10 +94,10 @@
               <dynamic-input-field 
                 v-model="configurationValues[field.id]"
                 :definition="field"
-                :disabled="field.set_in_env || ((plugin.professional_only || field.professional_only) && !apiSettings.isProfessionalLicense)"
-                :rules="field.set_in_env ? [] : undefined"
+                :disabled="field.read_only || field.set_in_env || ((plugin.professional_only || field.professional_only) && !apiSettings.isProfessionalLicense)"
+                :rules="(field.read_only || field.set_in_env) ? [] : undefined"
                 :error-messages="errorMessages?.[field.id]"
-                v-bind="{...fieldAttrs, ...(field.set_in_env ? { rules: [] } : {}) }"
+                v-bind="{...fieldAttrs, ...((field.read_only || field.set_in_env) ? { rules: [] } : {}) }"
               >
                 <template #label>
                   <v-tooltip :disabled="!field.set_in_env">
@@ -136,6 +136,7 @@ export type ConfigurationFieldDefinition = FieldDefinition & {
   group?: string;
   set_in_env?: boolean;
   professional_only?: boolean;
+  read_only?: boolean;
 }
 
 export type PluginConfigurationDefinition = {

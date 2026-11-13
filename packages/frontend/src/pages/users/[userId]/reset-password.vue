@@ -51,7 +51,10 @@ const form = ref({
 })
 const serverErrors = ref<any|null>(null);
 
-const canEdit = computed(() => auth.permissions.value.user_manager && !user.value!.is_system_user);
+const canEdit = computed(() => !user.value!.is_system_user && (
+  (auth.hasPermission(UserPermission.USER_EDIT) && !user.value!.is_superuser) ||
+  auth.permissions.value.admin
+));
 
 const formRef = useTemplateRef('formRef');
 async function changePassword() {

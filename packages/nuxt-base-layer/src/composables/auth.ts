@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import type { NavigateToOptions } from '#app/composables/router'
 import type { LocationQueryValue } from "#vue-router";
-import { AuthProviderType, type AuthProvider, type User, useApiSettings, type LoginResponse, LoginResponseStatus  } from "#imports";
+import { AuthProviderType, type AuthProvider, type User, useApiSettings, type LoginResponse, LoginResponseStatus, UserPermission } from "#imports";
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -11,22 +11,29 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     permissions(state) {
       const apiSettings = useApiSettings();
+      const admin = state.user?.is_admin || false;
       return {
         superuser: state.user?.is_superuser || false,
-        admin: state.user?.scope.includes('admin') || false,
-        user_manager: state.user?.scope.includes('user_manager') || false,
-        designer: state.user?.scope.includes('designer') || false,
-        template_editor: state.user?.scope.includes('template_editor') || false,
-        private_designs: (state.user && apiSettings.settings?.features.private_designs) || false,
-        create_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_create_projects))) || false,
-        import_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_import_projects))) || false,
-        delete_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_delete_projects))) || false,
-        update_project_settings: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_update_project_settings))) || false,
-        edit_projects: (state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_edit_projects))) || false,
-        share_project_notes: (apiSettings.settings?.features.sharing && state.user && (!state.user.is_guest || state.user.scope.includes('project_admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_share_notes))) || false,
-        share_user_notes: (apiSettings.settings?.features.sharing && state.user && (!state.user.is_guest || state.user.scope.includes('admin') || (state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_share_notes))) || false,
-        archive_projects: (apiSettings.settings?.features.archiving && state.user && (state.user.scope.includes('project_admin') || state.user.is_global_archiver || (apiSettings.settings?.permissions.project_members_can_archive_projects && !state.user.is_guest) || (apiSettings.settings?.permissions.project_members_can_archive_projects && state.user.is_guest && apiSettings.settings?.permissions.guest_users_can_update_project_settings))) || false,
-        view_backup: (apiSettings.isProfessionalLicense && state.user?.scope.includes('admin')) || false,
+        admin,
+        private_designs: (state.user && !state.user.is_system_user && apiSettings.settings?.features.private_designs) || false,
+        view_backup: (apiSettings.isProfessionalLicense && admin) || false,
+      };
+    },
+    hasPermission(state) {
+      return (permission: UserPermission|string) => {
+        const apiSettings = useApiSettings();
+        if (state.user?.is_admin) {
+          return true;
+        }
+        if (!state.user?.effective_permissions?.includes(permission)) {
+          return false;
+        }
+        if (permission === UserPermission.PROJECT_SHARE_NOTES && !apiSettings.settings?.features.sharing) {
+          return false;
+        } else if ([UserPermission.PROJECT_ARCHIVE, UserPermission.PROJECT_RESTORE].includes(permission as UserPermission) && !apiSettings.settings?.features.archiving) {
+          return false;
+        }
+        return true;
       };
     },
   },
@@ -142,6 +149,7 @@ export function useAuth() {
     user,
     store,
     permissions: computed(() => store.permissions),
+    hasPermission: (permission: UserPermission|string) => store.hasPermission(permission),
     logout,
     redirect,
     redirectToReAuth,

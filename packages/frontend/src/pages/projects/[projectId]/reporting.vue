@@ -40,6 +40,7 @@
         :project-type="projectType"
         :finding-id="(router.currentRoute.value.params.findingId as string|undefined)"
         :section-id="(router.currentRoute.value.params.sectionId as string|undefined)"
+        :readonly="readonly"
       />
       <chat-sidebar
         v-else-if="localSettings.reportingSidebarType === ReportingSidebarType.AICHAT && apiSettings.settings!.features?.ai_agent"
@@ -79,7 +80,7 @@ const findings = computed(() => projectStore.findings(project.value.id));
 const sections = computed(() => projectStore.sections(project.value.id));
 const sortFindingsManual = computed(() => project.value.override_finding_order || projectType.value.finding_ordering.length === 0);
 
-const readonly = computed(() => project.value.readonly || !auth.permissions.value.edit_projects);
+const readonly = computed(() => project.value.readonly || !auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT));
 
 const reportingCollab = projectStore.useReportingCollab({ project: project.value });
 onMounted(async () => {
@@ -120,11 +121,7 @@ async function toggleOverrideFindingOrder() {
     const findingsSorted = groupFindings({ findings: findings.value, projectType: projectType.value }).flatMap(g => g.findings);
     await sortFindings(findingsSorted);
   }
-
-  project.value = await projectStore.partialUpdateProject({
-    id: project.value.id,
-    override_finding_order: !project.value.override_finding_order
-  } as PentestProject, ['override_finding_order']);
+  project.value = await projectStore.setOverrideFindingOrder(project.value, !project.value.override_finding_order);
 }
 
 useAppBar({ syncState: reportingCollab.syncState });

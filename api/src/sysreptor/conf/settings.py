@@ -23,6 +23,12 @@ from django.core.exceptions import ValidationError
 from django.utils.csp import CSP
 
 from sysreptor.conf.plugins import ENABLED_PLUGINS_FIELD, load_plugins
+from sysreptor.users.roles import (
+    PREDEFINED_USER_ROLES,
+    USER_ROLE_JSON_FIELD,
+    serialize_predefined_user_roles_for_settings,
+    validate_custom_roles,
+)
 from sysreptor.utils.fielddefinition.types import (
     BooleanField,
     EnumChoice,
@@ -845,14 +851,6 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
                   'By default two users are required, enforcing a 4-eye principle. '
                   'If ARCHIVING_THRESHOLD=1 every user is able to restore archived projects on their own, disabling the 4-eye principle. '
                   'Changing this setting does not affect previously archived projects.'),
-    BooleanField(
-        id='PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS',
-        default=True,
-        extra_info={'group': 'archiving', 'professional_only': True},
-        help_text='If PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS is set to true (default), every project member can archive/restore a project. '
-                  'Otherwise, only users with global archiver permission can archive/restore projects. '
-                  'This means that encryption happens with fewer encryption keys and it will be more difficult '
-                  'to keep up the quorum (ARCHIVING_THRESHOLD) for restoring projects (this could lead to availability problems).'),
     NumberField(
         id='AUTOMATICALLY_ARCHIVE_PROJECTS_AFTER',
         default=None,
@@ -869,34 +867,35 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         help_text='Automatically delete finished (and archived) projects after X days'),
 
 
-    BooleanField(
-        id='GUEST_USERS_CAN_EDIT_PROJECTS',
-        default=True,
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS',
-        default=True,
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='GUEST_USERS_CAN_CREATE_PROJECTS',
-        default=True,
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='GUEST_USERS_CAN_DELETE_PROJECTS',
-        default=True,
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='GUEST_USERS_CAN_IMPORT_PROJECTS',
-        default=False,
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='GUEST_USERS_CAN_SEE_ALL_USERS',
-        default=False,
-        extra_info={'group': 'permissions', 'professional_only': True}),
-    BooleanField(
-        id='GUEST_USERS_CAN_SHARE_NOTES',
-        default=False,
-        extra_info={'group': 'permissions', 'professional_only': True}),
+    ListField(
+        id='PREDEFINED_USER_ROLES',
+        items=USER_ROLE_JSON_FIELD,
+        default=serialize_predefined_user_roles_for_settings(),
+        required=False,
+        extra_info={'group': 'permissions', 'professional_only': True, 'read_only': True},
+        help_text='Built-in roles and their permissions. These roles cannot be edited. '
+                  'Define additional roles via CUSTOM_USER_ROLES.'),
+    ListField(
+        id='CUSTOM_USER_ROLES',
+        items=USER_ROLE_JSON_FIELD,
+        default=[],
+        required=False,
+        extra_info={
+            'group': 'permissions',
+            'professional_only': True,
+            'load_from_env': lambda e: [json.dumps(c, indent=2) if isinstance(c, dict) else c for c in json.loads(e)],
+            'validate': validate_custom_roles,
+        },
+        help_text='Define custom roles in addition to the predefined roles (' + ', '.join(PREDEFINED_USER_ROLES.keys()) + '). '
+                  'Users have the union of permissions of all their roles. '
+                  'See https://docs.sysreptor.com/setup/configuration/#roles for details.'),
+    ListField(
+        id='DEFAULT_USER_ROLES',
+        items=StringField(pattern=r'^[a-zA-Z0-9_-]{1,50}$'),
+        default=['regular_user'],
+        required=False,
+        extra_info={'group': 'permissions', 'professional_only': True, 'load_from_env': Csv(post_process=remove_empty_items)},
+        help_text='Roles assigned to newly created users.'),
 
 
     StringField(

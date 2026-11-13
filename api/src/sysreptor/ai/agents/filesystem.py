@@ -41,7 +41,7 @@ from sysreptor.pentests.models import (
     ProjectNotebookPage,
     ReportSection,
 )
-from sysreptor.pentests.permissions import ProjectSubresourcePermissions
+from sysreptor.pentests.permissions import ProjectPermissions
 
 if TYPE_CHECKING:
     from sysreptor.ai.agents.project import ProjectContext
@@ -291,7 +291,7 @@ class ProjectFilesystemBackend(ReadOnlyBackend):
         runtime = self.runtime or _project_runtime()
         project = self._get_project(prefetch=False)
         user = runtime.context.user
-        if not ProjectSubresourcePermissions.has_write_permissions(project=project, user=user):
+        if not ProjectPermissions.has_write_permissions(project=project, user=user):
             return DeleteResult(error='You do not have write permissions')
 
         try:

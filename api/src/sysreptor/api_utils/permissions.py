@@ -6,14 +6,7 @@ class IsAdmin(IsAuthenticated):
         return super().has_permission(request, view) and request.user.is_admin
 
 
-class IsAdminOrSystem(IsAuthenticated):
+class BackupPermissions(IsAuthenticated):
     def has_permission(self, request, view):
         return super().has_permission(request, view) and \
-            (request.user.is_system_user or request.user.is_admin)
-
-
-class IsUserManagerOrSuperuserOrSystem(IsAuthenticated):
-    def has_permission(self, request, view):
-        return super().has_permission(request, view) and \
-            (request.user.is_user_manager or request.user.is_superuser or request.user.is_system_user)
-
+            (request.user.is_admin or request.user.is_system_user)

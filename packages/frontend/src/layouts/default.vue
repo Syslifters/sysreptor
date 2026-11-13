@@ -41,7 +41,7 @@
       <v-list class="pt-0 menu-drawer-body">
         <v-list-item to="/projects/" title="Projects" prepend-icon="mdi-file-document" :active="route.path.startsWith('/projects')" data-testid="projects-tab"/>
         <v-list-item to="/templates/" title="Templates" prepend-icon="mdi-view-compact" :active="route.path.startsWith('/templates')" data-testid="templates-tab" />
-        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" data-testid="design-tab"/>
+        <v-list-item to="/designs/" title="Designs" prepend-icon="mdi-pencil-ruler" :active="route.path.startsWith('/designs')" data-testid="design-tab" />
         <v-list-item to="/notes/personal/" title="Notes" prepend-icon="mdi-notebook" :active="route.path.startsWith('/notes')" data-testid="notes-tab" />
         
         <template v-if="pluginMenuEntries.length > 0">
@@ -96,9 +96,9 @@
           data-testid="users-tab"
           prepend-icon="mdi-account-multiple" 
           :active="route.path.startsWith('/users') && !route.path.startsWith('/users/self')"
-          :disabled="!auth.permissions.value.user_manager" 
+          :disabled="!auth.hasPermission(UserPermission.USER_EDIT)" 
         >
-          <template #title><permission-info :value="auth.permissions.value.user_manager" permission-name="User Manager">Users</permission-info></template>
+          <template #title><permission-info :permission="UserPermission.USER_EDIT">Users</permission-info></template>
         </v-list-item>
         <v-list-item
           to="/settings/"

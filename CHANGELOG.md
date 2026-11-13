@@ -1,6 +1,11 @@
 # Changelog
 
 ## Upcoming
+* Rework permission system to role-based user permissions (https://docs.sysreptor.com/users/user-permissions)
+* Configure custom roles via `CUSTOM_USER_ROLES` (https://docs.sysreptor.com/setup/configuration#roles)
+* Breaking change: replaced user permission flags (`is_guest`, `is_designer`, `is_template_editor`, `is_user_manager`, `is_project_admin`, `is_global_archiver`) with `roles` and `effective_permissions` in the user API
+* Removed `GUEST_USERS_CAN_*` and `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` settings (migrated to roles)
+* Restrict template and design access via permissions
 * Fix design default notes not saved after changes
 
 

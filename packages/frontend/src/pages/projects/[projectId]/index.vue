@@ -4,20 +4,20 @@
       <edit-toolbar v-bind="toolbarAttrs" ref="toolbarRef">
         <template #title>Project Settings</template>
         <template #default>
-          <permission-info :value="auth.permissions.value.update_project_settings">
+          <permission-info :permission="UserPermission.PROJECT_UPDATE_SETTINGS">
             <btn-readonly 
               :value="project.readonly" 
               :set-readonly="setReadonly" 
-              :disabled="!auth.permissions.value.update_project_settings"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_UPDATE_SETTINGS)"
               :show-toast="true"
               :project="project"
               class="ml-1 mr-1" 
             />
           </permission-info>
-          <permission-info :value="auth.permissions.value.archive_projects || !apiSettings.isProfessionalLicense" permission-name="Global Archiver">
+          <permission-info :value="auth.hasPermission(UserPermission.PROJECT_ARCHIVE) || !apiSettings.isProfessionalLicense" :permission-name="UserPermission.PROJECT_ARCHIVE">
             <s-btn-secondary
               v-if="project.readonly"
-              :disabled="!auth.permissions.value.archive_projects"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_ARCHIVE)"
               :to="`/projects/${project.id}/archive/`"
               class="mr-1"
               prepend-icon="mdi-folder-lock-outline"
@@ -28,28 +28,36 @@
           <btn-history v-model="historyVisible" />
         </template>
         <template #context-menu>
-          <btn-copy
-            :copy="performCopy"
-            confirm-text="The whole project will be copied including all members, sections, findings and images."
-            :disabled="!auth.permissions.value.create_projects"
-          />
-          <btn-export
-            :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
-            :options="{ export_all: false }"
-            :name="'project-' + project.name"
-          />
-          <btn-export
-            :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
-            :options="{ export_all: true }"
-            :name="'project-' + project.name"
-            button-text="Export (with notes)"
-          />
-          <btn-customize-design
-            :action="() => projectStore.customizeDesign(project)"
-            :project="project"
-            :project-type="projectType"
-            button-variant="list-item"
-          />
+          <permission-info :permission="UserPermission.PROJECT_CREATE">
+            <btn-copy
+              :copy="performCopy"
+              confirm-text="The whole project will be copied including all members, sections, findings and images."
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_CREATE)"
+            />
+          </permission-info>
+          <permission-info :permission="UserPermission.PROJECT_EXPORT">
+            <btn-export
+              :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
+              :options="{ export_all: false }"
+              :name="'project-' + project.name"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
+            />
+            <btn-export
+              :export-url="`/api/v1/pentestprojects/${project.id}/export/`"
+              :options="{ export_all: true }"
+              :name="'project-' + project.name"
+              button-text="Export (with notes)"
+              :disabled="!auth.hasPermission(UserPermission.PROJECT_EXPORT)"
+            />
+          </permission-info>
+          <permission-info :permission="UserPermission.PROJECT_UPDATE_SETTINGS">
+            <btn-customize-design
+              :action="() => projectStore.customizeDesign(project)"
+              :project="project"
+              :project-type="projectType"
+              button-variant="list-item"
+            />
+          </permission-info>
         </template>
       </edit-toolbar>
 
@@ -195,13 +203,8 @@ const { toolbarAttrs, readonly, editMode } = useLockEdit<PentestProject>({
   toolbarRef,
   data: project,
   form: formRef,
-  hasEditPermissions: computed(() => {
-    if (!auth.permissions.value.update_project_settings) {
-      return false;
-    }
-    return true;
-  }),
-  canDelete: computed(() => auth.permissions.value.delete_projects),
+  hasEditPermissions: computed(() => auth.hasPermission(UserPermission.PROJECT_UPDATE_SETTINGS)),
+  canDelete: computed(() => auth.hasPermission(UserPermission.PROJECT_DELETE)),
   performSave: async () => {
     try {
       project.value = await projectStore.partialUpdateProject(project.value,

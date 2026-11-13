@@ -91,6 +91,9 @@ class Configuration:
 
         if f.id in self.__class__._force_override:
             value = self.__class__._force_override[f.id]
+        elif f.extra_info.get('read_only'):
+            # Virtual settings: always use the field default, never DB/env
+            value = getattr(f, 'default', None)
         elif settings.LOAD_CONFIGURATIONS_FROM_ENV and f.extra_info.get('set_in_env'):
             value = self._load_env_value(definition=f, value=os.environ.get(f.id, ''))
         elif settings.LOAD_CONFIGURATIONS_FROM_DB:
@@ -121,7 +124,10 @@ class Configuration:
         settings_to_update = []
         changed_names = []
         for name, value in settings.items():
-            if not only_changed or (configuration.get(name) != value and not definition[name].extra_info.get('set_in_env')):
+            field = definition[name]
+            if field.extra_info.get('read_only'):
+                continue
+            if not only_changed or (configuration.get(name) != value and not field.extra_info.get('set_in_env')):
                 changed_names.append(name)
                 settings_to_update.append(DbConfigurationEntry(
                     name=name,

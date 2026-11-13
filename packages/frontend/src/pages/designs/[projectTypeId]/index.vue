@@ -4,13 +4,19 @@
       <edit-toolbar v-bind="toolbarAttrs" :form="form">
         <template #context-menu>
           <btn-copy
-            :disabled="!auth.permissions.value.designer && !auth.permissions.value.private_designs"
+            :disabled="!auth.hasPermission(UserPermission.DESIGN_GLOBAL_CREATE) && !auth.permissions.value.private_designs"
             :copy="performCopy"
           />
-          <btn-export
-            :export-url="`/api/v1/projecttypes/${projectType.id}/export/`"
-            :name="'design-' + projectType.name"
-          />
+          <permission-info
+            :permission="UserPermission.DESIGN_GLOBAL_EXPORT"
+            :value="projectType.scope !== ProjectTypeScope.GLOBAL || auth.hasPermission(UserPermission.DESIGN_GLOBAL_EXPORT)"
+          >
+            <btn-export
+              :export-url="`/api/v1/projecttypes/${projectType.id}/export/`"
+              :name="'design-' + projectType.name"
+              :disabled="projectType.scope === ProjectTypeScope.GLOBAL && !auth.hasPermission(UserPermission.DESIGN_GLOBAL_EXPORT)"
+            />
+          </permission-info>
         </template>
       </edit-toolbar>
 
@@ -73,7 +79,7 @@ const form = useTemplateRef('form');
 async function performCopy() {
   const obj = await projectTypeStore.copy({
     id: projectType.value.id,
-    scope: (!auth.permissions.value.designer || projectType.value.scope === ProjectTypeScope.PRIVATE) ? ProjectTypeScope.PRIVATE : ProjectTypeScope.GLOBAL,
+    scope: (auth.hasPermission(UserPermission.DESIGN_GLOBAL_CREATE) && projectType.value.scope === ProjectTypeScope.GLOBAL) ? ProjectTypeScope.GLOBAL : ProjectTypeScope.PRIVATE,
   });
   await navigateTo(`/designs/${obj.id}/pdfdesigner/`);
 }

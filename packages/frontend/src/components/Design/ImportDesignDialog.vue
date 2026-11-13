@@ -1,5 +1,5 @@
 <template>
-  <permission-info :value="canImport" :permission-name="props.projectTypeScope === ProjectTypeScope.GLOBAL ? 'Designer' : undefined">
+  <permission-info :value="canImport" :permission-name="props.projectTypeScope === ProjectTypeScope.GLOBAL ? UserPermission.DESIGN_GLOBAL_IMPORT : undefined">
     <btn-import 
       ref="importBtnRef"
       :import="performImport" 
@@ -18,7 +18,7 @@ const props = defineProps<{
 const auth = useAuth();
 const canImport = computed(() => {
   if (props.projectTypeScope === ProjectTypeScope.GLOBAL) {
-    return auth.permissions.value.designer;
+    return auth.hasPermission(UserPermission.DESIGN_GLOBAL_IMPORT);
   } else {
     return auth.permissions.value.private_designs;
   }

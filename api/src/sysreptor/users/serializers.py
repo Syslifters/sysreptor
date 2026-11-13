@@ -18,9 +18,102 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
+from sysreptor.users.roles import Permission, get_all_roles
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.mail import send_mail
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
+
+# Deprecated is_* API flags ↔ role IDs (persisted only as roles).
+LEGACY_USER_FLAG_ROLES = {
+    'is_project_admin': 'project_admin',
+    'is_designer': 'designer',
+    'is_template_editor': 'template_editor',
+    'is_user_manager': 'user_manager',
+    'is_global_archiver': 'global_archiver',
+    'is_guest': 'guest',
+}
+
+
+def roles_from_legacy_flags(role_ids, flags: dict[str, bool]) -> list[str]:
+    roles = list(dict.fromkeys(role_ids or []))
+    for flag, role in LEGACY_USER_FLAG_ROLES.items():
+        if flag not in flags or flag == 'is_guest':
+            continue
+        if flags[flag]:
+            if role not in roles:
+                roles.append(role)
+        else:
+            roles = [r for r in roles if r != role]
+    if 'is_guest' in flags:
+        if flags['is_guest']:
+            roles = [r for r in roles if r != 'regular_user']
+            if 'guest' not in roles:
+                roles.append('guest')
+        else:
+            roles = [r for r in roles if r != 'guest']
+            if 'regular_user' not in roles:
+                roles.append('regular_user')
+    return list(dict.fromkeys(roles))
+
+
+class LegacyFlagField(serializers.BooleanField):
+    """Deprecated boolean API flag backed by a role ID on PentestUser.roles."""
+
+    def __init__(self, role_id: str, **kwargs):
+        self.role_id = role_id
+        kwargs.setdefault('required', False)
+        kwargs['source'] = '*'
+        super().__init__(**kwargs)
+
+    def bind(self, field_name, parent):
+        super().bind(field_name, parent)
+        if not self._can_write():
+            self.read_only = True
+
+    def _can_write(self) -> bool:
+        request = self.context.get('request') if self.context else None
+        user = getattr(request, 'user', None)
+        instance = getattr(self.parent, 'instance', None) if self.parent else None
+        return bool(
+            getattr(user, 'is_admin', False)
+            or (
+                user
+                and getattr(user, 'is_authenticated', False)
+                and user.has_permission(Permission.USER_EDIT)
+                and not getattr(instance, 'is_superuser', False)
+            ),
+        )
+
+    def to_representation(self, value):
+        return self.role_id in (getattr(value, 'roles', None) or [])
+
+    def get_value(self, dictionary):
+        if not isinstance(dictionary, dict) or self.field_name not in dictionary:
+            return serializers.empty
+        return dictionary
+
+    def to_internal_value(self, data):
+        if not self._can_write():
+            raise serializers.SkipField()
+        logging.warning(f'Deprecated user API field user.{self.field_name} in request; use user.roles instead (request.user="{self.context["request"].user.username}")')
+        if 'roles' in data:
+            raise serializers.ValidationError('Cannot set roles and legacy permission flags together. Fully migrate to roles')
+
+        flag_updates = {
+            name: serializers.BooleanField.to_internal_value(self, data.get(name))
+            for name, field in self.parent.fields.items()
+            if isinstance(field, LegacyFlagField) and name in data
+        }
+        if self.parent.instance is not None:
+            roles = list(self.parent.instance.roles or [])
+        else:
+            roles = list(configuration.DEFAULT_USER_ROLES or [])
+
+        roles = roles_from_legacy_flags(roles, flag_updates)
+        all_roles = get_all_roles()
+        if invalid_roles := [r for r in roles if r not in all_roles]:
+            raise serializers.ValidationError(f'Invalid roles: {", ".join(invalid_roles)}')
+        return {'roles': list(dict.fromkeys(roles))}
 
 
 @functools.cache
@@ -44,6 +137,15 @@ class PentestUserSerializer(serializers.ModelSerializer):
 
 class PentestUserDetailSerializer(serializers.ModelSerializer):
     is_mfa_enabled = serializers.SerializerMethodField()
+    is_admin = serializers.BooleanField(read_only=True)
+    effective_permissions = serializers.ListField(child=serializers.CharField(), read_only=True)
+    # Deprecated compatibility. Will be removed in the future
+    is_project_admin = LegacyFlagField(role_id='project_admin')
+    is_designer = LegacyFlagField(role_id='designer')
+    is_template_editor = LegacyFlagField(role_id='template_editor')
+    is_user_manager = LegacyFlagField(role_id='user_manager')
+    is_global_archiver = LegacyFlagField(role_id='global_archiver')
+    is_guest = LegacyFlagField(role_id='guest')
 
     class Meta:
         model = PentestUser
@@ -51,8 +153,9 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             'id', 'created', 'updated', 'last_login', 'is_active',
             'username', 'name', 'title_before', 'first_name', 'middle_name', 'last_name', 'title_after',
             'email', 'phone', 'mobile', 'color', 'must_change_password',
-            'scope', 'is_superuser', 'is_project_admin', 'is_designer', 'is_template_editor', 'is_user_manager', 'is_guest', 'is_system_user', 'is_global_archiver',
+            'is_superuser', 'is_admin', 'is_system_user', 'roles', 'effective_permissions',
             'is_mfa_enabled', 'has_password', 'can_login_local', 'can_login_sso',
+            *list(LEGACY_USER_FLAG_ROLES.keys()),
         ]
         read_only_fields = ['last_login', 'is_system_user']
 
@@ -61,17 +164,18 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
             return is_mfa_enabled
         return obj.mfa_methods.all().exists()
 
+    def validate_roles(self, value):
+        all_roles = get_all_roles()
+        if invalid_roles := [r for r in value if r not in all_roles]:
+            raise serializers.ValidationError(f'Invalid roles: {", ".join(invalid_roles)}')
+        return list(dict.fromkeys(value))
+
     def get_extra_kwargs(self):
         user = self.context['request'].user
-        read_only = not (getattr(user, 'is_admin', False) or (getattr(user, 'is_user_manager', False) and not getattr(self.instance, 'is_superuser', False)))
+        read_only = not (getattr(user, 'is_admin', False) or (user.is_authenticated and user.has_permission(Permission.USER_EDIT) and not getattr(self.instance, 'is_superuser', False)))
         return super().get_extra_kwargs() | {
             'is_superuser': {'read_only': not getattr(user, 'is_admin', False)},
-            'is_user_manager': {'read_only': read_only},
-            'is_designer': {'read_only': read_only},
-            'is_project_admin': {'read_only': read_only},
-            'is_template_editor': {'read_only': read_only},
-            'is_guest': {'read_only': read_only},
-            'is_global_archiver': {'read_only': read_only},
+            'roles': {'read_only': read_only},
             'username': {'read_only': read_only},
             'email': {'read_only': read_only},
             'is_active': {'read_only': read_only},
@@ -96,6 +200,12 @@ class CreateUserSerializer(PentestUserDetailSerializer):
         if value:
             validate_password(value, user=self.instance)
         return make_password(value)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        if 'roles' not in attrs:
+            attrs['roles'] = list(configuration.DEFAULT_USER_ROLES or [])
+        return attrs
 
 
 @extend_schema_field(PentestUserSerializer)

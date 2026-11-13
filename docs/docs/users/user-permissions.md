@@ -1,58 +1,114 @@
 # User Permissions
 <BadgePro />
 
-## Users without dedicated Permissions
-Users without dedicated permissions have access to the frontend as regular pentesters. 
-They have only read-write access to pentesting reports they are assigned to.  
-They cannot read other pentesting reports.
+Permissions are granted to users via roles.
+Each user can have multiple roles and has the combined permissions of all assigned roles.
+SysReptor ships with [predefined roles](#predefined-roles). You can define additional [custom roles](#custom-roles) with fine-grained permissions.
 
-## Superuser
-Superusers have the highest privileges available.
-They have all permissions without explicitly assigning them. They can access all projects, even if they are not members.
+Roles are assigned by users with the `user.edit` permission (e.g. admins or [User Managers](#user-manager)) in the user management.
+New users get the roles configured in [`DEFAULT_USER_ROLES`](/setup/configuration#roles) (default: `regular_user`).
 
-**Note:** The permissions of superusers are restricted after login. Superusers must elevate their privileges via the "Enable Superuser Permissions" button in the main menu (Pro only). This requires the user to reauthenticate with his password and (if enabled) his second factor.
+**Project membership is separate from roles.** Being listed as a project member does not grant permissions by itself. Global user roles define what a user can do; membership decides which projects those `project.*` permissions apply to. Users without any roles cannot access any projects, even if they are members.
 
-## User Manager
-User Managers can create and update other users, assign permissions and reset passwords (except superusers).
+Custom roles, superuser elevation, archiving, and note sharing depend on your license and instance configuration. Permissions for unavailable or disabled features have no effect.
 
-Users without this permission can only update their own user information (e.g. name, email, phone number), change their own password, but are not allowed to modify their permissions.
 
-## Project Admin
-Project Admins can access and manage all projects, even if they are not members. Users without this permission can only access projects they are members of.
+## Predefined Roles
 
-## Designer
-Designers can create and edit report designs. Users without this permission can create and edit private designs that cannot be used by other users. They have read access to non-private designs.
+### Regular User
+Regular users work as pentesters on projects they are members of (role ID: `regular_user`).
+They have full project capabilities (`project.*`) on those projects, including create, edit, export, delete, archive, and restore.
+They cannot access projects they are not members of.
+They can read finding templates and designs, and see all users.
 
-## Template Editor
-Template Editors are allowed to create and edit finding templates.
-Users without this permission have only read access to templates.
+### Project Admin
+Project Admins can access and manage all projects, even if they are not members (role ID: `project_admin`).
+They have the same project, template, design, and user-listing capabilities as regular users, plus `admin.access_all_projects`.
 
-## Guest
-Guest users permissions can be restricted via global configuration settings by the system operator.
-When all guest permissions are enabled, guest users are equivalent to regular users.
+### Designer
+Designers can create, edit, import, export, and delete **global** report designs (role ID: `designer`).
+Users who only have `design.global.read` (typically via `regular_user`) can read global designs but not manage them.
+If [private designs](/setup/configuration#private-designs) are enabled, users can create private designs that other users cannot see. Private designs do not require the Designer role.
 
-* create projects (default: yes)
-* import projects (default: no)
-* edit projects (default: yes) - read-write access to projects they are assigned to
-* update project settings (default: yes) - update project settings like name, design, members, does not affect project content like findings, sections, notes
-* delete projects (default: yes)
-* see all users (default: no) - see all users on the SysReptor instance, when disabled only users working in the same projects are listed (including their user attributes like id, name, email, etc.)
-* share notes (default: no) - create and manage note sharing links, including approving pending share assets
+### Template Editor
+Template Editors can create, edit, import, export, and delete finding templates (role ID: `template_editor`).
+Users who only have `template.read` (typically via `regular_user`) can read templates but not manage them.
 
-Configure your installation by adding the following settings to your [application settings](/setup/configuration#guest-user-permissions):
-```dotenv
-GUEST_USERS_CAN_CREATE_PROJECTS=True
-GUEST_USERS_CAN_IMPORT_PROJECTS=False
-GUEST_USERS_CAN_EDIT_PROJECTS=True
-GUEST_USERS_CAN_UPDATE_PROJECT_SETTINGS=True
-GUEST_USERS_CAN_DELETE_PROJECTS=True
-GUEST_USERS_CAN_SEE_ALL_USERS=False
-GUEST_USERS_CAN_SHARE_NOTES=False
+### User Manager
+User Managers can create, edit, and delete users, assign roles, and reset passwords (except superusers) (role ID: `user_manager`).
+
+Users without `user.edit` can only update their own user information (e.g. name, email, phone number) and change their own password. They cannot modify their own roles and permissions.
+
+### Global Archiver
+Global Archivers are always added as key holders to [archived projects](/insights/archiving), even if they are not project members (role ID: `global_archiver`). They can restore all archived projects where they were added as key holders.
+The Global Archiver role alone does not grant access to all projects.
+
+
+## Custom Roles
+Custom roles allow you to grant fine-grained permissions to users, e.g. to restrict capabilities of users or external contractors.
+Configure them via [`CUSTOM_USER_ROLES`](/setup/configuration#roles): a JSON list of role objects.
+Custom role IDs must not conflict with predefined role IDs.
+
+```json title="Example: Restricted guest role"
+CUSTOM_USER_ROLES='[
+  {
+    "id": "guest",
+    "name": "Guest",
+    "description": "External users with restricted permissions",
+    "permissions": ["project.read", "project.edit_content", "template.read"]
+  }
+]'
 ```
 
-## System
-System is a special privilege that allows users to create backups via API. System users cannot be used in projects, templates and designs. 
-This privilege can only be set via the Django interface:
+Wildcards (e.g. `project.*`) grant all permissions with the given prefix.
+
+### Available Permissions
+
+| Permission | Description |
+| --- | --- |
+| `project.read` | Read projects the user is a member of. Required for all other project permissions |
+| `project.create` | Create and copy projects |
+| `project.import` | Import projects |
+| `project.export` | Export projects |
+| `project.edit_content` | Edit content of projects (sections, findings, notes, images, files) |
+| `project.update_settings` | Update project settings (e.g. name, design, members, finished/readonly state) |
+| `project.share_notes` | Create and manage note sharing links |
+| `project.delete` | Delete projects |
+| `project.archive` | Archive projects |
+| `project.restore` | Restore archived projects |
+| `template.read` | Read finding templates |
+| `template.create` | Create and copy finding templates |
+| `template.edit` | Edit finding templates |
+| `template.delete` | Delete finding templates |
+| `template.import` | Import finding templates |
+| `template.export` | Export finding templates |
+| `design.global.read` | Read global designs |
+| `design.global.create` | Create and copy global designs |
+| `design.global.edit` | Edit global designs |
+| `design.global.delete` | Delete global designs |
+| `design.global.import` | Import global designs |
+| `design.global.export` | Export global designs |
+| `user.list_all` | See all users on the SysReptor instance. Otherwise only users working in the same projects are listed |
+| `user.create` | Create users |
+| `user.edit` | Edit other users, assign roles, reset passwords and manage MFA methods, identities and API tokens (except superusers) |
+| `user.delete` | Delete users |
+| `archive.always_add_archiving_key_to_project` | Always added as key holder to archived projects (if a public key is configured), even if not a member |
+| `admin.access_all_projects` | Access all projects, even if not a member (additionally requires `project.read`) |
+
+
+## Superuser
+Superusers can obtain the highest privileges available.
+By default they only have the permissions from their assigned roles.
+After elevating privileges, they have all permissions and can access all projects, even if they are not members.
+
+**Note:** Superusers must elevate their privileges via the "Enable Superuser Permissions" button in the main menu (Pro only). This requires the user to reauthenticate with their password and (if enabled) their second factor.
+
+
+## System Users
+System users are marked with the **Is system user** flag (not a role ID).
+They have no normal permissions and are intended only for creating backups via API.
+System users cannot be used in projects, templates, and designs.
+This flag can only be set via the Django interface:
 
 1. Log in with superuser permissions
 2. Elevate your privileges using the "Enable Superuser Permissions" button
@@ -61,4 +117,10 @@ This privilege can only be set via the Django interface:
 5. Tick "Is system user"
 6. Save
 
-The `system` permission should only be used for backups.
+Use system users only for backups.
+
+
+## Migration from Guest Users
+Previous versions of SysReptor had an "Is Guest" flag with permissions configured via `GUEST_USERS_CAN_*` settings.
+Guest users are migrated to a custom role `guest` that is created from your previous `GUEST_USERS_CAN_*` settings (if guest users exist).
+Other users get the `regular_user` role plus one role for each previously assigned permission (Project Admin, Designer, Template Editor, User Manager, Global Archiver).

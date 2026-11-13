@@ -18,15 +18,19 @@
           :history="true"
         >
           <template #toolbar-context-menu>
-            <btn-copy
-              :disabled="!auth.permissions.value.template_editor"
-              :copy="performCopy"
-            />
-            <btn-export
-              :export-url="`/api/v1/findingtemplates/${template.id}/export/`"
-              :name="`template-` + mainTranslation!.data.title"
-              :disabled="!auth.permissions.value.template_editor"
-            />
+            <permission-info :permission="UserPermission.TEMPLATE_CREATE">
+              <btn-copy
+                :disabled="!auth.hasPermission(UserPermission.TEMPLATE_CREATE)"
+                :copy="performCopy"
+              />
+            </permission-info>
+            <permission-info :permission="UserPermission.TEMPLATE_EXPORT">
+              <btn-export
+                :export-url="`/api/v1/findingtemplates/${template.id}/export/`"
+                :name="`template-` + mainTranslation!.data.title"
+                :disabled="!auth.hasPermission(UserPermission.TEMPLATE_EXPORT)"
+              />
+            </permission-info>
           </template>
         </template-editor>
       </fetch-loader>
@@ -73,7 +77,8 @@ const { toolbarAttrs, fetchLoaderAttrs, readonly } = useLockEdit({
   fetchState,
   baseUrl,
   toolbarRef: computed(() => (vm?.refs?.templateEditor as any)?.toolbarRef),
-  hasEditPermissions: computed(() => auth.permissions.value.template_editor),
+  hasEditPermissions: computed(() => auth.hasPermission(UserPermission.TEMPLATE_EDIT)),
+  canDelete: computed(() => auth.hasPermission(UserPermission.TEMPLATE_DELETE)),
   performSave: async (data) => {
     const res = await templateStore.update(data!);
     for (const tr of template.value!.translations) {
