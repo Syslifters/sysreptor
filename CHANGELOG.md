@@ -7,6 +7,7 @@
 * Removed `GUEST_USERS_CAN_*` and `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` settings (migrated to roles)
 * Restrict template and design access via permissions
 * Fix design default notes not saved after changes
+* UI: Fix note title scrolling on overflow
 
 
 ## v2026.102 - 2026-11-04
