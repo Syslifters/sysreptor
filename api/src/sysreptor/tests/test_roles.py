@@ -21,6 +21,7 @@ from sysreptor.users.roles import (
     get_roles_with_permission,
     validate_custom_roles,
 )
+from sysreptor.users.serializers import roles_from_legacy_flags
 
 CUSTOM_USER_ROLES = [
     json.dumps({'id': 'template_reader', 'name': 'Template Reader', 'permissions': ['template.read']}),
@@ -28,6 +29,7 @@ CUSTOM_USER_ROLES = [
     json.dumps({'id': 'project_reader', 'name': 'Project Reader', 'permissions': ['project.read']}),
     json.dumps({'id': 'project_editor_without_read', 'name': 'Project Editor without read', 'permissions': ['project.edit_content', 'project.update_settings']}),
     json.dumps({'id': 'unnamed_role', 'permissions': ['template.read']}),
+    json.dumps({'id': 'guest', 'name': 'Guest', 'permissions': ['project.read', 'project.export', 'template.read']}),
 ]
 
 
@@ -135,6 +137,99 @@ class TestRoleAssignment:
 
 
 @pytest.mark.django_db()
+class TestLegacyUserFlags:
+    def test_helpers(self):
+        assert roles_from_legacy_flags(['regular_user'], {'is_designer': True}) == ['regular_user', 'designer']
+        assert roles_from_legacy_flags(['regular_user', 'designer'], {'is_designer': False}) == ['regular_user']
+        assert roles_from_legacy_flags(['regular_user'], {'is_guest': True}) == ['guest']
+        assert roles_from_legacy_flags(['guest'], {'is_guest': False}) == ['regular_user']
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_get_flags_from_roles(self):
+        user = create_user(roles=['regular_user', 'designer', 'project_admin'])
+        res = api_client(user).get(reverse('pentestuser-detail', kwargs={'pk': 'self'}))
+        assert res.status_code == 200
+        assert res.data['is_designer'] is True
+        assert res.data['is_project_admin'] is True
+        assert res.data['is_template_editor'] is False
+        assert res.data['is_user_manager'] is False
+        assert res.data['is_global_archiver'] is False
+        assert res.data['is_guest'] is False
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_patch_flag_adds_role(self):
+        manager = create_user(roles=['user_manager'])
+        target = create_user(roles=['regular_user'])
+        res = api_client(manager).patch(reverse('pentestuser-detail', kwargs={'pk': target.pk}), data={'is_designer': True})
+        assert res.status_code == 200, res.data
+        assert res.data['is_designer'] is True
+        assert set(res.data['roles']) == {'regular_user', 'designer'}
+        target.refresh_from_db()
+        assert set(target.roles) == {'regular_user', 'designer'}
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_patch_guest_flag(self):
+        manager = create_user(roles=['user_manager'])
+        target = create_user(roles=['regular_user'])
+        res = api_client(manager).patch(reverse('pentestuser-detail', kwargs={'pk': target.pk}), data={'is_guest': True})
+        assert res.status_code == 200, res.data
+        assert res.data['is_guest'] is True
+        assert res.data['roles'] == ['guest']
+
+        res = api_client(manager).patch(reverse('pentestuser-detail', kwargs={'pk': target.pk}), data={'is_guest': False})
+        assert res.status_code == 200, res.data
+        assert res.data['is_guest'] is False
+        assert res.data['roles'] == ['regular_user']
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_roles_and_flags_exclusive(self):
+        manager = create_user(roles=['user_manager'])
+        target = create_user(roles=['regular_user'])
+        res = api_client(manager).patch(
+            reverse('pentestuser-detail', kwargs={'pk': target.pk}),
+            data={'roles': ['regular_user', 'template_editor'], 'is_designer': True},
+        )
+        assert res.status_code == 400
+        target.refresh_from_db()
+        assert target.roles == ['regular_user']
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES, DEFAULT_USER_ROLES=['regular_user'])
+    def test_create_user_with_flags(self):
+        manager = create_user(roles=['user_manager'])
+        res = api_client(manager).post(reverse('pentestuser-list'), data={
+            'username': 'flag-user',
+            'email': 'flag-user@example.com',
+            'password': 'Sup3rS3cret!Password',
+            'is_designer': True,
+            'is_guest': True,
+        })
+        assert res.status_code == 201, res.data
+        assert set(res.data['roles']) == {'designer', 'guest'}
+        assert res.data['is_designer'] is True
+        assert res.data['is_guest'] is True
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_regular_user_cannot_patch_flags(self):
+        user = create_user(roles=['regular_user'])
+        res = api_client(user).patch(reverse('pentestuser-detail', kwargs={'pk': 'self'}), data={'is_designer': True})
+        assert res.status_code in [200, 403]
+        user.refresh_from_db()
+        assert user.roles == ['regular_user']
+        assert 'designer' not in user.roles
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_user_manager_can_patch_flags(self):
+        manager = create_user(roles=['user_manager'])
+        target = create_user(roles=['regular_user'])
+        res = api_client(manager).patch(
+            reverse('pentestuser-detail', kwargs={'pk': target.pk}),
+            data={'is_project_admin': True, 'is_global_archiver': True},
+        )
+        assert res.status_code == 200, res.data
+        assert set(res.data['roles']) == {'regular_user', 'project_admin', 'global_archiver'}
+
+
+@pytest.mark.django_db()
 class TestOnlyPermitted:
     @pytest.fixture(autouse=True)
     def setUp(self):
@@ -202,6 +297,19 @@ class TestOnlyPermitted:
         user = create_user(roles=['designer'])
         design_private = create_project_type(linked_user=user)
         assert design_private not in ProjectType.objects.only_permitted(user)
+
+    @override_configuration(ENABLE_PRIVATE_DESIGNS=False)
+    def test_no_design_permissions_sees_nothing(self):
+        user = create_user(roles=[])
+        project = create_project(members=[user])
+        create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=project)
+        create_project_type(linked_user=user)
+
+        assert not ProjectType.objects.only_permitted(user).exists()
+
+        res = api_client(user).get(reverse('projecttype-list'))
+        assert res.status_code == 200, res.data
+        assert res.data['results'] == []
 
     @override_configuration(ENABLE_PRIVATE_DESIGNS=True)
     def test_private_design_without_permissions(self):

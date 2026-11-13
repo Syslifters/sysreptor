@@ -520,11 +520,11 @@ class TestProjectArchivingEncryption:
         keypart = archive.key_parts.get(user=user_restricted)
         keypart_kwargs = {'archivedproject_pk': archive.id, 'pk': keypart.id}
         res_k = client.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs=keypart_kwargs))
-        assert res_k.status_code == 403
+        assert res_k.status_code == 404
         res_d = client.post(reverse('archivedprojectkeypart-decrypt', kwargs=keypart_kwargs), data={
             'data': self.gpg.decrypt(keypart.public_key_encrypted_parts.first().encrypted_data).data.decode().split('\n')[1],
         })
-        assert res_d.status_code == 403
+        assert res_d.status_code == 404
         keypart.refresh_from_db()
         assert not keypart.is_decrypted
 

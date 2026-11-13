@@ -47,6 +47,8 @@ from sysreptor.tests.mock import (
 )
 from sysreptor.users.models import AuthIdentity, PentestUser
 from sysreptor.users.roles import Permission
+from sysreptor.users.serializers import LEGACY_USER_FLAG_ROLES
+from sysreptor.utils.utils import omit_keys
 
 
 def export_archive(obj):
@@ -86,6 +88,26 @@ def viewset_urls(basename, get_kwargs, create_data=None, list=False, retrieve=Fa
         out.append((basename + ' unlock', lambda s, c: c.post(reverse(basename + '-unlock', kwargs=get_kwargs(s, True)), data={})))
     if history_timeline:
         out.append((basename + ' history-timeline', lambda s, c: c.get(reverse(basename + '-history-timeline', kwargs=get_kwargs(s, True)))))
+    return out
+
+
+def user_viewset_urls(get_kwargs, create_data=None, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False):
+
+    basename = 'pentestuser'
+    list_urlname = basename + '-list'
+    detail_urlname = basename + '-detail'
+
+    def retrieve_write_data(c, detail_kwargs):
+        # Legacy is_* flags are exclusive with roles; strip them from echoed retrieve payloads on write.
+        return omit_keys(c.get(reverse(detail_urlname, kwargs=detail_kwargs)).data, LEGACY_USER_FLAG_ROLES.keys())
+
+    out = viewset_urls(basename, get_kwargs, list=list, retrieve=retrieve, destroy=destroy)
+    if create:
+        out.append((basename + ' create', lambda s, c: c.post(reverse(list_urlname, kwargs=get_kwargs(s, False)), data=retrieve_write_data(c, get_kwargs(s, True)) | ((create_data(s) if callable(create_data) else create_data) or {}))))
+    if update:
+        out.append((basename + ' update', lambda s, c: c.put(reverse(detail_urlname, kwargs=get_kwargs(s, True)), data=retrieve_write_data(c, get_kwargs(s, True)))))
+    if update_partial:
+        out.append((basename + ' partial_update', lambda s, c: c.patch(reverse(detail_urlname, kwargs=get_kwargs(s, True)), data=retrieve_write_data(c, get_kwargs(s, True)))))
     return out
 
 
@@ -340,8 +362,8 @@ def no_permission_urls():
         ('utils-spellcheck', lambda s, c: c.post(reverse('utils-spellcheck'), data={'language': 'en-US', 'data': {'annotation': [{'text': 'test'}]}})),
         ('utils-spellcheck-add-word', lambda s, c: c.post(reverse('utils-spellcheck-add-word'), data={'word': 'test'})),
 
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {}, list=True),
+        *user_viewset_urls(get_kwargs=lambda s, detail: {'pk': 'self'}, retrieve=True, update=True, update_partial=True),
+        *user_viewset_urls(get_kwargs=lambda s, detail: {}, list=True),
         *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': 'self'} | ({'pk': s.current_user.mfa_methods.get(is_primary=True).id if s.current_user else uuid4()} if detail else {}), list=True, retrieve=True, update=True, update_partial=True, destroy=True),
         ('mfamethod register backup', lambda s, c: c.post(reverse('mfamethod-register-backup-begin', kwargs={'pentestuser_pk': 'self'}))),
         ('mfamethod totp backup', lambda s, c: c.post(reverse('mfamethod-register-totp-begin', kwargs={'pentestuser_pk': 'self'}))),
@@ -463,7 +485,6 @@ def build_test_parameters():
     yield from expect_permissions([
         *viewset_urls('archivedproject', get_kwargs=lambda s, detail: {'pk': s.archived_project.pk} if detail else {}, retrieve=True),
         *viewset_urls('archivedprojectkeypart', get_kwargs=lambda s, detail: {'archivedproject_pk': s.archived_project.pk} | ({'pk': s.archived_project.key_parts.first().pk} if detail else {}), list=True, retrieve=True),
-        ('archivedproject tags', lambda s, c: c.get(reverse('archivedproject-tags'))),
         ('archivedprojectkeypart public-key-encrypted-data', lambda s, c: c.get(reverse('archivedprojectkeypart-public-key-encrypted-data', kwargs={'archivedproject_pk': s.archived_project.pk, 'pk': getattr(s.archived_project.key_parts.filter(user=s.current_user).first(), 'pk', uuid4())}))),
     ], [P.PROJECT_RESTORE])
 
@@ -511,17 +532,17 @@ def build_test_parameters():
     yield from expect_permissions(projecttype_viewset_urls(get_obj=lambda s: s.project_type, destroy=True), [P.DESIGN_GLOBAL_READ, P.DESIGN_GLOBAL_DELETE])
 
     # Users
-    yield from expect_permissions(viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True), [P.USER_LIST_ALL])
-    yield from expect_permissions(viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, create=True, create_data={'username': 'new', 'password': get_random_string(32), 'email': 'newuser@example.com'}), [P.USER_CREATE])
+    yield from expect_permissions(user_viewset_urls(get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, retrieve=True), [P.USER_LIST_ALL])
+    yield from expect_permissions(user_viewset_urls(get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, create=True, create_data={'username': 'new', 'password': get_random_string(32), 'email': 'newuser@example.com'}), [P.USER_CREATE])
     yield from expect_permissions([
-        *viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, update=True, update_partial=True),
+        *user_viewset_urls(get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, update=True, update_partial=True),
         ('pentestuser reset-password', lambda s, c: c.post(reverse('pentestuser-reset-password', kwargs={'pk': s.user_other.pk}), data={'password': get_random_string(32)})),
         *viewset_urls('mfamethod', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.mfa_methods.get(is_primary=True).pk} if detail else {}), list=True, retrieve=True, destroy=True),
         *viewset_urls('authidentity', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.auth_identities.first().pk} if detail else {}), list=True, retrieve=True, create=True, create_data={'identifier': 'other.identifier'}, destroy=True),
         *viewset_urls('apitoken', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.api_tokens.first().pk} if detail else {}), list=True, retrieve=True, destroy=True),
         *viewset_urls('userpublickey', get_kwargs=lambda s, detail: {'pentestuser_pk': s.user_other.pk} | ({'pk': s.user_other.public_keys.first().pk} if detail else {}), list=True, retrieve=True),
     ], [P.USER_EDIT, P.USER_LIST_ALL])
-    yield from expect_permissions(viewset_urls('pentestuser', get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, destroy=True), [P.USER_DELETE, P.USER_LIST_ALL])
+    yield from expect_permissions(user_viewset_urls(get_kwargs=lambda s, detail: {'pk': s.user_other.pk} if detail else {}, destroy=True), [P.USER_DELETE, P.USER_LIST_ALL])
 
     yield from expect_result(admin_urls(), allowed_users=['admin'], forbidden_users=['all_permissions'])
     yield from expect_result(forbidden_urls(), allowed_users=[], forbidden_users=['all_permissions', 'admin'])

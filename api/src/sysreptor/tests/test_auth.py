@@ -29,7 +29,7 @@ from sysreptor.tests.mock import (
 )
 from sysreptor.tests.utils import assertKeysEqual
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
-from sysreptor.users.serializers import PentestUserDetailSerializer
+from sysreptor.users.serializers import LEGACY_USER_FLAG_ROLES, PentestUserDetailSerializer
 from sysreptor.utils.utils import omit_keys
 
 
@@ -649,6 +649,12 @@ class TestUserPermissionAssignment:
     def get_test_update_params(username, usernames_target, fields, expected):
         return sorted(itertools.chain(*[[(username, username_target, f, expected) for f in fields] for username_target in usernames_target]))
 
+    @staticmethod
+    def get_field_value(user, field):
+        if role := LEGACY_USER_FLAG_ROLES.get(field):
+            return role in (user.roles or [])
+        return getattr(user, field)
+
     @pytest.mark.parametrize(('username', 'username_target', 'field', 'expected'), [
         *get_test_update_params('regular', ['self', 'other'], protected_fields, False),
         *get_test_update_params('user_manager', ['self', 'other'], protected_fields - {'is_superuser', 'is_system_user', 'is_active'}, True),
@@ -668,14 +674,14 @@ class TestUserPermissionAssignment:
         }
         if field in update_data:
             value = update_data[field]
-        elif isinstance(v := getattr(user_target, field), bool):
+        elif isinstance(v := self.get_field_value(user_target, field), bool):
             value = not v
         else:
             raise ValueError(f'Cannot automatically handle non-bool field {field}. Exclude field or add it to update_data above.')
         data = {field: value}
-        original_data = {k: getattr(user_target, k) for k in data.keys()}
+        original_data = {k: self.get_field_value(user_target, k) for k in data.keys()}
 
         res = api_client(user_req).patch(reverse('pentestuser-detail', kwargs={'pk': 'self' if user_req == user_target else user_target.id}), data=data)
         assert res.status_code in ([200] if expected else [200, 403])
         user_target.refresh_from_db()
-        assert {k: getattr(user_target, k) for k in data.keys()} == (data if expected else original_data)
+        assert {k: self.get_field_value(user_target, k) for k in data.keys()} == (data if expected else original_data)
