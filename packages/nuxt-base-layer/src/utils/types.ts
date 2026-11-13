@@ -235,8 +235,7 @@ export type ApiToken = BaseModel & {
   last_used: string|null;
   admin_permissions_enabled: boolean;
   is_project_restricted: boolean;
-  projects: string[];
-  project_details: { id: string; name: string }[];
+  projects: { id: string; name: string }[];
   read_only: boolean;
   token?: string;
 }

@@ -36,7 +36,13 @@
           >
             <v-list-item-title>
               {{ apiToken.name }}
-              <api-token-scope :token="apiToken" />
+              <template v-if="apiToken.is_project_restricted">
+                <v-chip size="small" class="ml-3">{{ apiToken.read_only ? 'Read only' : 'Read/write' }}</v-chip>
+                <v-chip v-for="project in apiToken.projects" :key="project.id" size="small" class="ml-1">
+                  {{ project.name }}
+                </v-chip>
+                <v-chip v-if="apiToken.projects.length === 0" size="small" class="ml-1">No projects available</v-chip>
+              </template>
               <v-chip
                 v-if="apiToken.admin_permissions_enabled"
                 size="small"
@@ -67,7 +73,7 @@
                 <template v-if="setupWizard.step === SetupWizardStep.INFO">
                   <v-card-text>
                     <s-text-field
-                      v-model="tokenForm.name"
+                      v-model="setupWizard.form.name"
                       label="Name"
                       :error-messages="setupWizard.errors?.name"
                       class="mb-4"
@@ -77,12 +83,13 @@
                     <s-project-selection
                       v-if="apiSettings.isProfessionalLicense"
                       v-model="selectedProjects"
+                      :query-filters="{ member: auth.user.value!.username }"
                       :error-messages="setupWizard.errors?.projects"
                       class="mb-4"
                     />
                     <s-checkbox
                       v-if="isProjectRestricted"
-                      v-model="tokenForm.read_only"
+                      v-model="setupWizard.form.read_only"
                       label="Read only"
                       hint="Allow reading project content and exporting reports. Disable to also allow editing project content."
                       persistent-hint
@@ -90,8 +97,7 @@
                       class="mb-4"
                     />
                     <s-date-picker
-                      v-model="tokenForm.expire_date"
-                      @update:model-value="expireDateEdited = true"
+                      v-model="setupWizard.form.expire_date"
                       label="Expire Date (optional)"
                       :error-messages="setupWizard.errors?.expire_date"
                       :min-date="formatISO9075(new Date(), { representation: 'date' })"
@@ -102,7 +108,7 @@
 
                     <s-checkbox
                       v-if="auth.permissions.value.superuser"
-                      v-model="tokenForm.admin_permissions_enabled"
+                      v-model="setupWizard.form.admin_permissions_enabled"
                       hint="Grant this API token full admin permissions. Requires enabled admin permissions."
                       :error-messages="setupWizard.errors?.admin_permissions_enabled"
                       :disabled="isProjectRestricted || !auth.permissions.value.admin || !apiSettings.isProfessionalLicense"
@@ -168,8 +174,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatISO9075 } from 'date-fns';
-import { useApiTokenForm } from '~/composables/apiTokenForm';
+import { addMonths, formatISO9075 } from 'date-fns';
 
 const route = useRoute();
 const auth = useAuth();
@@ -194,28 +199,46 @@ enum SetupWizardStep {
 }
 
 const reauthDialogVisible = ref(false);
-const {
-  form: tokenForm, selectedProjects, isProjectRestricted, expireDateEdited,
-  payload: tokenPayload, reset: resetTokenForm,
-} = useApiTokenForm(() => apiSettings.isProfessionalLicense);
+const selectedProjects = ref<{ id: string; name: string }[]>([]);
+const isProjectRestricted = computed(() => (selectedProjects.value || []).length > 0);
 const setupWizard = ref({
   visible: false,
   step: SetupWizardStep.INFO,
   errors: null as any|null,
   actionInProgress: false,
   newApiToken: null as ApiToken|null,
+  form: {
+    name: '',
+    expire_date: null as string|null,
+    admin_permissions_enabled: false,
+    read_only: false,
+  },
 });
 
 function openSetupWizard() {
-  resetTokenForm();
+  selectedProjects.value = [];
   setupWizard.value = {
     visible: true,
     step: SetupWizardStep.INFO,
     errors: null,
     actionInProgress: false,
-    newApiToken: null
+    newApiToken: null,
+    form: {
+      name: 'API Token',
+      expire_date: apiSettings.isProfessionalLicense ? formatISO9075(addMonths(new Date(), 3), { representation: 'date' })  : null,
+      admin_permissions_enabled: apiSettings.isProfessionalLicense ? false : true,
+      read_only: false,
+    }
   };
 }
+watch(isProjectRestricted, (restricted) => {
+  if (restricted) {
+    setupWizard.value.form.admin_permissions_enabled = false;
+    setupWizard.value.form.read_only = true;
+  } else {
+    setupWizard.value.form.read_only = false;
+  }
+});
 
 async function createApiToken() {
   if (setupWizard.value.actionInProgress) {
@@ -225,7 +248,12 @@ async function createApiToken() {
   try {
     setupWizard.value.newApiToken = await $fetch<ApiToken>('/api/v1/pentestusers/self/apitokens/', {
       method: 'POST',
-      body: tokenPayload.value,
+      body: {
+        ...setupWizard.value.form,
+        projects: (selectedProjects.value || []).map(p => ({ id: p.id, name: p.name })),
+        admin_permissions_enabled: !isProjectRestricted.value && setupWizard.value.form.admin_permissions_enabled,
+        read_only: isProjectRestricted.value && setupWizard.value.form.read_only,
+      },
     });
     setupWizard.value.step = SetupWizardStep.TOKEN;
     apiTokens.value = [setupWizard.value.newApiToken].concat(apiTokens.value);

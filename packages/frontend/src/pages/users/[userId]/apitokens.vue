@@ -10,7 +10,13 @@
         >
           <v-list-item-title>
             {{ apiToken.name }}
-            <api-token-scope :token="apiToken" />
+            <template v-if="apiToken.is_project_restricted">
+              <v-chip size="small" class="ml-3">{{ apiToken.read_only ? 'Read only' : 'Read/write' }}</v-chip>
+              <v-chip v-for="project in apiToken.projects" :key="project.id" size="small" class="ml-1">
+                {{ project.name }}
+              </v-chip>
+              <v-chip v-if="apiToken.projects.length === 0" size="small" class="ml-1">No projects available</v-chip>
+            </template>
             <v-chip
               v-if="apiToken.admin_permissions_enabled"
               size="small"
