@@ -65,6 +65,35 @@ class TestRolePermissions:
             assert user.has_permission(p) == (p in expected)
 
     @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_restrict_permissions_intersects_with_roles(self):
+        user = create_user(roles=['regular_user'])
+        user.restrict_permissions([Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT, Permission.TEMPLATE_EDIT])
+        expected = {Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT}
+        assert set(user.effective_permissions) == {p.value for p in expected}
+        assert user.has_permission(Permission.PROJECT_READ)
+        assert user.has_permission(Permission.PROJECT_EDIT_CONTENT)
+        assert not user.has_permission(Permission.TEMPLATE_EDIT)
+        assert not user.has_permission(Permission.PROJECT_DELETE)
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
+    def test_restrict_permissions_admin_bypasses(self):
+        user = create_user(roles=[], is_superuser=True, admin_permissions_enabled=True)
+        user.restrict_permissions([Permission.PROJECT_READ])
+        assert set(user.effective_permissions) == {p.value for p in Permission}
+        assert user.has_permission(Permission.PROJECT_DELETE)
+
+    def test_restrict_permissions_inactive_and_system_still_empty(self):
+        inactive = create_user(roles=['regular_user'], is_active=False)
+        inactive.restrict_permissions([Permission.PROJECT_READ])
+        assert inactive.effective_permissions == []
+        assert not inactive.has_permission(Permission.PROJECT_READ)
+
+        system = create_user(roles=['regular_user'], is_system_user=True)
+        system.restrict_permissions([Permission.PROJECT_READ])
+        assert system.effective_permissions == []
+        assert not system.has_permission(Permission.PROJECT_READ)
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_get_roles_with_permission(self):
         roles = get_roles_with_permission(Permission.TEMPLATE_READ)
         assert {'regular_user', 'template_editor', 'template_reader'}.issubset(set(roles))

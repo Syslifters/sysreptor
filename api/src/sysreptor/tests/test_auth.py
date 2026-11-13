@@ -20,6 +20,7 @@ from django.utils.crypto import get_random_string
 from sysreptor.management.commands import createapitoken
 from sysreptor.tests.mock import (
     api_client,
+    api_client_with_token,
     create_project,
     create_session,
     create_user,
@@ -372,7 +373,7 @@ class TestAPITokenAuth:
         self.client = api_client()
 
     def assert_api_access(self, url, expected, api_token=None):
-        res = self.client.get(url, HTTP_AUTHORIZATION='Bearer ' + (api_token or self.api_token.token_formatted))
+        res = api_client_with_token(api_token or self.api_token).get(url)
         assert (res.status_code == 200) == expected
         return res
 
@@ -410,7 +411,7 @@ class TestAPITokenAuth:
 
 
 @pytest.mark.django_db()
-class TestAPITokenCreateAdminPermissions:
+class TestAPITokenCreate:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.password = get_random_string(32)
@@ -458,6 +459,14 @@ class TestAPITokenCreateAdminPermissions:
         })
         assert res.status_code == 400
         assert 'admin_permissions_enabled' in res.data
+
+    def test_prevent_update(self):
+        token = APIToken.objects.create(user=self.user)
+        res = self.client.patch(reverse('apitoken-detail', kwargs={'pentestuser_pk': 'self', 'pk': token.id}), data={
+            'name': 'Test Token',
+            'admin_permissions_enabled': True,
+        })
+        assert res.status_code == 405
 
 
 @pytest.mark.django_db(transaction=True)

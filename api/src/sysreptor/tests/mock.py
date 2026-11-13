@@ -480,6 +480,24 @@ def api_client(user=None):
     return client
 
 
+def create_project_api_token(user, projects, **kwargs) -> APIToken:
+    token = APIToken.objects.create(
+        user=user,
+        is_project_restricted=True,
+        **kwargs,
+    )
+    token.projects.set(projects)
+    return token
+
+
+def api_client_with_token(token):
+    if isinstance(token, APIToken):
+        token = token.token_formatted
+    client = api_client()
+    client.credentials(HTTP_AUTHORIZATION='Bearer ' + token)
+    return client
+
+
 def create_session(user):
     engine = import_string(settings.SESSION_ENGINE)
     session = engine.SessionStore()

@@ -1,3 +1,4 @@
+import contextlib
 import json
 from datetime import timedelta
 from functools import cached_property
@@ -645,9 +646,8 @@ class ApiRequestsAndPermissionsTestData:
         return (timezone.now() + timedelta(days=1)).isoformat()
 
 
-@pytest.mark.django_db()
-@pytest.mark.parametrize(('username', 'name', 'perform_request', 'options', 'expected'), sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
-def test_api_requests(username, name, perform_request, options, expected):
+@contextlib.contextmanager
+def api_requests_mock_configuration():
     async def mock_render_pdf(*args, output=None, **kwargs):
         return RenderStageResult(pdf=b'<html><head></head><body><div></div></body></html>' if output == 'html' else b'%PDF-1.3')
 
@@ -656,7 +656,6 @@ def test_api_requests(username, name, perform_request, options, expected):
 
     with override_configuration(
             ARCHIVING_THRESHOLD=1,
-            CUSTOM_USER_ROLES=[json.dumps({'id': 'test_role', 'permissions': user_permissions(username)})],
             OIDC_AUTHLIB_OAUTH_CLIENTS=json.dumps({
                 'dummy': {
                     'label': 'Dummy',
@@ -668,6 +667,14 @@ def test_api_requests(username, name, perform_request, options, expected):
         mock.patch('sysreptor.api_utils.serializers.LanguageToolSerializerBase.languagetool_request', mock_languagetool_request), \
         mock.patch('sysreptor.tasks.tasks.activate_license', return_value=None), \
         mock.patch('sysreptor.api_utils.views.reload_server'):
+            yield
+
+
+@pytest.mark.django_db()
+@api_requests_mock_configuration()
+@pytest.mark.parametrize(('username', 'name', 'perform_request', 'options', 'expected'), sorted(build_test_parameters(), key=lambda t: (t[0], t[1], t[4])))
+def test_api_requests(username, name, perform_request, options, expected):
+    with override_configuration(CUSTOM_USER_ROLES=[json.dumps({'id': 'test_role', 'permissions': user_permissions(username)})]):
         if username == 'public':
             user = None
         elif username == 'admin':
