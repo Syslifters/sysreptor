@@ -3,11 +3,13 @@ from pathlib import Path
 import zipstream
 from django.db.models import Prefetch, prefetch_related_objects
 from django.utils.crypto import get_random_string
+from rest_framework import permissions
 from rest_framework.generics import GenericAPIView
 from rest_framework.serializers import Serializer
 from rest_framework.settings import api_settings
 from sysreptor.api_utils.backup_utils import to_chunks
 from sysreptor.pentests.models import ProjectMemberInfo
+from sysreptor.pentests.permissions import ProjectPermissions
 from sysreptor.pentests.views import ProjectSubresourceMixin
 from sysreptor.utils.api import StreamingHttpResponseAsync
 
@@ -26,8 +28,13 @@ def safe_zip_name(name: str) -> str:
     return base
 
 
+class MarkdownExportPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return ProjectPermissions.has_read_permissions(project=view.get_project(), user=request.user)
+
+
 class MarkdownExportView(ProjectSubresourceMixin, GenericAPIView):
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [MarkdownExportPermissions]
     serializer_class = Serializer
 
     def get(self, request, *args, **kwargs):
