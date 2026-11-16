@@ -10,14 +10,17 @@ from deepagents.middleware.subagents import (
     CompiledSubAgent,
     SubAgent,
     SubAgentMiddleware,
+    _arun_subagent,
+    _refusal_notice_for,
     _subagent_tracing_context,
 )
 from django.utils import timezone
 from langchain.agents.middleware import AgentMiddleware, AgentState, ModelRequest, ModelResponse
+from langchain.agents.structured_output import StructuredOutputValidationError
 from langchain.messages import AIMessage, HumanMessage, ToolMessage
 from langchain.tools import ToolRuntime, tool
+from langchain_core.exceptions import ModelRefusalError
 from langchain_core.messages import merge_message_runs
-from langchain_core.runnables.config import merge_configs
 from langchain_core.tools import BaseTool
 from langgraph.types import Command
 
@@ -184,13 +187,28 @@ class CustomSubagentMiddleware(SubAgentMiddleware):
                 raise ValueError('Tool call ID is required for subagent invocation')
 
             subagent, subagent_state = validate_and_prepare(subagent_type, description, runtime)
-            config = merge_configs(runtime.config, {'configurable': {'ls_agent_type': 'subagent'}})
-            config['configurable'] = dict(config.get('configurable') or {}) | {
-                'checkpoint_ns': subagent_checkpoint_ns(subagent_type, runtime.tool_call_id),
+            custom_ns = subagent_checkpoint_ns(subagent_type, runtime.tool_call_id)
+            parent = runtime.config or {}
+            config = {
+                **parent,
+                'configurable': {
+                    **dict(parent.get('configurable') or {}),
+                    'ls_agent_type': 'subagent',
+                    'checkpoint_ns': custom_ns,
+                },
+                'metadata': {
+                    **dict(parent.get('metadata') or {}),
+                    'lc_subagent_tool_call_id': runtime.tool_call_id,
+                },
             }
             config['configurable'].pop('checkpoint_id', None)
-            with _subagent_tracing_context():
-                result = await subagent.ainvoke(subagent_state, config)
-            return return_command(result, runtime.tool_call_id, subagent_state)
+            try:
+                with _subagent_tracing_context():
+                    result, checkpoint_ns = await _arun_subagent(subagent, subagent_state, config, fallback_ns=custom_ns)
+            except (ModelRefusalError, StructuredOutputValidationError) as error:
+                if (notice := _refusal_notice_for(error)) is None:
+                    raise
+                return notice
+            return return_command(result, runtime.tool_call_id, subagent_state, checkpoint_ns=checkpoint_ns)
 
         return task

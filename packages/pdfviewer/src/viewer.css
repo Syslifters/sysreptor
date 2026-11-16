@@ -73,6 +73,11 @@ body {
   transition: inset-inline-start var(--transition-speed) ease;
 }
 
+/* Placeholder while canvases load. pdf.js sets this to transparent once the main canvas is attached. */
+.pdfViewer {
+  --page-bg-color: #ffffff;
+}
+
 
 #toolbarContainer {
   width: 100%;
@@ -364,10 +369,7 @@ body {
   inset-inline-start: var(--sidebar-width);
   transition-property: inset-inline-start;
 }
-#outerContainer.sidebarOpen #loadingBar {
-  inset-inline-start: var(--sidebar-width);
-}
-#outerContainer.sidebarResizing :is(#sidebarContainer, #viewerContainer, #loadingBar) {
+#outerContainer.sidebarResizing :is(#sidebarContainer, #viewerContainer) {
   /* Improve responsiveness and avoid visual glitches when the sidebar is resized. */
   transition-duration: 0s;
 }

@@ -18,7 +18,7 @@ dependencies = [
   "adrf (~=0.1)",
 
   "psycopg[binary,pool] (~=3.1)",
-  "gunicorn (~=26.0)",
+  "gunicorn (~=27.0)",
   "uvicorn[standard] (~=0.54)",
   "uvicorn-worker (~=0.4)",
   "whitenoise (~=6.4)",
