@@ -7,6 +7,8 @@ import {
   version as pdfjsVersion,
   build as pdfjsBuild,
   TouchManager,
+  AnnotationMode,
+  AnnotationEditorType,
 } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import {
   PDFViewer,
@@ -20,10 +22,17 @@ import {
 } from 'pdfjs-dist/legacy/web/pdf_viewer.mjs';
 import { PDFOutlineViewer } from './outline';
 
-// Set up the PDF.js worker
+// Set up the PDF.js parse worker
 GlobalWorkerOptions.workerPort = new Worker(new URL('pdfjs-dist/legacy/build/pdf.worker.mjs', import.meta.url), { type: 'module' });
 
+// Offload canvas drawing to a dedicated renderer worker
+GlobalWorkerOptions.rendererPorts = [
+  new Worker(new URL('pdfjs-dist/legacy/build/pdf.renderer.mjs', import.meta.url), { type: 'module' }),
+];
+
 const DEFAULT_SCALE_VALUE = 'auto';
+// TextLayerMode is not re-exported from the legacy viewer component build.
+const TextLayerMode = { DISABLE: 0, ENABLE: 1, ENABLE_PERMISSIONS: 2 } as const;
 
 type PDFViewerApplicationConfig = {
   appContainer: HTMLElement;
@@ -320,9 +329,9 @@ class PDFViewerApplicationClass {
       downloadManager: this.downloadManager,
       findController: this.findController,
 
-      textLayerMode: 1,  // TextLayerMode.ENABLE,
-      annotationMode: 1,  // AnnotationMode.ENABLE,
-      annotationEditorMode: 0,  // AnnotationEditorType.NONE,
+      textLayerMode: TextLayerMode.ENABLE,
+      annotationMode: AnnotationMode.ENABLE,
+      annotationEditorMode: AnnotationEditorType.NONE,
       enableAutoLinking: false,
 
       supportsPinchToZoom: true,
@@ -469,7 +478,16 @@ class PDFViewerApplicationClass {
    * Opens PDF document.
    */
   async open(args: { data: Uint8Array }): Promise<void> {
-    const scrollInfo = {...this.pdfViewer._location};
+    // Best-effort snapshot of private PDFViewer._location for reload restore.
+    const previousLocation = this.pdfViewer._location;
+    const scrollInfo = previousLocation && typeof previousLocation.pageNumber === 'number'
+      ? {
+          pageNumber: previousLocation.pageNumber,
+          scale: previousLocation.scale,
+          left: previousLocation.left,
+          top: previousLocation.top,
+        }
+      : null;
 
     if (this.pdfLoadingTask) {
       // We need to destroy already opened document
@@ -483,7 +501,7 @@ class PDFViewerApplicationClass {
       useWasm: false,
     });
 
-    if (scrollInfo && Object.entries(scrollInfo).length > 0) {
+    if (scrollInfo) {
       // Restore scroll position and zoom level of previous document
       this.eventBus.on('pagesinit', () => {
         try {
@@ -627,7 +645,7 @@ class PDFViewerApplicationClass {
         const delta = this.normalizeWheelEventDirection(event);
 
         let ticks = 0;
-        if (deltaMode === WheelEvent.DOM_DELTA_LINE || WheelEvent.DOM_DELTA_PAGE) {
+        if (deltaMode === WheelEvent.DOM_DELTA_LINE || deltaMode === WheelEvent.DOM_DELTA_PAGE) {
           // For line-based devices, use one tick per event, because different
           // OSs have different defaults for the number lines. But we generally
           // want one "clicky" roll of the wheel (which produces one event) to

@@ -6,6 +6,7 @@ import yaml
 from decouple import config
 from deepagents._tools import _apply_tool_description_overrides
 from deepagents.backends import StateBackend
+from deepagents.graph import _bind_backend
 from deepagents.middleware.patch_tool_calls import PatchToolCallsMiddleware
 from deepagents.middleware.subagents import GENERAL_PURPOSE_SUBAGENT
 from deepagents.middleware.summarization import create_summarization_middleware
@@ -149,6 +150,7 @@ def create_sysreptor_agent(system_prompt: str, tools: list, middleware: list, **
     ]
 
     backend = StateBackend()
+    _bind_backend(middleware, backend)
     middleware = [
         SelectConfiguredModelMiddleware(),
         TodoListMiddleware(),
