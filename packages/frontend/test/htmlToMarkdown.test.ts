@@ -15,7 +15,7 @@ describe('HTML to Markdown Conversion', () => {
     '<p>This is <del>deleted</del> text</p>': 'This is ~~deleted~~ text',
     '<p>This is <code>inline code</code> text</p>': 'This is `inline code` text',
     // '<p>This is <u>underlined</u> text</p>': 'This is <u>underlined</u> text',
-    '<p>Text with <strong>bold <em>and italic</em></strong> formatting</p>': 'Text with **bold *and italic*** formatting',
+    '<p>Text with <strong>bold <em>and italic</em></strong> formatting</p>': 'Text with **bold _and italic_** formatting',
     // Headings
     '<h1>Heading 1</h1>': '# Heading 1',
     '<h2>Heading 2</h2>': '## Heading 2',

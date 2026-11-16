@@ -14,6 +14,9 @@ const props = withDefaults(defineProps<{
   permissionName?: string;
 }>(), {
   value: null,
+  text: undefined,
+  permission: undefined,
+  permissionName: undefined,
 });
 
 const auth = useAuth();

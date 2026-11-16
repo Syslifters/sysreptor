@@ -75,7 +75,6 @@ definePageMeta({
 });
 useAppBar({ breadcrumbs: designListBreadcrumbs() });
 
-const auth = useAuth();
 const localSettings = useLocalSettings();
 const apiSettings = useApiSettings();
 const projectTypeStore = useProjectTypeStore();

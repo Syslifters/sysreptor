@@ -29,8 +29,8 @@ describe('Markdown extensions', () => {
     '![](#img)': '<p></p><figure><img src="#img" alt=""></figure><p></p>',
     '![caption](#img){#imgId .imgClass width="50%"}': '<p></p><figure><img src="#img" alt="caption" id="imgId" class="imgClass" style="width:50%;"><figcaption>caption</figcaption></figure><p></p>',
     // Table
-    '| cell  |\n| ----- |\n| value |\n\nTable: caption': '<table><thead><tr><th>cell</th></tr></thead><tbody><tr><td>value</td></tr></tbody><caption>caption</caption></table>',
-    '| cell  |\n| ----- |\n| value |': '<table><thead><tr><th>cell</th></tr></thead><tbody><tr><td>value</td></tr></tbody></table>',
+    '| cell  |\n| ----- |\n| value |\n\nTable: caption': '<table>\n<thead>\n<tr>\n<th>cell</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>value</td>\n</tr>\n</tbody>\n<caption>caption</caption></table>',
+    '| cell  |\n| ----- |\n| value |': '<table>\n<thead>\n<tr>\n<th>cell</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>value</td>\n</tr>\n</tbody>\n</table>',
     // Attrs
     '[link](https://example.com){#id}': '<p><a href="https://example.com" id="id" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',
     '[link](https://example.com){.class1 .class2 .class3}': '<p><a href="https://example.com" class="class1 class2 class3" target="_blank" rel="nofollow noopener noreferrer">link</a></p>',

@@ -411,6 +411,7 @@ export type ArchivedProjectKeyPart = BaseModel & {
   user: UserShortInfo;
   is_decrypted: boolean;
   decrypted_at: string|null;
+  warnings: string[];
 }
 
 export type ArchivedProject = BaseModel & {
