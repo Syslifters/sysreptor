@@ -75,7 +75,7 @@ class PentestUser(BaseModel, AbstractUser):
         elif self.is_admin:
             return list(p.value for p in Permission)
         perms = get_role_permissions(self.roles)
-        if restriction := getattr(self, '_permissions_restriction', None):
+        if (restriction := getattr(self, '_permissions_restriction', None)) is not None:
             perms &= restriction
         return list(p.value for p in perms)
 

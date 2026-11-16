@@ -72,6 +72,7 @@ from sysreptor.tests.mock import (
     override_configuration,
     update,
 )
+from sysreptor.users.roles import Permission
 from sysreptor.utils.fielddefinition.utils import get_value_at_path
 from sysreptor.utils.utils import copy_keys, merge, omit_keys
 
@@ -793,6 +794,20 @@ class TestProjectAgentTools:
         assert 'Error:' in res.text
         assert 'excalidraw' in res.text.lower()
 
+    def test_tool_write_denied_with_permissions_restriction(self):
+        self.user.restrict_permissions([Permission.PROJECT_READ])
+        section = self.project.sections.get(section_id='executive_summary')
+        res = self.run_tool(
+            update_field_value,
+            file_path=section_path(section.section_id),
+            field='data.executive_summary',
+            value='should not write',
+        )
+        assert 'Error:' in res.text
+        assert 'write permissions' in res.text.lower()
+        section.refresh_from_db()
+        assert section.data.get('executive_summary') != 'should not write'
+
     @pytest.mark.parametrize(('initial_value', 'old_text', 'error_substring'), [
         ('Some content here', 'Non-existent text', 'Could not find'),
         ('Some content', '', 'old_text cannot be empty'),
@@ -1034,6 +1049,19 @@ class TestAgentPermissions:
             assert res_list.status_code in [200, 403]
             if res_list.status_code == 200:
                 assert not any(str(t['id']) == str(thread.id) for t in res_list.data['results'])
+
+    def test_no_project_read_permission_denied(self):
+        user = create_user(roles=['template_editor'])
+        project = create_project(members=[user])
+        client = api_client(user)
+        with mock_llm_response(messages=[AIMessage(content='done')]):
+            res, _events = post_chat(client, {
+                'agent': 'project_agent',
+                'project': project.id,
+                'messages': ['dummy'],
+                'context': {},
+            })
+        assert res.status_code == 400
 
 
 @pytest.mark.django_db(transaction=True)
@@ -1530,6 +1558,13 @@ class TestProjectFilesystemBackend:
         update(self.project, readonly=True)
         result = self.backend.delete(finding_path(self.project.findings.first().finding_id))
         assert 'write permissions' in result.error.lower()
+
+    def test_delete_denied_with_permissions_restriction(self):
+        self.user.restrict_permissions([Permission.PROJECT_READ])
+        finding = self.project.findings.first()
+        result = self.backend.delete(finding_path(finding.finding_id))
+        assert 'write permissions' in result.error.lower()
+        assert PentestFinding.objects.filter(project_id=self.project.id, finding_id=finding.finding_id).exists()
 
     def test_project_scoping(self):
         other_project = create_project(members=[self.user])
@@ -2252,15 +2287,31 @@ class TestBackgroundAgentRuns:
         assert thread.run_status == AgentRunStatus.ERROR
         assert thread.run_error == 'Agent aborted'
 
-    @pytest.mark.parametrize(('setup', 'mutate', 'admin_permissions_enabled', 'expected_status'), [
-        ('member', lambda s: None, False, AgentRunStatus.RUNNING),
-        ('member', lambda s: ProjectMemberInfo.objects.filter(project=s.project, user=s.user).delete(), False, AgentRunStatus.ERROR),
-        ('member', lambda s: update(s.user, is_active=False), False, AgentRunStatus.ERROR),
-        ('member', lambda s: s.project.delete(), False, None),
-        ('admin', lambda s: None, True, AgentRunStatus.RUNNING),
-        ('admin', lambda s: None, False, AgentRunStatus.ERROR),
+    def test_worker_applies_permissions_restriction(self):
+        thread = self.create_chatthread()
+        assert Permission.PROJECT_EDIT_CONTENT in thread.user.effective_permissions
+        AgentRunWorker(
+            thread,
+            agent='project_ask',
+            model=None,
+            input_data={},
+            permissions_restriction=[Permission.PROJECT_READ],
+        )
+        assert Permission.PROJECT_READ in thread.user.effective_permissions
+        assert Permission.PROJECT_EDIT_CONTENT not in thread.user.effective_permissions
+
+    @pytest.mark.parametrize(('setup', 'mutate', 'admin_permissions_enabled', 'permissions_restriction', 'expected_status'), [
+        ('member', lambda s: None, False, None, AgentRunStatus.RUNNING),
+        ('member', lambda s: ProjectMemberInfo.objects.filter(project=s.project, user=s.user).delete(), False, None, AgentRunStatus.ERROR),
+        ('member', lambda s: update(s.user, is_active=False), False, None, AgentRunStatus.ERROR),
+        ('member', lambda s: s.project.delete(), False, None, None),
+        ('member', lambda s: None, False, [], AgentRunStatus.ERROR),
+        ('member', lambda s: None, False, [Permission.TEMPLATE_READ], AgentRunStatus.ERROR),
+        ('member', lambda s: None, False, [Permission.PROJECT_READ], AgentRunStatus.RUNNING),
+        ('admin', lambda s: None, True, None, AgentRunStatus.RUNNING),
+        ('admin', lambda s: None, False, None, AgentRunStatus.ERROR),
     ])
-    def test_watch_access(self, setup, mutate, admin_permissions_enabled, expected_status):
+    def test_watch_access(self, setup, mutate, admin_permissions_enabled, permissions_restriction, expected_status):
         if setup == 'admin':
             thread = self.create_chatthread(
                 user=create_user(is_superuser=True),
@@ -2276,6 +2327,7 @@ class TestBackgroundAgentRuns:
             model=None,
             input_data={},
             admin_permissions_enabled=admin_permissions_enabled,
+            permissions_restriction=permissions_restriction,
         )
         initial_heartbeat = thread.run_heartbeat_at
 

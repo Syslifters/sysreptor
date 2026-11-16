@@ -179,6 +179,8 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, import_
             ('pentestproject preview', lambda s, c: c.post(reverse('pentestproject-preview', kwargs={'pk': get_obj(s).pk}), data={})),
             ('pentestproject generate', lambda s, c: c.post(reverse('pentestproject-generate', kwargs={'pk': get_obj(s).pk}), data={'password': 'pdf-password'})),
             ('pentestproject md2html', lambda s, c: c.post(reverse('pentestproject-md2html', kwargs={'pk': get_obj(s).pk}), data={})),
+            ('pentestproject readonly', lambda s, c: c.get(reverse('pentestproject-readonly', kwargs={'pk': get_obj(s).pk}))),
+            ('pentestproject override-finding-order', lambda s, c: c.get(reverse('pentestproject-override-finding-order', kwargs={'pk': get_obj(s).pk}))),
             ('projectnotebookpage excalidraw', lambda s, c: c.get(reverse('projectnotebookpage-excalidraw', kwargs={'project_pk': get_obj(s).pk, 'id': get_obj(s).notes.filter(type=NoteType.EXCALIDRAW).first().note_id}))),
 
             ('pentestprojecthistory project', lambda s, c: c.get(reverse('pentestprojecthistory-detail', kwargs={'project_pk': get_obj(s).pk, 'history_date': s.history_date}))),
@@ -215,7 +217,7 @@ def project_viewset_urls(get_obj, read=False, write=False, create=False, import_
         ])
     if update:
         out.extend([
-            ('pentestproject readonly', lambda s, c: c.put(reverse('pentestproject-readonly', kwargs={'pk': get_obj(s).pk}), data={'readonly': not get_obj(s).readonly})),
+            ('pentestproject readonly', lambda s, c: c.patch(reverse('pentestproject-readonly', kwargs={'pk': get_obj(s).pk}), data={'readonly': not get_obj(s).readonly})),
         ])
     if create:
         out.extend([
