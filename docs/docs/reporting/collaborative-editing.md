@@ -10,7 +10,7 @@ Changes are synchronized in real-time, so you can see what others are typing.
 
 ## HTTP Fallback
 Collaborative editing uses WebSockets for real-time communication. 
-If no WebSocket connection can be established (e.g. because your network blocks WebSocket connections or your reverse proxy is not configured propertly yet), we fall back to HTTP polling.
+If no WebSocket connection can be established (e.g. because your network blocks WebSocket connections or your reverse proxy is not configured properly yet), we fall back to HTTP polling.
 
 HTTP Polling has higher delays than WebSockets and transmitting user's cursor positions is disabled.
 
