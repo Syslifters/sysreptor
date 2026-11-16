@@ -4,7 +4,7 @@ from django.conf import settings
 from django.utils import timezone
 from rest_framework import authentication, exceptions, permissions
 
-from sysreptor.users.auth import forbidden_with_apitoken_auth
+from sysreptor.users.auth import forbidden_with_apitoken_auth, is_restricted_api_token
 from sysreptor.users.models import PentestUser
 from sysreptor.users.roles import Permission
 from sysreptor.utils import license
@@ -74,7 +74,9 @@ class UserViewSetPermissions(permissions.BasePermission):
         elif view.action == 'create':
             return request.user.has_permission(Permission.USER_CREATE)
         elif view.action == 'self':
-            # Allow updating your own user
+            # Restricted tokens may read the profile, but not update it.
+            if is_restricted_api_token(request) and request.method not in permissions.SAFE_METHODS:
+                return False
             return True
         elif view.action == 'change_password' and (configuration.LOCAL_USER_AUTH_ENABLED or not license.is_professional()):
             return check_sensitive_operation_timeout(request)

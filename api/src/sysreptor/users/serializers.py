@@ -1,4 +1,3 @@
-import calendar
 import functools
 import json
 import logging
@@ -17,11 +16,9 @@ from django.db import transaction
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
-from rest_framework.relations import MANY_RELATION_KWARGS
 
-from sysreptor import signals as sysreptor_signals
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
-from sysreptor.users.roles import Permission, get_all_roles
+from sysreptor.users.roles import Permission, expand_permissions, get_all_roles, get_role_permissions
 from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.mail import send_mail
@@ -454,55 +451,107 @@ class APITokenProjectSerializer(serializers.Serializer):
     name = serializers.CharField()
 
 
-class APITokenVisibleProjectListField(serializers.ManyRelatedField):
-    def get_attribute(self, instance):
-        if getattr(instance, 'pk', None) is None:
-            return []
-        projects = getattr(instance, 'visible_projects', None)
-        if projects is None:
-            projects = instance.projects.only_permitted(self.context['request'].user).only('id', 'name')
-        return projects
+def attach_api_token_visible_projects(tokens, user):
+    """
+    Resolve token.projects (uuid[]) to project objects the user may see.
+    Sets token.visible_projects in-memory for APITokenProjectsField.
+    """
+    from sysreptor.pentests.models import PentestProject
+
+    tokens = list(tokens)
+    project_ids = {pid for t in tokens if t.projects for pid in t.projects}
+    visible_by_id = {
+        p.id: p
+        for p in (
+            PentestProject.objects.only_permitted(user).filter(id__in=project_ids).only('id', 'name')
+            if project_ids else []
+        )
+    }
+    for token in tokens:
+        if token.projects is None:
+            token.visible_projects = None
+        else:
+            token.visible_projects = [visible_by_id[pid] for pid in token.projects if pid in visible_by_id]
+    return tokens
 
 
-@extend_schema_field(APITokenProjectSerializer)
-class APITokenProjectField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self):
-        from sysreptor.pentests.models import PentestProject
-
-        # Tokens never inherit the browser session's elevated admin mode.
-        user = PentestUser.objects.get(pk=self.context['request'].user.pk)
-        return PentestProject.objects.only_permitted(user)
-
-    @classmethod
-    def many_init(cls, *args, **kwargs):
-        list_kwargs = {'child_relation': cls(*args, **kwargs)}
-        for key in kwargs:
-            if key in MANY_RELATION_KWARGS:
-                list_kwargs[key] = kwargs[key]
-        return APITokenVisibleProjectListField(**list_kwargs)
-
-    def to_internal_value(self, data):
-        if not isinstance(data, dict) or 'id' not in data:
-            self.fail('incorrect_type', data_type=type(data).__name__)
-        return super().to_internal_value(data['id'])
+@extend_schema_field(APITokenProjectSerializer(many=True, allow_null=True))
+class APITokenProjectsField(serializers.Field):
+    default_error_messages = {
+        'not_a_list': 'Expected a list of items but got type "{input_type}".',
+        'invalid_uuid': '"{value}" is not a valid UUID.',
+        'not_member': 'You must be a direct member of every selected project.',
+    }
 
     def to_representation(self, value):
-        return {'id': str(value.pk), 'name': value.name}
+        if value is None:
+            return None
+        # Prefer bulk-resolved projects from attach_api_token_visible_projects.
+        visible = getattr(self.parent.instance, 'visible_projects', None)
+        if visible is None:
+            from sysreptor.pentests.models import PentestProject
+            visible = (
+                PentestProject.objects
+                .only_permitted(self.context['request'].user)
+                .filter(members__user=self.context['request'].user)
+                .filter(id__in=value)
+                .only('id', 'name')
+            )
+        return [{'id': str(p.id), 'name': p.name} for p in visible]
 
-    def use_pk_only_optimization(self):
-        return False
+    def to_internal_value(self, data):
+        from sysreptor.pentests.models import PentestProject
+
+        if data is None:
+            return None
+        if not isinstance(data, list):
+            self.fail('not_a_list', input_type=type(data).__name__)
+
+        ids = []
+        for item in data:
+            if isinstance(item, dict):
+                item = item.get('id')
+            try:
+                ids.append(UUID(str(item)))
+            except (TypeError, ValueError):
+                self.fail('invalid_uuid', value=item)
+        ids = list(dict.fromkeys(ids))  # dedupe, preserve order
+
+        # Direct membership only — admins / project admins are not exempt.
+        user = self.context['request'].user
+        member_ids = set(
+            PentestProject.objects
+            .only_permitted(user)
+            .filter(members__user=user, id__in=ids)
+            .values_list('id', flat=True),
+        )
+        if set(ids) - member_ids:
+            self.fail('not_member')
+        return ids
+
+
+class APITokenListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        return super().to_representation(
+            attach_api_token_visible_projects(data, self.context['request'].user),
+        )
 
 
 class APITokenSerializer(serializers.ModelSerializer):
-    projects = APITokenProjectField(many=True, read_only=True)
+    projects = APITokenProjectsField(allow_null=True, required=False)
 
     class Meta:
         model = APIToken
         fields = [
             'id', 'created', 'updated', 'name', 'expire_date', 'last_used', 'admin_permissions_enabled',
-            'is_project_restricted', 'projects', 'read_only',
+            'permissions', 'projects',
         ]
-        read_only_fields = ['is_project_restricted']
+        list_serializer_class = APITokenListSerializer
+
+    def to_representation(self, instance):
+        if not hasattr(instance, 'visible_projects'):
+            attach_api_token_visible_projects([instance], self.context['request'].user)
+        return super().to_representation(instance)
 
     def validate_expire_date(self, value):
         if value and value < timezone.now().date():
@@ -512,7 +561,6 @@ class APITokenSerializer(serializers.ModelSerializer):
 
 class APITokenCreateSerializer(APITokenSerializer):
     token = serializers.ReadOnlyField(source='token_formatted')
-    projects = APITokenProjectField(many=True, required=False)
 
     class Meta(APITokenSerializer.Meta):
         fields = APITokenSerializer.Meta.fields + ['token']
@@ -522,30 +570,53 @@ class APITokenCreateSerializer(APITokenSerializer):
             raise serializers.ValidationError('Cannot create API tokens with admin permissions enabled.')
         return value
 
+    def validate_permissions(self, value):
+        if value is None:
+            return None
+        if not isinstance(value, list):
+            raise serializers.ValidationError('Expected a list of permissions or null.')
+        unknown = [p for p in value if not expand_permissions([p])]
+        if unknown:
+            raise serializers.ValidationError(f'Unknown permissions: {", ".join(unknown)}')
+        expanded = expand_permissions(value)
+        # Compare against role permissions only. Ignore elevated admin permissions.
+        user = self.context['request'].user
+        user_perms = set(user.effective_permissions).intersection(get_role_permissions(user.roles))
+        missing = {p.value for p in expanded} - user_perms
+        if missing:
+            raise serializers.ValidationError(f'Permissions exceed the current user permissions: {", ".join(sorted(missing))}')
+        return [p.value for p in expanded]
+
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        is_project_restricted = bool(attrs.get('projects'))
-        attrs['is_project_restricted'] = is_project_restricted
-        if is_project_restricted:
-            if not license.is_professional():
-                raise license.LicenseError('Project-restricted API tokens require a Professional license.')
-            if attrs.get('admin_permissions_enabled'):
-                raise serializers.ValidationError({'admin_permissions_enabled': 'Project-restricted tokens cannot enable admin permissions.'})
-            attrs.setdefault('read_only', True)
-        else:
-            if attrs.get('read_only'):
-                raise serializers.ValidationError({'read_only': 'Read-only access requires a project restriction.'})
-        return attrs
+        permissions = attrs.get('permissions', None)
+        projects = attrs.get('projects', None)
 
-    @transaction.atomic
+        if attrs.get('admin_permissions_enabled') and (permissions is not None or projects is not None):
+            raise serializers.ValidationError({'admin_permissions_enabled': 'Restricted tokens cannot enable admin permissions.'})
+
+        if permissions is not None or projects is not None:
+            if not license.is_professional():
+                raise license.LicenseError('Restricted API tokens require a Professional license.')
+
+        if projects is not None:
+            perm_set = expand_permissions(permissions or [])
+            if Permission.PROJECT_READ not in perm_set:
+                raise serializers.ValidationError({
+                    'permissions': f'Project-restricted tokens require {Permission.PROJECT_READ}.',
+                })
+            if Permission.ADMIN_ACCESS_ALL_PROJECTS in perm_set:
+                raise serializers.ValidationError({
+                    'permissions': f'{Permission.ADMIN_ACCESS_ALL_PROJECTS} is not allowed with a project allow-list.',
+                })
+
+        return attrs | {
+            'permissions': permissions,
+            'projects': projects,
+        }
+
     def create(self, validated_data):
-        projects = validated_data.pop('projects', [])
-        instance = APIToken(**validated_data, user=self.context['user'])
-        # Publish creation after the M2M is saved so auditing sees the complete scope.
-        instance.skip_post_create_signal = True
-        instance.save()
-        instance.projects.set(projects)
-        instance.skip_post_create_signal = False
-        sysreptor_signals.post_create.send(sender=APIToken, instance=instance)
-        return instance
+        return super().create(validated_data | {
+            'user': self.context['user'],
+        })
 

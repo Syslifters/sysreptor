@@ -6,8 +6,6 @@
     :loading="items.pending.value"
     item-title="name"
     item-value="id"
-    label="Restrict to projects (optional)"
-    hint="Leave empty for unrestricted access. Selected projects also grant read access to the global finding-template library."
     persistent-hint
     multiple
     chips

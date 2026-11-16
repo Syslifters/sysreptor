@@ -143,7 +143,8 @@ class TestAuditLog:
                 'id': str(token.id),
                 'name': token.name,
                 'expire_date': token.expire_date,
-                'is_project_restricted': False,
+                'permissions': None,
+                'projects': None,
                 'admin_permissions_enabled': token.admin_permissions_enabled,
             },
         })

@@ -9,6 +9,7 @@ from rest_framework import authentication, exceptions
 
 from sysreptor.users.roles import Permission
 from sysreptor.utils import license
+from sysreptor.utils.utils import omit_items
 
 
 class UnsaltedSHA3_256PasswordHasher(BasePasswordHasher):
@@ -57,16 +58,8 @@ class APITokenAuthentication(authentication.BaseAuthentication):
     def parse_apitoken(self, request):
         """
         Decode the Bearer header and fetch the token row.
-
-        Cached on the request so ProjectAPITokenAuthentication and APITokenAuthentication
-        share one decode and DB fetch. Validation is intentionally not cached.
         """
         from sysreptor.users.models import APIToken
-
-        _APITOKEN_LOOKUP_SENTINEL = object()
-        cached = getattr(request, '_apitoken_lookup', _APITOKEN_LOOKUP_SENTINEL)
-        if cached is not _APITOKEN_LOOKUP_SENTINEL:
-            return cached
 
         auth = authentication.get_authorization_header(request).split()
         if not auth or auth[0].lower() != b'bearer':
@@ -94,18 +87,15 @@ class APITokenAuthentication(authentication.BaseAuthentication):
         if not token.validate_token(token_key):
             raise exceptions.AuthenticationFailed('Invalid API token')
 
-        # cache parsed token on request
-        # to prevent duplicate parsing and DB lookups for global and project-restricted tokens
-        request._apitoken_lookup = token
-        return request._apitoken_lookup
+        return token
 
     def validate_token(self, token):
         if not token.user.is_active:
             raise exceptions.AuthenticationFailed('User disabled or deleted.')
         if token.expire_date and token.expire_date < timezone.now().date():
             raise exceptions.AuthenticationFailed('API token expired')
-        if token.is_project_restricted and not license.is_professional():
-            raise exceptions.AuthenticationFailed('Project-restricted API tokens require a Professional license.')
+        if token.is_restricted and not license.is_professional():
+            raise exceptions.AuthenticationFailed('Restricted API tokens require a Professional license.')
         license.validate_login_allowed(token.user)
 
     def update_apitoken_last_used(self, token):
@@ -122,46 +112,34 @@ class APITokenAuthentication(authentication.BaseAuthentication):
         user = token.user
         user.api_token = token
 
-        if token.is_project_restricted:
-            return None
+        if token.is_restricted:
+            view = (request.parser_context or {}).get('view')
+            if not getattr(view, 'allow_restricted_api_token', False):
+                raise exceptions.PermissionDenied(
+                    detail='This operation is not permitted with a restricted API token.',
+                    code='permission_denied_with_restricted_apitoken',
+                )
 
-        # Enable admin permissions if the token has them enabled.
-        if user.is_superuser and token.admin_permissions_enabled:
+            # Strip privileged roles for this request only. Do not persist these changes.
+            user.admin_permissions_enabled = False
+            user.is_superuser = False
+            user.is_staff = False
+            user.is_system_user = False
+
+            # Restrict permissions to the API token's allow-list
+            perms = list(token.permissions if token.permissions is not None else user.effective_permissions)
+            if token.is_project_restricted:
+                # Project allow-list must never grant cross-project access
+                perms = omit_items(perms, [Permission.ADMIN_ACCESS_ALL_PROJECTS])
+            user.restrict_permissions(perms)
+        elif user.is_superuser and token.admin_permissions_enabled:
             user.admin_permissions_enabled = True
 
         self.update_apitoken_last_used(token)
-        return token.user, token
+        return user, token
 
     def authenticate_header(self, request):
         return self.keyword
-
-
-class ProjectAPITokenAuthentication(APITokenAuthentication):
-    """
-    Accepts project-restricted API tokens only
-    """
-
-    def authenticate(self, request):
-        token = self.parse_apitoken(request)
-        if not token:
-            return None
-
-        self.validate_token(token)
-        user = token.user
-        user.api_token = token
-
-        if not token.is_project_restricted:
-            return None
-
-        # Strip privileged roles for this request only. Do not persist these changes.
-        user.admin_permissions_enabled = False
-        user.is_superuser = False
-        user.is_staff = False
-        user.is_system_user = False
-        user.restrict_permissions([Permission.PROJECT_READ] + ([Permission.PROJECT_EDIT_CONTENT] if not token.read_only else []))
-
-        self.update_apitoken_last_used(token)
-        return user, token
 
 
 def forbidden_with_apitoken_auth(request):
@@ -183,11 +161,11 @@ def get_api_token(request_or_user):
     return None
 
 
-def is_project_api_token(request):
-    token = get_api_token(request)
-    return token and token.is_project_restricted
+def is_restricted_api_token(request_or_user):
+    token = get_api_token(request_or_user)
+    return bool(token and token.is_restricted)
 
 
-def is_readonly_project_api_token(request):
-    token = get_api_token(request)
-    return token and token.is_project_restricted and token.read_only
+def is_project_api_token(request_or_user):
+    token = get_api_token(request_or_user)
+    return bool(token and token.is_project_restricted)

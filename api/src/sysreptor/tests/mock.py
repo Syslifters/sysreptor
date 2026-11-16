@@ -480,14 +480,12 @@ def api_client(user=None):
     return client
 
 
-def create_project_api_token(user, projects, **kwargs) -> APIToken:
-    token = APIToken.objects.create(
-        user=user,
-        is_project_restricted=True,
-        **kwargs,
-    )
-    token.projects.set(projects)
-    return token
+def create_api_token(user, **kwargs) -> APIToken:
+    if (projects := kwargs.get('projects')) is not None:
+        kwargs['projects'] = [getattr(p, 'id', p) for p in projects]
+    if (permissions := kwargs.get('permissions')) is not None:
+        kwargs['permissions'] = [getattr(p, 'value', p) for p in permissions]
+    return APIToken.objects.create(user=user, **kwargs)
 
 
 def api_client_with_token(token):

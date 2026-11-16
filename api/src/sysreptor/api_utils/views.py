@@ -28,7 +28,6 @@ from sysreptor.api_utils.serializers import (
 from sysreptor.conf import plugins
 from sysreptor.pentests.models import Language, ProjectMemberRole, ReviewStatus
 from sysreptor.tasks.models import PeriodicTask
-from sysreptor.users.auth import ProjectAPITokenAuthentication
 from sysreptor.users.models import AuthIdentity
 from sysreptor.users.roles import get_all_roles
 from sysreptor.users.serializers import get_oauth
@@ -46,6 +45,7 @@ log = logging.getLogger(__name__)
 
 
 class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
+    allow_restricted_api_token = True
     pagination_class = None
 
     def get_serializer_class(self):
@@ -143,6 +143,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
 class PublicUtilsViewSet(viewsets.GenericViewSet):
     authentication_classes = []
     permission_classes = []
+    allow_restricted_api_token = True
 
     @extend_schema(exclude=True)
     def list(self, *args, **kwargs):
@@ -154,7 +155,7 @@ class PublicUtilsViewSet(viewsets.GenericViewSet):
         }).get(*args, **kwargs)
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
-    @action(detail=False, url_name='settings', url_path='settings', authentication_classes=api_settings.DEFAULT_AUTHENTICATION_CLASSES + [ProjectAPITokenAuthentication])
+    @action(detail=False, url_name='settings', url_path='settings', authentication_classes=api_settings.DEFAULT_AUTHENTICATION_CLASSES)
     def settings_endpoint(self, request, *args, **kwargs):
         languages = [{
             'code': l.value,

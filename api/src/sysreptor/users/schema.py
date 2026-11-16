@@ -8,9 +8,3 @@ class APITokenAuthenticationExtension(OpenApiAuthenticationExtension):
 
     def get_security_definition(self, auto_schema):
         return build_bearer_security_scheme_object(header_name='Authorization', token_prefix='Bearer')  # noqa: S106
-
-
-class ProjectAPITokenAuthenticationExtension(APITokenAuthenticationExtension):
-    target_class = 'sysreptor.users.auth.ProjectAPITokenAuthentication'
-    name = 'Project-restricted API Token'
-

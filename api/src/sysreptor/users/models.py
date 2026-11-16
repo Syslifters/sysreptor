@@ -134,9 +134,8 @@ class APIToken(BaseModel):
     expire_date = models.DateField(null=True, blank=True)
     last_used = models.DateTimeField(null=True, blank=True, editable=False)
     admin_permissions_enabled = models.BooleanField(default=False)
-    is_project_restricted = models.BooleanField(default=False, editable=False)
-    projects = models.ManyToManyField('pentests.PentestProject', related_name='api_tokens', blank=True)
-    read_only = models.BooleanField(default=False)
+    permissions = ArrayField(base_field=models.CharField(max_length=255), null=True, blank=True, default=None)
+    projects = ArrayField(base_field=models.UUIDField(), null=True, blank=True, default=None)
     token_plaintext = None
 
     objects = querysets.APITokenManager()
@@ -144,14 +143,22 @@ class APIToken(BaseModel):
     class Meta(BaseModel.Meta):
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(is_project_restricted=False) | models.Q(admin_permissions_enabled=False),
-                name='apitoken_project_no_admin',
+                condition=(models.Q(admin_permissions_enabled=False) | (models.Q(permissions__isnull=True) & models.Q(projects__isnull=True))),
+                name='apitoken_restricted_no_admin',
             ),
             models.CheckConstraint(
-                condition=models.Q(read_only=False) | models.Q(is_project_restricted=True),
-                name='apitoken_read_only_project',
+                condition=models.Q(projects__isnull=True) | models.Q(permissions__isnull=False),
+                name='apitoken_projects_requires_permissions',
             ),
         ]
+
+    @property
+    def is_project_restricted(self) -> bool:
+        return self.projects is not None
+
+    @property
+    def is_restricted(self) -> bool:
+        return self.permissions is not None or self.projects is not None
 
     def save(self, *args, **kwargs):
         from sysreptor.users.auth import UnsaltedSHA3_256PasswordHasher

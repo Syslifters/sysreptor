@@ -61,9 +61,6 @@ def api_token_license_limit(sender, instance, *args, **kwargs):
     if license.is_professional() or not instance._state.adding:
         return
 
-    if instance.is_project_restricted:
-        raise license.LicenseError('Project-restricted API tokens require a Professional license.')
-
     current_apitoken_count = APIToken.objects \
         .filter(user=instance.user) \
         .only_active() \
@@ -78,5 +75,5 @@ def api_token_license_limit(sender, instance, *args, **kwargs):
 
     # Community edition has no admin enable/disable: only admin tokens are allowed.
     # Forcing True also covers ORM/CLI creates that omit the flag (model default is False).
-    if not instance.admin_permissions_enabled:
+    if not instance.admin_permissions_enabled or instance.is_restricted:
         raise license.LicenseError('Non-admin API tokens are not supported in Community edition.')
