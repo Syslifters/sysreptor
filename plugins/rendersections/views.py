@@ -1,10 +1,11 @@
 from asgiref.sync import sync_to_async
 from django.db.models import Prefetch, aprefetch_related_objects
 from lxml import etree
-from rest_framework import status
+from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from sysreptor.pentests.models import PentestFinding
+from sysreptor.pentests.permissions import ProjectPermissions
 from sysreptor.pentests.rendering.entry import render_pdf, render_pdf_task
 from sysreptor.pentests.views import ProjectSubresourceMixin
 from sysreptor.utils.api import GenericAPIViewAsync
@@ -29,9 +30,14 @@ RELATED_XPATH =   f"//*[({RELATED_SELECTOR})]"
 FILTERING_XPATH = f"//*[({ALWAYS_SELECTOR} or {CHOOSABLE_SELECTOR} or {RELATED_SELECTOR})]"
 
 
+class RenderSectionsPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return ProjectPermissions.has_read_permissions(project=view.get_project(), user=request.user)
+
+
 class RenderSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [RenderSectionsPermissions]
     serializer_class = RenderSectionsSerializer
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES
     throttle_scope = 'pdf'
 
     def filter_element(self, elem, section_ids, include_parent=False):
@@ -144,7 +150,7 @@ class RenderSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
 
 
 class GetSectionsView(ProjectSubresourceMixin, GenericAPIViewAsync):
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [RenderSectionsPermissions]
 
     @sync_to_async()
     def get_choosable_sections(self, html):

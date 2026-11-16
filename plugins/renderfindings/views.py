@@ -1,9 +1,11 @@
 from asgiref.sync import sync_to_async
 from django.db.models import Prefetch, aprefetch_related_objects
 from lxml import etree
+from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 from sysreptor.pentests.models import PentestFinding
+from sysreptor.pentests.permissions import ProjectPermissions
 from sysreptor.pentests.rendering.entry import render_pdf, render_pdf_task
 from sysreptor.pentests.views import ProjectSubresourceMixin
 from sysreptor.utils.api import GenericAPIViewAsync
@@ -11,9 +13,14 @@ from sysreptor.utils.api import GenericAPIViewAsync
 from .serializers import RenderFindingsSerializer
 
 
+class RenderFindingsPermissions(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return ProjectPermissions.has_read_permissions(project=view.get_project(), user=request.user)
+
+
 class RenderFindingsView(ProjectSubresourceMixin, GenericAPIViewAsync):
+    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [RenderFindingsPermissions]
     serializer_class = RenderFindingsSerializer
-    permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES
     throttle_scope = 'pdf'
 
     @sync_to_async()
