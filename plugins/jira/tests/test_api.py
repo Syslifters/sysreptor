@@ -57,11 +57,17 @@ def mock_jira_request(project_pages=None):
                 } for i in range(len(json['issueUpdates']))],
             }
         elif re.match(r'/rest/api/3/issue/[\w-]+/attachments', endpoint):
-            return {}
+            return [{'id': '10001', 'filename': 'image.png'}]
+        elif re.match(r'/rest/api/3/issue/[\w-]+$', endpoint) and kwargs.get('method') == 'PUT':
+            return None
         else:
             raise Exception(f'Unhandled mock endpoint: {endpoint}')
 
-    with mock.patch('sysreptor_plugins.jira.views.jira_request', new=mock_jira_api) as m:
+    async def mock_jira_get_media_id(client, attachment_id):
+        return '12345678-1234-1234-1234-123456789abc'
+
+    with mock.patch('sysreptor_plugins.jira.views.jira_request', new=mock_jira_api) as m, \
+         mock.patch('sysreptor_plugins.jira.views.jira_get_media_id', new=mock_jira_get_media_id):
         yield m
 
 

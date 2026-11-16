@@ -61,10 +61,38 @@ describe('Test markdown to ADF', () => {
     '[Link text](https://example.com)': { type: 'text', text: 'Link text', marks: [{ type: 'link', attrs: { href: 'https://example.com' } }] },
     // Images
     '![Alt text](image.png)': { type: 'text', text: '![Alt text](image.png)' },
-    '![Alt text](https://example.com/image.jpg)': { type: 'text', text: '![Alt text](https://example.com/image.jpg)' },
+    '![Alt text](https://example.com/image.jpg)': [
+      { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: 'https://example.com/image.jpg', alt: 'Alt text' } }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Alt text', marks: [{ type: 'em' }] }] },
+    ],
     '![](image.png)': { type: 'text', text: '![](image.png)' },
     '![Alt](image.png "Title")': { type: 'text', text: '![Alt](image.png "Title")' },
-    'Text with ![inline](/images/name/img.png) image': { type: 'text', text: 'Text with ![inline](/images/name/img.png) image' },
+    '![](/images/name/img.png)': { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png' } }] },
+    '![](/images/name/img.png){width="auto"}\nText after image': [
+      { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png' } }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Text after image' }] },
+    ],
+    'Text with ![inline](/images/name/img.png) image': [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Text with' }] },
+      { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png', alt: 'inline' } }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'inline', marks: [{ type: 'em' }] }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'image' }] },
+    ],
+    '* ![](/images/name/img.png)': { type: 'bulletList', content: [
+      { type: 'listItem', content: [
+        { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png' } }] },
+      ]},
+    ]},
+    '| A |\n|---|\n| ![](/images/name/img.png) |': { type: 'table', content: [
+      { type: 'tableRow', content: [
+        { type: 'tableCell', attrs: {}, content: [{ type: 'paragraph', content: [{ type: 'text', text: 'A' }]}] },
+      ]},
+      { type: 'tableRow', content: [
+        { type: 'tableCell', attrs: {}, content: [
+          { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png' } }] },
+        ]},
+      ]},
+    ]},
     // Lists
     '* Item 1\n* **Item 2**\n* `Item 3`': {
       type: 'bulletList',
