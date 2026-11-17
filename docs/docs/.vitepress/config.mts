@@ -139,6 +139,7 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: 'Getting Started', link: '/python-library/' },
+          { text: 'API Tokens', link: '/python-library/api-tokens' },
           {
             text: 'Tutorial',
             collapsed: true,
