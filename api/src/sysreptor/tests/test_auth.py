@@ -657,10 +657,12 @@ class TestUserPermissionAssignment:
 
     @pytest.mark.parametrize(('username', 'username_target', 'field', 'expected'), [
         *get_test_update_params('regular', ['self', 'other'], protected_fields, False),
-        *get_test_update_params('user_manager', ['self', 'other'], protected_fields - {'is_superuser', 'is_system_user', 'is_active'}, True),
+        *get_test_update_params('user_manager', ['self', 'other'], protected_fields - {'is_superuser', 'is_system_user', 'is_active', *LEGACY_USER_FLAG_ROLES}, True),
+        *get_test_update_params('user_manager', ['self', 'other'], LEGACY_USER_FLAG_ROLES, False),
         *get_test_update_params('user_manager', ['self', 'other', 'superuser'], ['is_superuser', 'is_system_user'], False),
         *get_test_update_params('user_manager', ['superuser'], protected_fields, False),
-        *get_test_update_params('superuser', ['self', 'other', 'user_manager'], protected_fields - {'is_active', 'is_system_user'}, True),
+        *get_test_update_params('superuser', ['self', 'other', 'user_manager'], protected_fields - {'is_active', 'is_system_user', *LEGACY_USER_FLAG_ROLES}, True),
+        *get_test_update_params('superuser', ['self', 'other', 'user_manager'], LEGACY_USER_FLAG_ROLES, False),
     ])
     def test_update_field(self, username, username_target, field, expected):
         user_req = PentestUser.objects.get(username=username)

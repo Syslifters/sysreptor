@@ -157,41 +157,39 @@ class TestLegacyUserFlags:
         assert res.data['is_guest'] is False
 
     @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
-    def test_patch_flag_adds_role(self):
+    def test_patch_flag_ignored(self):
         manager = create_user(roles=['user_manager'])
         target = create_user(roles=['regular_user'])
         res = api_client(manager).patch(reverse('pentestuser-detail', kwargs={'pk': target.pk}), data={'is_designer': True})
         assert res.status_code == 200, res.data
-        assert res.data['is_designer'] is True
-        assert set(res.data['roles']) == {'regular_user', 'designer'}
+        assert res.data['is_designer'] is False
+        assert res.data['roles'] == ['regular_user']
         target.refresh_from_db()
-        assert set(target.roles) == {'regular_user', 'designer'}
+        assert target.roles == ['regular_user']
 
     @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
-    def test_patch_guest_flag(self):
+    def test_patch_guest_flag_ignored(self):
         manager = create_user(roles=['user_manager'])
         target = create_user(roles=['regular_user'])
         res = api_client(manager).patch(reverse('pentestuser-detail', kwargs={'pk': target.pk}), data={'is_guest': True})
         assert res.status_code == 200, res.data
-        assert res.data['is_guest'] is True
-        assert res.data['roles'] == ['guest']
-
-        res = api_client(manager).patch(reverse('pentestuser-detail', kwargs={'pk': target.pk}), data={'is_guest': False})
-        assert res.status_code == 200, res.data
         assert res.data['is_guest'] is False
         assert res.data['roles'] == ['regular_user']
-
-    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
-    def test_roles_and_flags_exclusive(self):
-        manager = create_user(roles=['user_manager'])
-        target = create_user(roles=['regular_user'])
-        res = api_client(manager).patch(
-            reverse('pentestuser-detail', kwargs={'pk': target.pk}),
-            data={'roles': ['regular_user', 'template_editor'], 'is_designer': True},
-        )
-        assert res.status_code == 400
         target.refresh_from_db()
         assert target.roles == ['regular_user']
+
+    @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES, DEFAULT_USER_ROLES=['regular_user'])
+    def test_roles_and_flags_exclusive_on_create(self):
+        manager = create_user(roles=['user_manager'])
+        res = api_client(manager).post(reverse('pentestuser-list'), data={
+            'username': 'flag-user',
+            'email': 'flag-user@example.com',
+            'password': 'Sup3rS3cret!Password',
+            'roles': ['regular_user', 'template_editor'],
+            'is_designer': True,
+        })
+        assert res.status_code == 400
+        assert not PentestUser.objects.filter(username='flag-user').exists()
 
     @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES, DEFAULT_USER_ROLES=['regular_user'])
     def test_create_user_with_flags(self):
@@ -218,7 +216,7 @@ class TestLegacyUserFlags:
         assert 'designer' not in user.roles
 
     @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
-    def test_user_manager_can_patch_flags(self):
+    def test_user_manager_patch_flags_ignored(self):
         manager = create_user(roles=['user_manager'])
         target = create_user(roles=['regular_user'])
         res = api_client(manager).patch(
@@ -226,7 +224,11 @@ class TestLegacyUserFlags:
             data={'is_project_admin': True, 'is_global_archiver': True},
         )
         assert res.status_code == 200, res.data
-        assert set(res.data['roles']) == {'regular_user', 'project_admin', 'global_archiver'}
+        assert res.data['roles'] == ['regular_user']
+        assert res.data['is_project_admin'] is False
+        assert res.data['is_global_archiver'] is False
+        target.refresh_from_db()
+        assert target.roles == ['regular_user']
 
 
 @pytest.mark.django_db()
