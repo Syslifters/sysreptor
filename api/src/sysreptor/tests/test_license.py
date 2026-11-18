@@ -22,6 +22,7 @@ from sysreptor.tasks.models import LicenseActivationInfo
 from sysreptor.tasks.tasks import activate_license
 from sysreptor.tests.mock import (
     api_client,
+    api_client_with_token,
     create_project,
     create_project_type,
     create_public_key,
@@ -159,7 +160,7 @@ class TestCommunityLicenseRestrictions:
 
     def test_system_users_api_access_allowed(self):
         api_token = APIToken.objects.create(user=self.user_system, admin_permissions_enabled=True)
-        assert api_client().get(reverse('utils-license'), HTTP_AUTHORIZATION='Bearer ' + api_token.token_formatted).status_code == 200
+        assert api_client_with_token(api_token).get(reverse('utils-license')).status_code == 200
 
     def test_ignore_must_change_password(self):
         update(self.user, must_change_password=True)
@@ -240,7 +241,7 @@ class TestCommunityLicenseRestrictions:
         res1 = self.client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data={'name': 'test', 'admin_permissions_enabled': True})
         assert res1.status_code == 201
         assert res1.data['admin_permissions_enabled'] is True
-        res_token = api_client().get(reverse('pentestuser-detail', kwargs={'pk': 'self'}), HTTP_AUTHORIZATION='Bearer ' + res1.data['token'])
+        res_token = api_client_with_token(res1.data['token']).get(reverse('pentestuser-detail', kwargs={'pk': 'self'}))
         assert res_token.status_code == 200
 
         with pytest.raises(license.LicenseLimitExceededError):

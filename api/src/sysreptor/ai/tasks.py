@@ -91,6 +91,7 @@ async def run_agent(
     resume: dict | None = None,
     context: dict | None = None,
     admin_permissions_enabled: bool = False,
+    permissions_restriction: list[str] | None = None,
 ):
     """
     Execute an agent run in the background, publishing events via channel layer.
@@ -129,4 +130,5 @@ async def run_agent(
         input_data=input_data,
         context=context,
         admin_permissions_enabled=admin_permissions_enabled,
+        permissions_restriction=permissions_restriction,
     ).run()

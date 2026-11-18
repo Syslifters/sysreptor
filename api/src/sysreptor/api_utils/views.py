@@ -45,6 +45,7 @@ log = logging.getLogger(__name__)
 
 
 class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
+    allow_restricted_api_token = True
     pagination_class = None
 
     def get_serializer_class(self):
@@ -142,6 +143,7 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
 class PublicUtilsViewSet(viewsets.GenericViewSet):
     authentication_classes = []
     permission_classes = []
+    allow_restricted_api_token = True
 
     @extend_schema(exclude=True)
     def list(self, *args, **kwargs):

@@ -11,6 +11,19 @@
           <v-list-item-title>
             {{ apiToken.name }}
             <v-chip
+              v-if="apiToken.permissions != null"
+              size="small"
+              class="ml-3"
+            >
+              Restricted permissions
+            </v-chip>
+            <template v-if="apiToken.projects != null">
+              <v-chip v-for="project in apiToken.projects" :key="project.id" size="small" class="ml-1">
+                {{ project.name }}
+              </v-chip>
+              <v-chip v-if="apiToken.projects.length === 0" size="small" class="ml-1">No projects available</v-chip>
+            </template>
+            <v-chip
               v-if="apiToken.admin_permissions_enabled"
               size="small"
               class="ml-3"

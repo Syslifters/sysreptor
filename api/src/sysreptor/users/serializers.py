@@ -2,6 +2,7 @@ import functools
 import json
 import logging
 from collections import OrderedDict
+from types import SimpleNamespace
 from uuid import UUID
 
 from asgiref.sync import async_to_sync
@@ -18,7 +19,8 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
-from sysreptor.users.roles import Permission, get_all_roles
+from sysreptor.users.roles import Permission, expand_permissions, get_all_roles, get_role_permissions
+from sysreptor.utils import license
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.mail import send_mail
 from sysreptor.utils.serializers import OptionalPrimaryKeyRelatedField
@@ -445,10 +447,111 @@ class AuthIdentitySerializer(serializers.ModelSerializer):
         return super().create(validated_data | {'user': self.context['user']})
 
 
+class APITokenProjectSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+
+
+def attach_api_token_resolved_projects(tokens):
+    """
+    Resolve token.projects (uuid[]) to {id, name} for all linked projects.
+    Sets token.resolved_projects in-memory for APITokenProjectsField / APITokenSerializer.
+    """
+    from sysreptor.pentests.models import PentestProject
+
+    tokens = list(tokens)
+    project_ids = {pid for t in tokens if t.projects for pid in t.projects}
+    by_id = {
+        p.id: p
+        for p in (
+            PentestProject.objects.filter(id__in=project_ids).only('id', 'name')
+            if project_ids else []
+        )
+    }
+    for token in tokens:
+        if token.projects is None:
+            token.resolved_projects = None
+        else:
+            token.resolved_projects = [
+                by_id.get(pid) or SimpleNamespace(id=pid, name='[unknown]')
+                for pid in token.projects
+            ]
+    return tokens
+
+
+@extend_schema_field(APITokenProjectSerializer(many=True, allow_null=True))
+class APITokenProjectsField(serializers.Field):
+    default_error_messages = {
+        'not_a_list': 'Expected a list of items but got type "{input_type}".',
+        'invalid_uuid': '"{value}" is not a valid UUID.',
+        'not_member': 'You must be a direct member of every selected project.',
+    }
+
+    def get_attribute(self, instance):
+        # Pass the token (instead of the raw project IDs) to to_representation,
+        # because the bulk-resolved projects are attached to the token instance (also in list views).
+        if super().get_attribute(instance) is None:
+            return None
+        return instance
+
+    def to_representation(self, value):
+        if value is None:
+            return None
+        if getattr(value, 'resolved_projects', None) is None:
+            attach_api_token_resolved_projects([value])
+        return [{'id': str(p.id), 'name': p.name} for p in value.resolved_projects]
+
+    def to_internal_value(self, data):
+        from sysreptor.pentests.models import PentestProject
+
+        if data is None:
+            return None
+        if not isinstance(data, list):
+            self.fail('not_a_list', input_type=type(data).__name__)
+
+        ids = []
+        for item in data:
+            if isinstance(item, dict):
+                item = item.get('id')
+            try:
+                ids.append(UUID(str(item)))
+            except (TypeError, ValueError):
+                self.fail('invalid_uuid', value=item)
+        ids = list(dict.fromkeys(ids))  # dedupe, preserve order
+
+        # Direct membership only — admins / project admins are not exempt.
+        user = self.context['request'].user
+        member_ids = set(
+            PentestProject.objects
+            .only_permitted(user)
+            .filter(members__user=user, id__in=ids)
+            .values_list('id', flat=True),
+        )
+        if set(ids) - member_ids:
+            self.fail('not_member')
+        return ids
+
+
+class APITokenListSerializer(serializers.ListSerializer):
+    def to_representation(self, data):
+        return super().to_representation(attach_api_token_resolved_projects(data))
+
+
 class APITokenSerializer(serializers.ModelSerializer):
+    projects = APITokenProjectsField(allow_null=True, required=False)
+
     class Meta:
         model = APIToken
-        fields = ['id', 'created', 'updated', 'name', 'expire_date', 'last_used', 'admin_permissions_enabled']
+        fields = [
+            'id', 'created', 'updated', 'name', 'expire_date', 'last_used', 'admin_permissions_enabled',
+            'permissions', 'projects',
+        ]
+        list_serializer_class = APITokenListSerializer
+
+    def to_representation(self, instance):
+        if not hasattr(instance, 'resolved_projects'):
+            attach_api_token_resolved_projects([instance])
+        return super().to_representation(instance)
 
     def validate_expire_date(self, value):
         if value and value < timezone.now().date():
@@ -467,6 +570,53 @@ class APITokenCreateSerializer(APITokenSerializer):
             raise serializers.ValidationError('Cannot create API tokens with admin permissions enabled.')
         return value
 
+    def validate_permissions(self, value):
+        if value is None:
+            return None
+        if not isinstance(value, list):
+            raise serializers.ValidationError('Expected a list of permissions or null.')
+        unknown = [p for p in value if not expand_permissions([p])]
+        if unknown:
+            raise serializers.ValidationError(f'Unknown permissions: {", ".join(unknown)}')
+        expanded = expand_permissions(value)
+        # Compare against role permissions only. Ignore elevated admin permissions.
+        user = self.context['request'].user
+        user_perms = set(user.effective_permissions).intersection(get_role_permissions(user.roles))
+        missing = {p.value for p in expanded} - user_perms
+        if missing:
+            raise serializers.ValidationError(f'Permissions exceed the current user permissions: {", ".join(sorted(missing))}')
+        return [p.value for p in expanded]
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        permissions = attrs.get('permissions', None)
+        projects = attrs.get('projects', None)
+
+        if attrs.get('admin_permissions_enabled') and (permissions is not None or projects is not None):
+            raise serializers.ValidationError({'admin_permissions_enabled': 'Restricted tokens cannot enable admin permissions.'})
+
+        if permissions is not None or projects is not None:
+            if not license.is_professional():
+                raise license.LicenseError('Restricted API tokens require a Professional license.')
+
+        if projects is not None:
+            perm_set = expand_permissions(permissions or [])
+            if Permission.PROJECT_READ not in perm_set:
+                raise serializers.ValidationError({
+                    'permissions': f'Project-restricted tokens require {Permission.PROJECT_READ}.',
+                })
+            if Permission.ADMIN_ACCESS_ALL_PROJECTS in perm_set:
+                raise serializers.ValidationError({
+                    'permissions': f'{Permission.ADMIN_ACCESS_ALL_PROJECTS} is not allowed with a project allow-list.',
+                })
+
+        return attrs | {
+            'permissions': permissions,
+            'projects': projects,
+        }
+
     def create(self, validated_data):
-        return super().create(validated_data | {'user': self.context['user']})
+        return super().create(validated_data | {
+            'user': self.context['user'],
+        })
 

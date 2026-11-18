@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.management import call_command
-from django.test import override_settings
+from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -20,15 +20,21 @@ from django.utils.crypto import get_random_string
 from sysreptor.management.commands import createapitoken
 from sysreptor.tests.mock import (
     api_client,
+    api_client_with_token,
+    create_api_token,
     create_project,
+    create_project_type,
     create_session,
+    create_template,
     create_user,
     mock_time,
     override_configuration,
     update,
 )
 from sysreptor.tests.utils import assertKeysEqual
+from sysreptor.users.auth import APITokenAuthentication
 from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, MFAMethodType, PentestUser, Session
+from sysreptor.users.roles import Permission
 from sysreptor.users.serializers import LEGACY_USER_FLAG_ROLES, PentestUserDetailSerializer
 from sysreptor.utils.utils import omit_keys
 
@@ -372,7 +378,7 @@ class TestAPITokenAuth:
         self.client = api_client()
 
     def assert_api_access(self, url, expected, api_token=None):
-        res = self.client.get(url, HTTP_AUTHORIZATION='Bearer ' + (api_token or self.api_token.token_formatted))
+        res = api_client_with_token(api_token or self.api_token).get(url)
         assert (res.status_code == 200) == expected
         return res
 
@@ -410,7 +416,7 @@ class TestAPITokenAuth:
 
 
 @pytest.mark.django_db()
-class TestAPITokenCreateAdminPermissions:
+class TestAPITokenCreate:
     @pytest.fixture(autouse=True)
     def setUp(self):
         self.password = get_random_string(32)
@@ -458,6 +464,237 @@ class TestAPITokenCreateAdminPermissions:
         })
         assert res.status_code == 400
         assert 'admin_permissions_enabled' in res.data
+
+    def test_prevent_update(self):
+        token = APIToken.objects.create(user=self.user)
+        res = self.client.patch(reverse('apitoken-detail', kwargs={'pentestuser_pk': 'self', 'pk': token.id}), data={
+            'name': 'Test Token',
+            'admin_permissions_enabled': True,
+        })
+        assert res.status_code == 405
+
+
+@pytest.mark.django_db()
+class TestRestrictedApiToken:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user(
+            mfa=True, apitoken=True, public_key=True,
+            roles=['regular_user', 'template_editor', 'designer', 'project_admin'],
+        )
+        AuthIdentity.objects.create(user=self.user, provider='dummy', identifier='user@example.com')
+        self.project = create_project(members=[self.user])
+        self.template = create_template()
+        self.project_type = create_project_type()
+        self.token = create_api_token(
+            self.user,
+            projects=[self.project],
+            permissions=[Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT, Permission.PROJECT_EXPORT],
+        )
+        self.client_token = api_client_with_token(self.token)
+
+    def test_allowed_project_access_and_read_only_write_denied(self):
+        assert self.client_token.get(reverse('pentestproject-detail', kwargs={'pk': self.project.id})).status_code == 200
+        finding = self.project.findings.first()
+        finding_url = reverse('finding-detail', kwargs={'project_pk': self.project.id, 'id': finding.finding_id})
+        assert self.client_token.patch(finding_url, data={'data': {'title': 'changed'}}).status_code == 200
+
+        ro_client = api_client_with_token(create_api_token(self.user, projects=[self.project], permissions=[Permission.PROJECT_READ]))
+        assert ro_client.patch(finding_url, data={'data': {'title': 'changed'}}).status_code == 403
+
+    def test_cross_project_access_denied(self):
+        other = create_project(members=[self.user])
+        create_project(members=[])
+
+        res_projects = self.client_token.get(reverse('pentestproject-list'))
+        assert [p['id'] for p in res_projects.data['results']] == [str(self.project.id)]
+        assert self.client_token.get(reverse('finding-detail', kwargs={
+            'project_pk': other.id,
+            'id': other.findings.first().finding_id,
+        })).status_code == 404
+        assert self.client_token.post(
+            reverse('pentestproject-export-bulk'),
+            {'ids': [str(self.project.id), str(other.id)]},
+        ).status_code in (400, 403)
+
+    def test_member_removed_from_project(self):
+        self.project.members.all().delete()
+        assert self.client_token.get(reverse('pentestproject-detail', kwargs={'pk': self.project.id})).status_code == 404
+
+    def test_admin_permissions_dropped_from_user(self):
+        update(self.user, roles=['regular_user', 'project_admin'], is_superuser=True)
+        self.user.admin_permissions_enabled = True
+        self.project.members.all().delete()
+        assert self.client_token.get(reverse('pentestproject-detail', kwargs={'pk': self.project.id})).status_code == 404
+
+    def test_delete_last_project_does_not_unrestrict(self):
+        self.project.delete()
+        self.token.refresh_from_db()
+        assert self.token.projects  # stale UUID remains
+        p = create_project(members=[self.user])
+        assert self.client_token.get(reverse('pentestproject-detail', kwargs={'pk': p.id})).status_code == 404
+
+    def test_empty_projects_list_sees_nothing(self):
+        client = api_client_with_token(create_api_token(self.user, projects=[], permissions=[Permission.PROJECT_READ]))
+        assert client.get(reverse('pentestproject-list')).data['results'] == []
+
+    @override_configuration(ENABLE_PRIVATE_DESIGNS=True)
+    def test_personal_and_private_resources_denied(self):
+        pt_private = create_project_type(linked_user=self.user)
+        res = self.client_token.get(reverse('projecttype-list'))
+        assert str(pt_private.id) not in [d['id'] for d in res.data['results']]
+        assert self.client_token.get(reverse('projecttype-detail', kwargs={'pk': pt_private.id})).status_code == 404
+        assert self.client_token.post(reverse('projecttype-list'), data={
+            'name': 'Private via token',
+            'scope': 'private',
+            'language': 'en-US',
+        }).status_code in (400, 403)
+
+        self_kwargs = {'pentestuser_pk': 'self'}
+        assert self.client_token.get(reverse('usernotebookpage-list', kwargs=self_kwargs)).status_code == 403
+        assert self.client_token.get(reverse('notification-list', kwargs=self_kwargs)).status_code == 403
+        assert self.client_token.get(reverse('mfamethod-list', kwargs=self_kwargs)).status_code == 403
+        assert self.client_token.get(reverse('apitoken-list', kwargs=self_kwargs)).status_code == 403
+        assert self.client_token.get(reverse('authidentity-list', kwargs=self_kwargs)).status_code == 403
+        assert self.client_token.get(reverse('userpublickey-list', kwargs=self_kwargs)).status_code == 403
+
+    def test_self_read_allowed_write_denied(self):
+        assert self.client_token.get(reverse('pentestuser-detail', kwargs={'pk': 'self'})).status_code == 200
+        assert self.client_token.patch(reverse('pentestuser-detail', kwargs={'pk': 'self'}), data={'first_name': 'X'}).status_code == 403
+
+    @pytest.mark.parametrize(('permissions', 'projects', 'expectations'), [
+        ([Permission.PROJECT_READ], 'member', {'project_detail': 200, 'finding_write': 403, 'project_export': 403, 'template_detail': 403, 'design_detail': 404}),
+        ([Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT, Permission.PROJECT_EXPORT], 'member', {'project_detail': 200, 'finding_write': 200, 'project_export': 200, 'template_detail': 403, 'design_detail': 404}),
+        ([Permission.PROJECT_READ, Permission.PROJECT_UPDATE_SETTINGS, Permission.DESIGN_GLOBAL_READ], 'member', {'project_detail': 200, 'finding_write': 403, 'project_settings': 200, 'template_detail': 403, 'design_detail': 200}),
+        ([Permission.TEMPLATE_READ], None, {'project_detail': 403, 'project_list_empty': True, 'template_detail': 200, 'design_detail': 404}),
+        ([Permission.TEMPLATE_READ, Permission.TEMPLATE_EDIT, Permission.DESIGN_GLOBAL_READ], None, {'project_detail': 403, 'template_detail': 200, 'template_write': 200, 'design_detail': 200}),
+        ([], None, {'project_detail': 403, 'project_list_empty': True, 'template_detail': 403, 'template_list_empty': True, 'design_detail': 404, 'self_detail': 200}),
+    ])
+    def test_permission_allowlist(self, permissions, projects, expectations):
+        client = api_client_with_token(create_api_token(
+            self.user,
+            permissions=permissions,
+            projects=[self.project] if projects is not None else None,
+        ))
+        finding = self.project.findings.first()
+
+        if 'project_detail' in expectations:
+            assert client.get(reverse('pentestproject-detail', kwargs={'pk': self.project.id})).status_code == expectations['project_detail']
+        if expectations.get('project_list_empty'):
+            assert client.get(reverse('pentestproject-list')).data['results'] == []
+        if 'finding_write' in expectations:
+            assert client.patch(
+                reverse('finding-detail', kwargs={'project_pk': self.project.id, 'id': finding.finding_id}),
+                data={'data': {'title': 'changed'}},
+            ).status_code == expectations['finding_write']
+        if 'project_export' in expectations:
+            assert client.post(reverse('pentestproject-export', kwargs={'pk': self.project.id})).status_code == expectations['project_export']
+        if 'project_settings' in expectations:
+            assert client.patch(
+                reverse('pentestproject-detail', kwargs={'pk': self.project.id}),
+                data={'name': 'Renamed'},
+            ).status_code == expectations['project_settings']
+        if 'template_detail' in expectations:
+            assert client.get(reverse('findingtemplate-detail', kwargs={'pk': self.template.id})).status_code == expectations['template_detail']
+        if expectations.get('template_list_empty'):
+            assert client.get(reverse('findingtemplate-list')).data['results'] == []
+        if 'template_write' in expectations:
+            assert client.patch(
+                reverse('findingtemplate-detail', kwargs={'pk': self.template.id}),
+                data=client.get(reverse('findingtemplate-detail', kwargs={'pk': self.template.id})).data,
+            ).status_code == expectations['template_write']
+        if 'design_detail' in expectations:
+            assert client.get(reverse('projecttype-detail', kwargs={'pk': self.project_type.id})).status_code == expectations['design_detail']
+        if 'self_detail' in expectations:
+            assert client.get(reverse('pentestuser-detail', kwargs={'pk': 'self'})).status_code == expectations['self_detail']
+
+    def _authenticate_restricted_token(self, token):
+        request = RequestFactory().get('/')
+        request.META['HTTP_AUTHORIZATION'] = f'Bearer {token.token_formatted}'
+        class _View:
+            allow_restricted_api_token = True
+        request.parser_context = {'view': _View()}
+        user, _ = APITokenAuthentication().authenticate(request)
+        return user
+
+    def test_admin_permissions_restricted(self):
+        update(self.user, is_superuser=True, admin_permissions_enabled=True, roles=['regular_user', 'project_admin'])
+        token = create_api_token(
+            self.user,
+            projects=[self.project],
+            permissions=[Permission.PROJECT_READ, Permission.ADMIN_ACCESS_ALL_PROJECTS],
+        )
+        user = self._authenticate_restricted_token(token)
+        assert not user.is_admin
+        assert user.is_superuser
+        assert set(user.effective_permissions) == {Permission.PROJECT_READ}
+        assert not user.has_permission(Permission.ADMIN_ACCESS_ALL_PROJECTS)
+
+    def test_permissions_cannot_exceed_user_roles(self):
+        update(self.user, roles=['regular_user'])
+        token = create_api_token(
+            self.user,
+            permissions=[
+                Permission.PROJECT_READ,
+                Permission.TEMPLATE_EDIT,  # requires template_editor
+                Permission.DESIGN_GLOBAL_EDIT,  # requires designer
+                Permission.USER_EDIT,  # requires user_manager
+            ],
+        )
+        user = self._authenticate_restricted_token(token)
+        assert set(user.effective_permissions) == {Permission.PROJECT_READ}
+        assert not user.has_permission(Permission.TEMPLATE_EDIT)
+        assert not user.has_permission(Permission.DESIGN_GLOBAL_EDIT)
+        assert not user.has_permission(Permission.USER_EDIT)
+
+    @pytest.mark.parametrize(('expected', 'data'), [
+        (True, {}),
+        (True, {'permissions': None, 'projects': None}),
+        (True, {'permissions': [Permission.PROJECT_READ], 'projects': None}),
+        (True, {'permissions': [], 'projects': None}),
+        (True, {'admin_permissions_enabled': True}),
+        (False, {'projects': [], 'permissions': None}),  # projects without permissions
+        (False, {'projects': ['member']}),  # omitted permissions — no API default
+        (True, {'projects': [], 'permissions': [Permission.PROJECT_READ]}),
+        (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_EXPORT]}),
+        (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT]}),
+        (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_CREATE]}),
+        (False, {'projects': ['other'], 'permissions': [Permission.PROJECT_READ]}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ], 'admin_permissions_enabled': True}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_CREATE]}),  # missing project.read
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_EXPORT]}),  # missing project.read
+        (False, {'projects': ['member'], 'permissions': [Permission.ADMIN_ACCESS_ALL_PROJECTS]}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.ADMIN_ACCESS_ALL_PROJECTS]}),
+    ])
+    def test_create_project_token_validation(self, expected, data):
+        projects = {
+            'member': create_project(members=[self.user]),
+            'other': create_project(members=[]),
+        }
+        update(self.user, is_superuser=True, admin_permissions_enabled=True)
+        client = api_client(self.user)
+        session = client.session
+        session['authentication_info'] = {
+            'login_time': timezone.now().isoformat(),
+            'reauth_time': timezone.now().isoformat(),
+        }
+        session.save()
+        body = {
+            'name': 'test',
+            **{k: v for k, v in data.items() if k not in ('projects', 'permissions')},
+        }
+        if 'projects' in data:
+            body['projects'] = (
+                None if data['projects'] is None
+                else [{'id': str(projects[p].id)} for p in data['projects']]
+            )
+        if 'permissions' in data:
+            body['permissions'] = (
+                None if data['permissions'] is None
+                else [getattr(p, 'value', p) for p in data['permissions']]
+            )
+        res = client.post(reverse('apitoken-list', kwargs={'pentestuser_pk': 'self'}), data=body)
+        assert res.status_code == (201 if expected else 400), res.data
 
 
 @pytest.mark.django_db(transaction=True)

@@ -92,6 +92,7 @@ class UserSubresourceViewSetMixin(views.APIView):
 
 @extend_schema(parameters=[OpenApiParameter(name='id', type=UUID, location=OpenApiParameter.PATH)])
 class PentestUserViewSet(viewsets.ModelViewSet):
+    allow_restricted_api_token = True
     permission_classes = api_settings.DEFAULT_PERMISSION_CLASSES + [UserViewSetPermissions]
     filter_backends = [filters.SearchFilter, DjangoFilterBackend, filters.OrderingFilter]
     search_fields = ['username', 'email', 'first_name', 'last_name']

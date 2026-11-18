@@ -6,6 +6,7 @@
 * Breaking change: replaced user permission flags (`is_guest`, `is_designer`, `is_template_editor`, `is_user_manager`, `is_project_admin`, `is_global_archiver`) with `roles` and `effective_permissions` in the user API
 * Removed `GUEST_USERS_CAN_*` and `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` settings (migrated to roles)
 * Restrict template and design access via permissions
+* Restrict API token permission and projects (https://docs.sysreptor.com/python-library/api-tokens)
 * Fix design default notes not saved after changes
 * UI: Fix note title scrolling on overflow
 

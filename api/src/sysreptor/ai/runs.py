@@ -232,6 +232,7 @@ class AgentRunWorker:
         input_data: Any,
         context: dict | None = None,
         admin_permissions_enabled: bool = False,
+        permissions_restriction: list[str] | None = None,
     ):
         self.thread = thread
         self.run_id = thread.run_id
@@ -240,12 +241,18 @@ class AgentRunWorker:
         self.input_data = input_data
         self.context = context or {}
         self.admin_permissions_enabled = admin_permissions_enabled
-        self.thread.user.admin_permissions_enabled = admin_permissions_enabled
+        self.permissions_restriction = permissions_restriction
+        self._apply_user_permissions(self.thread.user)
         self.pending = PendingEventBuffer()
         self.lock = asyncio.Lock()
         self.result: dict = {'status': AgentRunStatus.COMPLETED}
         self._agent_task: asyncio.Task | None = None
         self.channel_layer = get_channel_layer()
+
+    def _apply_user_permissions(self, user) -> None:
+        user.admin_permissions_enabled = self.admin_permissions_enabled
+        if self.permissions_restriction is not None:
+            user.restrict_permissions(self.permissions_restriction)
 
     async def run(self) -> None:
         control_task = asyncio.create_task(self.control_loop())
@@ -323,7 +330,7 @@ class AgentRunWorker:
         if not user:
             return False
 
-        user.admin_permissions_enabled = self.admin_permissions_enabled
+        self._apply_user_permissions(user)
         self.thread.user = user
 
         current = ChatThread.objects \

@@ -12,6 +12,8 @@ reptor allows you to integrate your Python applications with SysReptor.
 **GitHub:** <https://github.com/Syslifters/reptor/>  
 **PyPi:** <https://pypi.org/project/reptor/>
 
+See [API tokens](./api-tokens.md) for authentication.
+
 ## Prerequisites
 
 - Python 3.9-3.12

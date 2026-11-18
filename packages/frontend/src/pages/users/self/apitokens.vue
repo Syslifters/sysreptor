@@ -37,6 +37,19 @@
             <v-list-item-title>
               {{ apiToken.name }}
               <v-chip
+                v-if="apiToken.permissions != null"
+                size="small"
+                class="ml-3"
+              >
+                Restricted permissions
+              </v-chip>
+              <template v-if="apiToken.projects != null">
+                <v-chip v-for="project in apiToken.projects" :key="project.id" size="small" class="ml-1">
+                  {{ project.name }}
+                </v-chip>
+                <v-chip v-if="apiToken.projects.length === 0" size="small" class="ml-1">No projects available</v-chip>
+              </template>
+              <v-chip
                 v-if="apiToken.admin_permissions_enabled"
                 size="small"
                 class="ml-3"
@@ -79,23 +92,43 @@
                       :error-messages="setupWizard.errors?.expire_date"
                       :min-date="formatISO9075(new Date(), { representation: 'date' })"
                       :disabled="!apiSettings.isProfessionalLicense"
+                      class="mb-4"
                     >
                       <template #label><pro-info>Expire Date (optional)</pro-info></template>
                     </s-date-picker>
 
-                    <s-checkbox
-                      v-if="auth.permissions.value.superuser"
-                      v-model="setupWizard.form.admin_permissions_enabled"
-                      hint="Grant this API token full admin permissions. Requires enabled admin permissions."
+                    <s-select
+                      v-model="permissionLevel"
+                      :items="permissionLevelItems"
+                      item-props
+                      :hint="permissionLevelItems.find(i => i.value === permissionLevel)?.subtitle"
+                      persistent-hint
                       :error-messages="setupWizard.errors?.admin_permissions_enabled"
-                      :disabled="!auth.permissions.value.admin || !apiSettings.isProfessionalLicense"
-                      density="compact"
-                      class="mt-2"
+                      class="mb-4"
                     >
-                      <template #label>
-                        <pro-info>Enable admin permissions</pro-info>
-                      </template>
-                    </s-checkbox>
+                      <template #label><pro-info>Permissions</pro-info></template>
+                    </s-select>
+                    <div v-if="permissionLevel === PermissionLevel.RESTRICTED" class="mb-2">
+                      <s-autocomplete
+                        v-model="customPermissions"
+                        :items="availablePermissions"
+                        label="Allowed permissions"
+                        hint="Select at least one permission"
+                        persistent-hint
+                        multiple
+                        chips
+                        closable-chips
+                        :error-messages="setupWizard.errors?.permissions"
+                        class="mb-4"
+                      />
+                      <s-project-selection
+                        v-model="selectedProjects"
+                        label="Restrict to projects (optional)"
+                        :query-filters="{ member: auth.user.value!.username }"
+                        :error-messages="setupWizard.errors?.projects"
+                        hint="Leave empty for all projects you can access. Requires project.read permission."
+                      />
+                    </div>
 
                     <v-alert v-if="setupWizard.errors?.detail" color="error" class="mt-4">
                       {{ setupWizard.errors.detail }}
@@ -175,41 +208,109 @@ enum SetupWizardStep {
   TOKEN = 'token',
 }
 
+enum PermissionLevel {
+  ADMIN = 'admin',
+  USER = 'user',
+  RESTRICTED = 'restricted',
+}
+
 const reauthDialogVisible = ref(false);
+const permissionLevel = ref<PermissionLevel>(PermissionLevel.USER);
+const selectedProjects = ref<{ id: string; name: string }[]>([]);
+const customPermissions = ref<string[]>([]);
+
+const availablePermissions = computed(() => {
+  // Use user's role permissions only.
+  // user.effective_permissions would include all permissions for admins 
+  // which cannot be used for restricted tokens.
+  const roleIds = new Set(auth.user.value?.roles || []);
+  const permissions = (apiSettings.settings?.permissions.roles || [])
+    .filter(role => roleIds.has(role.id))
+    .flatMap(role => role.permissions);
+  return [...new Set(permissions)].sort();
+});
+
+const permissionLevelItems = computed(() => {
+  const isPro = apiSettings.isProfessionalLicense;
+  const items: { value: PermissionLevel; title: string; subtitle: string; disabled: boolean }[] = [];
+  if (auth.permissions.value.superuser) {
+    const adminEnabled = auth.permissions.value.admin;
+    items.push({
+      value: PermissionLevel.ADMIN,
+      title: 'Admin permissions',
+      subtitle: adminEnabled
+        ? 'Token has full admin permissions.'
+        : 'Enable admin permissions in your session to create an admin token.',
+      disabled: !adminEnabled,
+    });
+  }
+  items.push(
+    {
+      value: PermissionLevel.USER,
+      title: 'User permissions',
+      subtitle: 'Token uses your current permissions and project memberships.',
+      disabled: !isPro,
+    },
+    {
+      value: PermissionLevel.RESTRICTED,
+      title: 'Restricted permissions',
+      subtitle: 'Limit this token to selected permissions and optionally projects.',
+      disabled: !isPro,
+    },
+  );
+  return items;
+});
+
 const setupWizard = ref({
   visible: false,
   step: SetupWizardStep.INFO,
-  form: {
-    name: '',
-    expire_date: null as string|null,
-    admin_permissions_enabled: false,
-  },
   errors: null as any|null,
   actionInProgress: false,
   newApiToken: null as ApiToken|null,
+  form: {
+    name: '',
+    expire_date: null as string|null,
+  },
 });
 
 function openSetupWizard() {
+  permissionLevel.value = apiSettings.isProfessionalLicense ? PermissionLevel.USER : PermissionLevel.ADMIN;
+  selectedProjects.value = [];
+  customPermissions.value = [];
   setupWizard.value = {
     visible: true,
     step: SetupWizardStep.INFO,
-    form: {
-      name: 'API Token',
-      expire_date: apiSettings.isProfessionalLicense ? formatISO9075(addMonths(new Date(), 3), { representation: 'date' })  : null,
-      // Community edition has no admin enable/disable: tokens always have admin permissions.
-      admin_permissions_enabled: apiSettings.isProfessionalLicense ? false : true,
-    },
     errors: null,
     actionInProgress: false,
-    newApiToken: null
+    newApiToken: null,
+    form: {
+      name: 'API Token',
+      expire_date: apiSettings.isProfessionalLicense ? formatISO9075(addMonths(new Date(), 3), { representation: 'date' }) : null,
+    }
   };
 }
 
 async function createApiToken() {
+  if (setupWizard.value.actionInProgress) {
+    return;
+  }
+  if (permissionLevel.value === PermissionLevel.RESTRICTED && customPermissions.value.length === 0) {
+    setupWizard.value.errors = { permissions: ['Select at least one permission.'] };
+    return;
+  }
+  setupWizard.value.actionInProgress = true;
   try {
+    const isRestricted = permissionLevel.value === PermissionLevel.RESTRICTED;
     setupWizard.value.newApiToken = await $fetch<ApiToken>('/api/v1/pentestusers/self/apitokens/', {
       method: 'POST',
-      body: setupWizard.value.form,
+      body: {
+        ...setupWizard.value.form,
+        permissions: isRestricted ? customPermissions.value : null,
+        projects: isRestricted && selectedProjects.value.length > 0
+          ? selectedProjects.value.map(p => ({ id: p.id }))
+          : null,
+        admin_permissions_enabled: permissionLevel.value === PermissionLevel.ADMIN,
+      },
     });
     setupWizard.value.step = SetupWizardStep.TOKEN;
     apiTokens.value = [setupWizard.value.newApiToken].concat(apiTokens.value);
@@ -222,6 +323,8 @@ async function createApiToken() {
     } else {
       throw error;
     }
+  } finally {
+    setupWizard.value.actionInProgress = false;
   }
 }
 

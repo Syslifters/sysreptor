@@ -75,5 +75,5 @@ def api_token_license_limit(sender, instance, *args, **kwargs):
 
     # Community edition has no admin enable/disable: only admin tokens are allowed.
     # Forcing True also covers ORM/CLI creates that omit the flag (model default is False).
-    if not instance.admin_permissions_enabled:
+    if not instance.admin_permissions_enabled or instance.is_restricted:
         raise license.LicenseError('Non-admin API tokens are not supported in Community edition.')

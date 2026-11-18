@@ -116,6 +116,10 @@ class LLMAgentSerializer(serializers.Serializer):
         thread = self.validated_data['thread']
         messages = self.validated_data.get('messages') or []
         message = messages[0] if messages else None
+        user = self.context['request'].user
+        permissions_restriction = None
+        if (restriction := getattr(user, '_permissions_restriction', None)) is not None:
+            permissions_restriction = sorted(p.value for p in restriction)
 
         run_id = await start_run(thread=thread)
         try:
@@ -127,7 +131,8 @@ class LLMAgentSerializer(serializers.Serializer):
                 message=message,
                 resume=self.validated_data.get('resume'),
                 context=self.validated_data.get('context') or {},
-                admin_permissions_enabled=self.context['request'].user.is_admin,
+                admin_permissions_enabled=user.is_admin,
+                permissions_restriction=permissions_restriction,
             )
         except Exception:
             await end_run(thread=thread, status=AgentRunStatus.ERROR, error='Failed to enqueue agent run')

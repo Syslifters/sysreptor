@@ -103,6 +103,8 @@ def audit_api_token_create(sender, instance, **kwargs):
             'id': str(instance.id),
             'name': instance.name,
             'expire_date': instance.expire_date,
+            'permissions': instance.permissions,
+            'projects': [str(p) for p in instance.projects] if instance.projects is not None else None,
             'admin_permissions_enabled': instance.admin_permissions_enabled,
         },
     })

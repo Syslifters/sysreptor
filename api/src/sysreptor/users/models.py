@@ -2,6 +2,7 @@ import functools
 import hmac
 import secrets
 from base64 import b64encode
+from collections.abc import Iterable
 from io import BytesIO
 from urllib.parse import urlparse
 
@@ -19,7 +20,7 @@ from fido2.server import Fido2Server, _verify_origin_for_rp
 from fido2.webauthn import PublicKeyCredentialRpEntity
 
 from sysreptor.users import querysets
-from sysreptor.users.roles import Permission, get_role_permissions
+from sysreptor.users.roles import Permission, expand_permissions, get_role_permissions
 from sysreptor.utils.crypto.fields import EncryptedField
 from sysreptor.utils.models import BaseModel
 from sysreptor.utils.utils import get_random_color
@@ -60,13 +61,23 @@ class PentestUser(BaseModel, AbstractUser):
             (self.last_name or '') + \
             ((', ' + self.title_after) if self.title_after else '')
 
+    def restrict_permissions(self, permissions: Iterable[Permission]) -> None:
+        """
+        In-memory allowlist that can only reduce effective permissions (not persisted).
+        Intersected with role permissions in effective_permissions. Ignored when is_admin.
+        """
+        self._permissions_restriction = expand_permissions(permissions)
+
     @property
     def effective_permissions(self) -> list[str]:
         if not self.is_active or self.is_system_user:
             return []
         elif self.is_admin:
             return list(p.value for p in Permission)
-        return list(p.value for p in get_role_permissions(self.roles))
+        perms = get_role_permissions(self.roles)
+        if (restriction := getattr(self, '_permissions_restriction', None)) is not None:
+            perms &= restriction
+        return list(p.value for p in perms)
 
     def has_permission(self, permission: str) -> bool:
         if not self.is_active or self.is_system_user:
@@ -123,9 +134,31 @@ class APIToken(BaseModel):
     expire_date = models.DateField(null=True, blank=True)
     last_used = models.DateTimeField(null=True, blank=True, editable=False)
     admin_permissions_enabled = models.BooleanField(default=False)
+    permissions = ArrayField(base_field=models.CharField(max_length=255), null=True, blank=True, default=None)
+    projects = ArrayField(base_field=models.UUIDField(), null=True, blank=True, default=None)
     token_plaintext = None
 
     objects = querysets.APITokenManager()
+
+    class Meta(BaseModel.Meta):
+        constraints = [
+            models.CheckConstraint(
+                condition=(models.Q(admin_permissions_enabled=False) | (models.Q(permissions__isnull=True) & models.Q(projects__isnull=True))),
+                name='apitoken_restricted_no_admin',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(projects__isnull=True) | models.Q(permissions__isnull=False),
+                name='apitoken_projects_requires_permissions',
+            ),
+        ]
+
+    @property
+    def is_project_restricted(self) -> bool:
+        return self.projects is not None
+
+    @property
+    def is_restricted(self) -> bool:
+        return self.permissions is not None or self.projects is not None
 
     def save(self, *args, **kwargs):
         from sysreptor.users.auth import UnsaltedSHA3_256PasswordHasher

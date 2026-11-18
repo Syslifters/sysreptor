@@ -61,6 +61,7 @@ class PentestUserQuerySet(models.QuerySet):
         return self.filter(is_active=True)
 
     def only_permitted(self, user):
+        from sysreptor.pentests.models import PentestProject
         from sysreptor.users.models import PentestUser
         if not user or user.is_anonymous:
             return self.none()
@@ -70,7 +71,7 @@ class PentestUserQuerySet(models.QuerySet):
         return self \
             .filter(
                 models.Q(pk=user.pk) |
-                models.Q(pk__in=PentestUser.objects.filter(projectmemberinfo__project__members__user=user)))
+                models.Q(pk__in=PentestUser.objects.filter(projectmemberinfo__project__in=PentestProject.objects.only_permitted(user))))
 
     def annotate_mfa_enabled(self):
         from sysreptor.users.models import MFAMethod
