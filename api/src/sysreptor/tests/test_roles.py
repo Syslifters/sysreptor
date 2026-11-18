@@ -11,6 +11,7 @@ from sysreptor.tests.mock import (
     create_template,
     create_user,
     override_configuration,
+    update,
 )
 from sysreptor.users.models import PentestUser
 from sysreptor.users.roles import (
@@ -321,6 +322,19 @@ class TestOnlyPermitted:
         user_reader = create_user(roles=['regular_user'])
         assert self.design_global in ProjectType.objects.only_permitted(user_reader)
 
+    @override_configuration(ENABLE_PRIVATE_DESIGNS=True)
+    def test_designs_without_project_read(self):
+        user = create_user(roles=['designer'])
+        design_private = create_project_type(linked_user=user)
+        project = create_project(members=[user])
+        design_project = create_project_type(source=SourceEnum.CUSTOMIZED, linked_project=project)
+
+        designs = set(ProjectType.objects.only_permitted(user))
+        assert self.design_global in designs
+        assert design_private in designs
+        assert design_project not in designs
+        assert self.design_private_other not in designs
+
     @override_configuration(ENABLE_PRIVATE_DESIGNS=False)
     def test_private_designs_disabled(self):
         user = create_user(roles=['designer'])
@@ -350,10 +364,14 @@ class TestOnlyPermitted:
 
     @override_configuration(CUSTOM_USER_ROLES=CUSTOM_USER_ROLES)
     def test_users(self):
-        user = create_user(roles=['template_reader'])
+        user = create_user(roles=['project_reader'])
         member = create_user()
         create_project(members=[user, member])
-        visible_users = set(PentestUser.objects.only_permitted(user))
-        assert {user, member}.issubset(visible_users)
-        assert self.user_other not in visible_users
-        assert self.user_other in PentestUser.objects.only_permitted(create_user(roles=['regular_user']))
+        # Members in same projects
+        assert set(PentestUser.objects.only_permitted(user)) == {user, member}
+        # No users without project.read permission
+        update(user, roles=['template_editor'])
+        assert set(PentestUser.objects.only_permitted(user)) == {user}
+        # List all users
+        update(user, roles=['user_manager'])
+        assert set(PentestUser.objects.only_permitted(user)) == {user, member, self.user_other}

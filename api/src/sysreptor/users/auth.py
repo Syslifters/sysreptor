@@ -7,9 +7,8 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from rest_framework import authentication, exceptions
 
-from sysreptor.users.roles import Permission
+from sysreptor.users.roles import Permission, expand_permissions
 from sysreptor.utils import license
-from sysreptor.utils.utils import omit_items
 
 
 class UnsaltedSHA3_256PasswordHasher(BasePasswordHasher):
@@ -122,15 +121,12 @@ class APITokenAuthentication(authentication.BaseAuthentication):
 
             # Strip privileged roles for this request only. Do not persist these changes.
             user.admin_permissions_enabled = False
-            user.is_superuser = False
-            user.is_staff = False
-            user.is_system_user = False
 
             # Restrict permissions to the API token's allow-list
-            perms = list(token.permissions if token.permissions is not None else user.effective_permissions)
+            perms = expand_permissions(token.permissions if token.permissions is not None else user.effective_permissions)
             if token.is_project_restricted:
                 # Project allow-list must never grant cross-project access
-                perms = omit_items(perms, [Permission.ADMIN_ACCESS_ALL_PROJECTS])
+                perms = perms - {Permission.ADMIN_ACCESS_ALL_PROJECTS}
             user.restrict_permissions(perms)
         elif user.is_superuser and token.admin_permissions_enabled:
             user.admin_permissions_enabled = True

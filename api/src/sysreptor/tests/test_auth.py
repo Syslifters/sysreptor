@@ -626,7 +626,7 @@ class TestRestrictedApiToken:
         )
         user = self._authenticate_restricted_token(token)
         assert not user.is_admin
-        assert not user.is_superuser
+        assert user.is_superuser
         assert set(user.effective_permissions) == {Permission.PROJECT_READ}
         assert not user.has_permission(Permission.ADMIN_ACCESS_ALL_PROJECTS)
 

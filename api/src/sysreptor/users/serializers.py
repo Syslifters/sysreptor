@@ -2,6 +2,7 @@ import functools
 import json
 import logging
 from collections import OrderedDict
+from types import SimpleNamespace
 from uuid import UUID
 
 from asgiref.sync import async_to_sync
@@ -451,27 +452,30 @@ class APITokenProjectSerializer(serializers.Serializer):
     name = serializers.CharField()
 
 
-def attach_api_token_visible_projects(tokens, user):
+def attach_api_token_resolved_projects(tokens):
     """
-    Resolve token.projects (uuid[]) to project objects the user may see.
-    Sets token.visible_projects in-memory for APITokenProjectsField.
+    Resolve token.projects (uuid[]) to {id, name} for all linked projects.
+    Sets token.resolved_projects in-memory for APITokenProjectsField / APITokenSerializer.
     """
     from sysreptor.pentests.models import PentestProject
 
     tokens = list(tokens)
     project_ids = {pid for t in tokens if t.projects for pid in t.projects}
-    visible_by_id = {
+    by_id = {
         p.id: p
         for p in (
-            PentestProject.objects.only_permitted(user).filter(id__in=project_ids).only('id', 'name')
+            PentestProject.objects.filter(id__in=project_ids).only('id', 'name')
             if project_ids else []
         )
     }
     for token in tokens:
         if token.projects is None:
-            token.visible_projects = None
+            token.resolved_projects = None
         else:
-            token.visible_projects = [visible_by_id[pid] for pid in token.projects if pid in visible_by_id]
+            token.resolved_projects = [
+                by_id.get(pid) or SimpleNamespace(id=pid, name='[unknown]')
+                for pid in token.projects
+            ]
     return tokens
 
 
@@ -483,21 +487,19 @@ class APITokenProjectsField(serializers.Field):
         'not_member': 'You must be a direct member of every selected project.',
     }
 
+    def get_attribute(self, instance):
+        # Pass the token (instead of the raw project IDs) to to_representation,
+        # because the bulk-resolved projects are attached to the token instance (also in list views).
+        if super().get_attribute(instance) is None:
+            return None
+        return instance
+
     def to_representation(self, value):
         if value is None:
             return None
-        # Prefer bulk-resolved projects from attach_api_token_visible_projects.
-        visible = getattr(self.parent.instance, 'visible_projects', None)
-        if visible is None:
-            from sysreptor.pentests.models import PentestProject
-            visible = (
-                PentestProject.objects
-                .only_permitted(self.context['request'].user)
-                .filter(members__user=self.context['request'].user)
-                .filter(id__in=value)
-                .only('id', 'name')
-            )
-        return [{'id': str(p.id), 'name': p.name} for p in visible]
+        if getattr(value, 'resolved_projects', None) is None:
+            attach_api_token_resolved_projects([value])
+        return [{'id': str(p.id), 'name': p.name} for p in value.resolved_projects]
 
     def to_internal_value(self, data):
         from sysreptor.pentests.models import PentestProject
@@ -532,9 +534,7 @@ class APITokenProjectsField(serializers.Field):
 
 class APITokenListSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        return super().to_representation(
-            attach_api_token_visible_projects(data, self.context['request'].user),
-        )
+        return super().to_representation(attach_api_token_resolved_projects(data))
 
 
 class APITokenSerializer(serializers.ModelSerializer):
@@ -549,8 +549,8 @@ class APITokenSerializer(serializers.ModelSerializer):
         list_serializer_class = APITokenListSerializer
 
     def to_representation(self, instance):
-        if not hasattr(instance, 'visible_projects'):
-            attach_api_token_visible_projects([instance], self.context['request'].user)
+        if not hasattr(instance, 'resolved_projects'):
+            attach_api_token_resolved_projects([instance])
         return super().to_representation(instance)
 
     def validate_expire_date(self, value):
