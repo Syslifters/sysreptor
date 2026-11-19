@@ -15,7 +15,7 @@ This is the same structure Jira creates when an image is pasted into the descrip
 import copy
 import io
 import re
-from urllib.parse import unquote, urlsplit
+from urllib.parse import urlsplit
 
 from PIL import Image
 
@@ -26,7 +26,9 @@ MEDIA_ID_PATTERN = re.compile(r'/file/([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]
 def image_name_from_url(url: str | None) -> str | None:
     if not url or not url.startswith(SYSREPTOR_IMAGE_PREFIX):
         return None
-    name = unquote(urlsplit(url).path[len(SYSREPTOR_IMAGE_PREFIX):])
+    name = urlsplit(url).path[len(SYSREPTOR_IMAGE_PREFIX):]
+    # Jira rejects attachment filenames containing these characters.
+    name = ''.join(c for c in name if c not in ['\\', '/', '"', '%', ':', '$', '?', '*'])
     return name or None
 
 

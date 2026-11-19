@@ -24,7 +24,12 @@ def doc(*content):
 
 def test_image_name_from_url():
     assert image_name_from_url('/images/name/img.png') == 'img.png'
-    assert image_name_from_url('/images/name/my%20img.png') == 'my img.png'
+    assert image_name_from_url('/images/name/my img.png') == 'my img.png'
+    assert image_name_from_url('/images/name/my%20img.png') == 'my20img.png'
+    assert image_name_from_url('/images/name/a\\b/c"d:e$f*g.png') == 'abcdefg.png'
+    assert image_name_from_url('/images/name/img.png?x=1') == 'img.png'
+    assert image_name_from_url('/images/name/img.png#section') == 'img.png'
+    assert image_name_from_url('/images/name/%%%') is None
     assert image_name_from_url('https://example.com/img.png') is None
     assert image_name_from_url('/images/name/') is None
 

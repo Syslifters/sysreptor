@@ -15,9 +15,11 @@ from sysreptor.utils.api import ViewSetAsync
 from sysreptor.utils.crypto import CryptoError
 
 from .adfmedia import (
+    SYSREPTOR_IMAGE_PREFIX,
     extract_media_id,
     get_image_size,
     get_referenced_image_names,
+    image_name_from_url,
     replace_image_placeholders,
     strip_image_placeholders,
 )
@@ -452,7 +454,11 @@ class JiraExportViewSet(ProjectSubresourceMixin, ViewSetAsync):
         serializer = await self.aget_valid_serializer(data=request.data)
         validated_data = serializer.validated_data
         project = serializer.context['project']
-        images_by_name = {image.name: image async for image in project.images.all()}
+        images_by_name = {}
+        async for image in project.images.all():
+            # Same normalization as the description URL, so the stored file is found under the name Jira accepts.
+            if key := image_name_from_url(f'{SYSREPTOR_IMAGE_PREFIX}{image.name}'):
+                images_by_name.setdefault(key, image)
         
         async with httpx.AsyncClient() as client:
             # Search for existing issues
