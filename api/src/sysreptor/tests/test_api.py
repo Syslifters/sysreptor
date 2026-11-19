@@ -93,22 +93,11 @@ def viewset_urls(basename, get_kwargs, create_data=None, list=False, retrieve=Fa
 
 
 def user_viewset_urls(get_kwargs, create_data=None, list=False, retrieve=False, create=False, update=False, update_partial=False, destroy=False):
-
-    basename = 'pentestuser'
-    list_urlname = basename + '-list'
-    detail_urlname = basename + '-detail'
-
-    def retrieve_write_data(c, detail_kwargs):
-        # Legacy is_* flags are exclusive with roles; strip them from echoed retrieve payloads on write.
-        return omit_keys(c.get(reverse(detail_urlname, kwargs=detail_kwargs)).data, LEGACY_USER_FLAG_ROLES.keys())
-
-    out = viewset_urls(basename, get_kwargs, list=list, retrieve=retrieve, destroy=destroy)
+    out = viewset_urls('pentestuser', get_kwargs, list=list, retrieve=retrieve, update=update, update_partial=update_partial, destroy=destroy)
     if create:
-        out.append((basename + ' create', lambda s, c: c.post(reverse(list_urlname, kwargs=get_kwargs(s, False)), data=retrieve_write_data(c, get_kwargs(s, True)) | ((create_data(s) if callable(create_data) else create_data) or {}))))
-    if update:
-        out.append((basename + ' update', lambda s, c: c.put(reverse(detail_urlname, kwargs=get_kwargs(s, True)), data=retrieve_write_data(c, get_kwargs(s, True)))))
-    if update_partial:
-        out.append((basename + ' partial_update', lambda s, c: c.patch(reverse(detail_urlname, kwargs=get_kwargs(s, True)), data=retrieve_write_data(c, get_kwargs(s, True)))))
+        out.extend({
+            ('pentestuser create', lambda s, c: c.post(reverse('pentestuser-list', kwargs=get_kwargs(s, False)), data=omit_keys(c.get(reverse('pentestuser-detail', kwargs=get_kwargs(s, True))).data, LEGACY_USER_FLAG_ROLES.keys()) | ((create_data(s) if callable(create_data) else create_data) or {}))),
+        })
     return out
 
 

@@ -73,6 +73,8 @@ class LegacyFlagField(serializers.BooleanField):
             self.read_only = True
 
     def _can_write(self) -> bool:
+        if not getattr(self.parent, 'legacy_flags_writable', False):
+            return False
         request = self.context.get('request') if self.context else None
         user = getattr(request, 'user', None)
         instance = getattr(self.parent, 'instance', None) if self.parent else None
@@ -106,12 +108,7 @@ class LegacyFlagField(serializers.BooleanField):
             for name, field in self.parent.fields.items()
             if isinstance(field, LegacyFlagField) and name in data
         }
-        if self.parent.instance is not None:
-            roles = list(self.parent.instance.roles or [])
-        else:
-            roles = list(configuration.DEFAULT_USER_ROLES or [])
-
-        roles = roles_from_legacy_flags(roles, flag_updates)
+        roles = roles_from_legacy_flags(list(configuration.DEFAULT_USER_ROLES or []), flag_updates)
         all_roles = get_all_roles()
         if invalid_roles := [r for r in roles if r not in all_roles]:
             raise serializers.ValidationError(f'Invalid roles: {", ".join(invalid_roles)}')
@@ -138,6 +135,8 @@ class PentestUserSerializer(serializers.ModelSerializer):
 
 
 class PentestUserDetailSerializer(serializers.ModelSerializer):
+    legacy_flags_writable = False
+
     is_mfa_enabled = serializers.SerializerMethodField()
     is_admin = serializers.BooleanField(read_only=True)
     effective_permissions = serializers.ListField(child=serializers.CharField(), read_only=True)
@@ -193,6 +192,8 @@ class PentestUserDetailSerializer(serializers.ModelSerializer):
 
 
 class CreateUserSerializer(PentestUserDetailSerializer):
+    legacy_flags_writable = True
+
     password = serializers.CharField(write_only=True, required=False, allow_null=True, default=None, trim_whitespace=False)
 
     class Meta(PentestUserDetailSerializer.Meta):
