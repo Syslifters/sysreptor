@@ -30,6 +30,7 @@ from sysreptor.pentests.models import (
     NoteType,
     PentestFinding,
     PentestProject,
+    ProjectMemberInfo,
     ProjectNotebookPage,
     ReportSection,
 )
@@ -74,7 +75,8 @@ class FakeRequest:
 def get_project(project_id: str, prefetch: bool = False) -> PentestProject:
     qs = PentestProject.objects \
         .filter(id=project_id) \
-        .select_related('project_type')
+        .select_related('project_type') \
+        .prefetch_related(Prefetch('members', ProjectMemberInfo.objects.select_related('user')))
     if prefetch:
         qs = qs.prefetch_related(
             Prefetch('findings', PentestFinding.objects.select_related('assignee')),
