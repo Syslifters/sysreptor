@@ -140,6 +140,7 @@ class TestImportExport:
 
     def test_export_import_template(self):
         archive = archive_to_file(export_templates([self.template]))
+        self.template.refresh_from_db()
         imported = import_templates(archive)
         assert len(imported) == 1
         t = imported[0]
