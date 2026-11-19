@@ -45,7 +45,14 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
         // Relative URLs that are not SysReptor uploads cannot be resolved: keep markdown text
         return { type: 'text', text: getNodeText(node, originalMarkdown) };
       }
-      const caption = (getPlainText(node) || node.alt || '').trim();
+      // media.alt is plain text. The caption paragraph supports formatting.
+      const plainCaption = (getPlainText(node) || node.alt || '').trim();
+      let captionContent = trimEdgeWhitespace(
+        applyMark(convertChildren(node, originalMarkdown, false), { type: 'em' }),
+      ).filter(n => !BLOCK_NODE_TYPES.has(n.type));
+      if (captionContent.length === 0 && plainCaption) {
+        captionContent = [{ type: 'text', text: plainCaption, marks: [{ type: 'em' }] }];
+      }
       const nodes: ADFNode[] = [{
         type: 'mediaSingle',
         attrs: { layout: 'center' },
@@ -53,11 +60,11 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
           type: 'media',
           // SysReptor images (/images/name/...) are placeholders. The backend uploads them
           // as Jira attachments and replaces them with {type: 'file', id: <media-id>, collection: ''}.
-          attrs: { type: 'external', url, ...(caption ? { alt: caption } : {}) },
+          attrs: { type: 'external', url, ...(plainCaption ? { alt: plainCaption } : {}) },
         }],
       }];
-      if (caption) {
-        nodes.push({ type: 'paragraph', content: [{ type: 'text', text: caption, marks: [{ type: 'em' }] }] });
+      if (captionContent.length > 0) {
+        nodes.push({ type: 'paragraph', content: captionContent });
       }
       return nodes;
     }
@@ -292,7 +299,10 @@ function convertChildren(node: any, originalMarkdown?: string, blockContext: boo
 function applyMark(nodes: ADFNode[], mark: { type: string; attrs?: Record<string, any> }): ADFNode[] {
   return nodes.map((node) => {
     if (node.type === 'text') {
-      let marks = [...(node.marks || []), mark];
+      let marks = [...(node.marks || [])];
+      if (!marks.some(m => m.type === mark.type)) {
+        marks.push(mark);
+      }
       const codeMark = marks.find(m => m.type === 'code');
       if (codeMark) {
         // Do not combine code marks with others

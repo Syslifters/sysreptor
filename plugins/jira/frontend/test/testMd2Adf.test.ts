@@ -68,6 +68,17 @@ describe('Test markdown to ADF', () => {
     '![](image.png)': { type: 'text', text: '![](image.png)' },
     '![Alt](image.png "Title")': { type: 'text', text: '![Alt](image.png "Title")' },
     '![](/images/name/img.png)': { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png' } }] },
+    '![caption _with_ **markdown** `code`](/images/name/img.png)': [
+      { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png', alt: 'caption with markdown code' } }] },
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'caption ', marks: [{ type: 'em' }] },
+        { type: 'text', text: 'with', marks: [{ type: 'em' }] },
+        { type: 'text', text: ' ', marks: [{ type: 'em' }] },
+        { type: 'text', text: 'markdown', marks: [{ type: 'strong' }, { type: 'em' }] },
+        { type: 'text', text: ' ', marks: [{ type: 'em' }] },
+        { type: 'text', text: 'code', marks: [{ type: 'code' }] },
+      ]},
+    ],
     '![](/images/name/img.png){width="auto"}\nText after image': [
       { type: 'mediaSingle', attrs: { layout: 'center' }, content: [{ type: 'media', attrs: { type: 'external', url: '/images/name/img.png' } }] },
       { type: 'paragraph', content: [{ type: 'text', text: 'Text after image' }] },
