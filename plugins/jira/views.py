@@ -362,21 +362,26 @@ async def create_jira_issues(client: httpx.AsyncClient, issues_to_create: list, 
                 }
             )
             
-            # Process successfully created issues
-            for idx, created in enumerate(result.get('issues', [])):
-                created_issues.append({
-                    'finding': batch[idx]['finding'].finding_id,
-                    'jira_key': created.get('key'),
-                    'jira_url': f"{jira_base_url}/browse/{created.get('key')}",
-                })
-            
-            # Process errors
-            for error in result.get('errors', []):
+            # `issues` contains only successes, in request order, with failures removed.
+            # Pair them by skipping failedElementNumber indexes; issues[i] is not batch[i].
+            failed_indices = set()
+            for error in result.get('errors') or []:
                 # Error contains 'failedElementNumber' (0-indexed) and 'elementErrors'
                 failed_idx = error.get('failedElementNumber', 0)
+                in_batch = isinstance(failed_idx, int) and 0 <= failed_idx < len(batch)
+                if in_batch:
+                    failed_indices.add(failed_idx)
                 failed_issues.append({
-                    'finding': batch[failed_idx]['finding'].finding_id if failed_idx < len(batch) else None,
+                    'finding': batch[failed_idx]['finding'].finding_id if in_batch else None,
                     'error': format_jira_errors(error.get('elementErrors')) or 'Unknown error',
+                })
+
+            successful_issues = [issue for idx, issue in enumerate(batch) if idx not in failed_indices]
+            for issue_data, created in zip(successful_issues, result.get('issues') or [], strict=False):
+                created_issues.append({
+                    'finding': issue_data['finding'].finding_id,
+                    'jira_key': created.get('key'),
+                    'jira_url': f"{jira_base_url}/browse/{created.get('key')}",
                 })
         except ValidationError as e:
             # Entire batch failed
