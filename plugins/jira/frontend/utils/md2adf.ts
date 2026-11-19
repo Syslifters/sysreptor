@@ -35,17 +35,54 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
       return convertChildren(node, originalMarkdown, true);
 
     case 'paragraph':
-      return { type: 'paragraph', content: convertChildren(node, originalMarkdown, false) };
+      // Images are block nodes (mediaSingle) in ADF and cannot live inside a paragraph.
+      // Split the paragraph around them.
+      return groupInlineNodes(convertChildren(node, originalMarkdown, false), { keepEmpty: true });
+
+    case 'image': {
+      const url: string = node.url || '';
+      if (!isSysreptorImageUrl(url) && !/^https?:\/\//i.test(url)) {
+        // Relative URLs that are not SysReptor uploads cannot be resolved: keep markdown text
+        return { type: 'text', text: getNodeText(node, originalMarkdown) };
+      }
+      // media.alt is plain text. The caption paragraph supports formatting.
+      const plainCaption = (getPlainText(node) || node.alt || '').trim();
+      let captionContent = trimEdgeWhitespace(
+        applyMark(convertChildren(node, originalMarkdown, false), { type: 'em' }),
+      ).filter(n => !BLOCK_NODE_TYPES.has(n.type));
+      if (captionContent.length === 0 && plainCaption) {
+        captionContent = [{ type: 'text', text: plainCaption, marks: [{ type: 'em' }] }];
+      }
+      const nodes: ADFNode[] = [{
+        type: 'mediaSingle',
+        attrs: { layout: 'center' },
+        content: [{
+          type: 'media',
+          // SysReptor images (/images/name/...) are placeholders. The backend uploads them
+          // as Jira attachments and replaces them with {type: 'file', id: <media-id>, collection: ''}.
+          attrs: { type: 'external', url, ...(plainCaption ? { alt: plainCaption } : {}) },
+        }],
+      }];
+      if (captionContent.length > 0) {
+        nodes.push({ type: 'paragraph', content: captionContent });
+      }
+      return nodes;
+    }
 
     case 'text':
       return { type: 'text', text: node.value || '' };
 
-    case 'heading':
-      return {
-        type: 'heading',
-        attrs: { level: Math.min(Math.max(node.depth || 1, 1), 6) },
-        content: convertChildren(node, originalMarkdown, false),
-      };
+    case 'heading': {
+      const children = convertChildren(node, originalMarkdown, false);
+      return [
+        {
+          type: 'heading',
+          attrs: { level: Math.min(Math.max(node.depth || 1, 1), 6) },
+          content: children.filter(n => !BLOCK_NODE_TYPES.has(n.type)),
+        },
+        ...children.filter(n => BLOCK_NODE_TYPES.has(n.type)),
+      ];
+    }
 
     case 'strong':
       return applyMark(convertChildren(node, originalMarkdown, false), { type: 'strong' });
@@ -90,7 +127,7 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
         type: 'listItem',
         content: convertChildren(node, originalMarkdown, true).map((child: ADFNode) => {
           // Wrap non-paragraph content in paragraphs
-          if (child.type !== 'paragraph' && child.type !== 'bulletList' && child.type !== 'orderedList') {
+          if (!['paragraph', 'bulletList', 'orderedList', 'mediaSingle'].includes(child.type)) {
             return { type: 'paragraph', content: [child] };
           }
           return child;
@@ -118,13 +155,12 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
 
     case 'tableCell': {
       const rawCellContent = convertChildren(node, originalMarkdown, true);
-      // Wrap content in paragraph if not already
-      const wrappedContent = rawCellContent.length === 0 
+      // Wrap inline content in paragraphs, keep block nodes (paragraphs, images)
+      const groupedContent = groupInlineNodes(rawCellContent);
+      const wrappedContent = groupedContent.length === 0
         ? [{ type: 'paragraph', content: [] }]
-        : rawCellContent.every((n: ADFNode) => n.type === 'paragraph')
-          ? rawCellContent
-          : [{ type: 'paragraph', content: rawCellContent }];
-      
+        : groupedContent;
+
       return {
         type: 'tableCell',
         attrs: {},
@@ -145,6 +181,65 @@ function convertNode(node: any, originalMarkdown?: string, blockContext: boolean
       return { type: 'text', text };
     }
   }
+}
+
+const BLOCK_NODE_TYPES = new Set([
+  'paragraph', 'heading', 'mediaSingle', 'codeBlock', 'bulletList', 'orderedList', 'table',
+]);
+
+export function isSysreptorImageUrl(url: string): boolean {
+  return url.startsWith('/images/name/');
+}
+
+function getPlainText(node: any): string {
+  if (typeof node?.value === 'string') {
+    return node.value;
+  }
+  return (node?.children || []).map(getPlainText).join('');
+}
+
+function trimEdgeWhitespace(nodes: ADFNode[]): ADFNode[] {
+  const result = [...nodes];
+  while (result.length > 0 && result[0]!.type === 'hardBreak') result.shift();
+  while (result.length > 0 && result[result.length - 1]!.type === 'hardBreak') result.pop();
+  if (result[0]?.type === 'text') {
+    result[0] = { ...result[0], text: (result[0].text || '').replace(/^\s+/, '') };
+  }
+  const last = result.length - 1;
+  if (result[last]?.type === 'text') {
+    result[last] = { ...result[last], text: (result[last].text || '').replace(/\s+$/, '') };
+  }
+  return result.filter(n => n.type !== 'text' || n.text);
+}
+
+/**
+ * Wrap runs of inline nodes in paragraphs and keep block nodes (e.g. mediaSingle) as they are.
+ * Without block nodes in the input, the result is a single paragraph (unchanged behaviour).
+ */
+function groupInlineNodes(nodes: ADFNode[], options: { keepEmpty?: boolean } = {}): ADFNode[] {
+  if (!nodes.some(n => BLOCK_NODE_TYPES.has(n.type))) {
+    return (nodes.length > 0 || options.keepEmpty) ? [{ type: 'paragraph', content: nodes }] : [];
+  }
+
+  const result: ADFNode[] = [];
+  let inline: ADFNode[] = [];
+  const flush = () => {
+    const content = trimEdgeWhitespace(inline);
+    if (content.length > 0) {
+      result.push({ type: 'paragraph', content });
+    }
+    inline = [];
+  };
+  for (const n of nodes) {
+    if (BLOCK_NODE_TYPES.has(n.type)) {
+      flush();
+      result.push(n);
+    } else {
+      inline.push(n);
+    }
+  }
+  flush();
+  return result;
 }
 
 function getNodeText(node: any, originalMarkdown?: string): string {
@@ -204,7 +299,10 @@ function convertChildren(node: any, originalMarkdown?: string, blockContext: boo
 function applyMark(nodes: ADFNode[], mark: { type: string; attrs?: Record<string, any> }): ADFNode[] {
   return nodes.map((node) => {
     if (node.type === 'text') {
-      let marks = [...(node.marks || []), mark];
+      let marks = [...(node.marks || [])];
+      if (!marks.some(m => m.type === mark.type)) {
+        marks.push(mark);
+      }
       const codeMark = marks.find(m => m.type === 'code');
       if (codeMark) {
         // Do not combine code marks with others

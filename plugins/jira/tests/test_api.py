@@ -4,10 +4,12 @@ from unittest import mock
 
 import pytest
 from django.urls import reverse
+
 from sysreptor.tests.mock import (
     api_client,
     create_project,
     create_user,
+    override_configuration,
 )
 
 from ..apps import JiraExportPluginConfig
@@ -17,7 +19,7 @@ URL_NAMESPACE = JiraExportPluginConfig.label
 
 
 @contextlib.contextmanager
-def mock_jira_request(project_pages=None):
+def mock_jira_request(project_pages=None, bulk_result=None, calls=None):
     project_id = '00cb6224-9a41-48f8-a2c0-991b0fb376ca'
     if project_pages is None:
         project_pages = [{
@@ -30,6 +32,13 @@ def mock_jira_request(project_pages=None):
         }]
 
     async def mock_jira_api(client, endpoint, json=None, params=None, **kwargs):
+        if calls is not None:
+            calls.append({
+                'method': kwargs.get('method'),
+                'endpoint': endpoint,
+                'json': json,
+                'files': kwargs.get('files'),
+            })
         if endpoint == '/rest/api/3/project/search':
             start_at = (params or {}).get('startAt', 0)
             for page in project_pages:
@@ -51,17 +60,25 @@ def mock_jira_request(project_pages=None):
                 'issues': []
             }
         elif endpoint == '/rest/api/3/issue/bulk':
+            if bulk_result is not None:
+                return bulk_result
             return {
                 'issues': [{
                     'key': f'PROJECT-{i+1}',
                 } for i in range(len(json['issueUpdates']))],
             }
         elif re.match(r'/rest/api/3/issue/[\w-]+/attachments', endpoint):
-            return {}
+            return [{'id': '10001', 'filename': 'image.png'}]
+        elif re.match(r'/rest/api/3/issue/[\w-]+$', endpoint) and kwargs.get('method') == 'PUT':
+            return None
         else:
             raise Exception(f'Unhandled mock endpoint: {endpoint}')
 
-    with mock.patch('sysreptor_plugins.jira.views.jira_request', new=mock_jira_api) as m:
+    async def mock_jira_get_media_id(client, attachment_id):
+        return '12345678-1234-1234-1234-123456789abc'
+
+    with mock.patch('sysreptor_plugins.jira.views.jira_request', new=mock_jira_api) as m, \
+         mock.patch('sysreptor_plugins.jira.views.jira_get_media_id', new=mock_jira_get_media_id):
         yield m
 
 
@@ -150,3 +167,90 @@ class TestJiraAPI:
             {'id': '2', 'key': 'BBB', 'name': 'Project B'},
             {'id': '3', 'key': 'ZZZ', 'name': 'Project Z'},
         ]
+
+    def test_bulk_partial_failure_keeps_images_on_the_created_issue(self):
+        user = create_user(is_superuser=True, admin_permissions_enabled=True)
+        project = create_project(
+            members=[user],
+            findings_kwargs=[{}, {}, {}],
+            images_kwargs=[{'name': 'a.png'}, {'name': 'b.png'}, {'name': 'c.png'}],
+        )
+        findings = list(project.findings.order_by('created'))
+        finding_a, finding_b, finding_c = findings
+
+        def image_for(prefix):
+            # Upload may keep the name or append a random suffix: a.png or a-<random>.png
+            matches = [img for img in project.images.all() if img.name == f'{prefix}.png' or img.name.startswith(f'{prefix}-')]
+            assert len(matches) == 1, [img.name for img in project.images.all()]
+            return matches[0]
+
+        images = {prefix: image_for(prefix) for prefix in ('a', 'b', 'c')}
+
+        def description(finding, image):
+            return {
+                'version': 1,
+                'type': 'doc',
+                'content': [
+                    {'type': 'paragraph', 'content': [{'type': 'text', 'text': f'body-{finding.finding_id}'}]},
+                    {'type': 'mediaSingle', 'attrs': {'layout': 'center'}, 'content': [
+                        {'type': 'media', 'attrs': {'type': 'external', 'url': f'/images/name/{image.name}'}},
+                    ]},
+                ],
+            }
+
+        # B fails validation. Jira returns A and C only, in request order.
+        calls = []
+        bulk_result = {
+            'issues': [
+                {'key': 'PROJECT-1'},
+                {'key': 'PROJECT-3'},
+            ],
+            'errors': [{
+                'failedElementNumber': 1,
+                'elementErrors': {'errorMessages': ['summary is invalid'], 'errors': {}},
+            }],
+        }
+        client = api_client(user)
+        with mock_jira_request(bulk_result=bulk_result, calls=calls), override_configuration(
+            JIRA_URL='https://jira.example.com',
+            JIRA_USERNAME='user',
+            JIRA_API_TOKEN='token',  # noqa: S106
+        ):
+            res = client.post(reverse(f'{URL_NAMESPACE}:jira-export', kwargs={'project_pk': project.id}), data={
+                'jira_project': 'PROJECT',
+                'issue_type': 'Bug',
+                'issues': [
+                    {'finding': finding_a.finding_id, 'summary': 'A', 'description': description(finding_a, images['a'])},
+                    {'finding': finding_b.finding_id, 'summary': 'B', 'description': description(finding_b, images['b'])},
+                    {'finding': finding_c.finding_id, 'summary': 'C', 'description': description(finding_c, images['c'])},
+                ],
+            })
+
+        assert res.status_code == 200, res.data
+        assert [(str(item['finding']), item['jira_key']) for item in res.data['created']] == [
+            (str(finding_a.finding_id), 'PROJECT-1'),
+            (str(finding_c.finding_id), 'PROJECT-3'),
+        ]
+        assert [(str(item['finding']), item['error']) for item in res.data['failed']] == [
+            (str(finding_b.finding_id), 'summary is invalid'),
+        ]
+
+        uploads = [
+            (call['endpoint'], call['files']['file'][0])
+            for call in calls
+            if str(call['endpoint']).endswith('/attachments')
+        ]
+        assert uploads == [
+            ('/rest/api/3/issue/PROJECT-1/attachments', images['a'].name),
+            ('/rest/api/3/issue/PROJECT-3/attachments', images['c'].name),
+        ]
+
+        puts = {
+            call['endpoint']: call['json']['fields']['description']
+            for call in calls
+            if call['method'] == 'PUT'
+        }
+        assert set(puts) == {'/rest/api/3/issue/PROJECT-1', '/rest/api/3/issue/PROJECT-3'}
+        assert f'body-{finding_a.finding_id}' in str(puts['/rest/api/3/issue/PROJECT-1'])
+        assert f'body-{finding_c.finding_id}' in str(puts['/rest/api/3/issue/PROJECT-3'])
+        assert f'body-{finding_b.finding_id}' not in str(puts['/rest/api/3/issue/PROJECT-3'])

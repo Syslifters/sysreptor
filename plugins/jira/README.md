@@ -8,7 +8,7 @@ Features:
 - **Project Selection**: Choose which Jira project to export findings to
 - **Issue Type Selection**: Select the appropriate issue type (Bug, Task, etc.)
 - **Smart Updates**: Automatically detects existing issues and updates them instead of creating duplicates
-- **Image Attachments**: Automatically uploads referenced images as Jira attachments
+- **Inline Images**: Referenced images are uploaded as Jira attachments and embedded inline in the issue description at the position where they appear in the finding (Jira Cloud)
 
 
 ## Installation
