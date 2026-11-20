@@ -60,7 +60,7 @@ from sysreptor.ai.runs import (
     throttle_ai_stream_events,
 )
 from sysreptor.ai.tasks import cleanup_old_langchain_checkpoints, cleanup_stale_agent_runs
-from sysreptor.pentests.models import NoteType, PentestFinding, ProjectMemberInfo, ProjectNotebookPage
+from sysreptor.pentests.models import NoteType, PentestFinding, ProjectMemberInfo, ProjectNotebookPage, ReviewStatus
 from sysreptor.tasks.models import PeriodicTask, PeriodicTaskInfo, periodic_task_registry
 from sysreptor.tests.mock import (
     api_client,
@@ -651,52 +651,62 @@ class TestProjectAgentTools:
         else:
             assert 'No matching templates found' in res.text
 
-    @pytest.mark.parametrize(('field_path', 'new_value'), [
+    @pytest.mark.parametrize(('field', 'new_value'), [
         # Simple field types
-        ('field_string', 'updated string'),
-        ('field_markdown', '# Updated markdown'),
-        ('field_int', 42),
-        ('field_bool', True),
-        ('field_enum', 'enum1'),
-        ('field_combobox', 'custom value'),
-        ('field_date', '2024-12-31'),
-        ('field_cvss', 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H'),
-        ('field_cwe', 'CWE-79'),
-        ('field_json', '{"key": "value"}'),
+        ('data.field_string', 'updated string'),
+        ('data.field_markdown', '# Updated markdown'),
+        ('data.field_int', 42),
+        ('data.field_bool', True),
+        ('data.field_enum', 'enum1'),
+        ('data.field_combobox', 'custom value'),
+        ('data.field_date', '2024-12-31'),
+        ('data.field_cvss', 'CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H'),
+        ('data.field_cwe', 'CWE-79'),
+        ('data.field_json', '{"key": "value"}'),
         # Edge cases
-        ('field_string', ''),
+        ('data.field_string', ''),
         # List field
-        ('field_list', ['item1', 'item2', 'item3']),
+        ('data.field_list', ['item1', 'item2', 'item3']),
         # Nested object field
-        ('field_object.nested1', 'nested value'),
-        ('field_object.field_string', 'nested string'),
-        ('field_object.field_int', 999),
+        ('data.field_object.nested1', 'nested value'),
+        ('data.field_object.field_string', 'nested string'),
+        ('data.field_object.field_int', 999),
         # List of objects - update specific item
-        ('field_list.[1]', 'updated'),
+        ('data.field_list.[1]', 'updated'),
+        # Top-level serializer fields
+        ('status', ReviewStatus.FINISHED),
+        ('assignee', 'self'),
     ])
-    def test_tool_update_field_value(self, field_path, new_value):
+    def test_tool_update_field_value(self, field, new_value):
         section = self.project.sections.get(section_id='other')
         section.update_data({
             'field_list': ['first', 'second'],
         })
         section.save()
+        if new_value == 'self':
+            new_value = str(self.user.id)
 
         res = self.run_tool(
             update_field_value,
             file_path='/project/reporting/sections/other.yaml',
-            field=f'data.{field_path}',
+            field=field,
             value=new_value,
         )
         assert res.text == 'Updated successfully.'
         assert res.additional_kwargs['output'] == {'id': str(section.section_id), 'title': section.title}
 
-        # Verify the update
         section.refresh_from_db()
-        assert get_value_at_path(section.data, tuple(field_path.split('.'))) == new_value
+        if field.startswith('data.'):
+            assert get_value_at_path(section.data, tuple(field.removeprefix('data.').split('.'))) == new_value
+        elif field == 'assignee':
+            assert section.assignee_id == self.user.id
+        else:
+            assert getattr(section, field) == new_value
 
     @pytest.mark.parametrize(('file_path', 'field', 'error_message'), [
         ('/project/unknown/x.yaml', 'data.title', 'File not found'),
-        ('/project/reporting/sections/executive_summary.yaml', 'title', 'Currently only "data" field updates are supported'),
+        ('/project/reporting/sections/executive_summary.yaml', 'title', 'Unsupported field'),
+        ('/project/reporting/sections/executive_summary.yaml', 'label', 'Unsupported field'),
         ('/project/reporting/sections/nonexistent.yaml', 'data.title', None),
         ('/project/reporting/findings/nonexistent.yaml', 'data.title', None),
         ('/project/reporting/sections/executive_summary.yaml', 'data.nonexistent_field.nested', None),

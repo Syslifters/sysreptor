@@ -45,6 +45,7 @@ from sysreptor.pentests.serializers.template import FindingTemplateSerializer, F
 from sysreptor.users.models import PentestUser
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.fielddefinition.types import (
+    BooleanField,
     FieldDefinition,
     MarkdownField,
     StringField,
@@ -103,6 +104,11 @@ def format_project_overview(project: PentestProject) -> str:
         'name': project.name,
         'language': project.get_language_display(),
         'tags': project.tags,
+        'members': [{
+            'id': str(m.user.id),
+            'username': m.user.username,
+            'name': m.user.name,
+        } for m in project.members.all()],
     })
 
 
@@ -183,19 +189,10 @@ def format_section_data(section) -> str:
 NOTE_FIELD_DEFINITION = FieldDefinition(fields=[
     StringField(id='title', label='Title', required=False),
     MarkdownField(id='text', label='Text', required=False),
+    BooleanField(id='checked', label='Checked'),
+    StringField(id='icon_emoji', label='Icon Emoji', required=False),
+    StringField(id='assignee', label='Assignee', required=False),
 ])
-
-
-def get_note_data(note: ProjectNotebookPage) -> dict:
-    if note.type == NoteType.EXCALIDRAW:
-        return {
-            'title': note.title,
-            'excalidraw_data': note.excalidraw_data,
-        }
-    return {
-        'title': note.title,
-        'text': note.text,
-    }
 
 
 def format_note_data(note: ProjectNotebookPage) -> str:

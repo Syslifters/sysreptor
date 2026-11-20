@@ -12,11 +12,15 @@ from sysreptor.ai.agents.project import (
     ProjectContext,
     format_note_info,
     format_template_data,
-    get_note_data,
     get_project,
 )
 from sysreptor.ai.agents.tools import agent_tool
-from sysreptor.pentests.models import FindingTemplate, NoteType, ProjectNotebookPage, ReportSection
+from sysreptor.pentests.models import (
+    FindingTemplate,
+    NoteType,
+    ProjectNotebookPage,
+    ReportSection,
+)
 from sysreptor.pentests.permissions import ProjectPermissions
 from sysreptor.pentests.serializers.notes import ProjectNotebookPageCreateSerializer, ProjectNotebookPageSerializer
 from sysreptor.pentests.serializers.project import (
@@ -24,6 +28,7 @@ from sysreptor.pentests.serializers.project import (
     PentestFindingSerializer,
     ReportSectionSerializer,
 )
+from sysreptor.plugins.models import PentestFinding
 from sysreptor.utils.fielddefinition.types import FieldDataType
 from sysreptor.utils.fielddefinition.utils import get_field_value_and_definition, set_value_at_path
 
@@ -258,17 +263,26 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
         if isinstance(obj, ProjectNotebookPage):
             if obj.type == NoteType.EXCALIDRAW and field_parts and field_parts[0] == 'text':
                 raise ValidationError('Cannot write to "text" for excalidraw notes. Use the excalidraw note endpoints/tools instead.')
-            data_path, old_value, definition = get_field_value_and_definition(
-                data=get_note_data(obj),
-                definition=NOTE_FIELD_DEFINITION,
-                path=field_parts,
-            )
-        else:
-            if field_parts[0] != 'data':
-                raise ValidationError('Currently only "data" field updates are supported. Field path must contain "data." as the first component.')
+            valid_paths = {k for k, f in ProjectNotebookPageSerializer().fields.items() if not f.read_only}
+            if len(field_parts) != 1 or field_parts[0] not in valid_paths:
+                raise KeyError(field)
+            data_path = field_parts
+            old_value = getattr(obj, field_parts[0])
+            definition = NOTE_FIELD_DEFINITION.get(field_parts[0])
+        elif field_parts[0] == 'data':
             data_path, old_value, definition = get_field_value_and_definition(
                 data=obj.data, definition=obj.field_definition, path=field_parts[1:],
             )
+        else:
+            serializer_class = ReportSectionSerializer if isinstance(obj, ReportSection) else PentestFindingSerializer
+            valid_paths = {k for k, f in serializer_class().fields.items() if not f.read_only} - {'data'}
+            if len(field_parts) > 1 or field_parts[0] not in valid_paths:
+                raise ValidationError(
+                    f'Unsupported field "{field}". Field must be writable'
+                    f'({", ".join(sorted(valid_paths))}) or inside data (e.g. "data.title").')
+            data_path = field_parts
+            old_value = getattr(obj, field_parts[0])
+            definition = None
     except (KeyError, AttributeError):
         # Provide helpful feedback about available fields
         raise ValidationError(f'Field "{field}" not found in {file_path}. Use read_file to see the actual structure. Use exact field names from the returned data.') from None
@@ -281,36 +295,41 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
         'definition': definition,
         'obj': obj,
         'obj_id': obj_id,
+        'user': user,
     }
 
 
 def update_at_path(info: dict, value):
     obj = info['obj']
-    if isinstance(obj, ProjectNotebookPage):
-        serializer = ProjectNotebookPageSerializer(
-            instance=obj,
-            data={info['data_path'][0]: value},
-            partial=True,
-            context={'project': obj.project},
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+    if isinstance(obj, ProjectNotebookPage) or info['definition'] is None:
+        # Top-level serializer field
+        serializer_data = {info['data_path'][0]: value}
     else:
         updated_data = obj.data
         set_value_at_path(obj=updated_data, path=info['data_path'], value=value)
-        # Update in DB
-        serializer_class = ReportSectionSerializer if isinstance(obj, ReportSection) else PentestFindingSerializer
-        serializer = serializer_class(instance=obj, data={'data': updated_data}, partial=True, context={'project': obj.project})
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer_data = {'data': updated_data}
+
+    serializer_class = {
+        ProjectNotebookPage: ProjectNotebookPageSerializer,
+        ReportSection: ReportSectionSerializer,
+        PentestFinding: PentestFindingSerializer,
+    }[type(obj)]
+    serializer = serializer_class(
+        instance=obj,
+        data=serializer_data,
+        partial=True,
+        context={'project': obj.project, 'user': info['user']},
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
     set_tool_output({'id': info['obj_id'], 'title': obj.title})
 
 
 @agent_tool(parse_docstring=True, metadata={'writable': True})
 @transaction.atomic()
-def update_field_value(runtime: ToolRuntime[ProjectContext], file_path: str, field: str, value: str|int|float|bool|list|dict) -> str:
+def update_field_value(runtime: ToolRuntime[ProjectContext], file_path: str, field: str, value: str|int|float|bool|list|dict|None) -> str:
     """
-    Set a single field in section, finding, or note data (full replacement).
+    Set a single field in a section, finding, or note (full replacement).
 
     Replaces the current value of the field at the given path. Use for short
     fields or when replacing an entire field. For long markdown fields where you
@@ -322,11 +341,11 @@ def update_field_value(runtime: ToolRuntime[ProjectContext], file_path: str, fie
             /project/reporting/sections/executive_summary.yaml,
             /project/notes/123e4567-e89b-12d3-a456-426614174000.yaml
         field: Dot-separated path to the field inside the file.
-            e.g. "data.title", "data.summary", "data.affected_components.[0]".
+            e.g. "data.title", "data.summary", "data.affected_components.[0]", "status".
             Use only field names that exist in the project structure (see read_file
             output for the corresponding /project/... path).
         value: The new value. Replaces the existing value. Type must match the
-            field (string, number, boolean, list, or dict).
+            field (string, number, boolean, list, dict or null).
     """
     res = validate_path(file_path=file_path, field=field, runtime=runtime)
     update_at_path(info=res, value=value)
@@ -358,7 +377,7 @@ def update_markdown_field(runtime: ToolRuntime[ProjectContext], file_path: str, 
         new_text: The replacement text. Inserted in place of old_text.
     """
     res = validate_path(file_path=file_path, field=field, runtime=runtime)
-    if res['definition'].type != FieldDataType.MARKDOWN:
+    if not res['definition'] or res['definition'].type != FieldDataType.MARKDOWN:
         raise ValidationError('Field is not of type markdown.')
 
     current_value = res['old_value'] or ''
