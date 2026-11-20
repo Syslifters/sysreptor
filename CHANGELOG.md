@@ -9,6 +9,7 @@
 * Restrict API token permission and projects (https://docs.sysreptor.com/python-library/api-tokens)
 * Breaking change: drop support for postgres 14
 * Fix design default notes not saved after changes
+* Add CSP for CyberChef and GraphQL Voyager plugins
 * UI: Fix note title scrolling on overflow
 
 
