@@ -222,6 +222,13 @@ class TestLogin:
         self.user.refresh_from_db()
         assert not self.user.must_change_password
 
+    def test_must_change_password_timeout(self):
+        update(self.user, must_change_password=True)
+        with mock_time(before=settings.MFA_LOGIN_TIMEOUT * 2):
+            self.assert_login(self.user, status='password-change-required')
+        self.assert_change_password(success=False)
+        self.assert_api_access(False)
+
     def test_must_change_password_mfa(self):
         update(self.user_mfa, must_change_password=True)
 
@@ -852,6 +859,93 @@ class TestPasswordChangeSessionRevocation:
         self.create_user_session()
         update(self.user, is_active=False)
         assert not Session.objects.filter(user=self.user).exists()
+
+    @pytest.mark.parametrize('action', [
+        'admin_reset',
+        'forgot_password',
+    ])
+    def test_pending_password_change_rejected_after_password_reset(self, action):
+        update(self.user, must_change_password=True)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        }).data['status'] == 'password-change-required'
+
+        new_password = get_random_string(32)
+        if action == 'admin_reset':
+            res = api_client(create_user(roles=['regular_user', 'user_manager'])).post(
+                reverse('pentestuser-reset-password', kwargs={'pk': self.user.id}),
+                data={'password': new_password, 'must_change_password': False},
+            )
+        else:
+            res = api_client().post(reverse('auth-forgot-password-reset'), data={
+                'user': self.user.id,
+                'token': default_token_generator.make_token(self.user),
+                'password': new_password,
+            })
+        assert res.status_code == 200
+
+        attacker_password = get_random_string(32)
+        assert pending.post(reverse('auth-change-password'), data={'password': attacker_password}).status_code == 400
+        assert pending.get(reverse('pentestuser-self')).status_code in [401, 403]
+
+        self.user.refresh_from_db()
+        assert self.user.check_password(new_password)
+        assert not self.user.check_password(attacker_password)
+
+        # Reset password still works for a fresh login
+        client = api_client()
+        assert client.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': new_password,
+        }).data['status'] == 'success'
+
+    def test_pending_mfa_rejected_after_password_reset(self):
+        user_mfa = create_user(password=self.password)
+        mfa_totp = MFAMethod.objects.create_totp(user=user_mfa)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': user_mfa.username,
+            'password': self.password,
+        }).data['status'] == 'mfa-required'
+
+        new_password = get_random_string(32)
+        res = api_client(create_user(roles=['regular_user', 'user_manager'])).post(
+            reverse('pentestuser-reset-password', kwargs={'pk': user_mfa.id}),
+            data={'password': new_password},
+        )
+        assert res.status_code == 200
+
+        assert pending.post(reverse('auth-login-code'), data={
+            'id': str(mfa_totp.id),
+            'code': pyotp.TOTP(**mfa_totp.data).now(),
+        }).status_code == 400
+        assert pending.get(reverse('pentestuser-self')).status_code in [401, 403]
+
+        client = api_client()
+        assert client.post(reverse('auth-login'), data={
+            'username': user_mfa.username,
+            'password': new_password,
+        }).data['status'] == 'mfa-required'
+
+    def test_pending_password_change_rejected_when_disabled_password_unchanged(self):
+        update(self.user, must_change_password=True)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        }).data['status'] == 'password-change-required'
+
+        update(self.user, is_active=False)
+
+        attacker_password = get_random_string(32)
+        assert pending.post(reverse('auth-change-password'), data={'password': attacker_password}).status_code == 400
+
+        update(self.user, is_active=True)
+        self.user.refresh_from_db()
+        assert self.user.check_password(self.password)
+        assert not self.user.check_password(attacker_password)
 
 
 @pytest.mark.django_db()

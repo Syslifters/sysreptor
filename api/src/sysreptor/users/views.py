@@ -1,4 +1,5 @@
 import functools
+import hmac
 import json
 from datetime import datetime, timedelta
 from uuid import UUID
@@ -370,19 +371,38 @@ class AuthViewSet(viewsets.ViewSet):
             },
         })
 
-    def _verify_mfa_preconditions(self, request):
+    def _verify_pending_login(self, request, *, expected_status, status_error):
         login_state = request.session.get('login_state', {})
-        if login_state.get('status') != 'mfa-required':
-            raise APIBadRequestError('MFA login not allowed')
-        elif datetime.fromisoformat(login_state.get('start')) + settings.MFA_LOGIN_TIMEOUT < timezone.now():
+        if login_state.get('status') != expected_status:
+            raise APIBadRequestError(status_error)
+
+        start = login_state.get('start')
+        if not start or datetime.fromisoformat(start) + settings.MFA_LOGIN_TIMEOUT < timezone.now():
             raise APIBadRequestError('Login timeout. Please restart login.')
+
+        # Refresh credentials so a concurrent password reset/deactivate is visible
+        request.user.refresh_from_db()
+        auth_hash = login_state.get('auth_hash')
+        expected_hash = request.user.get_session_auth_hash()
+        if not isinstance(auth_hash, str) or not hmac.compare_digest(auth_hash, expected_hash):
+            raise APIBadRequestError('Login timeout. Please restart login.')
+
+        self.validate_login_allowed(request.user)
+
+    def _verify_mfa_preconditions(self, request):
+        self._verify_pending_login(
+            request,
+            expected_status='mfa-required',
+            status_error='MFA login not allowed',
+        )
 
     @action(detail=False, url_path='login/change-password', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
     def change_password(self, request, *args, **kwargs):
-        # verify login state
-        login_state = request.session.get('login_state', {})
-        if login_state.get('status') != 'password-change-required':
-            raise APIBadRequestError('Password change not allowed')
+        self._verify_pending_login(
+            request,
+            expected_status='password-change-required',
+            status_error='Password change not allowed',
+        )
 
         serializer = self.get_serializer(instance=request.user, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -399,6 +419,7 @@ class AuthViewSet(viewsets.ViewSet):
                 'status': 'mfa-required',
                 'user_id': str(user.id),
                 'start': timezone.now().isoformat(),
+                'auth_hash': user.get_session_auth_hash(),
             }
             request.session.cycle_key()
 
