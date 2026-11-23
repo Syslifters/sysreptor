@@ -19,6 +19,11 @@ ENABLED_PLUGINS="scanimport"
 - **Partial import**: Select specific findings or notes to import
 - **Customizable findings**: Control finding contents via SysReptor finding templates
 
+## Permissions
+
+- Importing scan results requires the `project.edit_content` permission on the target project.
+- Custom finding templates do not require the `template.read` permission. Templates are matched automatically via [template tags](#how-templates-work) rather than exposed directly, ensuring consistent import formatting for all project editors regardless of template library access.
+
 ## Supported Tools
 
 | Tool | File Format | Import Type | Description |
