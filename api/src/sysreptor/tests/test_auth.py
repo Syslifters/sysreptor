@@ -22,6 +22,7 @@ from sysreptor.tests.mock import (
     api_client,
     api_client_with_token,
     create_api_token,
+    create_archived_project,
     create_project,
     create_project_type,
     create_session,
@@ -516,6 +517,16 @@ class TestRestrictedApiToken:
             reverse('pentestproject-export-bulk'),
             {'ids': [str(self.project.id), str(other.id)]},
         ).status_code in (400, 403)
+
+    def test_project_restricted_token_cannot_access_archived_projects(self):
+        archive = create_archived_project(project=create_project(members=[self.user]))
+        client = api_client_with_token(create_api_token(
+            self.user,
+            projects=[self.project],
+            permissions=[Permission.PROJECT_READ, Permission.PROJECT_RESTORE],
+        ))
+        assert client.get(reverse('archivedproject-list')).data['results'] == []
+        assert client.get(reverse('archivedproject-detail', kwargs={'pk': archive.id})).status_code == 404
 
     def test_member_removed_from_project(self):
         self.project.members.all().delete()
