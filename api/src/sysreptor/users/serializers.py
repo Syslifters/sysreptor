@@ -600,16 +600,20 @@ class APITokenCreateSerializer(APITokenSerializer):
             if not license.is_professional():
                 raise license.LicenseError('Restricted API tokens require a Professional license.')
 
-        if projects is not None:
             perm_set = expand_permissions(permissions or [])
-            if Permission.PROJECT_READ not in perm_set:
-                raise serializers.ValidationError({
-                    'permissions': f'Project-restricted tokens require {Permission.PROJECT_READ}.',
-                })
-            if Permission.ADMIN_ACCESS_ALL_PROJECTS in perm_set:
-                raise serializers.ValidationError({
-                    'permissions': f'{Permission.ADMIN_ACCESS_ALL_PROJECTS} is not allowed with a project allow-list.',
-                })
+            if projects is not None:
+                # Project-restricted: only project.* except create/restore
+                allowed = {
+                    p for p in Permission
+                    if p.value.startswith('project.') and p not in {Permission.PROJECT_CREATE, Permission.PROJECT_RESTORE}
+                }
+                if invalid := sorted(p.value for p in perm_set - allowed):
+                    raise serializers.ValidationError({'permissions': f'Not allowed for project-restricted tokens: {", ".join(invalid)}.'})
+                if Permission.PROJECT_READ not in perm_set:
+                    raise serializers.ValidationError({'permissions': f'Project-restricted tokens require {Permission.PROJECT_READ}.'})
+            else:
+                if Permission.ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT in perm_set:
+                    raise serializers.ValidationError({'permissions': f'{Permission.ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT} is not supported for API tokens.'})
 
         return attrs | {
             'permissions': permissions,

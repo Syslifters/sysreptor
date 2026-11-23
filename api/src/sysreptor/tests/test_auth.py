@@ -676,10 +676,15 @@ class TestRestrictedApiToken:
         (True, {'projects': [], 'permissions': [Permission.PROJECT_READ]}),
         (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_EXPORT]}),
         (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT]}),
-        (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_CREATE]}),
+        (True, {'permissions': [Permission.PROJECT_READ, Permission.PROJECT_CREATE], 'projects': None}),
+        (True, {'permissions': [Permission.PROJECT_READ, Permission.TEMPLATE_READ], 'projects': None}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_CREATE]}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_RESTORE]}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.TEMPLATE_READ]}),
+        (False, {'permissions': [Permission.PROJECT_READ, Permission.ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT], 'projects': None}),
         (False, {'projects': ['other'], 'permissions': [Permission.PROJECT_READ]}),
         (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ], 'admin_permissions_enabled': True}),
-        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_CREATE]}),  # missing project.read
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_CREATE]}),
         (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_EXPORT]}),  # missing project.read
         (False, {'projects': ['member'], 'permissions': [Permission.ADMIN_ACCESS_ALL_PROJECTS]}),
         (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.ADMIN_ACCESS_ALL_PROJECTS]}),
