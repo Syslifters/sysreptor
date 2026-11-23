@@ -3,8 +3,10 @@ from urllib.parse import urlparse
 
 from channels.security.websocket import OriginValidator, WebsocketDenier
 from django.conf import settings
+from django.core.exceptions import DisallowedHost
 from django.middleware.csrf import CsrfViewMiddleware
 from django.utils import cache, deprecation, timezone
+from django.utils.http import parse_header_parameters
 
 from sysreptor.utils import license
 
@@ -12,11 +14,37 @@ from sysreptor.utils import license
 class CustomCsrfMiddleware(CsrfViewMiddleware):
     def process_view(self, request, *args, **kwargs):
         # Skip CSRF checks for requests that cannot be sent cross-origin without a preflight request
-        if request.content_type not in ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain', ''] or \
+        raw_content_type = request.META.get('CONTENT_TYPE', request.META.get('HTTP_CONTENT_TYPE', '')) or ''
+        content_type, _ = parse_header_parameters(raw_content_type)
+        if content_type not in ['application/x-www-form-urlencoded', 'multipart/form-data', 'text/plain', ''] or \
            request.method != 'POST':
             return None
 
+        # Skip CSRF checks for same-origin browser requests where Origin matches Host.
+        # Cross-site / sibling-origin form posts still require full CSRF validation.
+        if self.check_origin_is_host(request):
+            return None
+
         return super().process_view(request, *args, **kwargs)
+
+    def check_origin_is_host(self, request):
+        """
+        Check if the Origin header is the same as the Host header.
+        If they are equal, this means that the request was sent same-origin.
+        """
+        origin = request.META.get('HTTP_ORIGIN')
+        if not origin:
+            return False
+
+        try:
+            host = request.get_host()
+        except DisallowedHost:
+            return False
+
+        # Check if Origin header is exacly the same as Host header.
+        # Do not use django CSRF_TRUSTED_ORIGINS here
+        allowed_origin = f"{'https' if request.is_secure() else 'http'}://{host}"
+        return origin == allowed_origin
 
     def _origin_verified(self, request):
         if super()._origin_verified(request):

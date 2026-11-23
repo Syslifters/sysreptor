@@ -12,10 +12,12 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.management import call_command
+from django.middleware.csrf import get_token
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from rest_framework.test import APIClient
 
 from sysreptor.management.commands import createapitoken
 from sysreptor.tests.mock import (
@@ -1034,3 +1036,133 @@ class TestUserPermissionAssignment:
         assert res.status_code in ([200] if expected else [200, 403])
         user_target.refresh_from_db()
         assert {k: self.get_field_value(user_target, k) for k in data.keys()} == (data if expected else original_data)
+
+
+@pytest.mark.django_db()
+class TestCsrfProtection:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.password = get_random_string(32)
+        self.user = create_user(username='csrfuser', password=self.password)
+        self.client = APIClient(enforce_csrf_checks=True)
+        res = self.client.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        }, format='json')
+        assert res.status_code == 200
+        self.csrf_token = self._ensure_csrf_token()
+
+    def _ensure_csrf_token(self):
+        request = RequestFactory().get('/')
+        request.session = self.client.session
+        token = get_token(request)
+        self.client.cookies[settings.CSRF_COOKIE_NAME] = request.META['CSRF_COOKIE']
+        return token
+
+    @property
+    def csrf_url(self):
+        return reverse('usernotebookpage-list', kwargs={'pentestuser_pk': 'self'})
+
+    @pytest.mark.parametrize('content_type', [
+        'application/x-www-form-urlencoded',
+        'application/x-www-form-urlencoded; charset=UTF-8',
+        'multipart/form-data; boundary=----csrfboundary',
+        'text/plain',
+        'text/plain; charset=utf-8',
+    ])
+    def test_form_post_without_csrf_rejected(self, content_type):
+        if content_type.startswith('multipart/'):
+            body = (
+                b'------csrfboundary\r\n'
+                b'Content-Disposition: form-data; name="title"\r\n\r\n'
+                b'csrf-multipart-bypass\r\n'
+                b'------csrfboundary--\r\n'
+            )
+        elif content_type.startswith('text/plain'):
+            # Empty body: a non-empty text/plain body raises 415 before CSRF runs
+            # (no matching parser), which would hide the CSRF check under test.
+            body = b''
+        else:
+            body = b'title=csrf-bypass'
+
+        res = self.client.post(self.csrf_url, data=body, content_type=content_type)
+        assert res.status_code == 403
+        assert 'CSRF' in str(res.data)
+
+    def test_form_post_with_csrf_accepted(self):
+        res = self.client.post(
+            self.csrf_url,
+            data='title=with-csrf',
+            content_type='application/x-www-form-urlencoded',
+            HTTP_X_CSRFTOKEN=self.csrf_token,
+        )
+        assert res.status_code == 201, res.data
+        assert res.data['title'] == 'with-csrf'
+
+    @override_settings(
+        ALLOWED_HOSTS=['victim.example.com', 'sub.victim.example.com', 'sibling.example.com', 'testserver', 'localhost'],
+        CSRF_TRUSTED_ORIGINS=['http://victim.example.com', 'https://victim.example.com'],
+    )
+    @pytest.mark.parametrize(('origin', 'allowed'), [
+        ('http://victim.example.com', True),      # same-origin
+        ('http://sub.victim.example.com', False), # subdomain
+        ('http://sibling.example.com', False),    # sibling origin
+        ('http://evil.attacker.com', False),    # cross-origin
+    ])
+    def test_same_origin_form_post_without_csrf_allowed(self, origin, allowed):
+        res = self.client.post(
+            self.csrf_url,
+            data='title=origin-check',
+            content_type='application/x-www-form-urlencoded; charset=UTF-8',
+            HTTP_HOST='victim.example.com',
+            HTTP_ORIGIN=origin,
+        )
+        if allowed:
+            assert res.status_code == 201, res.data
+            assert res.data['title'] == 'origin-check'
+        else:
+            assert res.status_code == 403
+            assert 'CSRF' in str(res.data)
+
+    @override_settings(
+        ALLOWED_HOSTS=['victim.sysre.pt', 'sibling.sysre.pt', 'testserver', 'localhost'],
+        CSRF_TRUSTED_ORIGINS=['http://victim.sysre.pt', 'https://victim.sysre.pt'],
+    )
+    def test_login_cross_origin_form_rejected(self):
+        client = APIClient(enforce_csrf_checks=True)
+        res = client.post(
+            reverse('auth-login'),
+            data=f'username={self.user.username}&password={self.password}',
+            content_type='application/x-www-form-urlencoded',
+            HTTP_HOST='victim.sysre.pt',
+            HTTP_ORIGIN='http://sibling.sysre.pt',
+            HTTP_REFERER='http://sibling.sysre.pt/',
+        )
+        assert res.status_code == 403
+        assert 'Origin checking failed' in str(res.data)
+        assert 'login_state' not in client.session
+
+    @override_settings(
+        ALLOWED_HOSTS=['victim.sysre.pt', 'sibling.sysre.pt', 'testserver', 'localhost'],
+        CSRF_TRUSTED_ORIGINS=['http://victim.sysre.pt', 'https://victim.sysre.pt'],
+    )
+    def test_login_same_origin_form_allowed(self):
+        client = APIClient(enforce_csrf_checks=True)
+        res = client.post(
+            reverse('auth-login'),
+            data=f'username={self.user.username}&password={self.password}',
+            content_type='application/x-www-form-urlencoded',
+            HTTP_HOST='victim.sysre.pt',
+            HTTP_ORIGIN='http://victim.sysre.pt',
+        )
+        assert res.status_code == 200, res.data
+        assert res.data['status'] == 'success'
+
+    def test_json_post_without_csrf_allowed(self):
+        res = self.client.post(
+            self.csrf_url,
+            data={'title': 'json-no-csrf'},
+            format='json',
+        )
+        assert res.status_code == 201, res.data
+        assert res.data['title'] == 'json-no-csrf'

@@ -10,11 +10,26 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.db.models import OrderBy, Q
 from django.http import FileResponse, Http404, StreamingHttpResponse
 from django.utils.functional import classproperty
-from rest_framework import exceptions, pagination, views
+from rest_framework import exceptions, pagination, permissions, views
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.response import Response
 
 from sysreptor.utils import license
 from sysreptor.utils.crypto import CryptoError
+
+
+class EnforceCsrfViewMixin:
+    """
+    Check CSRF for anonymous sessions that still authorize state changes.
+
+    SessionAuthentication.authenticate() skips the check when no user is logged in,
+    and DRF marks API views csrf_exempt. enforce_csrf() runs it anyway.
+    """
+
+    def initial(self, request, *args, **kwargs):
+        if request.method not in permissions.SAFE_METHODS:
+            SessionAuthentication().enforce_csrf(request)
+        super().initial(request, *args, **kwargs)
 
 
 class GenericAPIViewAsyncMixin:

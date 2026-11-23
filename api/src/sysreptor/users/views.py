@@ -53,7 +53,7 @@ from sysreptor.users.serializers import (
     get_oauth,
 )
 from sysreptor.utils import license
-from sysreptor.utils.api import CursorMultiPagination
+from sysreptor.utils.api import CursorMultiPagination, EnforceCsrfViewMixin
 from sysreptor.utils.audit import audit_log
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.utils import is_true
@@ -276,7 +276,7 @@ class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins
         return super().get_serializer_class()
 
 
-class AuthViewSet(viewsets.ViewSet):
+class AuthViewSet(EnforceCsrfViewMixin, viewsets.ViewSet):
     schema = None
     throttle_scope = None
     authentication_classes = []
