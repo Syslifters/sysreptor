@@ -44,15 +44,10 @@ function handleModified(node, index, parent, state) {
 }
 
 export function text(node, _, parent, state) {
-  // Check if content of `node` should be escaped.
-  return parent &&
-    parent.type === 'element' &&
-    (parent.tagName === 'script' || parent.tagName === 'style')
-    ? node.value
-    : stringifyEntities(
-        node.value,
-        Object.assign({}, state.settings.characterReferences, {
-          subset: ['<', '&', '{', '}']
-        })
-      )
+  return stringifyEntities(
+    node.value,
+    Object.assign({}, state.settings.characterReferences, {
+      subset: ['<', '&', '{', '}']
+    })
+  );
 }
