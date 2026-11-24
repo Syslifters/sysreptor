@@ -452,6 +452,10 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 SECURE_CSP = {
     'default-src': [CSP.NONE],
+    # Directives that do not fall back to default-src
+    'base-uri': [CSP.NONE],
+    'webrtc': [CSP.NONE],
+    # Required directives
     'img-src': [CSP.SELF, 'data:'],
     'font-src': [CSP.SELF, 'data:'],
     'worker-src': [CSP.SELF],
