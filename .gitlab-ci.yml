@@ -38,7 +38,7 @@ sync:
     - git push public main
 
 build-docs:
-  image: node:24-alpine
+  image: node:26-alpine
   stage: build-test
   needs: []
   artifacts:

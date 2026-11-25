@@ -95,7 +95,7 @@ This can be achieved by extending the SysReptor docker image and adding your cus
 ARG SYSREPTOR_VERSION="latest"
 
 # Optional build stage for frontend assets
-FROM node:24-alpine3.22 AS plugin-builder
+FROM node:26-alpine3.24 AS plugin-builder
 # Build frontend assets
 COPY custom_plugins /custom_plugins
 RUN cd /custom_plugins/myplugin1/frontend && npm install && npm run generate
