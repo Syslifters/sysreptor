@@ -6,12 +6,12 @@ authors = []
 requires-python = ">=3.12,<4.0"
 
 dependencies = [
-  "django[argon2] (>=6.0,<6.1)",
+  "django[argon2] (>=6.1,<6.2)",
   "djangorestframework (>=3.18,<3.19)",
   "weasyprint (==70.0)",
 
   "django-storages[s3] (~=1.13)",
-  "drf-nested-routers (~=0.95)",
+  "drf-nested-routers (~=0.96)",
   "django-filter (~=26.1)",
   "drf-spectacular[sidecar] (~=0.29)",
   "django-simple-history (~=3.5)",
@@ -24,7 +24,7 @@ dependencies = [
   "whitenoise (~=6.4)",
   "channels[daphne] (~=4.2)",
   "channels-redis (~=4.2)",
-  "redis (~=8.1)",
+  "redis (~=8.2)",
 
   "requests (~=2.28)",
   "httpx (~=0.28)",
@@ -61,6 +61,9 @@ dependencies = [
   "pytest-asyncio (~=1.2)",
   "pytest-xdist (~=3.2)",
   "pytest-cov (~=7.0)",
+
+  # Temporary version lock
+  "fonttools (==4.68.0)",
 
   "pip-licenses-cli (~=4.0)",
   "ruff (~=0.17)",

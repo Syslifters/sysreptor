@@ -138,6 +138,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csp',
             ],
         },
     },
@@ -416,14 +417,23 @@ STORAGES = {
 
 
 # Email settings
-EMAIL_HOST = config('EMAIL_HOST', default=None)
-EMAIL_PORT = config('EMAIL_PORT', cast=int, default=25)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool, default=False)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool, default=False)
-EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', cast=int, default=10)
-DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='')
+MAILERS = {
+    'default': {
+        'BACKEND': 'django.core.mail.backends.smtp.EmailBackend',
+        'OPTIONS': {
+            'host': config('EMAIL_HOST', default=None),
+            'port': config('EMAIL_PORT', cast=int, default=25),
+            'username': config('EMAIL_HOST_USER', default=''),
+            'password': config('EMAIL_HOST_PASSWORD', default=''),
+            'use_tls': config('EMAIL_USE_TLS', cast=bool, default=False),
+            'use_ssl': config('EMAIL_USE_SSL', cast=bool, default=False),
+            'timeout': config('EMAIL_TIMEOUT', cast=int, default=10),
+        },
+        'FROM_EMAIL': config('DEFAULT_FROM_EMAIL', default=''),
+    },
+}
+if not MAILERS['default']['OPTIONS'].get('host'):
+    MAILERS = {}
 
 PASSWORD_RESET_TIMEOUT = 24 * 60 * 60  # 1 day
 

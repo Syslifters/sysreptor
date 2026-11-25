@@ -229,11 +229,12 @@ class TestSendTestEmailCommand:
         self.from_email = 'sysreptor@example.com'
         self.to_email = 'user@example.com'
         with override_settings(
-            EMAIL_HOST='mail.example.com',
-            EMAIL_USER='smtp-user',
-            EMAIL_PASSWORD=get_random_string(32),
-            EMAIL_PORT=587,
-            DEFAULT_FROM_EMAIL=self.from_email,
+            MAILERS={
+                'default': {
+                    'BACKEND': 'django.core.mail.backends.locmem.EmailBackend',
+                    'FROM_EMAIL': self.from_email,
+                },
+            },
         ):
             yield
 
@@ -250,7 +251,7 @@ class TestSendTestEmailCommand:
             with pytest.raises(ConnectionError):
                 call_command(sendtestemail.Command(), self.to_email)
 
-    @override_settings(EMAIL_HOST=None)
+    @override_settings(MAILERS={})
     def test_no_host_configured(self):
         with pytest.raises(CommandError):
             call_command(sendtestemail.Command(), self.to_email)

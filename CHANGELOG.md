@@ -7,6 +7,7 @@
 * Removed `GUEST_USERS_CAN_*` and `PROJECT_MEMBERS_CAN_ARCHIVE_PROJECTS` settings (migrated to roles)
 * Restrict template and design access via permissions
 * Restrict API token permission and projects (https://docs.sysreptor.com/python-library/api-tokens)
+* Breaking change: drop support for postgres 14
 * Fix design default notes not saved after changes
 * UI: Fix note title scrolling on overflow
 

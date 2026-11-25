@@ -736,7 +736,7 @@ class TestForgotPassword:
         (True, {}),
         (False, {'FORGOT_PASSWORD_ENABLED': False}),
         (False, {'LOCAL_USER_AUTH_ENABLED': False}),
-        (False, {'EMAIL_HOST': None}),
+        (False, {'MAILERS': {}}),
     ])
     def test_email_sent_settings(self, expected, settings):
         with override_settings(**settings), override_configuration(**settings):
@@ -768,7 +768,7 @@ class TestForgotPassword:
         (True, {}),
         (False, {'FORGOT_PASSWORD_ENABLED': False}),
         (False, {'LOCAL_USER_AUTH_ENABLED': False}),
-        (False, {'EMAIL_HOST': None}),
+        (False, {'MAILERS': {}}),
     ])
     def test_check_token_settings(self, expected, settings):
         with override_settings(**settings), override_configuration(**settings):

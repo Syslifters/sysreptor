@@ -1,6 +1,5 @@
 
 from asgiref.sync import async_to_sync
-from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from sysreptor.utils import mail
@@ -13,8 +12,8 @@ class Command(BaseCommand):
         parser.add_argument('recipient', help='Recipient of the test email')
 
     def handle(self, recipient, **options):
-        if not settings.EMAIL_HOST:
-            raise CommandError('EMAIL_HOST is not configured')
+        if not mail.is_email_configured():
+            raise CommandError('Email is not configured')
 
         async_to_sync(mail.send_mail)(
             to=recipient,

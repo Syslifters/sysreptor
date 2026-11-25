@@ -13,7 +13,7 @@
     "@sysreptor/plugin-base-layer": "../../../packages/plugin-base-layer",
     "@sysreptor/nuxt-base-layer": "../../../packages/nuxt-base-layer",
 
-    "nuxt": "~4.6",
+    "nuxt": "~4.7",
     "vuetify": "~4.3",
     "pinia": "^4.0",
 
