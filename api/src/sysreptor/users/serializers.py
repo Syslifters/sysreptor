@@ -221,8 +221,9 @@ class RelatedUserSerializer(serializers.PrimaryKeyRelatedField):
 
     def get_queryset(self):
         qs = PentestUser.objects.all()
-        if request := self.context.get('request'):
-            qs = qs.only_permitted(request.user)
+        user = getattr(self.context.get('request'), 'user', None) or self.context.get('user')
+        if user is not None:
+            qs = qs.only_permitted(user)
         return qs
 
     def use_pk_only_optimization(self):
