@@ -163,6 +163,44 @@ class TestLogin:
     def test_login_totp_failure(self):
         self.assert_mfa_login(self.mfa_totp, data={'code': 'invalid'}, success=False)
 
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
+    def test_login_totp_rejects_replayed_code(self):
+        totp = pyotp.TOTP(**self.mfa_totp.data)
+        now = timezone.now()
+        code_t = totp.at(now)
+        code_t_minus_1 = totp.at(now, counter_offset=-1)
+        code_t_plus_1 = totp.at(now, counter_offset=1)
+        code_t_minus_2 = totp.at(now, counter_offset=-2)
+        mfa_id = str(self.mfa_totp.id)
+
+        def submit_code(code):
+            return self.client.post(reverse('auth-login-code'), data={'id': mfa_id, 'code': code})
+
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t_minus_2).status_code == 400
+
+        assert submit_code(code_t).status_code == 200
+        self.assert_api_access(True)
+        self.client.post(reverse('auth-logout'))
+        self.assert_api_access(False)
+
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t).status_code == 400
+        assert submit_code(code_t.translate(str.maketrans('0123456789', '０１２３４５６７８９'))).status_code == 400
+        self.assert_api_access(False)
+
+        # ±1 still accepted after the current step was consumed
+        assert submit_code(code_t_minus_1).status_code == 200
+        self.client.post(reverse('auth-logout'))
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t_plus_1).status_code == 200
+        self.client.post(reverse('auth-logout'))
+
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t_minus_1).status_code == 400
+        assert submit_code(code_t_plus_1).status_code == 400
+        self.assert_api_access(False)
+
     def test_login_mfa_method_of_other_user(self):
         other_user = create_user()
         other_mfa = MFAMethod.objects.create_totp(user=other_user)

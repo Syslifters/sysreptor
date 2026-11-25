@@ -1,6 +1,7 @@
 import functools
 import hmac
 import secrets
+import unicodedata
 from base64 import b64encode
 from collections.abc import Iterable
 from io import BytesIO
@@ -13,8 +14,10 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.sessions.base_session import AbstractBaseSession
+from django.core.cache import cache
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from fido2.server import Fido2Server, _verify_origin_for_rp
 from fido2.webauthn import PublicKeyCredentialRpEntity
@@ -243,7 +246,13 @@ class MFAMethod(BaseModel):
             return False
         elif self.method_type == MFAMethodType.TOTP:
             totp = pyotp.TOTP(**self.data)
-            return totp.verify(code, valid_window=1)
+            normalized_code = unicodedata.normalize('NFKC', str(code).strip())
+            if not totp.verify(normalized_code, for_time=timezone.now(), valid_window=1):
+                return False
+            # Reject replay of the same OTP within the validity window.
+            if not cache.add(f'mfa:totp:used:{self.id}:{normalized_code}', True, timeout=3 * totp.interval):
+                return False
+            return True
         return False
 
     @classmethod
