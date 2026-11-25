@@ -16,7 +16,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.contrib.sessions.base_session import AbstractBaseSession
 from django.core.cache import cache
 from django.core.validators import RegexValidator
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from fido2.server import Fido2Server, _verify_origin_for_rp
@@ -239,11 +239,14 @@ class MFAMethod(BaseModel):
 
     def verify_code(self, code):
         if self.method_type == MFAMethodType.BACKUP:
-            if code in self.data.get('backup_codes', []):
-                self.data['backup_codes'].remove(code)
-                self.save()
+            with transaction.atomic():
+                method = MFAMethod.objects.select_for_update().get(pk=self.pk)
+                if code not in method.data.get('backup_codes', []):
+                    return False
+                method.data['backup_codes'].remove(code)
+                method.save(update_fields=['data', 'updated'])
+                self.data = method.data
                 return True
-            return False
         elif self.method_type == MFAMethodType.TOTP:
             totp = pyotp.TOTP(**self.data)
             normalized_code = unicodedata.normalize('NFKC', str(code).strip())
