@@ -180,6 +180,7 @@ export default defineConfig({
         items: [
           { text: 'Getting Started', link: '/cli/getting-started' },
           { text: 'Configuration', link: '/cli/configuration' },
+          { text: 'MCP', link: '/cli/mcp' },
           {
             text: 'Tools',
             collapsed: true,

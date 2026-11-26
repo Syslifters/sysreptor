@@ -538,7 +538,7 @@ Model IDs and labels are exposed to all authenticated users; API keys and other 
 | `use_responses_api` | Optional. When `true`, use the OpenAI Responses API instead of Chat Completions API. |
 | `vision_model` | Controls image analysis (`analyze_image`). Omitted or `true`: use this model (default; the model must support image input). A model `id`: use that entry for vision. `false`: disable |
 | `hidden` | Optional. When `true`, the model is not shown in LLM model selection and not returned from the API. It can only be used by referencing its `id` in another model's `vision_model` |
-| *other* | Additional model-specific LangChain parameters (e.g. `temperature`, `reasoning_effort`, etc.) |
+| *other* | Additional model-specific LangChain parameters (e.g. `temperature`, `reasoning_effort`). Provider-specific JSON such as `chat_template_kwargs` belongs in [`extra_body`](#llm-extra-body) |
 
 
 Many LLM providers offer OpenAI-compatible APIs.
@@ -626,6 +626,76 @@ The `deepseek` provider has nothing to do with the Deepseek LLM vendor.
 If your LLM provider is not listed above, you can use an LLM proxy like [LiteLLM](https://docs.litellm.ai/) or [OpenRouter](https://openrouter.ai/) that provides an OpenAI-compatible API.
 Configure the proxy to connect to your LLM provider, then use the `deepseek` provider (as shown above) to connect SysReptor to the proxy.
 This approach works with any LLM that your proxy supports and enables reasoning output display when available.
+
+:::
+
+
+::: details Provider-specific request fields
+
+<a id="llm-extra-body"></a>
+
+Some OpenAI-compatible backends accept fields that are not part of the OpenAI API.
+vLLM and [Lyceum](https://docs.lyceum.technology/docs/inference/serverless) use `chat_template_kwargs` for this.
+Lyceum's numeric reasoning budget is an integer from 1 to 100 in `chat_template_kwargs.reasoning_effort`.
+The default on that API is 100.
+
+SysReptor forwards every extra field on a model entry to the LangChain chat model.
+Put these fields in `extra_body`.
+LangChain merges `extra_body` into the chat-completions JSON, which is the same shape as the OpenAI client's `extra_body` parameter.
+
+```json title="SysReptor model"
+{
+  "id": "deepseek-v4.1-flash",
+  "label": "DeepSeek 4.1 Flash",
+  "provider": "deepseek",
+  "model": "deepseek/deepseek-v4.1-flash",
+  "api_key": "...",
+  "base_url": "https://litellm.example.com/v1",
+  "extra_body": {
+    "chat_template_kwargs": {
+      "reasoning_effort": 1
+    }
+  }
+}
+```
+
+`base_url` for LiteLLM includes `/v1`. The OpenAI client appends `chat/completions` to that base.
+
+A top-level `chat_template_kwargs` is not a LangChain parameter.
+LangChain moves it into `model_kwargs` and the OpenAI client then calls `Completions.create(chat_template_kwargs=...)`, which raises `TypeError: Completions.create() got an unexpected keyword argument 'chat_template_kwargs'`.
+SysReptor reports that as an internal server error.
+LangChain's own `reasoning_effort` field is the OpenAI string (`none`, `low`, `medium`, `high`).
+A numeric budget does not belong there.
+Use `"reasoning_effort": "none"` at the top level, or `"chat_template_kwargs": {"thinking": false}`, when the goal is to turn thinking off rather than to set a 1–100 budget.
+
+LiteLLM must forward the field inside `extra_body` as well.
+In the LiteLLM UI, set the provider to **OpenAI**, not **OpenAI-Compatible** (`custom_openai`).
+Point `api_base` at the upstream OpenAI-compatible root, such as `https://api.lyceum.technology/openai/v1`.
+
+```json title="LiteLLM Params"
+{
+  "custom_llm_provider": "openai",
+  "model": "openai/deepseek/deepseek-v4.1-flash",
+  "api_base": "https://api.lyceum.technology/openai/v1",
+  "api_key": "os.environ/LYCEUM_API_KEY",
+  "extra_body": {
+    "chat_template_kwargs": {
+      "reasoning_effort": 80
+    }
+  }
+}
+```
+
+`extra_body` on the deployment is the default.
+A request that includes `chat_template_kwargs` replaces that object, so a SysReptor model can override 80 by setting its own `extra_body`.
+Omit `extra_body` on SysReptor models that should keep the proxy default.
+
+::: warning `custom_openai` and `allowed_openai_params`
+The OpenAI-Compatible provider (`custom_llm_provider: custom_openai`) unpacks `chat_template_kwargs` into a keyword argument of `AsyncCompletions.create()`.
+The call fails with `Custom_openaiException - AsyncCompletions.create() got an unexpected keyword argument 'chat_template_kwargs'`.
+`allowed_openai_params: ["chat_template_kwargs"]` does the same thing: LiteLLM forwards that name as a top-level SDK argument.
+Leave `chat_template_kwargs` only inside `extra_body`, and use the OpenAI provider so LiteLLM keeps it there.
+:::
 
 :::
 
