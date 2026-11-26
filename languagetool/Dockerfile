@@ -43,13 +43,13 @@ COPY wordlists /custom-wordlists/
 RUN ./add_wordlists.sh
 
 
-FROM alpine:3.22 AS languagetool
+FROM alpine:3.24 AS languagetool
 
 RUN apk add --no-cache \
     curl \
     libc6-compat \
     libhunspell \
-    openjdk17-jre-headless \
+    openjdk21-jre-headless \
     zip
 RUN addgroup --system languagetool \
     && adduser --system --uid=100 -G languagetool languagetool
