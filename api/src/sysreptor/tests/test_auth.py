@@ -620,6 +620,21 @@ class TestRestrictedApiToken:
         assert self.client_token.get(reverse('pentestuser-detail', kwargs={'pk': 'self'})).status_code == 200
         assert self.client_token.patch(reverse('pentestuser-detail', kwargs={'pk': 'self'}), data={'first_name': 'X'}).status_code == 403
 
+    def test_spellcheck_add_word_denied_for_restricted_token(self):
+        async def mock_languagetool_request(*args, **kwargs):
+            return {'added': True}
+
+        with mock.patch('sysreptor.api_utils.serializers.LanguageToolSerializerBase.languagetool_request', mock_languagetool_request):
+            res = self.client_token.post(reverse('utils-spellcheck-add-word'), data={'word': 'vrfqzxreplaywd'})
+            assert res.status_code == 403
+
+            # Checking spelling does not change the shared dictionary.
+            res = self.client_token.post(
+                reverse('utils-spellcheck'),
+                data={'language': 'en-US', 'data': {'annotation': [{'text': 'The vrfqzxreplaywd is here.'}]}},
+            )
+            assert res.status_code == 403
+
     @pytest.mark.parametrize(('permissions', 'projects', 'expectations'), [
         ([Permission.PROJECT_READ], 'member', {'project_detail': 200, 'finding_write': 403, 'project_export': 403, 'template_detail': 403, 'design_detail': 404}),
         ([Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT, Permission.PROJECT_EXPORT], 'member', {'project_detail': 200, 'finding_write': 200, 'project_export': 200, 'template_detail': 403, 'design_detail': 404}),
