@@ -414,7 +414,8 @@ class AuthViewSet(EnforceCsrfViewMixin, viewsets.ViewSet):
         auth = {'method': 'local'} | dict(auth or {})
         is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get(SESSION_KEY)
         if not step:
-            # After username+password successful
+            self.validate_local_login_allowed(user)
+
             request.session['login_state'] = request.session.get('login_state', {}) | {
                 'status': 'mfa-required',
                 'user_id': str(user.id),
@@ -435,8 +436,7 @@ class AuthViewSet(EnforceCsrfViewMixin, viewsets.ViewSet):
         elif step == 'mfa':
             # After MFA successful
             self.validate_login_allowed(user)
-            if not user.can_login_local:
-                raise APIBadRequestError('Local user login via username/password is disabled for this user. Log in via SSO instead.')
+            self.validate_local_login_allowed(user)
 
             login_state_update = {'status': 'password-change-required'}
             if mfa := auth.get('mfa'):
@@ -456,6 +456,10 @@ class AuthViewSet(EnforceCsrfViewMixin, viewsets.ViewSet):
                 if mfa := request.session.get('login_state', {}).get('mfa'):
                     auth['mfa'] = mfa
             return self.perform_login(request, user, can_reauth=can_reauth, auth=auth)
+
+    def validate_local_login_allowed(self, user):
+        if not user.can_login_local:
+            raise APIBadRequestError('Local user login via username/password is disabled for this user. Log in via SSO instead.')
 
     def validate_login_allowed(self, user):
         if not user.is_active:
