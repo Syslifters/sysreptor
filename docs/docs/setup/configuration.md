@@ -302,7 +302,7 @@ PDF_RENDERING_TIME_LIMIT=300
 
 Notes can be shared with people who do not have a SysReptor account via public links. See [Notes](/reporting/notes) for how to create and manage share links.
 
-These settings apply to the whole instance: you can turn off sharing completely, or require a password or read-only access on every shared link.
+These settings apply to the whole instance: you can turn off sharing completely, or require a password or read-only access on shared links.
 
 ```dotenv title="Example:"
 DISABLE_SHARING=false

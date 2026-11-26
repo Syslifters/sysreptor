@@ -24,6 +24,7 @@ from sysreptor.tests.mock import (
     create_user,
     create_usernotebookpage,
     mock_time,
+    override_configuration,
     update,
 )
 from sysreptor.tests.test_crypto import assert_db_field_encrypted
@@ -1173,3 +1174,67 @@ class TestSharePasswordAuth:
 
         update(self.share_info, password='new-password')  # noqa: S106
         assert self.client.get(note_url).status_code == 403
+
+
+@pytest.mark.django_db()
+class TestShareLinkRequirements:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.user = create_user()
+        self.project = create_project(members=[self.user], notes_kwargs=[{'text': 'text'}])
+        self.note = self.project.notes.first()
+        self.client = api_client(self.user)
+
+    def _share_url(self, share_info=None):
+        kwargs = {'project_pk': self.project.id, 'note_id': self.note.note_id}
+        if share_info:
+            kwargs['pk'] = share_info.id
+        return reverse('projectnoteshareinfo-detail' if share_info else 'projectnoteshareinfo-list', kwargs=kwargs)
+
+    @pytest.mark.parametrize(('config', 'data', 'error'), [
+        ({}, {}, None),
+        ({'SHARING_PASSWORD_REQUIRED': True}, {}, 'password'),
+        ({'SHARING_PASSWORD_REQUIRED': True}, {'password': None}, 'password'),
+        ({'SHARING_PASSWORD_REQUIRED': True}, {'password': ''}, 'password'),
+        ({'SHARING_PASSWORD_REQUIRED': True}, {'password': 'secret'}, None),  # noqa: S106
+        ({'SHARING_READONLY_REQUIRED': True}, {'permissions_write': True}, 'permissions_write'),
+        ({'SHARING_READONLY_REQUIRED': True}, {'permissions_write': False}, None),
+    ])
+    def test_create(self, config, data, error):
+        with override_configuration(**config):
+            res = self.client.post(self._share_url(), data={
+                'expire_date': (timezone.now() + timedelta(days=14)).date().isoformat(),
+            } | data, format='json')
+            assert res.status_code == (400 if error else 201), res.data
+            if error:
+                assert error in res.data
+
+    @pytest.mark.parametrize(('share_kwargs', 'data', 'error'), [
+        ({'password': None}, {'comment': 'keep'}, 'password'),
+        ({'password': 'secret'}, {'password': ''}, 'password'),  # noqa: S106
+        ({'password': 'secret'}, {'password': 'secret', 'comment': 'updated'}, None),  # noqa: S106
+        (
+            {'password': 'secret', 'permissions_write': True},
+            {'password': 'secret', 'permissions_write': True},
+            'permissions_write',
+        ),  # noqa: S106
+    ])
+    def test_update(self, share_kwargs, data, error):
+        share_info = create_shareinfo(projectnote=self.note, **({'permissions_write': False} | share_kwargs))
+        with override_configuration(SHARING_PASSWORD_REQUIRED=True, SHARING_READONLY_REQUIRED=True):
+            res = self.client.patch(self._share_url(share_info), data=data, format='json')
+            assert res.status_code == (400 if error else 200), res.data
+            if error:
+                assert error in res.data
+            share_info.refresh_from_db()
+            assert not share_info.is_revoked
+            assert bool(share_info.password) == bool(share_kwargs.get('password'))
+
+    def test_existing_links_stay_accessible(self):
+        share_info = create_shareinfo(projectnote=self.note, password=None, permissions_write=True)
+        with override_configuration(SHARING_PASSWORD_REQUIRED=True, SHARING_READONLY_REQUIRED=True):
+            note_url = reverse('sharednote-detail', kwargs={'shareinfo_pk': share_info.id, 'id': self.note.note_id})
+            assert api_client().get(note_url).status_code == 200
+            share_info.refresh_from_db()
+            assert share_info.has_permissions_write
+            assert not share_info.is_revoked
