@@ -510,15 +510,15 @@ CSRF_COOKIE_SECURE = SECURE_SSL_REDIRECT
 
 # Monkey-Patch django to disable CSRF everywhere
 # CSRF middlware class is used as middleware and internally by DjangoRestFramework
-from django.middleware import csrf  # noqa: E402
+from django.middleware import csrf
 
-from sysreptor.utils.middleware import CustomCsrfMiddleware  # noqa: E402
+from sysreptor.utils.middleware import CustomCsrfMiddleware
 
 csrf.CsrfViewMiddleware = CustomCsrfMiddleware
 
 
 # Monkey-Patch pillow and django ImageField to restrict image formats
-from sysreptor.utils.files import install_django_image_field_restrictions  # noqa: E402
+from sysreptor.utils.files import install_django_image_field_restrictions
 
 install_django_image_field_restrictions()
 
@@ -600,7 +600,7 @@ BACKUP_KEY = config('BACKUP_KEY', default=None)
 BACKUP_FILE_PREFETCH_WORKERS = config('BACKUP_FILE_PREFETCH_WORKERS', cast=int, default=4)
 BACKUP_FILE_PREFETCH_SIZE = config('BACKUP_FILE_PREFETCH_SIZE', cast=int, default=10)
 
-from sysreptor.utils.crypto import EncryptionKey  # noqa: E402
+from sysreptor.utils.crypto import EncryptionKey
 
 ENCRYPTION_KEYS = config('ENCRYPTION_KEYS', cast=EncryptionKey.from_json_list, default='')
 DEFAULT_ENCRYPTION_KEY_ID = config('DEFAULT_ENCRYPTION_KEY_ID', default=None)
@@ -936,7 +936,9 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
     BooleanField(
         id='REMOTE_USER_AUTH_ENABLED',
         default=False,
-        extra_info={'group': 'auth', 'professional_only': True}),
+        extra_info={'group': 'auth', 'professional_only': True},
+        help_text='Danger. Not recommended. '
+                  'Your reverse proxy must correctly strip and canonicalize the authentication header (See https://docs.sysreptor.com/setup/configuration#single-sign-on-sso).'),
     StringField(
         id='REMOTE_USER_AUTH_HEADER',
         default='Remote-User',
