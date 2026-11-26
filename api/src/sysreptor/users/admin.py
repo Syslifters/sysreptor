@@ -2,6 +2,7 @@ import json
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import AdminPasswordChangeForm
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
@@ -9,8 +10,17 @@ from sysreptor.users.models import APIToken, AuthIdentity, MFAMethod, PentestUse
 from sysreptor.utils.admin import BaseAdmin, admin_change_url
 
 
+class PentestUserAdminPasswordChangeForm(AdminPasswordChangeForm):
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+        if commit:
+            Session.objects.clear_for_user(user)
+        return user
+
+
 @admin.register(PentestUser)
 class PentestUserAdmin(BaseUserAdmin):
+    change_password_form = PentestUserAdminPasswordChangeForm
     list_display = ['id', 'username', 'name', 'email', 'is_active', 'is_superuser', 'created']
 
     fieldsets = (

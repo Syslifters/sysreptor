@@ -12,16 +12,19 @@ from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.management import call_command
+from django.middleware.csrf import get_token
 from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from rest_framework.test import APIClient
 
 from sysreptor.management.commands import createapitoken
 from sysreptor.tests.mock import (
     api_client,
     api_client_with_token,
     create_api_token,
+    create_archived_project,
     create_project,
     create_project_type,
     create_session,
@@ -160,6 +163,44 @@ class TestLogin:
     def test_login_totp_failure(self):
         self.assert_mfa_login(self.mfa_totp, data={'code': 'invalid'}, success=False)
 
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'}})
+    def test_login_totp_rejects_replayed_code(self):
+        totp = pyotp.TOTP(**self.mfa_totp.data)
+        now = timezone.now()
+        code_t = totp.at(now)
+        code_t_minus_1 = totp.at(now, counter_offset=-1)
+        code_t_plus_1 = totp.at(now, counter_offset=1)
+        code_t_minus_2 = totp.at(now, counter_offset=-2)
+        mfa_id = str(self.mfa_totp.id)
+
+        def submit_code(code):
+            return self.client.post(reverse('auth-login-code'), data={'id': mfa_id, 'code': code})
+
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t_minus_2).status_code == 400
+
+        assert submit_code(code_t).status_code == 200
+        self.assert_api_access(True)
+        self.client.post(reverse('auth-logout'))
+        self.assert_api_access(False)
+
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t).status_code == 400
+        assert submit_code(code_t.translate(str.maketrans('0123456789', '０１２３４５６７８９'))).status_code == 400
+        self.assert_api_access(False)
+
+        # ±1 still accepted after the current step was consumed
+        assert submit_code(code_t_minus_1).status_code == 200
+        self.client.post(reverse('auth-logout'))
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t_plus_1).status_code == 200
+        self.client.post(reverse('auth-logout'))
+
+        self.assert_login(user=self.user_mfa, status='mfa-required')
+        assert submit_code(code_t_minus_1).status_code == 400
+        assert submit_code(code_t_plus_1).status_code == 400
+        self.assert_api_access(False)
+
     def test_login_mfa_method_of_other_user(self):
         other_user = create_user()
         other_mfa = MFAMethod.objects.create_totp(user=other_user)
@@ -220,6 +261,13 @@ class TestLogin:
 
         self.user.refresh_from_db()
         assert not self.user.must_change_password
+
+    def test_must_change_password_timeout(self):
+        update(self.user, must_change_password=True)
+        with mock_time(before=settings.MFA_LOGIN_TIMEOUT * 2):
+            self.assert_login(self.user, status='password-change-required')
+        self.assert_change_password(success=False)
+        self.assert_api_access(False)
 
     def test_must_change_password_mfa(self):
         update(self.user_mfa, must_change_password=True)
@@ -517,6 +565,16 @@ class TestRestrictedApiToken:
             {'ids': [str(self.project.id), str(other.id)]},
         ).status_code in (400, 403)
 
+    def test_project_restricted_token_cannot_access_archived_projects(self):
+        archive = create_archived_project(project=create_project(members=[self.user]))
+        client = api_client_with_token(create_api_token(
+            self.user,
+            projects=[self.project],
+            permissions=[Permission.PROJECT_READ, Permission.PROJECT_RESTORE],
+        ))
+        assert client.get(reverse('archivedproject-list')).data['results'] == []
+        assert client.get(reverse('archivedproject-detail', kwargs={'pk': archive.id})).status_code == 404
+
     def test_member_removed_from_project(self):
         self.project.members.all().delete()
         assert self.client_token.get(reverse('pentestproject-detail', kwargs={'pk': self.project.id})).status_code == 404
@@ -561,6 +619,21 @@ class TestRestrictedApiToken:
     def test_self_read_allowed_write_denied(self):
         assert self.client_token.get(reverse('pentestuser-detail', kwargs={'pk': 'self'})).status_code == 200
         assert self.client_token.patch(reverse('pentestuser-detail', kwargs={'pk': 'self'}), data={'first_name': 'X'}).status_code == 403
+
+    def test_spellcheck_add_word_denied_for_restricted_token(self):
+        async def mock_languagetool_request(*args, **kwargs):
+            return {'added': True}
+
+        with mock.patch('sysreptor.api_utils.serializers.LanguageToolSerializerBase.languagetool_request', mock_languagetool_request):
+            res = self.client_token.post(reverse('utils-spellcheck-add-word'), data={'word': 'vrfqzxreplaywd'})
+            assert res.status_code == 403
+
+            # Checking spelling does not change the shared dictionary.
+            res = self.client_token.post(
+                reverse('utils-spellcheck'),
+                data={'language': 'en-US', 'data': {'annotation': [{'text': 'The vrfqzxreplaywd is here.'}]}},
+            )
+            assert res.status_code == 403
 
     @pytest.mark.parametrize(('permissions', 'projects', 'expectations'), [
         ([Permission.PROJECT_READ], 'member', {'project_detail': 200, 'finding_write': 403, 'project_export': 403, 'template_detail': 403, 'design_detail': 404}),
@@ -658,10 +731,15 @@ class TestRestrictedApiToken:
         (True, {'projects': [], 'permissions': [Permission.PROJECT_READ]}),
         (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_EXPORT]}),
         (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_EDIT_CONTENT]}),
-        (True, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_CREATE]}),
+        (True, {'permissions': [Permission.PROJECT_READ, Permission.PROJECT_CREATE], 'projects': None}),
+        (True, {'permissions': [Permission.PROJECT_READ, Permission.TEMPLATE_READ], 'projects': None}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_CREATE]}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.PROJECT_RESTORE]}),
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.TEMPLATE_READ]}),
+        (False, {'permissions': [Permission.PROJECT_READ, Permission.ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT], 'projects': None}),
         (False, {'projects': ['other'], 'permissions': [Permission.PROJECT_READ]}),
         (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ], 'admin_permissions_enabled': True}),
-        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_CREATE]}),  # missing project.read
+        (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_CREATE]}),
         (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_EXPORT]}),  # missing project.read
         (False, {'projects': ['member'], 'permissions': [Permission.ADMIN_ACCESS_ALL_PROJECTS]}),
         (False, {'projects': ['member'], 'permissions': [Permission.PROJECT_READ, Permission.ADMIN_ACCESS_ALL_PROJECTS]}),
@@ -842,6 +920,93 @@ class TestPasswordChangeSessionRevocation:
         update(self.user, is_active=False)
         assert not Session.objects.filter(user=self.user).exists()
 
+    @pytest.mark.parametrize('action', [
+        'admin_reset',
+        'forgot_password',
+    ])
+    def test_pending_password_change_rejected_after_password_reset(self, action):
+        update(self.user, must_change_password=True)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        }).data['status'] == 'password-change-required'
+
+        new_password = get_random_string(32)
+        if action == 'admin_reset':
+            res = api_client(create_user(roles=['regular_user', 'user_manager'])).post(
+                reverse('pentestuser-reset-password', kwargs={'pk': self.user.id}),
+                data={'password': new_password, 'must_change_password': False},
+            )
+        else:
+            res = api_client().post(reverse('auth-forgot-password-reset'), data={
+                'user': self.user.id,
+                'token': default_token_generator.make_token(self.user),
+                'password': new_password,
+            })
+        assert res.status_code == 200
+
+        attacker_password = get_random_string(32)
+        assert pending.post(reverse('auth-change-password'), data={'password': attacker_password}).status_code == 400
+        assert pending.get(reverse('pentestuser-self')).status_code in [401, 403]
+
+        self.user.refresh_from_db()
+        assert self.user.check_password(new_password)
+        assert not self.user.check_password(attacker_password)
+
+        # Reset password still works for a fresh login
+        client = api_client()
+        assert client.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': new_password,
+        }).data['status'] == 'success'
+
+    def test_pending_mfa_rejected_after_password_reset(self):
+        user_mfa = create_user(password=self.password)
+        mfa_totp = MFAMethod.objects.create_totp(user=user_mfa)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': user_mfa.username,
+            'password': self.password,
+        }).data['status'] == 'mfa-required'
+
+        new_password = get_random_string(32)
+        res = api_client(create_user(roles=['regular_user', 'user_manager'])).post(
+            reverse('pentestuser-reset-password', kwargs={'pk': user_mfa.id}),
+            data={'password': new_password},
+        )
+        assert res.status_code == 200
+
+        assert pending.post(reverse('auth-login-code'), data={
+            'id': str(mfa_totp.id),
+            'code': pyotp.TOTP(**mfa_totp.data).now(),
+        }).status_code == 400
+        assert pending.get(reverse('pentestuser-self')).status_code in [401, 403]
+
+        client = api_client()
+        assert client.post(reverse('auth-login'), data={
+            'username': user_mfa.username,
+            'password': new_password,
+        }).data['status'] == 'mfa-required'
+
+    def test_pending_password_change_rejected_when_disabled_password_unchanged(self):
+        update(self.user, must_change_password=True)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        }).data['status'] == 'password-change-required'
+
+        update(self.user, is_active=False)
+
+        attacker_password = get_random_string(32)
+        assert pending.post(reverse('auth-change-password'), data={'password': attacker_password}).status_code == 400
+
+        update(self.user, is_active=True)
+        self.user.refresh_from_db()
+        assert self.user.check_password(self.password)
+        assert not self.user.check_password(attacker_password)
+
 
 @pytest.mark.django_db()
 class TestUserPermissionAssignment:
@@ -924,3 +1089,133 @@ class TestUserPermissionAssignment:
         assert res.status_code in ([200] if expected else [200, 403])
         user_target.refresh_from_db()
         assert {k: self.get_field_value(user_target, k) for k in data.keys()} == (data if expected else original_data)
+
+
+@pytest.mark.django_db()
+class TestCsrfProtection:
+    @pytest.fixture(autouse=True)
+    def setUp(self):
+        self.password = get_random_string(32)
+        self.user = create_user(username='csrfuser', password=self.password)
+        self.client = APIClient(enforce_csrf_checks=True)
+        res = self.client.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        }, format='json')
+        assert res.status_code == 200
+        self.csrf_token = self._ensure_csrf_token()
+
+    def _ensure_csrf_token(self):
+        request = RequestFactory().get('/')
+        request.session = self.client.session
+        token = get_token(request)
+        self.client.cookies[settings.CSRF_COOKIE_NAME] = request.META['CSRF_COOKIE']
+        return token
+
+    @property
+    def csrf_url(self):
+        return reverse('usernotebookpage-list', kwargs={'pentestuser_pk': 'self'})
+
+    @pytest.mark.parametrize('content_type', [
+        'application/x-www-form-urlencoded',
+        'application/x-www-form-urlencoded; charset=UTF-8',
+        'multipart/form-data; boundary=----csrfboundary',
+        'text/plain',
+        'text/plain; charset=utf-8',
+    ])
+    def test_form_post_without_csrf_rejected(self, content_type):
+        if content_type.startswith('multipart/'):
+            body = (
+                b'------csrfboundary\r\n'
+                b'Content-Disposition: form-data; name="title"\r\n\r\n'
+                b'csrf-multipart-bypass\r\n'
+                b'------csrfboundary--\r\n'
+            )
+        elif content_type.startswith('text/plain'):
+            # Empty body: a non-empty text/plain body raises 415 before CSRF runs
+            # (no matching parser), which would hide the CSRF check under test.
+            body = b''
+        else:
+            body = b'title=csrf-bypass'
+
+        res = self.client.post(self.csrf_url, data=body, content_type=content_type)
+        assert res.status_code == 403
+        assert 'CSRF' in str(res.data)
+
+    def test_form_post_with_csrf_accepted(self):
+        res = self.client.post(
+            self.csrf_url,
+            data='title=with-csrf',
+            content_type='application/x-www-form-urlencoded',
+            HTTP_X_CSRFTOKEN=self.csrf_token,
+        )
+        assert res.status_code == 201, res.data
+        assert res.data['title'] == 'with-csrf'
+
+    @override_settings(
+        ALLOWED_HOSTS=['victim.example.com', 'sub.victim.example.com', 'sibling.example.com', 'testserver', 'localhost'],
+        CSRF_TRUSTED_ORIGINS=['http://victim.example.com', 'https://victim.example.com'],
+    )
+    @pytest.mark.parametrize(('origin', 'allowed'), [
+        ('http://victim.example.com', True),      # same-origin
+        ('http://sub.victim.example.com', False), # subdomain
+        ('http://sibling.example.com', False),    # sibling origin
+        ('http://evil.attacker.com', False),    # cross-origin
+    ])
+    def test_same_origin_form_post_without_csrf_allowed(self, origin, allowed):
+        res = self.client.post(
+            self.csrf_url,
+            data='title=origin-check',
+            content_type='application/x-www-form-urlencoded; charset=UTF-8',
+            HTTP_HOST='victim.example.com',
+            HTTP_ORIGIN=origin,
+        )
+        if allowed:
+            assert res.status_code == 201, res.data
+            assert res.data['title'] == 'origin-check'
+        else:
+            assert res.status_code == 403
+            assert 'CSRF' in str(res.data)
+
+    @override_settings(
+        ALLOWED_HOSTS=['victim.sysre.pt', 'sibling.sysre.pt', 'testserver', 'localhost'],
+        CSRF_TRUSTED_ORIGINS=['http://victim.sysre.pt', 'https://victim.sysre.pt'],
+    )
+    def test_login_cross_origin_form_rejected(self):
+        client = APIClient(enforce_csrf_checks=True)
+        res = client.post(
+            reverse('auth-login'),
+            data=f'username={self.user.username}&password={self.password}',
+            content_type='application/x-www-form-urlencoded',
+            HTTP_HOST='victim.sysre.pt',
+            HTTP_ORIGIN='http://sibling.sysre.pt',
+            HTTP_REFERER='http://sibling.sysre.pt/',
+        )
+        assert res.status_code == 403
+        assert 'Origin checking failed' in str(res.data)
+        assert 'login_state' not in client.session
+
+    @override_settings(
+        ALLOWED_HOSTS=['victim.sysre.pt', 'sibling.sysre.pt', 'testserver', 'localhost'],
+        CSRF_TRUSTED_ORIGINS=['http://victim.sysre.pt', 'https://victim.sysre.pt'],
+    )
+    def test_login_same_origin_form_allowed(self):
+        client = APIClient(enforce_csrf_checks=True)
+        res = client.post(
+            reverse('auth-login'),
+            data=f'username={self.user.username}&password={self.password}',
+            content_type='application/x-www-form-urlencoded',
+            HTTP_HOST='victim.sysre.pt',
+            HTTP_ORIGIN='http://victim.sysre.pt',
+        )
+        assert res.status_code == 200, res.data
+        assert res.data['status'] == 'success'
+
+    def test_json_post_without_csrf_allowed(self):
+        res = self.client.post(
+            self.csrf_url,
+            data={'title': 'json-no-csrf'},
+            format='json',
+        )
+        assert res.status_code == 201, res.data
+        assert res.data['title'] == 'json-no-csrf'

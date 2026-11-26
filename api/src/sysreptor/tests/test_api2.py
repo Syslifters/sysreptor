@@ -818,7 +818,7 @@ class TestFileApi:
         assert res.status_code == 200
         assert res.headers['Content-Type'] == content_type
         assert res.headers['Content-Disposition'] == f'{"inline" if content_type.startswith("image/") else "attachment"}; filename="{name}"'
-        assert res.headers['Content-Security-Policy'] == "default-src 'none'"
+        assert res.headers['Content-Security-Policy'] == "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; webrtc 'none'"
         assert res.headers['X-Sysreptor-Id'] == str(f.id)
 
     @pytest.mark.parametrize('name', [
@@ -838,7 +838,7 @@ class TestFileApi:
         assert res.status_code == 200
         assert res.headers['Content-Type'] == 'application/octet-stream'
         assert res.headers['Content-Disposition'] == f'attachment; filename="{name}"'
-        assert res.headers['Content-Security-Policy'] == "default-src 'none'"
+        assert res.headers['Content-Security-Policy'] == "default-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; webrtc 'none'"
         assert res.headers['X-Sysreptor-Id'] == str(f.id)
 
     def test_upload_edited(self):

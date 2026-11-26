@@ -452,6 +452,10 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 SECURE_CSP = {
     'default-src': [CSP.NONE],
+    # Directives that do not fall back to default-src
+    'base-uri': [CSP.NONE],
+    'webrtc': [CSP.NONE],
+    # Required directives
     'img-src': [CSP.SELF, 'data:'],
     'font-src': [CSP.SELF, 'data:'],
     'worker-src': [CSP.SELF],
@@ -812,12 +816,14 @@ CONFIGURATION_DEFINITION_CORE = FieldDefinition(fields=[
         id='SHARING_PASSWORD_REQUIRED',
         default=False,
         extra_info={'group': 'sharing', 'professional_only': False},
-        help_text='Require passwords to be set for shared notes'),
+        help_text='Require passwords to be set for shared notes. '
+                  'Only new share links are affected. Existing share links are not revoked.'),
     BooleanField(
         id='SHARING_READONLY_REQUIRED',
         default=False,
         extra_info={'group': 'sharing', 'professional_only': False},
-        help_text='Require shared notes to be read-only. Disables public writeable shared notes.'),
+        help_text='Require shared notes to be read-only. Disables public writeable shared notes. '
+                  'Only new share links are affected. Existing share links are not revoked.'),
 
 
     ListField(

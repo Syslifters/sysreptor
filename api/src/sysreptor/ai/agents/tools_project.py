@@ -204,7 +204,7 @@ def create_note(
 
     serializer = ProjectNotebookPageCreateSerializer(
         data=serializer_data,
-        context={'project': project},
+        context={'project': project, 'request': FakeRequest(user=user)},
     )
     serializer.is_valid(raise_exception=True)
     note = serializer.save()
@@ -299,7 +299,7 @@ def validate_path(file_path: str, field: str, runtime: ToolRuntime[ProjectContex
     }
 
 
-def update_at_path(info: dict, value):
+def update_at_path(info: dict, value, user=None):
     obj = info['obj']
     if isinstance(obj, ProjectNotebookPage) or info['definition'] is None:
         # Top-level serializer field
@@ -318,7 +318,7 @@ def update_at_path(info: dict, value):
         instance=obj,
         data=serializer_data,
         partial=True,
-        context={'project': obj.project, 'user': info['user']},
+        context={'project': obj.project, 'request': FakeRequest(user=user)},
     )
     serializer.is_valid(raise_exception=True)
     serializer.save()
@@ -348,7 +348,7 @@ def update_field_value(runtime: ToolRuntime[ProjectContext], file_path: str, fie
             field (string, number, boolean, list, dict or null).
     """
     res = validate_path(file_path=file_path, field=field, runtime=runtime)
-    update_at_path(info=res, value=value)
+    update_at_path(info=res, value=value, user=runtime.context.user)
     return 'Updated successfully.'
 
 
@@ -398,5 +398,5 @@ def update_markdown_field(runtime: ToolRuntime[ProjectContext], file_path: str, 
 
     # Perform the replacement
     updated_value = current_value[:old_text_index] + new_text + current_value[old_text_index + len(old_text):]
-    update_at_path(info=res, value=updated_value)
+    update_at_path(info=res, value=updated_value, user=runtime.context.user)
     return 'Updated successfully'

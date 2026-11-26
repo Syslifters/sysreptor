@@ -41,7 +41,7 @@
                 size="small"
                 class="ml-3"
               >
-                Restricted permissions
+                {{ apiToken.projects != null ? 'Project-restricted' : 'Restricted permissions' }}
               </v-chip>
               <template v-if="apiToken.projects != null">
                 <v-chip v-for="project in apiToken.projects" :key="project.id" size="small" class="ml-1">
@@ -111,7 +111,7 @@
                     <div v-if="permissionLevel === PermissionLevel.RESTRICTED" class="mb-2">
                       <s-autocomplete
                         v-model="customPermissions"
-                        :items="availablePermissions"
+                        :items="restrictedPermissions"
                         label="Allowed permissions"
                         hint="Select at least one permission"
                         persistent-hint
@@ -119,14 +119,27 @@
                         chips
                         closable-chips
                         :error-messages="setupWizard.errors?.permissions"
-                        class="mb-4"
                       />
+                    </div>
+                    <div v-else-if="permissionLevel === PermissionLevel.PROJECT_RESTRICTED" class="mb-2">
                       <s-project-selection
                         v-model="selectedProjects"
-                        label="Restrict to projects (optional)"
+                        label="Projects"
                         :query-filters="{ member: auth.user.value!.username }"
                         :error-messages="setupWizard.errors?.projects"
-                        hint="Leave empty for all projects you can access. Requires project.read permission."
+                        hint="Select at least one project"
+                        class="mb-4"
+                      />
+                      <s-autocomplete
+                        v-model="customPermissions"
+                        :items="projectRestrictedPermissions"
+                        label="Allowed permissions"
+                        hint="Select at least one permission"
+                        persistent-hint
+                        multiple
+                        chips
+                        closable-chips
+                        :error-messages="setupWizard.errors?.permissions"
                       />
                     </div>
 
@@ -212,6 +225,7 @@ enum PermissionLevel {
   ADMIN = 'admin',
   USER = 'user',
   RESTRICTED = 'restricted',
+  PROJECT_RESTRICTED = 'project_restricted',
 }
 
 const reauthDialogVisible = ref(false);
@@ -219,15 +233,29 @@ const permissionLevel = ref<PermissionLevel>(PermissionLevel.USER);
 const selectedProjects = ref<{ id: string; name: string }[]>([]);
 const customPermissions = ref<string[]>([]);
 
-const availablePermissions = computed(() => {
+const rolePermissions = computed(() => {
   // Use user's role permissions only.
-  // user.effective_permissions would include all permissions for admins 
+  // user.effective_permissions would include all permissions for admins
   // which cannot be used for restricted tokens.
   const roleIds = new Set(auth.user.value?.roles || []);
   const permissions = (apiSettings.settings?.permissions.roles || [])
     .filter(role => roleIds.has(role.id))
     .flatMap(role => role.permissions);
   return [...new Set(permissions)].sort();
+});
+
+const restrictedPermissions = computed(() => {
+  return rolePermissions.value.filter(p =>
+    p !== UserPermission.ARCHIVE_ALWAYS_ADD_ARCHIVING_KEY_TO_PROJECT
+  );
+});
+
+const projectRestrictedPermissions = computed(() => {
+  return rolePermissions.value.filter(p =>
+    p.startsWith('project.')
+    && p !== UserPermission.PROJECT_CREATE
+    && p !== UserPermission.PROJECT_RESTORE
+  );
 });
 
 const permissionLevelItems = computed(() => {
@@ -254,7 +282,13 @@ const permissionLevelItems = computed(() => {
     {
       value: PermissionLevel.RESTRICTED,
       title: 'Restricted permissions',
-      subtitle: 'Limit this token to selected permissions and optionally projects.',
+      subtitle: 'Limit this token to selected permissions across all accessible projects.',
+      disabled: !isPro,
+    },
+    {
+      value: PermissionLevel.PROJECT_RESTRICTED,
+      title: 'Project-restricted token',
+      subtitle: 'Limit this token to selected projects and project permissions.',
       disabled: !isPro,
     },
   );
@@ -271,6 +305,22 @@ const setupWizard = ref({
     name: '',
     expire_date: null as string|null,
   },
+});
+
+const projectRestrictedDefaultPermissions = [
+  UserPermission.PROJECT_READ,
+  UserPermission.PROJECT_EDIT_CONTENT,
+  UserPermission.PROJECT_UPDATE_SETTINGS,
+];
+
+watch(permissionLevel, (level) => {
+  selectedProjects.value = [];
+  customPermissions.value = level === PermissionLevel.PROJECT_RESTRICTED
+    ? projectRestrictedDefaultPermissions.filter(p => projectRestrictedPermissions.value.includes(p))
+    : [];
+  if (setupWizard.value.errors) {
+    setupWizard.value.errors = null;
+  }
 });
 
 function openSetupWizard() {
@@ -294,19 +344,24 @@ async function createApiToken() {
   if (setupWizard.value.actionInProgress) {
     return;
   }
-  if (permissionLevel.value === PermissionLevel.RESTRICTED && customPermissions.value.length === 0) {
+  const isRestricted = permissionLevel.value === PermissionLevel.RESTRICTED;
+  const isProjectRestricted = permissionLevel.value === PermissionLevel.PROJECT_RESTRICTED;
+  if ((isRestricted || isProjectRestricted) && customPermissions.value.length === 0) {
     setupWizard.value.errors = { permissions: ['Select at least one permission.'] };
+    return;
+  }
+  if (isProjectRestricted && selectedProjects.value.length === 0) {
+    setupWizard.value.errors = { projects: ['Select at least one project.'] };
     return;
   }
   setupWizard.value.actionInProgress = true;
   try {
-    const isRestricted = permissionLevel.value === PermissionLevel.RESTRICTED;
     setupWizard.value.newApiToken = await $fetch<ApiToken>('/api/v1/pentestusers/self/apitokens/', {
       method: 'POST',
       body: {
         ...setupWizard.value.form,
-        permissions: isRestricted ? customPermissions.value : null,
-        projects: isRestricted && selectedProjects.value.length > 0
+        permissions: (isRestricted || isProjectRestricted) ? customPermissions.value : null,
+        projects: isProjectRestricted
           ? selectedProjects.value.map(p => ({ id: p.id }))
           : null,
         admin_permissions_enabled: permissionLevel.value === PermissionLevel.ADMIN,

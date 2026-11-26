@@ -14,6 +14,8 @@
               clearable
               density="compact"
               :disabled="!canEdit"
+              hint="Upload scan result files to import them as findings or notes. Only import scan files from sources you trust."
+              persistent-hint
               class="flex-grow-1"
             />
           </div>

@@ -1,5 +1,4 @@
 import json
-import re
 import textwrap
 
 from sysreptor.pentests.models import (
@@ -58,8 +57,19 @@ class ScoutSuiteImporter(BaseImporter):
         # ScoutSuite's default report is a .js file containing a single
         # assignment: `scoutsuite_results = { ... };`. Strip that wrapper if
         # present so both the .js report and a plain .json export work.
-        m = re.search(r"=\s*(\{.*\})\s*;?\s*$", raw, re.DOTALL)
-        json_text = m.group(1) if m else raw
+        json_text = raw
+        eq = raw.find('=')
+        brace_start = raw.find('{')
+        brace_end = raw.rfind('}')
+        if (
+            eq != -1
+            and brace_start != -1
+            and brace_end > brace_start
+            and eq < brace_start
+        ):
+            trailing = raw[brace_end + 1:].strip()
+            if trailing in ('', ';'):
+                json_text = raw[brace_start:brace_end + 1]
 
         data = json.loads(json_text)
         if not isinstance(data, dict) or 'services' not in data:

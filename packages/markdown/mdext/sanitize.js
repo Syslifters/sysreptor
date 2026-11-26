@@ -17,7 +17,6 @@ const svgAttributes = {
   'circle': [allClasses, ...svgCommonPresentationAttrs, 'cx', 'cy', 'id', 'r', 'requiredFeatures', 'systemLanguage'],
   'clipPath': [allClasses, ...svgCommonPresentationAttrs, 'clipPathUnits', 'id'],
   'defs': [],
-  'style': ['type'],
   'desc': [],
   'ellipse': [allClasses, ...svgCommonPresentationAttrs, 'cx', 'cy', 'id', 'requiredFeatures', 'rx', 'ry', 'systemLanguage'],
   'feBlend': [allClasses, 'id', 'in', 'in2', 'mode', 'result'],
@@ -71,6 +70,7 @@ const svgAttributes = {
 export const rehypeSanitizeSchema = merge({}, defaultSchema, {
   allowComments: true,
   clobberPrefix: null,
+  strip: ['script', 'style'],
   tagNames: [
     // Custom components
     'footnote', 'template', 'ref', 'pagebreak', 'markdown', 'mermaid-diagram', 'math-latex', 'qrcode',

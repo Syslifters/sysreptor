@@ -60,6 +60,8 @@ describe('CommonMark', () => {
   const skipExamples = [
     // Raw HTML: parsed by rehype instead of passthrough, mainly affects invalid/incomplete HTML
     171, 187, 344, 476, 477, 494, 613, 614, 615, 616, 630, 631, 642, 643,
+    // style and script tags are not supported
+    172, 176,
     // Indented code blocks: disabled
     107, 108, 109, 110, 111, 112,  113, 114, 115, 116, 117, 118,
     1, 2, 3, 5, 6, 7, 8, 18, 36, 48, 69, 85, 100, 134, 183, 

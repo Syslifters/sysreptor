@@ -1,4 +1,5 @@
 import functools
+import hmac
 import json
 from datetime import datetime, timedelta
 from uuid import UUID
@@ -52,7 +53,7 @@ from sysreptor.users.serializers import (
     get_oauth,
 )
 from sysreptor.utils import license
-from sysreptor.utils.api import CursorMultiPagination
+from sysreptor.utils.api import CursorMultiPagination, EnforceCsrfViewMixin
 from sysreptor.utils.audit import audit_log
 from sysreptor.utils.configuration import configuration
 from sysreptor.utils.utils import is_true
@@ -275,7 +276,7 @@ class APITokenViewSet(UserSubresourceViewSetMixin, mixins.ListModelMixin, mixins
         return super().get_serializer_class()
 
 
-class AuthViewSet(viewsets.ViewSet):
+class AuthViewSet(EnforceCsrfViewMixin, viewsets.ViewSet):
     schema = None
     throttle_scope = None
     authentication_classes = []
@@ -370,19 +371,38 @@ class AuthViewSet(viewsets.ViewSet):
             },
         })
 
-    def _verify_mfa_preconditions(self, request):
+    def _verify_pending_login(self, request, *, expected_status, status_error):
         login_state = request.session.get('login_state', {})
-        if login_state.get('status') != 'mfa-required':
-            raise APIBadRequestError('MFA login not allowed')
-        elif datetime.fromisoformat(login_state.get('start')) + settings.MFA_LOGIN_TIMEOUT < timezone.now():
+        if login_state.get('status') != expected_status:
+            raise APIBadRequestError(status_error)
+
+        start = login_state.get('start')
+        if not start or datetime.fromisoformat(start) + settings.MFA_LOGIN_TIMEOUT < timezone.now():
             raise APIBadRequestError('Login timeout. Please restart login.')
+
+        # Refresh credentials so a concurrent password reset/deactivate is visible
+        request.user.refresh_from_db()
+        auth_hash = login_state.get('auth_hash')
+        expected_hash = request.user.get_session_auth_hash()
+        if not isinstance(auth_hash, str) or not hmac.compare_digest(auth_hash, expected_hash):
+            raise APIBadRequestError('Login timeout. Please restart login.')
+
+        self.validate_login_allowed(request.user)
+
+    def _verify_mfa_preconditions(self, request):
+        self._verify_pending_login(
+            request,
+            expected_status='mfa-required',
+            status_error='MFA login not allowed',
+        )
 
     @action(detail=False, url_path='login/change-password', methods=['post'], authentication_classes=[MFALoginInProgressAuthentication], permission_classes=[LocalUserAuthPermissions])
     def change_password(self, request, *args, **kwargs):
-        # verify login state
-        login_state = request.session.get('login_state', {})
-        if login_state.get('status') != 'password-change-required':
-            raise APIBadRequestError('Password change not allowed')
+        self._verify_pending_login(
+            request,
+            expected_status='password-change-required',
+            status_error='Password change not allowed',
+        )
 
         serializer = self.get_serializer(instance=request.user, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -394,11 +414,13 @@ class AuthViewSet(viewsets.ViewSet):
         auth = {'method': 'local'} | dict(auth or {})
         is_reauth = bool(request.session.get('authentication_info', {}).get('login_time')) and str(user.id) == request.session.get(SESSION_KEY)
         if not step:
-            # After username+password successful
+            self.validate_local_login_allowed(user)
+
             request.session['login_state'] = request.session.get('login_state', {}) | {
                 'status': 'mfa-required',
                 'user_id': str(user.id),
                 'start': timezone.now().isoformat(),
+                'auth_hash': user.get_session_auth_hash(),
             }
             request.session.cycle_key()
 
@@ -414,8 +436,7 @@ class AuthViewSet(viewsets.ViewSet):
         elif step == 'mfa':
             # After MFA successful
             self.validate_login_allowed(user)
-            if not user.can_login_local:
-                raise APIBadRequestError('Local user login via username/password is disabled for this user. Log in via SSO instead.')
+            self.validate_local_login_allowed(user)
 
             login_state_update = {'status': 'password-change-required'}
             if mfa := auth.get('mfa'):
@@ -435,6 +456,10 @@ class AuthViewSet(viewsets.ViewSet):
                 if mfa := request.session.get('login_state', {}).get('mfa'):
                     auth['mfa'] = mfa
             return self.perform_login(request, user, can_reauth=can_reauth, auth=auth)
+
+    def validate_local_login_allowed(self, user):
+        if not user.can_login_local:
+            raise APIBadRequestError('Local user login via username/password is disabled for this user. Log in via SSO instead.')
 
     def validate_login_allowed(self, user):
         if not user.is_active:

@@ -17,7 +17,7 @@ from rest_framework.settings import api_settings
 from sysreptor.api_utils import backup_utils
 from sysreptor.api_utils.healthchecks import run_healthchecks
 from sysreptor.api_utils.models import BackupLog
-from sysreptor.api_utils.permissions import BackupPermissions, IsAdmin
+from sysreptor.api_utils.permissions import BackupPermissions, IsAdmin, SpellcheckPermissions
 from sysreptor.api_utils.serializers import (
     BackupLogSerializer,
     BackupSerializer,
@@ -123,13 +123,13 @@ class UtilsViewSet(viewsets.GenericViewSet, ViewSetAsync):
         return Response(data=await license.aget_license_info())
 
     @extend_schema(responses=OpenApiTypes.OBJECT)
-    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
+    @action(detail=False, methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired, SpellcheckPermissions])
     async def spellcheck(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.spellcheck()
         return Response(data=data)
 
-    @action(detail=False, url_name='spellcheck-add-word', url_path='spellcheck/words', methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired])
+    @action(detail=False, url_name='spellcheck-add-word', url_path='spellcheck/words', methods=['post'], permission_classes=api_settings.DEFAULT_PERMISSION_CLASSES + [license.ProfessionalLicenseRequired, SpellcheckPermissions])
     async def spellcheck_add_word(self, request, *args, **kwargs):
         serializer = await self.aget_valid_serializer(data=request.data)
         data = await serializer.save()

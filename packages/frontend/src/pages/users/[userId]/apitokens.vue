@@ -10,13 +10,13 @@
         >
           <v-list-item-title>
             {{ apiToken.name }}
-            <v-chip
-              v-if="apiToken.permissions != null"
-              size="small"
-              class="ml-3"
-            >
-              Restricted permissions
-            </v-chip>
+              <v-chip
+                v-if="apiToken.permissions != null"
+                size="small"
+                class="ml-3"
+              >
+                {{ apiToken.projects != null ? 'Project-restricted' : 'Restricted permissions' }}
+              </v-chip>
             <template v-if="apiToken.projects != null">
               <v-chip v-for="project in apiToken.projects" :key="project.id" size="small" class="ml-1">
                 {{ project.name }}
