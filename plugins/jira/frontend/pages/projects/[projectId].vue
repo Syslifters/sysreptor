@@ -225,6 +225,7 @@ const projectType = await useFetchE<ProjectType>(
   `/api/v1/projecttypes/${project.value.project_type}/`,
   { method: 'GET' }
 );
+useAsyncDataE(async () => await auth.fetchUser());
 
 const findings = computed(() =>
   sortFindings({
@@ -253,14 +254,13 @@ const exportResults = ref<ExportResults>({
   failed: [],
 });
 
-const canExport = computed(() => {
-  return
-    auth.hasPermission(UserPermission.PROJECT_EXPORT) &&
-    selectedJiraProject.value &&
-    selectedIssueType.value &&
-    selectedFindings.value.length > 0 &&
-    !exporting.value;
-});
+const canExport = computed(() => 
+  auth.hasPermission(UserPermission.PROJECT_EXPORT) &&
+  selectedJiraProject.value &&
+  selectedIssueType.value &&
+  selectedFindings.value.length > 0 &&
+  !exporting.value
+);
 
 // Load Jira projects on mount
 onMounted(async () => {

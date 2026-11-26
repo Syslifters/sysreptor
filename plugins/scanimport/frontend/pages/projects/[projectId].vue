@@ -98,7 +98,6 @@
           v-else-if="step === Step.SELECT"
           :value="canEdit"
           :permission="UserPermission.PROJECT_EDIT_CONTENT"
-          :text="permissionInfoText"
         >
           <btn-confirm
             :action="importSelectedObjects"
@@ -134,8 +133,14 @@ enum Step {
 
 const project = await useFetchE<PentestProject>(`/api/v1/pentestprojects/${projectId.value}/`, { method: 'GET' });
 const availableImporters = await useFetchE<string[]>(`/api/plugins/${appConfig.pluginId}/api/availableimporters/`, { method: 'GET' });
+useAsyncDataE(async () => await auth.fetchUser());
 
 const canEdit = computed(() => !project.value.readonly && auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT));
+
+watch(canEdit, () => {
+  console.log(`canEdit=${canEdit.value} project.readonly=${project.value.readonly} project.edit_content=${auth.hasPermission(UserPermission.PROJECT_EDIT_CONTENT)}`);
+  console.log('auth', auth);
+}, { immediate: true });
 
 const step = ref(Step.UPLOAD);
 const uploadForm = ref({
