@@ -56,10 +56,12 @@ RUN addgroup --system languagetool \
 COPY --chown=languagetool --from=build /dist/LanguageTool /LanguageTool
 WORKDIR /LanguageTool
 
-# Hunspell arm64 workaround
+# Hunspell arm64 workaround: hunspell.jar ships no linux-aarch64 binary
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
-      mkdir -p /hunspell/linux-aarch64/ \
-      && cp /usr/lib/libhunspell-1.7.so.0.0.1 /hunspell/linux-aarch64/libhunspell.so \
+      hunspell_lib="$(readlink -f /usr/lib/libhunspell-1.7.so.0)" \
+      && [ -f "$hunspell_lib" ] \
+      && mkdir -p /hunspell/linux-aarch64/ \
+      && cp "$hunspell_lib" /hunspell/linux-aarch64/libhunspell.so \
       && cd /hunspell \
       && zip /LanguageTool/libs/hunspell.jar linux-aarch64/libhunspell.so \
       && rm -rf /hunspell; \
