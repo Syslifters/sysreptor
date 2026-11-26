@@ -1,5 +1,6 @@
 from .base import BaseImporter, registry
 from .burp import BurpImporter
+from .darkmoon import DarkmoonImporter
 from .nessus import NessusImporter
 from .nmap import NmapImporter
 from .openvas import OpenVASImporter
@@ -10,6 +11,7 @@ from .sslyze import SslyzeImporter
 from .zap import ZapImporter
 
 registry.register(BurpImporter())
+registry.register(DarkmoonImporter())
 registry.register(NessusImporter())
 registry.register(NmapImporter())
 registry.register(OpenVASImporter())
@@ -22,7 +24,7 @@ registry.register(ZapImporter())
 
 __all__ = [
     'BaseImporter', 'registry',
-    'BurpImporter', 'NessusImporter', 'NmapImporter', 'OpenVASImporter',
+    'BurpImporter', 'DarkmoonImporter', 'NessusImporter', 'NmapImporter', 'OpenVASImporter',
     'ProwlerImporter', 'QualysImporter', 'ScoutSuiteImporter', 'SslyzeImporter',
     'ZapImporter',
 ]
