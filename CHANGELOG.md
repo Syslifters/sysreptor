@@ -1,6 +1,7 @@
 # Changelog
 
 ## Upcoming
+* Plugin `jira`: Embed images inline in Jira issue descriptions instead of rendering markdown image syntax as text
 * Rework permission system to role-based user permissions (https://docs.sysreptor.com/users/user-permissions)
 * Configure custom roles via `CUSTOM_USER_ROLES` (https://docs.sysreptor.com/setup/configuration#roles)
 * Breaking change: replaced user permission flags (`is_guest`, `is_designer`, `is_template_editor`, `is_user_manager`, `is_project_admin`, `is_global_archiver`) with `roles` and `effective_permissions` in the user API
