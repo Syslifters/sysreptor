@@ -23,7 +23,8 @@ echo "Injecting Content-Security-Policy into ${CYBERCHEF_HTML}"
 script_hashes=""
 while IFS= read -r body; do
   [ -z "${body}" ] && continue
-  digest="$(printf '%s' "${body}" | openssl dgst -sha256 -binary | base64 -w0)"
+  hex="$(printf '%s' "${body}" | sha256sum | cut -d' ' -f1)"
+  digest="$(printf '%b' "$(printf '%s' "${hex}" | sed 's/../\\x&/g')" | base64 -w0)"
   script_hashes+=" 'sha256-${digest}'"
 done < <(awk '
   {
