@@ -138,7 +138,7 @@ class APITokenViewSetPermissions(permissions.BasePermission):
     def has_permission(self, request, view):
         forbidden_with_apitoken_auth(request)
         user = view.get_user()
-        if view.kwargs.get('pentestuser_pk') == 'self':
+        if user == request.user:
             return check_sensitive_operation_timeout(request)
         if request.method in permissions.SAFE_METHODS:
             return UserSubresourcePermissions.has_read_permissions(target_user=user, user=request.user)
