@@ -371,6 +371,12 @@ class AuthViewSet(EnforceCsrfViewMixin, viewsets.ViewSet):
             },
         })
 
+    @staticmethod
+    def _auth_hashes_match(stored, expected):
+        if not isinstance(stored, str) or not isinstance(expected, str) or len(stored) != len(expected):
+            return False
+        return hmac.compare_digest(stored, expected)
+
     def _verify_pending_login(self, request, *, expected_status, status_error):
         login_state = request.session.get('login_state', {})
         if login_state.get('status') != expected_status:
@@ -380,14 +386,11 @@ class AuthViewSet(EnforceCsrfViewMixin, viewsets.ViewSet):
         if not start or datetime.fromisoformat(start) + settings.MFA_LOGIN_TIMEOUT < timezone.now():
             raise APIBadRequestError('Login timeout. Please restart login.')
 
-        # Refresh credentials so a concurrent password reset/deactivate is visible
-        request.user.refresh_from_db()
-        auth_hash = login_state.get('auth_hash')
-        expected_hash = request.user.get_session_auth_hash()
-        if not isinstance(auth_hash, str) or not hmac.compare_digest(auth_hash, expected_hash):
+        if not self._auth_hashes_match(login_state.get('auth_hash'), request.user.get_session_auth_hash()):
             raise APIBadRequestError('Login timeout. Please restart login.')
 
         self.validate_login_allowed(request.user)
+        self.validate_local_login_allowed(request.user)
 
     def _verify_mfa_preconditions(self, request):
         self._verify_pending_login(

@@ -9,6 +9,7 @@ from uuid import uuid4
 import pyotp
 import pytest
 from django.conf import settings
+from django.contrib.auth import SESSION_KEY
 from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.management import call_command
@@ -872,6 +873,14 @@ class TestPasswordChangeSessionRevocation:
         client.cookies[settings.SESSION_COOKIE_NAME] = session.session_key
         return client
 
+    def assert_pending_login_session(self, client):
+        session_key = client.session.session_key
+        stored = Session.objects.get(session_key=session_key)
+        assert stored.user_id is None
+        assert SESSION_KEY not in stored.get_decoded()
+        assert client.get(reverse('pentestuser-self')).status_code in [401, 403]
+        return session_key
+
     def test_change_password_keeps_current_revokes_others(self):
         client = self.session_client()
         other = self.create_user_session()
@@ -1001,11 +1010,39 @@ class TestPasswordChangeSessionRevocation:
 
         attacker_password = get_random_string(32)
         assert pending.post(reverse('auth-change-password'), data={'password': attacker_password}).status_code == 400
-
-        update(self.user, is_active=True)
         self.user.refresh_from_db()
         assert self.user.check_password(self.password)
         assert not self.user.check_password(attacker_password)
+
+    def test_pending_password_change_rejected_when_local_login_disabled(self):
+        update(self.user, must_change_password=True)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': self.user.username,
+            'password': self.password,
+        }).data['status'] == 'password-change-required'
+
+        update(self.user, can_login_local=False)
+        new_password = get_random_string(32)
+        assert pending.post(reverse('auth-change-password'), data={'password': new_password}).status_code == 400
+        self.user.refresh_from_db()
+        assert self.user.check_password(self.password)
+
+    def test_pending_mfa_rejected_while_disabled(self):
+        user_mfa = create_user(password=self.password)
+        mfa_totp = MFAMethod.objects.create_totp(user=user_mfa)
+        pending = api_client()
+        assert pending.post(reverse('auth-login'), data={
+            'username': user_mfa.username,
+            'password': self.password,
+        }).data['status'] == 'mfa-required'
+
+        update(user_mfa, is_active=False)
+        assert pending.post(reverse('auth-login-code'), data={
+            'id': str(mfa_totp.id),
+            'code': pyotp.TOTP(**mfa_totp.data).now(),
+        }).status_code == 400
+        assert pending.get(reverse('pentestuser-self')).status_code in [401, 403]
 
 
 @pytest.mark.django_db()
